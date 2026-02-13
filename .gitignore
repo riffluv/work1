@@ -1,0 +1,28 @@
+# Secrets / env
+.env
+.env.*
+*.pem
+*.key
+*.p12
+
+# Node / build
+node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Client-sensitive exports
+**/logs/*.log
+**/logs/*.json
+**/deliverables/*.zip
+**/deliverables/*.patch
+
+# Windows ADS
+*:Zone.Identifier
