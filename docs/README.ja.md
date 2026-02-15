@@ -12,6 +12,9 @@
 3. `docs/first-case-sop-1page.ja.md`  
 初案件を受注してから納品までの最短手順
 
+4. `docs/coconala-premium-roadmap.ja.md`  
+現行15,000円サービスから上位プレミアムへ派生する実行ロードマップ
+
 ## 正本ルール（重要）
 
 - 現行サービス内容の簡易正本は `Next.js_Stripe不具合診断・修正.md`（ルート直下）とする。

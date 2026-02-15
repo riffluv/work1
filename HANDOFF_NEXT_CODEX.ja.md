@@ -34,6 +34,12 @@
 - 実績参照（ゲーム）: `/home/hr-hm/Project/jomonsho`
 - 実績参照（Stripeキット）: `/home/hr-hm/Project/stripe`
 
+## 返信運用（固定）
+
+- 相手文の貼り付けのみは「分析のみ」で返す（返信文は作らない）
+- 「返信文作って」「返信書いて」など明示があるときだけ送信用文面を作る
+- 送信用文面を作った場合は、毎回 `/home/hr-hm/Project/work/返信文_latest.txt` に同内容を保存する
+
 ## work配下の重要ファイル
 
 - `AGENTS.md`
@@ -42,6 +48,7 @@
 - `README.md`
 - `Next.js_Stripe不具合診断・修正.md`（現行サービス内容の正本）
 - `docs/service-plan.ja.md`
+- `docs/coconala-premium-roadmap.ja.md`（上位サービス派生ロードマップ）
 - `docs/coconala-listing-checklist.md`
 - `docs/README.ja.md`
 - `TEMPLATES/*.md`
@@ -120,3 +127,18 @@
 - 何を決めたか: サービス内容の現行正本を「基本15,000円で不具合1件対応 + 最終確認は依頼者環境（結果ログで追加調整）」として確定した。
 - 何を変更したか（ファイルパス）: `Next.js_Stripe不具合診断・修正.md`, `docs/coconala-listing-final.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`, `docs/README.ja.md`, `docs/service-plan.ja.md`, `AGENTS.md`, `CLAUDE.md`
 - 次回の最優先タスク: 依頼相談への初回返信時に、現行正本の定義（不具合1件の範囲・最終確認フロー）で回答を統一する
+
+### 2026-02-13（追記10）
+- 何を決めたか: 返信運用を「貼り付けのみ=分析」「返信文作成明示時のみ送信用文面作成」に固定し、送信用文面は毎回 `返信文_latest.txt` に保存する。
+- 何を変更したか（ファイルパス）: `SKILLS/coconala-reply-ja/SKILL.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 見積り相談の実案件で同運用を使い、返信速度と貼り付け作業時間を短縮する。
+
+### 2026-02-14（追記11）
+- 何を決めたか: ココナラ出品画面の確定文言（サービス本文・購入時お願い・FAQ・見積り時お願い）を docs 正本へ同期した。
+- 何を変更したか（ファイルパス）: `docs/coconala-listing-final.ja.md`, `Next.js_Stripe不具合診断・修正.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 相談文の実案件運用で、確定文言どおりにスコープ判定と返信文作成を統一する。
+
+### 2026-02-14（追記12）
+- 何を決めたか: 現行15,000円サービス完走後に追加出品する「不具合修正プレミアム」のロードマップを作成した。
+- 何を変更したか（ファイルパス）: `docs/coconala-premium-roadmap.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 現行サービスの初回〜2件を完走し、実績ベースでプレミアム出品文ドラフトを作る。
