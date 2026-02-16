@@ -15,6 +15,15 @@
 4. `docs/coconala-premium-roadmap.ja.md`  
 現行15,000円サービスから上位プレミアムへ派生する実行ロードマップ
 
+5. `docs/coconala-guide-market-ops.ja.md`  
+ココナラ公式段取り（購入時挨拶 / 滞留時連絡 / 正式納品）を固定した運用メモ
+
+6. `docs/coconala-seller-help-key-links.ja.md`  
+サービス出品者向けヘルプの要点（見積り経路・紐付け・受付設定）
+
+7. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
+見積り設定UIの挙動を3行で確認するチートシート
+
 ## 正本ルール（重要）
 
 - 現行サービス内容の簡易正本は `Next.js_Stripe不具合診断・修正.md`（ルート直下）とする。
@@ -26,7 +35,7 @@
 - `docs/writing-guideline.ja.md`  
 返信文の文体・NG表現・言い換えルール
 - `docs/coconala-message-templates-short.ja.md`  
-初回返信、進捗、追加料金、納品の短文テンプレ
+初回返信、見積り判定、進捗、追加料金、納品の短文テンプレ
 - `docs/文章コミュニケーション完全ガイド.md`  
 文章運用の詳細版（長文）
 

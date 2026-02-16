@@ -1,6 +1,6 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
-最終更新: 2026-02-13
+最終更新: 2026-02-15
 
 ## 目的
 
@@ -49,6 +49,9 @@
 - `Next.js_Stripe不具合診断・修正.md`（現行サービス内容の正本）
 - `docs/service-plan.ja.md`
 - `docs/coconala-premium-roadmap.ja.md`（上位サービス派生ロードマップ）
+- `docs/coconala-guide-market-ops.ja.md`（ココナラ公式段取りの運用メモ）
+- `docs/coconala-seller-help-key-links.ja.md`（見積り機能・紐付け・受付設定の要点）
+- `docs/coconala-message-templates-short.ja.md`（返信・見積り判定テンプレ）
 - `docs/coconala-listing-checklist.md`
 - `docs/README.ja.md`
 - `TEMPLATES/*.md`
@@ -142,3 +145,93 @@
 - 何を決めたか: 現行15,000円サービス完走後に追加出品する「不具合修正プレミアム」のロードマップを作成した。
 - 何を変更したか（ファイルパス）: `docs/coconala-premium-roadmap.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 現行サービスの初回〜2件を完走し、実績ベースでプレミアム出品文ドラフトを作る。
+
+### 2026-02-15（追記13）
+- 何を決めたか: `guide_market` の公式段取り（購入時挨拶・滞留時連絡・正式納品）を運用メモ化し、次セッションでも参照可能にした。
+- 何を変更したか（ファイルパス）: `docs/coconala-guide-market-ops.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件で4フェーズ運用を適用し、返信テンプレと段取りのズレを都度補正する。
+
+### 2026-02-15（追記14）
+- 何を決めたか: サービス出品者向けヘルプ（見積り機能セクション）の重要リンクと運用要点を1枚に統合し、次セッションで参照可能にした。
+- 何を変更したか（ファイルパス）: `docs/coconala-seller-help-key-links.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実際の見積り相談が来たら、経路判定と「出品サービスに紐付ける」運用を必ず実行する。
+
+### 2026-02-15（追記15）
+- 何を決めたか: 見積り相談の判定は「不具合1件（同一原因 / 1フロー / 1エンドポイント）」で固定し、受注前の見積り返信テンプレを運用標準にした。
+- 何を変更したか（ファイルパス）: `docs/coconala-message-templates-short.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件の見積り相談で、テンプレ10〜14を使って判定と追加料金説明のブレをなくす。
+
+### 2026-02-15（追記16）
+- 何を決めたか: DeepResearchの結果は鵜呑みにせず、自然文に効く要素（禁止語言い換え、具体語、依頼者タイプ別テンプレ）のみを採用する。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件の相談文で skill 使用/不使用のA/B比較を行い、自然さと返信率の高い文型を固定する。
+
+### 2026-02-15（追記17）
+- 何を決めたか: 返信文の初手は「安心文」を必須にし、ヒアリングは「必須3項目（期待/実際/再現）+ 任意3項目（ログ/環境/納期）」へ分割する。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談で「安心文あり」テンプレの返信率を確認し、必要なら初回文面の長さだけ微調整する。
+
+### 2026-02-15（追記18）
+- 何を決めたか: 「再現手順（番号で）」の曖昧表現を廃止し、「操作の順番を1,2,3で」に統一。期待結果/実際結果を併記する回収方式へ更新した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 初回相談で「操作順1,2,3 + 期待/実際」テンプレの回収率を確認し、記入しづらい項目があれば文言をさらに短くする。
+
+### 2026-02-15（追記19）
+- 何を決めたか: ログインなし/単発障害など再現不可のケースでは、番号手順を強制せず「発生直前の操作 + 発生時刻」を回収する。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談で再現不可ケースにこの回収方式を適用し、初回返信の離脱率を下げる。
+
+### 2026-02-15（追記20）
+- 何を決めたか: プロフィール文・出品本文・FAQ専用に、新skill `coconala-listing-ja` を作成し、固定条件を維持した自然文リライト運用を開始した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-listing-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/fixed-facts.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 現行のプロフィール文と出品本文に `coconala-listing-ja` を適用し、標準トーンの最終版を正本へ反映する。
+
+### 2026-02-16（追記21）
+- 何を決めたか: 不具合ヒアリングは「初回の最小3点（環境/操作と現象/証拠）→実装前の必須5点（期待/実際/再現/ログ/環境）」の2段階運用に固定した。再現不可時のみ日時回収を使う。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/intake-flow.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実際の見積り相談で2段階ヒアリングを使い、初回返信率と必要情報の回収率（最小3点→必須5点）を確認して微調整する。
+
+### 2026-02-16（追記22）
+- 何を決めたか: 会話破綻を防ぐため、返信文生成に「整合性ガード」を追加し、宣言と実体の不一致（3点/5点の数ズレ、番号例の書き漏れ）を出力前に必ず検査する運用に固定した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談の返信文を3件連続で整合性ガード適用し、項目数ズレ/例書き漏れがゼロか確認する。
+
+### 2026-02-16（追記23）
+- 何を決めたか: 環境ヒアリングの用語は `本番/プレビュー/ローカル` に固定し、`開発環境` は曖昧語として単独使用しない運用にした。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/intake-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談で環境を `本番/プレビュー/ローカル` の3択で回収し、回答率と誤解発生の有無を確認する。
+
+### 2026-02-16（追記24）
+- 何を決めたか: 見積り設定UIの挙動を迷わないように、`見積り相談受付` と `購入前見積り必須` の関係を3行で確認できるチートシートを新設した。
+- 何を変更したか（ファイルパス）: `docs/coconala-estimate-ui-cheatsheet.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 出品設定確認時はチートシートを起点に、実画面のON/OFF値と固定運用（ON/OFF/ON）が一致しているか確認する。
+
+### 2026-02-16（追記25）
+- 何を決めたか: 見積り相談の返信品質を固定するため、`coconala-reply-ja` に経路別テンプレ（サービス経由 / プロフィール経由 / メッセージ経由）を追加し、初回は「必須3項目 + 任意3項目」で回収する運用に統一した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実際の見積り相談で経路別テンプレを適用し、初回返信で必要情報が集まるか（必須3の回収率）を確認する。
+
+### 2026-02-16（追記26）
+- 何を決めたか: 文章の分かりづらさ再発を防ぐため、返信/出品文の両skillに「人間向け明瞭化（1文1意味、1文目で結論、対応内容と納品物を分離）」を最優先ルールとして追加した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 返信文・FAQ作成時に「1文目で回答」「1文1意味」が守られているかを出力前チェックで確認する。
+
+### 2026-02-16（追記27）
+- 何を決めたか: 3つのDeepResearch結果は「部分採用」方針に固定し、自然文に効く要素のみskillへ反映した。具体的には、硬い定型の削除、ヒアリング順序の統一（必須3=期待/実際/環境）、支払い仕様ガード（見積り経由オプション不可・正式納品後はおひねり・クローズ後は新規依頼）を適用した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/intake-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/fixed-facts.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実際の見積り相談1件で新テンプレを運用し、(1) 初回返信での離脱有無 (2) 必須3回収率 (3) 文章の分かりやすさ指摘の有無を確認する。
+
+### 2026-02-16（追記28）
+- 何を決めたか: Claudeレビューの有効指摘のみ採用し、skill文面の自然さと可読性を追加改善した。特に、見積り初回の安心文統一、セクション番号逆順修正、曖昧語（テキストのみ）排除、再現手順の表現統一を反映した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/fixed-facts.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実際の見積り相談1件で、(1) 返信の読みやすさ (2) 初回3点の回収率 (3) 不要な追質問の有無を確認し、必要ならテンプレをさらに短文化する。
+
+### 2026-02-16（追記29）
+- 何を決めたか: `skill-ux-review-2026-02-16.md` の提案を評価し、自然さと可読性に効く項目のみ採用した。採用対象は、初回返信の語彙平易化（切り分け→対応方針）、任意3項目の箇条書き化、スコープ説明の平易化、スラッシュ表現の除去、初回メッセージ型のラベル統一。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/intake-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/fixed-facts.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談1件で「初回返信後の回答率」「任意3項目の回収率」「追加料金説明後の離脱有無」を観測し、必要ならテンプレをさらに短文化する。
+
+### 2026-02-16（追記30）
+- 何を決めたか: `skill-japanese-teacher-review.md` は実務に有効。採用は「自然さ/誤読防止に直結する最小修正」に限定し、価格・仕様変更系は不採用方針を維持した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件ログを1週間分採点表で評価し、返信率が落ちる文型（語尾固定・専門語先行）を追加で削る。
