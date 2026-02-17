@@ -299,14 +299,34 @@
 ### 2026-02-17（追記43）
 - 何を決めたか: 「特例対応しない？」への判断を毎回ぶらさないため、特例対応ポリシーを docs と skill の両方に固定した。基本料金の値引きは行わず、同一原因の軽微調整のみ短時間吸収、別原因は追加見積りに切り替える。
 - 何を変更したか（ファイルパス）: `docs/coconala-special-case-policy.ja.md`, `docs/coconala-guide-market-ops.ja.md`, `docs/coconala-message-templates-short.ja.md`, `docs/README.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
-- 次回の最優先タスク: 実案件で特例を使ったら案件メモに「理由（同一原因）/追加時間/当月累計」を必ず記録し、月次上限（実績5件未満: 月2件・30分）を超える前に追加見積りへ切り替える。
+- 次回の最優先タスク: ※この追記の数値上限運用は追記45で廃止済み。現行は都度判断方式（理由/追加時間/判断メモを記録）で運用する。
 
 ### 2026-02-17（追記44）
-- 何を決めたか: 特例対応の上限管理を実運用で漏らさないため、案件テンプレに「納品形式の合意」「特例使用有無」「追加時間」「当月累計」を記録する欄を追加した。
+- 何を決めたか: 特例対応の上限管理を実運用で漏らさないため、案件テンプレに「納品形式の合意」「特例使用有無」「追加時間」「当月累計」を記録する欄を追加した（当時）。※追記45以降は閾値運用を廃止し、現行は都度判断方式へ移行。
 - 何を変更したか（ファイルパス）: `cases/_case-template/README.md`, `HANDOFF_NEXT_CODEX.ja.md`
-- 次回の最優先タスク: 新規案件作成時に `cases/_case-template/README.md` の新項目を必ず埋め、特例累計が閾値に達したら追加見積りへ切り替える。
+- 次回の最優先タスク: ※この追記の閾値運用は追記45で廃止済み。現行は新項目を埋めつつ、ケース判断で吸収/追加見積りを切り替える。
 
 ### 2026-02-17（追記45）
 - 何を決めたか: 特例対応の数値上限は固定しない方針へ変更した。今後は「同一原因の軽微調整か」「短時間で収束見込みがあるか」を都度判断し、文面フロー（同一原因は吸収案内 / 別原因は追加見積り案内）だけを固定する。追記43/44の月次閾値運用は廃止する。
 - 何を変更したか（ファイルパス）: `docs/coconala-special-case-policy.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `cases/_case-template/README.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 特例を使った案件では「理由（同一原因）」「追加時間」「判断メモ」を案件メモに残し、数値閾値ではなくケース判断で次アクション（吸収/追加見積り）を決める。
+
+### 2026-02-17（追記46）
+- 何を決めたか: Claudeレビューの指摘を反映し、旧方針の残存を明示的に廃止注記へ統一した。併せて docs入口の文言を「上限」から「判断基準」へ修正し、案件テンプレに「特例実施日」を追加した。
+- 何を変更したか（ファイルパス）: `HANDOFF_NEXT_CODEX.ja.md`, `docs/README.ja.md`, `cases/_case-template/README.md`
+- 次回の最優先タスク: 特例運用は数値閾値ではなく、同一原因性・収束見込み・購入者合意の3点で判断し、記録を残す。
+
+### 2026-02-17（追記47）
+- 何を決めたか: 実運用の「判断」と「出口」を固定するため、新規Skillを2つ追加した。`scope-judge-ja` で同一原因/別原因の判定と分岐文面を統一し、`delivery-pack-ja` で納品物3点セット（診断レポート/差分または手順/検証メモ）と正式納品文の作成を統一した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/scope-judge-ja/SKILL.md`, `/home/hr-hm/.codex/skills/scope-judge-ja/references/judgement-flow.ja.md`, `/home/hr-hm/.codex/skills/scope-judge-ja/references/examples.ja.md`, `/home/hr-hm/.codex/skills/scope-judge-ja/agents/openai.yaml`, `/home/hr-hm/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/pack-templates.ja.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/delivery-checklist.ja.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/examples.ja.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/agents/openai.yaml`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 初案件で `scope-judge-ja` と `delivery-pack-ja` を1回ずつ実使用し、判定の迷い箇所と納品差し戻し有無を基に references/examples を更新する。
+
+### 2026-02-17（追記48）
+- 何を決めたか: 新規Skillレビュー（Claude）の指摘を反映し、運用導線と実例の実用性を強化した。`coconala-reply-ja` から新Skillへの参照導線を追加し、`delivery-pack-ja` に非エンジニア向け納品例を追加した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/examples.ja.md`, `/home/hr-hm/.codex/skills/scope-judge-ja/references/examples.ja.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/pack-templates.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件で「非エンジニア向け納品文」の理解しやすさ（差し戻し有無）を確認し、必要なら `delivery-pack-ja/references/examples.ja.md` の語彙をさらに平易化する。
+
+### 2026-02-17（追記49）
+- 何を決めたか: 見積り相談で「現サービス範囲外（新規Stripe実装など）」を受ける場合の運用を固定した。見積り経由は「提案を購入」する仕様であり、サービス本体価格との二重決済にはならない。見積り経路では有料オプションを使えないため、必要費用は提案金額へ一括反映する。
+- 何を変更したか（ファイルパス）: `docs/coconala-guide-market-ops.ja.md`, `docs/coconala-seller-help-key-links.ja.md`, `docs/coconala-estimate-ui-cheatsheet.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実際に範囲外相談が来たら、テンプレ18（別見積り案内）を使って提案し、購入者が「二重課金」と誤解しないかを確認して文面を微調整する。

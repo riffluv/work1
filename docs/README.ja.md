@@ -22,7 +22,7 @@
 サービス出品者向けヘルプの要点（見積り経路・紐付け・受付設定）
 
 7. `docs/coconala-special-case-policy.ja.md`
-特例対応の上限・文面・記録ルール（価格崩壊防止）
+特例対応の判断基準・文面・記録ルール（価格崩壊防止）
 
 8. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
 見積り設定UIの挙動を3行で確認するチートシート
@@ -57,3 +57,13 @@ AI臭を避けるコードコメント規約（確定版）
 出品前の確認リスト
 - `docs/service-plan.ja.md`  
 提供プランの定義
+
+## Skill一覧
+- `coconala-reply-ja`  
+返信文の作成・自然化
+- `scope-judge-ja`  
+スコープ判定（同一原因/別原因の分岐）
+- `delivery-pack-ja`  
+納品物3点セット + 正式納品文の作成
+- `coconala-listing-ja`  
+出品文の整備
