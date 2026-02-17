@@ -1,43 +1,44 @@
 # OPERATIONS.md
 
-## Goal
-Use this workspace continuously for all client work.
-Do not create a brand-new workspace for each case.
+## 目的
+このワークスペースを、すべてのクライアント案件で継続利用する。
+案件ごとに新しいワークスペースは作らない。
 
-## Core Rule
-- Keep shared operating docs at workspace root.
-- Keep client-specific artifacts inside each case folder only.
+## 基本ルール
+- 共有の運用ドキュメントはワークスペース直下に置く。
+- 案件固有の成果物は、各 case フォルダ内にのみ置く。
 
-## Folder Policy
-- Root (`/work`): operating rules, templates, scripts, shared references.
-- `cases/ACTIVE/*`: active client cases.
-- `cases/HOLD/*`: waiting for client input/payment/scope decision.
-- `cases/CLOSED/*`: completed cases.
+## フォルダ方針
+- ルート (`/work`): 運用ルール、テンプレート、スクリプト、共通参照資料
+- `cases/ACTIVE/*`: 進行中案件
+- `cases/HOLD/*`: 依頼者返信待ち / 支払い待ち / スコープ判断待ち
+- `cases/CLOSED/*`: 完了案件
 
-## What belongs in case folders
-- intake notes
-- source files from client
-- working patch files
-- deliverables
-- case-specific logs
+## case フォルダに入れるもの
+- ヒアリングメモ
+- 依頼者から受領したソースファイル
+- 作業中のパッチファイル
+- 納品物
+- 案件固有ログ
 
-## What should NOT go into case folders
-- global agent instructions
-- global templates
-- long strategy docs for all services
-- reusable scripts
+## case フォルダに入れないもの
+- 全体向けエージェント指示
+- 全体向けテンプレート
+- 全サービス共通の長期戦略ドキュメント
+- 再利用スクリプト
 
-## Naming Convention
-- `YYYYMMDD-client-or-platform-topic`
-- Example: `20260210-coconala-stripe-webhook-fix`
+## 命名規則
+- `case-001`, `case-002` の連番を使う
+- 新規作成は `./scripts/new-case.sh`（引数なしで自動採番）
+- 例: `./scripts/new-case.sh` -> `case-001`
 
-## Lifecycle
-1. Create case in `cases/ACTIVE`
-2. Work and deliver
-3. Move to `cases/HOLD` if blocked
-4. Move to `cases/CLOSED` after completion
+## ライフサイクル
+1. `cases/ACTIVE` に案件を作成
+2. 作業して納品
+3. ブロック時は `cases/HOLD` へ移動
+4. 完了後は `cases/CLOSED` へ移動
 
-## AI Context Strategy
-- Always open this same `/work` workspace.
-- Keep AGENTS/CLAUDE at root so every new task inherits base rules.
-- Use per-case README to avoid re-explaining project facts.
+## AI コンテキスト方針
+- 毎回この同じ `/work` ワークスペースを開く。
+- AGENTS/CLAUDE をルートに置き、新規タスクでも運用基準を継承する。
+- 案件ごとの README に事実を集約し、同じ説明の繰り返しを減らす。

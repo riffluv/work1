@@ -21,7 +21,10 @@
 6. `docs/coconala-seller-help-key-links.ja.md`  
 サービス出品者向けヘルプの要点（見積り経路・紐付け・受付設定）
 
-7. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
+7. `docs/coconala-special-case-policy.ja.md`
+特例対応の上限・文面・記録ルール（価格崩壊防止）
+
+8. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
 見積り設定UIの挙動を3行で確認するチートシート
 
 ## 正本ルール（重要）
@@ -35,7 +38,7 @@
 - `docs/writing-guideline.ja.md`  
 返信文の文体・NG表現・言い換えルール
 - `docs/coconala-message-templates-short.ja.md`  
-初回返信、見積り判定、進捗、追加料金、納品の短文テンプレ
+初回返信、納品形式確認、見積り判定、進捗、追加料金、納品の短文テンプレ
 - `docs/文章コミュニケーション完全ガイド.md`  
 文章運用の詳細版（長文）
 

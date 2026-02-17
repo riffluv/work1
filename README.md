@@ -16,10 +16,10 @@
 - コメント規約: `docs/code-comment-style.ja.md`
 
 ## 案件運用（最短）
-1. 新規案件作成: `./scripts/new-case.sh <case-slug>`
-2. 作業場所: `cases/ACTIVE/<case-slug>`
-3. 保留移動: `./scripts/move-case.sh <case-slug> HOLD`
-4. 完了移動: `./scripts/move-case.sh <case-slug> CLOSED`
+1. 新規案件作成: `./scripts/new-case.sh`（自動で `case-001` 形式）
+2. 作業場所: `cases/ACTIVE/<case-id>`
+3. 保留移動: `./scripts/move-case.sh <case-id> HOLD`
+4. 完了移動: `./scripts/move-case.sh <case-id> CLOSED`
 5. 案件一覧更新: `CASES_INDEX.md`
 
 ## 補助ドキュメント

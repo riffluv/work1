@@ -167,7 +167,7 @@
 - 次回の最優先タスク: 実案件の相談文で skill 使用/不使用のA/B比較を行い、自然さと返信率の高い文型を固定する。
 
 ### 2026-02-15（追記17）
-- 何を決めたか: 返信文の初手は「安心文」を必須にし、ヒアリングは「必須3項目（期待/実際/再現）+ 任意3項目（ログ/環境/納期）」へ分割する。
+- 何を決めたか: 返信文の初手は「安心文」を必須にし、ヒアリングは「必須3項目（本来の動き/実際の不具合/発生環境）+ 任意3項目（ログ/環境/納期）」へ分割する。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実相談で「安心文あり」テンプレの返信率を確認し、必要なら初回文面の長さだけ微調整する。
 
@@ -235,3 +235,78 @@
 - 何を決めたか: `skill-japanese-teacher-review.md` は実務に有効。採用は「自然さ/誤読防止に直結する最小修正」に限定し、価格・仕様変更系は不採用方針を維持した。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実案件ログを1週間分採点表で評価し、返信率が落ちる文型（語尾固定・専門語先行）を追加で削る。
+
+### 2026-02-16（追記31）
+- 何を決めたか: Claudeレビューの3点は妥当と判断し、現行運用（基本15,000円 + 有料オプション）に合わせて最小修正する方針で反映した。`OPERATIONS.md` は日本語統一、caseテンプレは初動で埋める項目だけを持つ実用版に更新した。
+- 何を変更したか（ファイルパス）: `scripts/new-case.sh`, `OPERATIONS.md`, `cases/_case-template/README.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: `scripts/new-case.sh` で新規ケースを1件作成し、`CASE.md` と `cases/_case-template/README.md` の記入フローが実運用で過不足ないか確認する。
+
+### 2026-02-16（追記32）
+- 何を決めたか: 案件IDは長いslugをやめ、`case-001` 形式の連番へ統一した。`new-case.sh` は引数なしで自動採番を標準にし、必要時のみ `case-XXX`（または数字）指定で作成できる運用にした。
+- 何を変更したか（ファイルパス）: `scripts/new-case.sh`, `scripts/move-case.sh`, `OPERATIONS.md`, `README.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実際に `./scripts/new-case.sh`（引数なし）で `case-001` を作成し、受領zipの配置〜`move-case.sh` での状態移動までを1回通しで確認する。
+
+### 2026-02-16（追記33）
+- 何を決めたか: 見積り初回の3点回収文面は「安心文 + 平易語 + 回答例」を必須にする。必須3+任意3の構造は維持しつつ、任意3の3項目目に「画面スクショ + 利用技術（分かる範囲）」を含めて、判定精度を上げる運用にした。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実見積り1件で新文面を適用し、(1) 初回返信率 (2) 追加質問回数 (3) スタック不明による往復有無を確認する。
+
+### 2026-02-16（追記34）
+- 何を決めたか: 見積り初回返信は「非エンジニア向け（標準）」と「エンジニア向け（要点重視）」の2パターンを固定テンプレ化した。必須3+任意3の構造は維持し、どちらも安心文と回答例を含める運用に統一した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談で相手タイプに合わせてA/Bを使い分け、返信率と追加往復回数の差を記録して運用テンプレを1本化するか判断する。
+
+### 2026-02-16（追記35）
+- 何を決めたか: Claude再レビューの指摘4点を採用し、見積り初回文面の硬さと旧表現の残りを除去した。A版デフォルト運用は維持し、B版は補助テンプレとして継続する。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談でA版をデフォルト適用し、B版に切り替えたケースの成約率・追質問回数を1週間記録する。
+
+### 2026-02-16（追記36）
+- 何を決めたか: 最終レビューで残った軽微差分（B版の「対応可否」表現）を統一し、見積り初回テンプレの語調をA/Bで揃えた。
+- 何を変更したか（ファイルパス）: `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: A版デフォルトで実運用し、相手の返信内容が技術寄りのときのみB版へ切り替える判断基準を案件メモに記録する。
+
+### 2026-02-16（追記37）
+- 何を決めたか: Claudeの全体レビュー（CONDITIONAL GO）で有効だった指摘を採用し、見積り初回以外の文面と出品正本の整合を強化した。特に、先走り判定の回避、`結果ログ` 表現の除去、見積りUI文面の「まず3点」統一を反映した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `docs/coconala-listing-final.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実運用で「購入後初回テンプレ（セクション1）」と「見積り初回テンプレ（セクション10）」の使い分けミスがないかを1週間記録し、混同が出るならテンプレ名をさらに明確化する。
+
+### 2026-02-16（追記38）
+- 何を決めたか: Claude最終レビューで `最終GO` を取得。日本語の自然さ・分かりやすさ・実運用安定性・整合性がすべて5/5に到達したため、現行テンプレと出品正本を運用開始版として確定した。
+- 何を変更したか（ファイルパス）: `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件で `初回返信率` `追加往復回数` `技術不明による追質問有無` を1週間記録し、数値ベースで微調整判断を行う。
+
+### 2026-02-17（追記39）
+- 何を決めたか: 公開直前版として、実際の入力文面（`現在の製品ページとプロフィール`）を `docs/coconala-listing-final.ja.md` に同期した。以後は listing-final を正本として更新する。
+- 何を変更したか（ファイルパス）: `docs/coconala-listing-final.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実画面へ反映後、表示崩れ（改行/FAQ順/200字欄）を確認し、差分があれば listing-final 側へ即時反映する。
+
+### 2026-02-17（追記40）
+- 何を決めたか: `docs/coconala-listing-final.ja.md` は、運用用の見出し付き版ではなく「実画面コピペ完全一致フォーマット」を正本とする運用に変更した。
+- 何を変更したか（ファイルパス）: `docs/coconala-listing-final.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: サービス編集後は `現在の製品ページとプロフィール` と `docs/coconala-listing-final.ja.md` の差分を都度ゼロに保つ。
+
+### 2026-02-17（追記41）
+- 何を決めたか: プロフィール文の最終軽微修正（UI残骸削除・禁止語の平易化・冒頭重複の緩和）を反映し、公開運用に移行できる状態へ更新した。
+- 何を変更したか（ファイルパス）: `現在のプロフィール`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実画面プレビューでプロフィールの表示順（ひとことアピールと自己紹介本文の重複感）を確認し、必要なら1文だけ短縮する。
+
+### 2026-02-17（追記42）
+- 何を決めたか: セッションが切れても納品形式の確認漏れが出ないよう、購入直後に「patch/diff か 修正済みZIP か」を必ず合意する運用を固定した。
+- 何を変更したか（ファイルパス）: `docs/coconala-message-templates-short.ja.md`, `docs/coconala-guide-market-ops.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件1件で「納品形式の確認テンプレ（セクション15）」を使用し、案件メモに合意した納品形式が記録されているか確認する。
+
+### 2026-02-17（追記43）
+- 何を決めたか: 「特例対応しない？」への判断を毎回ぶらさないため、特例対応ポリシーを docs と skill の両方に固定した。基本料金の値引きは行わず、同一原因の軽微調整のみ短時間吸収、別原因は追加見積りに切り替える。
+- 何を変更したか（ファイルパス）: `docs/coconala-special-case-policy.ja.md`, `docs/coconala-guide-market-ops.ja.md`, `docs/coconala-message-templates-short.ja.md`, `docs/README.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件で特例を使ったら案件メモに「理由（同一原因）/追加時間/当月累計」を必ず記録し、月次上限（実績5件未満: 月2件・30分）を超える前に追加見積りへ切り替える。
+
+### 2026-02-17（追記44）
+- 何を決めたか: 特例対応の上限管理を実運用で漏らさないため、案件テンプレに「納品形式の合意」「特例使用有無」「追加時間」「当月累計」を記録する欄を追加した。
+- 何を変更したか（ファイルパス）: `cases/_case-template/README.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 新規案件作成時に `cases/_case-template/README.md` の新項目を必ず埋め、特例累計が閾値に達したら追加見積りへ切り替える。
+
+### 2026-02-17（追記45）
+- 何を決めたか: 特例対応の数値上限は固定しない方針へ変更した。今後は「同一原因の軽微調整か」「短時間で収束見込みがあるか」を都度判断し、文面フロー（同一原因は吸収案内 / 別原因は追加見積り案内）だけを固定する。追記43/44の月次閾値運用は廃止する。
+- 何を変更したか（ファイルパス）: `docs/coconala-special-case-policy.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `cases/_case-template/README.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 特例を使った案件では「理由（同一原因）」「追加時間」「判断メモ」を案件メモに残し、数値閾値ではなくケース判断で次アクション（吸収/追加見積り）を決める。

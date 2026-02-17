@@ -2,7 +2,8 @@
 set -euo pipefail
 
 if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <case-slug> <ACTIVE|HOLD|CLOSED>"
+  echo "Usage: $0 <case-id> <ACTIVE|HOLD|CLOSED>"
+  echo "Example: $0 case-001 HOLD"
   exit 1
 fi
 
