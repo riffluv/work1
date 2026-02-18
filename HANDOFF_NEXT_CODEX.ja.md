@@ -330,3 +330,13 @@
 - 何を決めたか: 見積り相談で「現サービス範囲外（新規Stripe実装など）」を受ける場合の運用を固定した。見積り経由は「提案を購入」する仕様であり、サービス本体価格との二重決済にはならない。見積り経路では有料オプションを使えないため、必要費用は提案金額へ一括反映する。
 - 何を変更したか（ファイルパス）: `docs/coconala-guide-market-ops.ja.md`, `docs/coconala-seller-help-key-links.ja.md`, `docs/coconala-estimate-ui-cheatsheet.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実際に範囲外相談が来たら、テンプレ18（別見積り案内）を使って提案し、購入者が「二重課金」と誤解しないかを確認して文面を微調整する。
+
+### 2026-02-18（追記50）
+- 何を決めたか: コンテキスト長期化に対する運用は「強制切替なし・兆候ベースの事前警告」に統一した。ターン数閾値での機械的なセッション分割は行わず、ズレの前兆が出たときだけ段階的に警告する。
+- 何を変更したか（ファイルパス）: `AGENTS.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実運用で (1) 質問と回答のズレ (2) 同じ修正のやり直し (3) 方針矛盾編集 が発生した際、1回目は注意喚起、2回連続で新規セッション提案のルールを適用する。
+
+### 2026-02-18（追記51）
+- 何を決めたか: 出品素材を強化するため、`work` 配下に Stripe実装デモアプリを新規作成した。目的は「決済導線が実際に動く証跡（トップ/Checkout/成功/Webhook）」のスクショ・動画素材を短時間で回収すること。
+- 何を変更したか（ファイルパス）: `demo/stripe-showcase/app/page.tsx`, `demo/stripe-showcase/app/api/checkout/route.ts`, `demo/stripe-showcase/app/api/webhook/route.ts`, `demo/stripe-showcase/app/success/page.tsx`, `demo/stripe-showcase/app/events/page.tsx`, `demo/stripe-showcase/app/cancel/page.tsx`, `demo/stripe-showcase/lib/stripe.ts`, `demo/stripe-showcase/lib/event-store.ts`, `demo/stripe-showcase/.env.example`, `demo/stripe-showcase/README.md`, `demo/stripe-showcase/app/layout.tsx`, `demo/stripe-showcase/app/globals.css`
+- 次回の最優先タスク: `.env.local` にStripe testキーを設定し、`stripe listen --forward-to localhost:3000/api/webhook` を起動して、4枚（トップ/Checkout/成功/Webhookログ）の証跡素材を取得する。
