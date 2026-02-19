@@ -94,7 +94,7 @@ export default function HomePage() {
                   type="submit"
                   className="cta-btn w-full rounded-xl px-4 py-2.5 text-sm font-semibold"
                 >
-                  決済を試す
+                  決済へ進む
                 </button>
               </form>
             </div>
