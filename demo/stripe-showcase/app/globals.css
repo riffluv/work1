@@ -75,6 +75,20 @@ a {
   color: inherit;
 }
 
+/* クリック可能要素は必ずポインターにする */
+a[href],
+button,
+input[type="button"],
+input[type="submit"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
+  cursor: not-allowed;
+}
+
 /* カードスタイル - Flat Design */
 .glass {
   border: 1px solid var(--line);

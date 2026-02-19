@@ -10,11 +10,10 @@ const plans: {
   price: string;
   note: string;
   points: string[];
-  badge?: string;
 }[] = [
   {
     id: "monthly",
-    title: "One-time Basic",
+    title: "Standard",
     price: "¥2,980",
     note: "標準金額の単発決済フローを確認できます。",
     points: [
@@ -28,7 +27,7 @@ const plans: {
   },
   {
     id: "yearly",
-    title: "One-time High Value",
+    title: "Premium",
     price: "¥29,800",
     note: "高額決済パターンの挙動を確認できます。",
     points: [
@@ -39,7 +38,6 @@ const plans: {
       "イベントログ画面で受信結果を確認",
       "高額決済時の表示と導線を確認",
     ],
-    badge: "High Value",
   },
 ];
 
@@ -66,16 +64,13 @@ export default function HomePage() {
           >
             {/* 上部ブロック: タイトル・価格・説明・CTA */}
             <div className="card-header flex flex-col px-5 pb-5 pt-5">
-              <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="mb-3">
                 <h2
                   className="font-heading text-lg font-semibold"
                   style={{ color: "var(--foreground)" }}
                 >
                   {plan.title}
                 </h2>
-                {plan.badge ? (
-                  <span className="badge-pill">{plan.badge}</span>
-                ) : null}
               </div>
 
               <p
