@@ -6,8 +6,6 @@ type PlanId = "monthly" | "yearly";
 
 const plans: {
   id: PlanId;
-  label: string;
-  kicker: string;
   title: string;
   price: string;
   note: string;
@@ -16,106 +14,106 @@ const plans: {
 }[] = [
   {
     id: "monthly",
-    label: "月額",
-    kicker: "Starter Billing",
-    title: "Monthly Plan",
-    price: "¥2,980 / 月",
-    note: "短期利用向け。まずは小さく始めるプラン。",
+    title: "One-time Basic",
+    price: "¥2,980",
+    note: "標準金額の単発決済フローを確認できます。",
     points: [
-      "Stripe Checkoutによるサブスク開始",
-      "Webhookで契約状態を同期",
-      "キャンセル導線をCustomer Portalで提供",
+      "Stripe Checkoutで単発決済を実行",
+      "テストカードで決済フローを検証",
+      "success / cancel画面の遷移を確認",
+      "session_id付きで結果画面へ戻る",
+      "Webhook受信イベントをサーバーへ記録",
+      "イベントログ画面で受信結果を確認",
     ],
   },
   {
     id: "yearly",
-    label: "年額",
-    kicker: "Growth Billing",
-    title: "Yearly Plan",
-    price: "¥29,800 / 年",
-    note: "年額は2か月分お得。継続利用を想定したプラン。",
+    title: "One-time High Value",
+    price: "¥29,800",
+    note: "高額決済パターンの挙動を確認できます。",
     points: [
-      "年額決済の一括請求フロー",
-      "Webhook再送時の重複処理対策",
-      "契約更新を見据えた運用導線",
+      "高額金額でCheckout決済を実行",
+      "metadata(planId / planName) を送信",
+      "success / cancel画面の遷移を確認",
+      "Webhook受信イベントをサーバーへ記録",
+      "イベントログ画面で受信結果を確認",
+      "高額決済時の表示と導線を確認",
     ],
-    badge: "Popular",
+    badge: "High Value",
   },
 ];
 
 export default function HomePage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-12 md:px-10 md:py-16">
-      <header className="mb-10 text-center">
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-10 md:px-10 md:py-12">
+      <header className="mb-8 text-center">
         <h1
-          className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
+          className="font-heading text-2xl font-semibold tracking-tight md:text-3xl"
           style={{ color: "var(--foreground)" }}
         >
-          Choose your plan
+          Checkout Patterns
         </h1>
-        <p className="mt-3 text-sm" style={{ color: "var(--muted)" }}>
-          Stripe Checkout + Webhook連携のデモ環境です
+        <p className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
+          Stripe Checkout → Webhook受信の動作確認
         </p>
       </header>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="mx-auto grid w-full max-w-[780px] gap-5 md:grid-cols-2">
         {plans.map((plan) => (
-          <article key={plan.id} className="glass flex h-full flex-col p-6 md:p-7">
-            {/* ヘッダー: プラン名 + バッジ */}
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium tracking-wide"
-                   style={{ color: "var(--muted)" }}>
-                  {plan.kicker}
-                </p>
-                <h2 className="font-heading mt-1 text-xl font-semibold"
-                    style={{ color: "var(--foreground)" }}>
+          <article
+            key={plan.id}
+            className="glass flex h-full w-full flex-col overflow-hidden"
+          >
+            {/* 上部ブロック: タイトル・価格・説明・CTA */}
+            <div className="card-header flex flex-col px-5 pb-5 pt-5">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2
+                  className="font-heading text-lg font-semibold"
+                  style={{ color: "var(--foreground)" }}
+                >
                   {plan.title}
                 </h2>
+                {plan.badge ? (
+                  <span className="badge-pill">{plan.badge}</span>
+                ) : null}
               </div>
-              {plan.badge ? (
-                <span
-                  className="rounded-md px-2.5 py-1 text-[11px] font-semibold"
-                  style={{
-                    background: "var(--badge-bg)",
-                    color: "var(--badge-text)",
-                    border: "1px solid var(--badge-border)",
-                  }}
+
+              <p
+                className="mb-3 text-xs leading-relaxed"
+                style={{ color: "var(--muted)" }}
+              >
+                {plan.note}
+              </p>
+
+              <p
+                className="mb-4 text-2xl font-bold"
+                style={{ color: "var(--foreground)" }}
+              >
+                {plan.price}
+              </p>
+
+              {/* CTA ボタン */}
+              <form action="/api/checkout" method="post">
+                <input type="hidden" name="planId" value={plan.id} />
+                <button
+                  type="submit"
+                  className="cta-btn w-full rounded-xl px-4 py-2.5 text-sm font-semibold"
                 >
-                  {plan.badge}
-                </span>
-              ) : null}
+                  決済を試す
+                </button>
+              </form>
             </div>
 
-            {/* 価格 */}
-            <p className="text-3xl font-bold" style={{ color: "var(--foreground)" }}>
-              {plan.price}
-            </p>
-            <p className="mt-2 min-h-10 text-sm" style={{ color: "var(--muted)" }}>
-              {plan.note}
-            </p>
-
-            {/* CTA ボタン */}
-            <form action="/api/checkout" method="post" className="mt-5">
-              <input type="hidden" name="planId" value={plan.id} />
-              <button
-                type="submit"
-                className="cta-btn w-full rounded-lg px-4 py-3 text-sm font-semibold"
-              >
-                {plan.label}プランでテスト決済
-              </button>
-            </form>
-
-            {/* 機能リスト */}
-            <ul className="mt-6 space-y-3 text-sm">
+            {/* 下部ブロック: 機能リスト */}
+            <ul className="flex-1 space-y-2 px-5 pb-5 pt-4 text-[13px]">
               {plan.points.map((point) => (
                 <li
                   key={point}
-                  className="flex items-start gap-2.5"
+                  className="flex items-start gap-2"
                   style={{ color: "var(--foreground)" }}
                 >
                   <span
-                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-bold"
+                    className="mt-[2px] flex h-4 w-4 shrink-0 items-center justify-center rounded text-[10px] font-bold"
                     style={{
                       background: "var(--feature-icon-bg)",
                       color: "var(--feature-icon-color)",
@@ -132,7 +130,7 @@ export default function HomePage() {
       </div>
 
       {/* Webhookログリンク */}
-      <footer className="mt-auto flex justify-center pb-4 pt-16 md:pt-20">
+      <footer className="mt-auto flex justify-center pb-4 pt-10 md:pt-12">
         <Link
           href="/events"
           className="cursor-pointer text-xs font-medium underline underline-offset-4 transition-colors"

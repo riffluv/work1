@@ -10,17 +10,17 @@ export default function CancelPage() {
         </p>
         <h1 className="font-heading text-3xl font-semibold md:text-4xl"
             style={{ color: "var(--foreground)" }}>
-          決済はキャンセルされました
+          決済がキャンセルされました
         </h1>
         <p className="fine mt-3 text-sm md:text-base">
-          この画面もキャンセル導線の動作証跡としてスクショに使えます。
+          課金は発生していません。いつでも再開できます。
         </p>
         <Link
           href="/"
           className="mt-6 inline-flex cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
           style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
         >
-          トップへ戻る
+          プランへ戻る
         </Link>
       </section>
     </main>

@@ -11,15 +11,15 @@ type Plan = {
 const plans: Record<string, Plan> = {
   monthly: {
     id: "monthly",
-    name: "Billing Platform Monthly Plan",
+    name: "Checkout Pattern Basic",
     amount: 2980,
-    description: "月額課金プラン（サブスク）",
+    description: "単発決済パターン（標準金額）",
   },
   yearly: {
     id: "yearly",
-    name: "Billing Platform Yearly Plan",
+    name: "Checkout Pattern High Value",
     amount: 29800,
-    description: "年額課金プラン（サブスク）",
+    description: "単発決済パターン（高額）",
   },
 };
 

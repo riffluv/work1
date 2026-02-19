@@ -37,14 +37,14 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
       <section className="glass p-6 md:p-8">
         <p className="mb-2 text-xs font-semibold uppercase tracking-widest"
            style={{ color: "var(--success)" }}>
-          Payment Success
+          Payment Complete
         </p>
         <h1 className="font-heading text-3xl font-semibold md:text-4xl"
             style={{ color: "var(--foreground)" }}>
           決済が完了しました
         </h1>
         <p className="fine mt-3 text-sm md:text-base">
-          ここで「決済成功」の証跡を撮影できます。Webhook到達はイベントログ画面で確認してください。
+          決済情報を確認しました。詳細を確認してください。
         </p>
 
         <div className="mt-6 grid gap-3 rounded-lg p-4 text-sm"
@@ -67,14 +67,14 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/events" className="cta-btn cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold">
-            Webhookログを確認
+            Webhookログ
           </Link>
           <Link
             href="/"
             className="cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
             style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
           >
-            トップに戻る
+            プランへ戻る
           </Link>
         </div>
       </section>

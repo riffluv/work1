@@ -12,6 +12,7 @@
   --background: #F8FAFC;
   --foreground: #0F172A;
   --card: #ffffff;
+  --card-header: #F1F5F9;
   --line: #E2E8F0;
   --accent: #0F172A;
   --accent-gold: #CA8A04;
@@ -33,6 +34,7 @@
   --background: #020617;
   --foreground: #F8FAFC;
   --card: #0F172A;
+  --card-header: #0C1322;
   --line: #1E293B;
   --accent: #F8FAFC;
   --accent-gold: #EAB308;
@@ -73,7 +75,7 @@ a {
   color: inherit;
 }
 
-/* カードスタイル - Flat Design: シャドウ最小限 */
+/* カードスタイル - Flat Design */
 .glass {
   border: 1px solid var(--line);
   background: var(--card);
@@ -82,10 +84,34 @@ a {
   transition: background 0.25s ease, border-color 0.25s ease;
 }
 
+/* カード上部ブロック（参考画像のSlack式） */
+.card-header {
+  background: var(--card-header);
+  border-bottom: 1px solid var(--line);
+  border-radius: 11px 11px 0 0;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
 /* テキストの補助色 */
 .fine {
   color: var(--muted);
   transition: color 0.25s ease;
+}
+
+/* バッジ - ピル型、控えめ */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  border: 1px solid var(--badge-border);
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
 /* テーマトグルボタン */

@@ -16,22 +16,22 @@ export default async function EventsPage() {
              style={{ color: "var(--accent-gold)" }}>
             Webhook Monitor
           </p>
-          <h1 className="font-heading text-3xl font-semibold md:text-4xl">受信イベントログ</h1>
-          <p className="fine mt-2 text-sm">Stripe CLIから転送されたイベントを時系列で確認できます。</p>
+          <h1 className="font-heading text-3xl font-semibold md:text-4xl">受信イベント</h1>
+          <p className="fine mt-2 text-sm">Webhook受信イベント一覧です。</p>
         </div>
         <Link
           href="/"
           className="cursor-pointer rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
           style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
         >
-          トップへ戻る
+          プランへ戻る
         </Link>
       </header>
 
       <section className="glass p-5 md:p-7">
         {events.length === 0 ? (
           <p className="fine text-sm">
-            まだイベントはありません。`stripe listen --forward-to localhost:3000/api/webhook` を起動してからテスト決済を実行してください。
+            イベントはまだありません。
           </p>
         ) : (
           <div className="space-y-4">
