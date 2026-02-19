@@ -340,3 +340,13 @@
 - 何を決めたか: 出品素材を強化するため、`work` 配下に Stripe実装デモアプリを新規作成した。目的は「決済導線が実際に動く証跡（トップ/Checkout/成功/Webhook）」のスクショ・動画素材を短時間で回収すること。
 - 何を変更したか（ファイルパス）: `demo/stripe-showcase/app/page.tsx`, `demo/stripe-showcase/app/api/checkout/route.ts`, `demo/stripe-showcase/app/api/webhook/route.ts`, `demo/stripe-showcase/app/success/page.tsx`, `demo/stripe-showcase/app/events/page.tsx`, `demo/stripe-showcase/app/cancel/page.tsx`, `demo/stripe-showcase/lib/stripe.ts`, `demo/stripe-showcase/lib/event-store.ts`, `demo/stripe-showcase/.env.example`, `demo/stripe-showcase/README.md`, `demo/stripe-showcase/app/layout.tsx`, `demo/stripe-showcase/app/globals.css`
 - 次回の最優先タスク: `.env.local` にStripe testキーを設定し、`stripe listen --forward-to localhost:3000/api/webhook` を起動して、4枚（トップ/Checkout/成功/Webhookログ）の証跡素材を取得する。
+
+### 2026-02-19（追記52）
+- 何を決めたか: サービス本文の粒度は維持し、Webhook未反映の影響説明はQ&Aへ分離する方針に確定した。本文に長文補足を入れず、Q&Aで「未反映時の影響 + 復旧/重複防止対応」を説明する。
+- 何を変更したか（ファイルパス）: `現在の製品ページとプロフィール`, `docs/coconala-listing-final.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 本番ページ反映後、Q&Aの表示順（追加料金Qの直後）と文字数制限を確認し、表示崩れがあれば listing-final を正本として再同期する。
+
+### 2026-02-19（追記53）
+- 何を決めたか: `stripe-showcase` のトップUIを「月額/年額トグル」構成へ変更した。出品素材として見栄えを上げるため、左=月額・右=年額の切替ボタンを中心にしたポートフォリオ向け画面へ更新した。
+- 何を変更したか（ファイルパス）: `demo/stripe-showcase/app/page.tsx`, `demo/stripe-showcase/app/api/checkout/route.ts`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: Opusレビュー前提で、文言の最終トーン調整（見出し/説明文）と、月額/年額の価格・訴求文を本番ポートフォリオ用途に合わせて微調整する。

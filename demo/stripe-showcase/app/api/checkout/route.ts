@@ -9,17 +9,17 @@ type Plan = {
 };
 
 const plans: Record<string, Plan> = {
-  bug_fix: {
-    id: "bug_fix",
-    name: "Next.js / Stripe 不具合修正デモ",
-    amount: 15000,
-    description: "不具合1件（同一原因）を想定したデモプラン",
+  monthly: {
+    id: "monthly",
+    name: "Billing Platform Monthly Plan",
+    amount: 2980,
+    description: "月額課金プラン（サブスク）",
   },
-  stripe_build: {
-    id: "stripe_build",
-    name: "Stripe 実装デモ",
-    amount: 50000,
-    description: "Checkout + Webhook + DB反映を想定した実装プラン",
+  yearly: {
+    id: "yearly",
+    name: "Billing Platform Yearly Plan",
+    amount: 29800,
+    description: "年額課金プラン（サブスク）",
   },
 };
 
