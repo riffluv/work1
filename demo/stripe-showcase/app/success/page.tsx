@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { formatYen, getStripe } from "@/lib/stripe";
+import Link from "next/link";
 
 type SuccessPageProps = {
   searchParams: Promise<{ session_id?: string }>;
@@ -34,16 +34,26 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12 md:px-10">
-      <section className="glass rounded-3xl p-6 md:p-8">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Payment Success</p>
-        <h1 className="font-heading title-glow text-3xl font-extrabold md:text-4xl">決済が完了しました</h1>
+      <section className="glass rounded-2xl p-6 md:p-8">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em]"
+           style={{ color: "var(--success)" }}>
+          Payment Success
+        </p>
+        <h1 className="font-heading text-3xl font-extrabold md:text-4xl"
+            style={{ color: "var(--foreground)" }}>
+          決済が完了しました
+        </h1>
         <p className="fine mt-3 text-sm md:text-base">
           ここで「決済成功」の証跡を撮影できます。Webhook到達はイベントログ画面で確認してください。
         </p>
 
-        <div className="mt-6 grid gap-3 rounded-2xl border border-emerald-200/20 bg-[#071724]/70 p-4 text-sm">
+        <div className="mt-6 grid gap-3 rounded-xl p-4 text-sm"
+             style={{
+               background: "rgba(39, 174, 96, 0.04)",
+               border: "1px solid rgba(39, 174, 96, 0.15)",
+             }}>
           {errorMessage ? (
-            <p className="text-amber-200">{errorMessage}</p>
+            <p style={{ color: "var(--warning)" }}>{errorMessage}</p>
           ) : (
             <>
               <p>
@@ -68,13 +78,14 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="/events"
-            className="rounded-full bg-emerald-300 px-5 py-2 text-sm font-bold text-[#042114] transition hover:bg-emerald-200"
+            className="cta-btn rounded-xl px-5 py-2.5 text-sm font-bold"
           >
             Webhookログを確認
           </Link>
           <Link
             href="/"
-            className="rounded-full border border-white/30 px-5 py-2 text-sm font-bold transition hover:bg-white/10"
+            className="rounded-xl px-5 py-2.5 text-sm font-bold transition"
+            style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
           >
             トップに戻る
           </Link>

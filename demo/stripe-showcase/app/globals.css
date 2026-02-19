@@ -1,12 +1,47 @@
 @import "tailwindcss";
 
+/* ====== ライトモード（デフォルト） ====== */
 :root {
-  --background: #040914;
-  --foreground: #e6f0ff;
-  --card: #0f1a33;
-  --line: #23426f;
-  --accent: #40d0ff;
-  --accent-2: #89ffcc;
+  --background: #f0f0f3;
+  --foreground: #1a1a2e;
+  --card: #ffffff;
+  --line: #e2e2ea;
+  --accent: #6c5ce7;
+  --accent-soft: #a29bfe;
+  --success: #27ae60;
+  --warning: #e67e22;
+  --muted: #8e8e9a;
+  --btn-bg: #1a1a2e;
+  --btn-text: #ffffff;
+  --btn-hover: #2d2d42;
+  --badge-bg: rgba(108, 92, 231, 0.08);
+  --badge-border: rgba(108, 92, 231, 0.15);
+  --feature-icon-bg: rgba(108, 92, 231, 0.08);
+  --card-inner: rgba(108, 92, 231, 0.03);
+  --success-bg: rgba(39, 174, 96, 0.04);
+  --success-border: rgba(39, 174, 96, 0.15);
+}
+
+/* ====== ダークモード ====== */
+[data-theme="dark"] {
+  --background: #0c0c14;
+  --foreground: #e8e8f0;
+  --card: #1a1a2e;
+  --line: #2a2a3e;
+  --accent: #7c6cf0;
+  --accent-soft: #a29bfe;
+  --success: #4cd97b;
+  --warning: #f0a050;
+  --muted: #7878a0;
+  --btn-bg: transparent;
+  --btn-text: #e8e8f0;
+  --btn-hover: rgba(124, 108, 240, 0.12);
+  --badge-bg: rgba(124, 108, 240, 0.12);
+  --badge-border: rgba(124, 108, 240, 0.25);
+  --feature-icon-bg: rgba(124, 108, 240, 0.1);
+  --card-inner: rgba(124, 108, 240, 0.05);
+  --success-bg: rgba(76, 217, 123, 0.06);
+  --success-border: rgba(76, 217, 123, 0.2);
 }
 
 @theme inline {
@@ -24,35 +59,84 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--foreground);
-  background:
-    radial-gradient(900px 600px at -10% 10%, rgba(64, 208, 255, 0.2), transparent 65%),
-    radial-gradient(700px 500px at 95% 20%, rgba(137, 255, 204, 0.18), transparent 65%),
-    linear-gradient(180deg, #030710 0%, #061128 40%, #02050d 100%);
+  background: var(--background);
   font-family: var(--font-body), sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 a {
   color: inherit;
 }
 
+/* カードスタイル */
 .glass {
-  border: 1px solid color-mix(in srgb, var(--line) 75%, white 25%);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--card) 92%, white 8%) 0%,
-    color-mix(in srgb, var(--card) 98%, black 2%) 100%
-  );
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.title-glow {
-  text-shadow:
-    0 0 24px rgba(64, 208, 255, 0.4),
-    0 0 48px rgba(64, 208, 255, 0.2);
+[data-theme="dark"] .glass {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* テキストの補助色 */
 .fine {
-  color: color-mix(in srgb, var(--foreground) 68%, white 32%);
+  color: var(--muted);
+  transition: color 0.3s ease;
+}
+
+/* テーマトグルボタン */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-body), sans-serif;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+}
+
+.theme-toggle-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* CTAボタン - ライトモード: ダークソリッド */
+.cta-btn {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.cta-btn:hover {
+  background: var(--btn-hover);
+}
+
+/* CTAボタン - ダークモード: 白背景 + 黒テキスト */
+[data-theme="dark"] .cta-btn {
+  background: #f0f0f3;
+  border: 1px solid #f0f0f3;
+  color: #1a1a2e;
+}
+
+[data-theme="dark"] .cta-btn:hover {
+  background: #ffffff;
+  border-color: #ffffff;
 }

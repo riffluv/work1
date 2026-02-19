@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Space_Grotesk } from "next/font/google";
+import ThemeToggle from "./components/ThemeToggle";
 import "./globals.css";
 
 const heading = Space_Grotesk({
@@ -26,7 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${heading.variable} ${body.variable} antialiased`}>{children}</body>
+      <body className={`${heading.variable} ${body.variable} antialiased`}>
+        <ThemeToggle />
+        {children}
+      </body>
     </html>
   );
 }
