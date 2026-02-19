@@ -12,26 +12,23 @@ export default async function EventsPage() {
           style={{ color: "var(--foreground)" }}>
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em]"
-             style={{ color: "var(--accent)" }}>
+          <p className="text-xs font-semibold uppercase tracking-widest"
+             style={{ color: "var(--accent-gold)" }}>
             Webhook Monitor
           </p>
-          <h1 className="font-heading text-3xl font-bold md:text-4xl">受信イベントログ</h1>
+          <h1 className="font-heading text-3xl font-semibold md:text-4xl">受信イベントログ</h1>
           <p className="fine mt-2 text-sm">Stripe CLIから転送されたイベントを時系列で確認できます。</p>
         </div>
         <Link
           href="/"
-          className="rounded-xl px-4 py-2 text-sm font-semibold transition"
-          style={{
-            border: "1px solid var(--line)",
-            color: "var(--foreground)",
-          }}
+          className="cursor-pointer rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+          style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
         >
           トップへ戻る
         </Link>
       </header>
 
-      <section className="glass rounded-2xl p-5 md:p-7">
+      <section className="glass p-5 md:p-7">
         {events.length === 0 ? (
           <p className="fine text-sm">
             まだイベントはありません。`stripe listen --forward-to localhost:3000/api/webhook` を起動してからテスト決済を実行してください。
@@ -39,14 +36,11 @@ export default async function EventsPage() {
         ) : (
           <div className="space-y-4">
             {events.map((event) => (
-              <article key={event.id} className="rounded-xl p-4"
-                       style={{
-                         background: "rgba(108, 92, 231, 0.03)",
-                         border: "1px solid var(--line)",
-                       }}>
+              <article key={event.id} className="rounded-lg p-4"
+                       style={{ background: "var(--feature-icon-bg)", border: "1px solid var(--line)" }}>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <p className="font-mono text-sm font-medium"
-                     style={{ color: "var(--accent)" }}>
+                     style={{ color: "var(--accent-gold)" }}>
                     {event.type}
                   </p>
                   <time className="fine text-xs">

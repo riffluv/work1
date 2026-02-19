@@ -48,11 +48,14 @@ export default function HomePage() {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-12 md:px-10 md:py-16">
       <header className="mb-10 text-center">
         <h1
-          className="font-heading text-3xl font-black tracking-tight md:text-4xl"
+          className="font-heading text-3xl font-semibold tracking-tight md:text-4xl"
           style={{ color: "var(--foreground)" }}
         >
           Choose your plan
         </h1>
+        <p className="mt-3 text-sm" style={{ color: "var(--muted)" }}>
+          Stripe Checkout + Webhook連携のデモ環境です
+        </p>
       </header>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -61,33 +64,31 @@ export default function HomePage() {
             {/* ヘッダー: プラン名 + バッジ */}
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2
-                  className="font-heading text-xl font-bold"
-                  style={{ color: "var(--accent)" }}
-                >
-                  {plan.title}
-                </h2>
-                <p className="mt-0.5 text-xs" style={{ color: "var(--muted)" }}>
+                <p className="text-xs font-medium tracking-wide"
+                   style={{ color: "var(--muted)" }}>
                   {plan.kicker}
                 </p>
+                <h2 className="font-heading mt-1 text-xl font-semibold"
+                    style={{ color: "var(--foreground)" }}>
+                  {plan.title}
+                </h2>
               </div>
               {plan.badge ? (
                 <span
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold"
+                  className="rounded-md px-2.5 py-1 text-[11px] font-semibold"
                   style={{
                     background: "var(--badge-bg)",
-                    color: "var(--accent)",
+                    color: "var(--badge-text)",
                     border: "1px solid var(--badge-border)",
                   }}
                 >
-                  <span style={{ fontSize: "10px" }}>★</span>
                   {plan.badge}
                 </span>
               ) : null}
             </div>
 
             {/* 価格 */}
-            <p className="text-3xl font-black" style={{ color: "var(--foreground)" }}>
+            <p className="text-3xl font-bold" style={{ color: "var(--foreground)" }}>
               {plan.price}
             </p>
             <p className="mt-2 min-h-10 text-sm" style={{ color: "var(--muted)" }}>
@@ -99,7 +100,7 @@ export default function HomePage() {
               <input type="hidden" name="planId" value={plan.id} />
               <button
                 type="submit"
-                className="cta-btn w-full cursor-pointer rounded-xl px-4 py-3 text-sm font-bold"
+                className="cta-btn w-full rounded-lg px-4 py-3 text-sm font-semibold"
               >
                 {plan.label}プランでテスト決済
               </button>
@@ -114,10 +115,10 @@ export default function HomePage() {
                   style={{ color: "var(--foreground)" }}
                 >
                   <span
-                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[11px]"
+                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-bold"
                     style={{
                       background: "var(--feature-icon-bg)",
-                      color: "var(--accent)",
+                      color: "var(--feature-icon-color)",
                     }}
                   >
                     ✓
@@ -134,10 +135,10 @@ export default function HomePage() {
       <footer className="mt-auto flex justify-center pb-4 pt-16 md:pt-20">
         <Link
           href="/events"
-          className="text-xs font-medium underline underline-offset-4 transition"
+          className="cursor-pointer text-xs font-medium underline underline-offset-4 transition-colors"
           style={{
             color: "var(--muted)",
-            textDecorationColor: "rgba(142, 142, 154, 0.3)",
+            textDecorationColor: "var(--line)",
           }}
         >
           webhook logs

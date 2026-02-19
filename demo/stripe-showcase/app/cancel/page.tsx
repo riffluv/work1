@@ -3,12 +3,12 @@ import Link from "next/link";
 export default function CancelPage() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12 md:px-10">
-      <section className="glass rounded-2xl p-6 md:p-8">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em]"
+      <section className="glass p-6 md:p-8">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-widest"
            style={{ color: "var(--warning)" }}>
           Payment Canceled
         </p>
-        <h1 className="font-heading text-3xl font-extrabold md:text-4xl"
+        <h1 className="font-heading text-3xl font-semibold md:text-4xl"
             style={{ color: "var(--foreground)" }}>
           決済はキャンセルされました
         </h1>
@@ -17,11 +17,8 @@ export default function CancelPage() {
         </p>
         <Link
           href="/"
-          className="mt-6 inline-flex rounded-xl px-5 py-2.5 text-sm font-bold transition"
-          style={{
-            border: "1px solid var(--line)",
-            color: "var(--foreground)",
-          }}
+          className="mt-6 inline-flex cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
+          style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
         >
           トップへ戻る
         </Link>

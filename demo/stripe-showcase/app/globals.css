@@ -1,47 +1,52 @@
 @import "tailwindcss";
 
-/* ====== ライトモード（デフォルト） ====== */
+/*
+  デザインシステム: UI/UX PRO MAX 生成
+  パレット: Banking/Traditional Finance (Trust navy + premium gold)
+  スタイル: Flat Design (グラデーションなし、シャドウ最小限)
+  フォント: Poppins (見出し) + Noto Sans JP (本文)
+*/
+
+/* ====== ライトモード ====== */
 :root {
-  --background: #f0f0f3;
-  --foreground: #1a1a2e;
+  --background: #F8FAFC;
+  --foreground: #0F172A;
   --card: #ffffff;
-  --line: #e2e2ea;
-  --accent: #6c5ce7;
-  --accent-soft: #a29bfe;
-  --success: #27ae60;
-  --warning: #e67e22;
-  --muted: #8e8e9a;
-  --btn-bg: #1a1a2e;
-  --btn-text: #ffffff;
-  --btn-hover: #2d2d42;
-  --badge-bg: rgba(108, 92, 231, 0.08);
-  --badge-border: rgba(108, 92, 231, 0.15);
-  --feature-icon-bg: rgba(108, 92, 231, 0.08);
-  --card-inner: rgba(108, 92, 231, 0.03);
-  --success-bg: rgba(39, 174, 96, 0.04);
-  --success-border: rgba(39, 174, 96, 0.15);
+  --line: #E2E8F0;
+  --accent: #0F172A;
+  --accent-gold: #CA8A04;
+  --success: #16A34A;
+  --warning: #D97706;
+  --muted: #64748B;
+  --badge-bg: #FFFBEB;
+  --badge-text: #92400E;
+  --badge-border: #FDE68A;
+  --feature-icon-bg: #EFF6FF;
+  --feature-icon-color: #1E3A8A;
+  --btn-bg: #0F172A;
+  --btn-text: #F8FAFC;
+  --btn-hover: #1E293B;
 }
 
 /* ====== ダークモード ====== */
 [data-theme="dark"] {
-  --background: #0c0c14;
-  --foreground: #e8e8f0;
-  --card: #1a1a2e;
-  --line: #2a2a3e;
-  --accent: #7c6cf0;
-  --accent-soft: #a29bfe;
-  --success: #4cd97b;
-  --warning: #f0a050;
-  --muted: #7878a0;
-  --btn-bg: transparent;
-  --btn-text: #e8e8f0;
-  --btn-hover: rgba(124, 108, 240, 0.12);
-  --badge-bg: rgba(124, 108, 240, 0.12);
-  --badge-border: rgba(124, 108, 240, 0.25);
-  --feature-icon-bg: rgba(124, 108, 240, 0.1);
-  --card-inner: rgba(124, 108, 240, 0.05);
-  --success-bg: rgba(76, 217, 123, 0.06);
-  --success-border: rgba(76, 217, 123, 0.2);
+  --background: #020617;
+  --foreground: #F8FAFC;
+  --card: #0F172A;
+  --line: #1E293B;
+  --accent: #F8FAFC;
+  --accent-gold: #EAB308;
+  --success: #4ADE80;
+  --warning: #FBBF24;
+  --muted: #94A3B8;
+  --badge-bg: rgba(234, 179, 8, 0.1);
+  --badge-text: #EAB308;
+  --badge-border: rgba(234, 179, 8, 0.25);
+  --feature-icon-bg: rgba(30, 58, 138, 0.2);
+  --feature-icon-color: #93C5FD;
+  --btn-bg: #F8FAFC;
+  --btn-text: #0F172A;
+  --btn-hover: #ffffff;
 }
 
 @theme inline {
@@ -61,82 +66,68 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-body), sans-serif;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 a {
   color: inherit;
 }
 
-/* カードスタイル */
+/* カードスタイル - Flat Design: シャドウ最小限 */
 .glass {
   border: 1px solid var(--line);
   background: var(--card);
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
-  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-[data-theme="dark"] .glass {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 /* テキストの補助色 */
 .fine {
   color: var(--muted);
-  transition: color 0.3s ease;
+  transition: color 0.25s ease;
 }
 
 /* テーマトグルボタン */
 .theme-toggle {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 16px;
+  right: 16px;
   z-index: 50;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 999px;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
   border: 1px solid var(--line);
   background: var(--card);
-  color: var(--foreground);
-  font-size: 13px;
+  color: var(--muted);
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-family: var(--font-body), sans-serif;
 }
 
 .theme-toggle:hover {
-  border-color: var(--accent);
+  color: var(--foreground);
+  border-color: var(--muted);
 }
 
 .theme-toggle-icon {
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
 }
 
-/* CTAボタン - ライトモード: ダークソリッド */
+/* CTAボタン - Flat Design: ソリッド、影なし */
 .cta-btn {
   background: var(--btn-bg);
   color: var(--btn-text);
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
+  border: none;
+  transition: background 0.2s ease;
+  cursor: pointer;
 }
 
 .cta-btn:hover {
   background: var(--btn-hover);
-}
-
-/* CTAボタン - ダークモード: 白背景 + 黒テキスト */
-[data-theme="dark"] .cta-btn {
-  background: #f0f0f3;
-  border: 1px solid #f0f0f3;
-  color: #1a1a2e;
-}
-
-[data-theme="dark"] .cta-btn:hover {
-  background: #ffffff;
-  border-color: #ffffff;
 }

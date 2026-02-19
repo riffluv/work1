@@ -34,12 +34,12 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12 md:px-10">
-      <section className="glass rounded-2xl p-6 md:p-8">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em]"
+      <section className="glass p-6 md:p-8">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-widest"
            style={{ color: "var(--success)" }}>
           Payment Success
         </p>
-        <h1 className="font-heading text-3xl font-extrabold md:text-4xl"
+        <h1 className="font-heading text-3xl font-semibold md:text-4xl"
             style={{ color: "var(--foreground)" }}>
           決済が完了しました
         </h1>
@@ -47,44 +47,31 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           ここで「決済成功」の証跡を撮影できます。Webhook到達はイベントログ画面で確認してください。
         </p>
 
-        <div className="mt-6 grid gap-3 rounded-xl p-4 text-sm"
+        <div className="mt-6 grid gap-3 rounded-lg p-4 text-sm"
              style={{
-               background: "rgba(39, 174, 96, 0.04)",
-               border: "1px solid rgba(39, 174, 96, 0.15)",
+               background: "var(--feature-icon-bg)",
+               border: "1px solid var(--line)",
              }}>
           {errorMessage ? (
             <p style={{ color: "var(--warning)" }}>{errorMessage}</p>
           ) : (
             <>
-              <p>
-                <span className="fine">Session ID:</span> {summary?.id ?? sessionId ?? "-"}
-              </p>
-              <p>
-                <span className="fine">Plan:</span> {summary?.planName ?? "-"}
-              </p>
-              <p>
-                <span className="fine">Amount:</span> {formatYen(summary?.amountTotal)}
-              </p>
-              <p>
-                <span className="fine">Email:</span> {summary?.email ?? "-"}
-              </p>
-              <p>
-                <span className="fine">Status:</span> {summary?.status ?? "unknown"}
-              </p>
+              <p><span className="fine">Session ID:</span> {summary?.id ?? sessionId ?? "-"}</p>
+              <p><span className="fine">Plan:</span> {summary?.planName ?? "-"}</p>
+              <p><span className="fine">Amount:</span> {formatYen(summary?.amountTotal)}</p>
+              <p><span className="fine">Email:</span> {summary?.email ?? "-"}</p>
+              <p><span className="fine">Status:</span> {summary?.status ?? "unknown"}</p>
             </>
           )}
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/events"
-            className="cta-btn rounded-xl px-5 py-2.5 text-sm font-bold"
-          >
+          <Link href="/events" className="cta-btn cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold">
             Webhookログを確認
           </Link>
           <Link
             href="/"
-            className="rounded-xl px-5 py-2.5 text-sm font-bold transition"
+            className="cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
             style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
           >
             トップに戻る

@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { Noto_Sans_JP, Space_Grotesk } from "next/font/google";
+import { Noto_Sans_JP, Poppins } from "next/font/google";
 import ThemeToggle from "./components/ThemeToggle";
 import "./globals.css";
 
-const heading = Space_Grotesk({
+/* Skillレコメンド: Modern Professional (Poppins + Open Sans) */
+/* 日本語ボディはNoto Sans JPを維持 */
+const heading = Poppins({
   variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const body = Noto_Sans_JP({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "500", "700", "900"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
