@@ -68,6 +68,17 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
+          {summary?.mode === "subscription" && sessionId ? (
+            <form action="/api/portal" method="post">
+              <input type="hidden" name="sessionId" value={sessionId} />
+              <button
+                type="submit"
+                className="cta-btn cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold"
+              >
+                契約を管理
+              </button>
+            </form>
+          ) : null}
           <Link href="/events" className="cta-btn cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold">
             Webhookログ
           </Link>

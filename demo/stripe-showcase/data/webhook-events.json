@@ -1,5 +1,241 @@
 [
   {
+    "id": "evt_1T3CUy5JTrlrl8tyshIdpdFn",
+    "type": "checkout.session.expired",
+    "createdAt": "2026-02-21T09:29:18.286Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {
+      "planId": "monthly",
+      "planName": "Checkout Pattern Basic"
+    }
+  },
+  {
+    "id": "evt_1T3AuS5JTrlrl8ty6Qg7IedA",
+    "type": "checkout.session.expired",
+    "createdAt": "2026-02-21T07:47:28.948Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {
+      "planId": "monthly",
+      "planName": "Checkout Pattern Basic"
+    }
+  },
+  {
+    "id": "evt_1T3AM35JTrlrl8tyIBvZ8nrU",
+    "type": "billing_portal.session.created",
+    "createdAt": "2026-02-21T07:11:58.942Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": null
+  },
+  {
+    "id": "evt_1T39xz5JTrlrl8tywzeXlHu8",
+    "type": "customer.subscription.updated",
+    "createdAt": "2026-02-21T06:47:05.294Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {
+      "planId": "yearly",
+      "planName": "Yearly"
+    }
+  },
+  {
+    "id": "evt_1T39pH5JTrlrl8tyZX8QJpyb",
+    "type": "billing_portal.session.created",
+    "createdAt": "2026-02-21T06:38:03.582Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": null
+  },
+  {
+    "id": "evt_1T39oG5JTrlrl8tyIpt8Sk2p",
+    "type": "invoice_payment.paid",
+    "createdAt": "2026-02-21T06:37:03.150Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": null
+  },
+  {
+    "id": "evt_1T39nf5JTrlrl8tye7PPoLlT",
+    "type": "invoice.payment_succeeded",
+    "createdAt": "2026-02-21T06:36:25.827Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_1T39nf5JTrlrl8tysSn0LQhJ",
+    "type": "invoice.paid",
+    "createdAt": "2026-02-21T06:36:25.695Z",
+    "livemode": false,
+    "amountTotal": 29800,
+    "currency": "jpy",
+    "customerEmail": "test@example.com",
+    "sessionId": "in_1T39na5JTrlrl8tyHEXGwoA0",
+    "metadata": {}
+  },
+  {
+    "id": "evt_1T39nf5JTrlrl8tyzCVQHT7Z",
+    "type": "invoice.finalized",
+    "createdAt": "2026-02-21T06:36:25.570Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_1T39nf5JTrlrl8tyKaMybyfE",
+    "type": "invoice.created",
+    "createdAt": "2026-02-21T06:36:25.419Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_3T39nb5JTrlrl8ty0pLg8p9h",
+    "type": "payment_intent.created",
+    "createdAt": "2026-02-21T06:36:25.174Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_3T39nb5JTrlrl8ty0VhJbupE",
+    "type": "payment_intent.succeeded",
+    "createdAt": "2026-02-21T06:36:25.092Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_1T39ne5JTrlrl8tyk7Uktk0s",
+    "type": "customer.subscription.created",
+    "createdAt": "2026-02-21T06:36:24.973Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {
+      "planId": "yearly",
+      "planName": "Yearly"
+    }
+  },
+  {
+    "id": "evt_1T39ne5JTrlrl8tyZdMVGQlD",
+    "type": "checkout.session.completed",
+    "createdAt": "2026-02-21T06:36:24.819Z",
+    "livemode": false,
+    "amountTotal": 29800,
+    "currency": "jpy",
+    "customerEmail": "test@example.com",
+    "sessionId": "cs_test_a1glkqWUM4WrYXBCg3gv81EWSNl8H3JBuOKT8mL6QYLLw2Xkh2TMgXrvEx",
+    "metadata": {
+      "mode": "subscription",
+      "planId": "yearly",
+      "planName": "Yearly"
+    }
+  },
+  {
+    "id": "evt_1T39ne5JTrlrl8tyt8J2QOLW",
+    "type": "customer.updated",
+    "createdAt": "2026-02-21T06:36:24.776Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_1T39ne5JTrlrl8tySD0GeTj5",
+    "type": "customer.created",
+    "createdAt": "2026-02-21T06:36:24.649Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_1T39ne5JTrlrl8ty1DjowLZg",
+    "type": "payment_method.attached",
+    "createdAt": "2026-02-21T06:36:24.548Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_3T39nb5JTrlrl8ty02aTh8Ad",
+    "type": "charge.succeeded",
+    "createdAt": "2026-02-21T06:36:24.478Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_1T39SK5JTrlrl8tyk2W2z16N",
+    "type": "billing_portal.configuration.updated",
+    "createdAt": "2026-02-21T06:14:23.639Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
+    "id": "evt_1T396K5JTrlrl8tyOlu8Xsvg",
+    "type": "billing_portal.configuration.updated",
+    "createdAt": "2026-02-21T05:51:39.476Z",
+    "livemode": false,
+    "amountTotal": null,
+    "currency": null,
+    "customerEmail": null,
+    "sessionId": null,
+    "metadata": {}
+  },
+  {
     "id": "evt_1T364M5JTrlrl8tyIfnqpUgc",
     "type": "product.updated",
     "createdAt": "2026-02-21T02:37:23.444Z",
