@@ -27,6 +27,9 @@
 8. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
 見積り設定UIの挙動を3行で確認するチートシート
 
+9. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
+Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal/price_idの切り分け）
+
 ## 正本ルール（重要）
 
 - 現行サービス内容の簡易正本は `Next.js_Stripe不具合診断・修正.md`（ルート直下）とする。
@@ -45,6 +48,8 @@
 ## 実装運用
 - `docs/code-comment-style.ja.md`  
 AI臭を避けるコードコメント規約（確定版）
+- `docs/stripe-dashboard-japanese-ui-guide.ja.md`
+Stripeダッシュボードを日本語UIで案内するためのチートシート
 
 ## 調査ログ（Clean）
 - `docs/20260212-coconala-flow-deepresearch.clean.ja.md`  

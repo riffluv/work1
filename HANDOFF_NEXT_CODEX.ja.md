@@ -1,6 +1,6 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
-最終更新: 2026-02-15
+最終更新: 2026-02-21
 
 ## 目的
 
@@ -350,3 +350,8 @@
 - 何を決めたか: `stripe-showcase` のトップUIを「月額/年額トグル」構成へ変更した。出品素材として見栄えを上げるため、左=月額・右=年額の切替ボタンを中心にしたポートフォリオ向け画面へ更新した。
 - 何を変更したか（ファイルパス）: `demo/stripe-showcase/app/page.tsx`, `demo/stripe-showcase/app/api/checkout/route.ts`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: Opusレビュー前提で、文言の最終トーン調整（見出し/説明文）と、月額/年額の価格・訴求文を本番ポートフォリオ用途に合わせて微調整する。
+
+### 2026-02-21（追記54）
+- 何を決めたか: Stripe案内は次セッション以降も「日本語UI名を優先」して行う運用に固定した。依頼者案内時は Checkout と Billing Portal を明確に分離し、`prod_...` と `price_...` の混同を防ぐ。
+- 何を変更したか（ファイルパス）: `docs/stripe-dashboard-japanese-ui-guide.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: Stripe関連の相談では新ガイドを参照し、最初に「テスト/本番」「現在の画面（Checkout/Portal）」「必要ID（price_...）」の3点を確認してから案内する。
