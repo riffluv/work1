@@ -64,6 +64,16 @@ export default async function EventsPage() {
                     <dt className="fine text-xs">Event ID</dt>
                     <dd className="break-all font-mono text-xs">{event.id}</dd>
                   </div>
+                  <div>
+                    <dt className="fine text-xs">Plan</dt>
+                    <dd className="font-semibold">
+                      {event.metadata?.planName ?? event.metadata?.planId ?? "-"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="fine text-xs">Mode</dt>
+                    <dd className="font-semibold">{event.metadata?.mode ?? "-"}</dd>
+                  </div>
                 </dl>
               </article>
             ))}

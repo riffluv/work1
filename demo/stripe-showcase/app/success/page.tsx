@@ -15,6 +15,7 @@ async function fetchSessionSummary(sessionId: string) {
     currency: session.currency,
     email: session.customer_details?.email ?? session.customer_email ?? null,
     status: session.payment_status,
+    mode: session.metadata?.mode ?? "-",
     planName: session.metadata?.planName ?? "-",
   };
 }
@@ -58,6 +59,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
             <>
               <p><span className="fine">Session ID:</span> {summary?.id ?? sessionId ?? "-"}</p>
               <p><span className="fine">Plan:</span> {summary?.planName ?? "-"}</p>
+              <p><span className="fine">Mode:</span> {summary?.mode ?? "-"}</p>
               <p><span className="fine">Amount:</span> {formatYen(summary?.amountTotal)}</p>
               <p><span className="fine">Email:</span> {summary?.email ?? "-"}</p>
               <p><span className="fine">Status:</span> {summary?.status ?? "unknown"}</p>

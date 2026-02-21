@@ -1,18 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-type PlanId = "monthly" | "yearly";
+type CheckoutMode = "payment" | "subscription";
+type PlanId = "standard" | "premium" | "monthly" | "yearly";
 
-const plans: {
+type Plan = {
   id: PlanId;
   title: string;
   price: string;
   note: string;
   points: string[];
-}[] = [
+};
+
+const modeMeta: Record<CheckoutMode, { title: string; subtitle: string }> = {
+  payment: {
+    title: "Checkout Patterns",
+    subtitle: "Stripe Checkout → Webhook受信の動作確認",
+  },
+  subscription: {
+    title: "Subscription Patterns",
+    subtitle: "定期決済 → Webhook受信の動作確認",
+  },
+};
+
+const paymentPlans: Plan[] = [
   {
-    id: "monthly",
+    id: "standard",
     title: "Standard",
     price: "¥2,980",
     note: "標準金額の単発決済フローを確認できます。",
@@ -26,7 +41,7 @@ const plans: {
     ],
   },
   {
-    id: "yearly",
+    id: "premium",
     title: "Premium",
     price: "¥29,800",
     note: "高額決済パターンの挙動を確認できます。",
@@ -41,7 +56,62 @@ const plans: {
   },
 ];
 
+const subscriptionPlans: Plan[] = [
+  {
+    id: "monthly",
+    title: "Monthly",
+    price: "¥2,980 / 月",
+    note: "月額サブスクの初回決済フローを確認できます。",
+    points: [
+      "Checkoutでサブスクを開始",
+      "Webhookで課金イベントを受信",
+      "success画面で契約状態を確認",
+      "同一プランの再購入導線を確認",
+      "イベントログ画面で受信結果を確認",
+      "運用時の確認手順をテンプレ化",
+    ],
+  },
+  {
+    id: "yearly",
+    title: "Yearly",
+    price: "¥29,800 / 年",
+    note: "年額サブスクの決済パターンを確認できます。",
+    points: [
+      "Checkoutで年額サブスクを開始",
+      "Webhookで課金イベントを受信",
+      "metadata(planId / planName) を送信",
+      "success / cancel画面の遷移を確認",
+      "イベントログ画面で受信結果を確認",
+      "年額プランの導線表示を確認",
+    ],
+  },
+];
+
+function resolveMode(rawMode: string | null): CheckoutMode {
+  return rawMode === "subscription" ? "subscription" : "payment";
+}
+
 export default function HomePage() {
+  const [mode, setMode] = useState<CheckoutMode>("payment");
+  const plans = mode === "subscription" ? subscriptionPlans : paymentPlans;
+  const header = modeMeta[mode];
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setMode(resolveMode(params.get("mode")));
+  }, []);
+
+  const handleModeChange = (nextMode: CheckoutMode) => {
+    if (nextMode === mode) return;
+    setMode(nextMode);
+    const params = new URLSearchParams(window.location.search);
+    params.set("mode", nextMode);
+    const query = params.toString();
+    const nextUrl = query ? `/?${query}` : "/";
+    window.history.replaceState(null, "", nextUrl);
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-10 md:px-10 md:py-12">
       <header className="mb-8 text-center">
@@ -49,11 +119,36 @@ export default function HomePage() {
           className="font-heading text-2xl font-semibold tracking-tight md:text-3xl"
           style={{ color: "var(--foreground)" }}
         >
-          Checkout Patterns
+          {header.title}
         </h1>
         <p className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
-          Stripe Checkout → Webhook受信の動作確認
+          {header.subtitle}
         </p>
+
+        <div className="mt-5 inline-flex rounded-xl border p-1" style={{ borderColor: "var(--line)" }}>
+          <button
+            type="button"
+            onClick={() => handleModeChange("payment")}
+            className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+            style={{
+              background: mode === "payment" ? "var(--btn-bg)" : "transparent",
+              color: mode === "payment" ? "var(--btn-text)" : "var(--muted)",
+            }}
+          >
+            One-time
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeChange("subscription")}
+            className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+            style={{
+              background: mode === "subscription" ? "var(--btn-bg)" : "transparent",
+              color: mode === "subscription" ? "var(--btn-text)" : "var(--muted)",
+            }}
+          >
+            Subscription
+          </button>
+        </div>
       </header>
 
       <div className="mx-auto grid w-full max-w-[780px] gap-5 md:grid-cols-2">
@@ -62,7 +157,6 @@ export default function HomePage() {
             key={plan.id}
             className="glass flex h-full w-full flex-col overflow-hidden"
           >
-            {/* 上部ブロック: タイトル・価格・説明・CTA */}
             <div className="card-header flex flex-col px-5 pb-5 pt-5">
               <div className="mb-3">
                 <h2
@@ -87,9 +181,9 @@ export default function HomePage() {
                 {plan.price}
               </p>
 
-              {/* CTA ボタン */}
               <form action="/api/checkout" method="post">
                 <input type="hidden" name="planId" value={plan.id} />
+                <input type="hidden" name="mode" value={mode} />
                 <button
                   type="submit"
                   className="cta-btn w-full rounded-xl px-4 py-2.5 text-sm font-semibold"
@@ -99,7 +193,6 @@ export default function HomePage() {
               </form>
             </div>
 
-            {/* 下部ブロック: 機能リスト */}
             <ul className="flex-1 space-y-2 px-5 pb-5 pt-4 text-[13px]">
               {plan.points.map((point) => (
                 <li
@@ -124,7 +217,6 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Webhookログリンク */}
       <footer className="mt-auto flex justify-center pb-4 pt-10 md:pt-12">
         <Link
           href="/events"

@@ -13,6 +13,57 @@ function toRecord(metadata: Stripe.Metadata | null | undefined): Record<string, 
   }, {});
 }
 
+function extractEventSnapshot(event: Stripe.Event) {
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    return {
+      amountTotal: session.amount_total ?? null,
+      currency: session.currency ?? null,
+      customerEmail: session.customer_details?.email ?? session.customer_email ?? null,
+      sessionId: session.id,
+      metadata: toRecord(session.metadata),
+    };
+  }
+
+  if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionRef = (invoice as unknown as {
+      subscription?: string | { id: string } | null;
+    }).subscription;
+
+    return {
+      amountTotal: invoice.amount_paid ?? invoice.amount_due ?? null,
+      currency: invoice.currency ?? null,
+      customerEmail: invoice.customer_email ?? null,
+      sessionId:
+        typeof subscriptionRef === "string"
+          ? subscriptionRef
+          : subscriptionRef?.id ?? invoice.id,
+      metadata: toRecord(invoice.metadata),
+    };
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object as Stripe.Subscription;
+    return {
+      amountTotal: null,
+      currency: subscription.currency ?? null,
+      customerEmail: null,
+      sessionId: subscription.id,
+      metadata: toRecord(subscription.metadata),
+    };
+  }
+
+  const fallbackObject = event.data.object as { metadata?: Stripe.Metadata };
+  return {
+    amountTotal: null,
+    currency: null,
+    customerEmail: null,
+    sessionId: null,
+    metadata: toRecord(fallbackObject.metadata),
+  };
+}
+
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
   if (!signature) {
@@ -37,21 +88,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const checkoutSession =
-    event.type === "checkout.session.completed"
-      ? (event.data.object as Stripe.Checkout.Session)
-      : null;
+  const snapshot = extractEventSnapshot(event);
 
   await appendWebhookEvent({
     id: event.id,
     type: event.type,
     createdAt: new Date().toISOString(),
     livemode: event.livemode,
-    amountTotal: checkoutSession?.amount_total ?? null,
-    currency: checkoutSession?.currency ?? null,
-    customerEmail: checkoutSession?.customer_details?.email ?? null,
-    sessionId: checkoutSession?.id ?? null,
-    metadata: toRecord(checkoutSession?.metadata),
+    amountTotal: snapshot.amountTotal,
+    currency: snapshot.currency,
+    customerEmail: snapshot.customerEmail,
+    sessionId: snapshot.sessionId,
+    metadata: snapshot.metadata,
   });
 
   return NextResponse.json({ received: true });
