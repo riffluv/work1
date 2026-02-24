@@ -12,16 +12,17 @@ type Plan = {
   price: string;
   note: string;
   points: string[];
+  isPopular?: boolean;
 };
 
 const modeMeta: Record<CheckoutMode, { title: string; subtitle: string }> = {
   payment: {
     title: "Checkout Patterns",
-    subtitle: "Stripe Checkout → Webhook受信の動作確認",
+    subtitle: "Stripe Checkout（単発決済）→ Webhook受信の動作確認",
   },
   subscription: {
     title: "Subscription Patterns",
-    subtitle: "定期決済 → Webhook受信の動作確認",
+    subtitle: "Stripe Checkout（定期決済）→ Webhook受信の動作確認",
   },
 };
 
@@ -53,6 +54,7 @@ const paymentPlans: Plan[] = [
       "イベントログ画面で受信結果を確認",
       "高額決済時の表示と導線を確認",
     ],
+    isPopular: true,
   },
 ];
 
@@ -84,6 +86,7 @@ const subscriptionPlans: Plan[] = [
       "イベントログ画面で受信結果を確認",
       "年額プランの導線表示を確認",
     ],
+    isPopular: true,
   },
 ];
 
@@ -113,26 +116,30 @@ export default function HomePage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-10 md:px-10 md:py-12">
-      <header className="mb-8 text-center">
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-8 md:px-10 md:py-10">
+      <header className="mb-8 text-center md:mb-10">
         <h1
-          className="font-heading text-2xl font-semibold tracking-tight md:text-3xl"
+          className="font-heading text-2xl font-bold tracking-tight md:text-3xl"
           style={{ color: "var(--foreground)" }}
         >
           {header.title}
         </h1>
-        <p className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
+        <p className="mt-2 text-xs font-medium md:text-sm" style={{ color: "var(--muted)" }}>
           {header.subtitle}
         </p>
 
-        <div className="mt-5 inline-flex rounded-xl border p-1" style={{ borderColor: "var(--line)" }}>
+        <div 
+          className="mt-5 mx-auto inline-flex rounded-full border p-1" 
+          style={{ borderColor: "var(--line)", background: "var(--card-header)" }}
+        >
           <button
             type="button"
             onClick={() => handleModeChange("payment")}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+            className="rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 md:px-5 md:py-2 md:text-sm"
             style={{
               background: mode === "payment" ? "var(--btn-bg)" : "transparent",
               color: mode === "payment" ? "var(--btn-text)" : "var(--muted)",
+              boxShadow: mode === "payment" ? "0 2px 4px rgba(0,0,0,0.1)" : "none",
             }}
           >
             One-time
@@ -140,10 +147,11 @@ export default function HomePage() {
           <button
             type="button"
             onClick={() => handleModeChange("subscription")}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+            className="rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 md:px-5 md:py-2 md:text-sm"
             style={{
               background: mode === "subscription" ? "var(--btn-bg)" : "transparent",
               color: mode === "subscription" ? "var(--btn-text)" : "var(--muted)",
+              boxShadow: mode === "subscription" ? "0 2px 4px rgba(0,0,0,0.1)" : "none",
             }}
           >
             Subscription
@@ -151,76 +159,103 @@ export default function HomePage() {
         </div>
       </header>
 
-      <div className="mx-auto grid w-full max-w-[780px] gap-5 md:grid-cols-2">
+      <div className="mx-auto grid w-full max-w-[900px] gap-5 md:grid-cols-2 md:gap-6">
         {plans.map((plan) => (
           <article
             key={plan.id}
-            className="glass flex h-full w-full flex-col overflow-hidden"
+            className="glass relative flex h-full w-full flex-col overflow-hidden border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+            style={{ borderColor: "var(--line)" }}
           >
-            <div className="card-header flex flex-col px-5 pb-5 pt-5">
-              <div className="mb-3">
-                <h2
-                  className="font-heading text-lg font-semibold"
-                  style={{ color: "var(--foreground)" }}
-                >
-                  {plan.title}
-                </h2>
-              </div>
+            <div className="card-header flex flex-col px-6 py-6 md:px-7 md:py-7">
+              <h2
+                className="font-heading text-lg font-bold tracking-tight md:text-xl"
+                style={{ color: "var(--foreground)" }}
+              >
+                {plan.title}
+              </h2>
 
               <p
-                className="mb-3 text-xs leading-relaxed"
+                className="mt-2 min-h-[38px] text-[12px] leading-relaxed md:text-[13px]"
                 style={{ color: "var(--muted)" }}
               >
                 {plan.note}
               </p>
 
-              <p
-                className="mb-4 text-2xl font-bold"
-                style={{ color: "var(--foreground)" }}
-              >
-                {plan.price}
-              </p>
-
-              <form action="/api/checkout" method="post">
-                <input type="hidden" name="planId" value={plan.id} />
-                <input type="hidden" name="mode" value={mode} />
-                <button
-                  type="submit"
-                  className="cta-btn w-full rounded-xl px-4 py-2.5 text-sm font-semibold"
-                >
-                  決済へ進む
-                </button>
-              </form>
+              <div className="mt-5 flex items-baseline gap-1">
+                {(() => {
+                  const [amount, period] = plan.price.split(" / ");
+                  return (
+                    <>
+                      <span
+                        className="text-3xl font-extrabold tracking-tight md:text-4xl"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        {amount}
+                      </span>
+                      {period && (
+                        <span
+                          className="ml-1 text-xs font-medium md:text-sm"
+                          style={{ color: "var(--muted)" }}
+                        >
+                          / {period}
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
 
-            <ul className="flex-1 space-y-2 px-5 pb-5 pt-4 text-[13px]">
-              {plan.points.map((point) => (
-                <li
-                  key={point}
-                  className="flex items-start gap-2"
-                  style={{ color: "var(--foreground)" }}
-                >
-                  <span
-                    className="mt-[2px] flex h-4 w-4 shrink-0 items-center justify-center rounded text-[10px] font-bold"
-                    style={{
-                      background: "var(--feature-icon-bg)",
-                      color: "var(--feature-icon-color)",
-                    }}
+            <div className="flex flex-1 flex-col p-6 md:p-7">
+              <div
+                className="mb-4 text-[10px] font-bold uppercase tracking-wider"
+                style={{ color: "var(--foreground)" }}
+              >
+                含まれる機能
+              </div>
+
+              <ul className="flex-1 space-y-2.5 md:space-y-3">
+                {plan.points.map((point) => (
+                  <li
+                    key={point}
+                    className="flex items-start gap-3"
+                    style={{ color: "var(--foreground)" }}
                   >
-                    ✓
-                  </span>
-                  {point}
-                </li>
-              ))}
-            </ul>
+                    <span
+                      className="mt-[1px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                      style={{
+                        background: plan.isPopular ? "var(--btn-bg)" : "var(--feature-icon-bg)",
+                        color: plan.isPopular ? "var(--btn-text)" : "var(--feature-icon-color)",
+                      }}
+                    >
+                      ✓
+                    </span>
+                    <span className="text-[12px] leading-relaxed md:text-[13px]">{point}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6 pt-2">
+                <form action="/api/checkout" method="post" className="w-full">
+                  <input type="hidden" name="planId" value={plan.id} />
+                  <input type="hidden" name="mode" value={mode} />
+                  <button
+                    type="submit"
+                    className="w-full rounded-xl px-4 py-3 text-sm font-bold transition-all cta-btn"
+                  >
+                    決済へ進む
+                  </button>
+                </form>
+              </div>
+            </div>
           </article>
         ))}
       </div>
 
-      <footer className="mt-auto flex justify-center pb-4 pt-10 md:pt-12">
+      <footer className="mt-8 flex justify-center pb-3 md:pb-4">
         <Link
           href="/events"
-          className="cursor-pointer text-xs font-medium underline underline-offset-4 transition-colors"
+          className="cursor-pointer text-xs font-medium underline underline-offset-4 transition-colors hover:opacity-70"
           style={{
             color: "var(--muted)",
             textDecorationColor: "var(--line)",
