@@ -5,11 +5,12 @@
 - /home/hr-hm/Project/work/HANDOFF_NEXT_CODEX.ja.md
 - /home/hr-hm/Project/work/AGENTS.md
 - /home/hr-hm/Project/work/docs/README.ja.md
+- /home/hr-hm/Project/work/docs/service-catalog.ja.md
 - /home/hr-hm/Project/work/docs/coconala-listing-final.ja.md
 - /home/hr-hm/Project/work/docs/coconala-guide-market-ops.ja.md
 - /home/hr-hm/Project/work/docs/coconala-seller-help-key-links.ja.md
 - /home/hr-hm/Project/work/docs/writing-guideline.ja.md
-- /home/hr-hm/Project/work/docs/special-case-policy.ja.md
+- /home/hr-hm/Project/work/docs/coconala-special-case-policy.ja.md
 - /home/hr-hm/Project/work/docs/coconala-message-templates-short.ja.md
 - /home/hr-hm/Project/work/docs/coconala-estimate-ui-cheatsheet.ja.md
 
@@ -31,10 +32,13 @@
 - 文体は docs/writing-guideline.ja.md を厳守（AI臭を避ける）。
 
 【スキル運用（必須）】
-- 返信文作成・分析: coconala-reply-ja
+- 返信文作成（不具合修正特化）: coconala-reply-bugfix-ja
+- 返信文の最終自然化（汎用）: japanese-chat-natural-ja
+- 旧テンプレ参照/互換: coconala-reply-ja
 - スコープ判定/追加料金判定: scope-judge-ja
 - 納品物作成: delivery-pack-ja
 - 出品文/プロフィール調整: coconala-listing-ja
+- 返信文は `coconala-reply-bugfix-ja -> japanese-chat-natural-ja` の順で適用する。
 - 使うスキル名を短く宣言してから実行する。
 
 【実務フロー】
@@ -47,7 +51,7 @@
   5) 再現手順
   6) エラー情報（ログ/画面）
 - スコープ外は理由を明示して追加見積りへ。
-- 特例運用は docs/special-case-policy.ja.md を正本とし、購入者向け文面で「無料」「特例」「サービスで対応」は使わない。
+- 特例運用は docs/coconala-special-case-policy.ja.md を正本とし、購入者向け文面で「無料」「特例」「サービスで対応」は使わない。
 - 同一原因か別原因かを必ず明示して説明する。
 
 【ココナラ仕様の扱い】

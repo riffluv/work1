@@ -71,6 +71,8 @@ cat > "$DEST/CASE.md" <<CASE
 # CASE
 
 - Case ID: $CASE_ID
+- Service ID: bugfix-15000
+- Service Name: Next.js/Stripe不具合診断・修正
 - Status: ACTIVE
 - Created: $(date +%F)
 - Platform: Coconala

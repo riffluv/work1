@@ -1,6 +1,6 @@
 # ココナラ サービス出品者向けヘルプ要点（見積り機能中心）
 
-更新日: 2026-02-15  
+更新日: 2026-02-25  
 対象セクション: https://coconala-support.zendesk.com/hc/ja/sections/360001514154-%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E5%87%BA%E5%93%81%E8%80%85%E5%90%91%E3%81%91
 
 ## このメモの目的
@@ -62,6 +62,31 @@ https://coconala-support.zendesk.com/hc/ja/articles/360013585154
 「購入前見積り必須」は売れやすさ低下の可能性があるため、必要なサービスのみONが推奨。
 
 - プロフィール経由の見積り受付はプロフィール設定でON/OFFできる。
+
+## 追加確定ルール（2026-02-25反映）
+- 見積り提案の購入期限は「到着日または最終変更日から1週間」。期限切れは再提案で再設定される。  
+https://coconala-support.zendesk.com/hc/ja/articles/360004889793
+
+- 見積り相談経由の取引では有料オプションを使えない。追加費用は提案金額へ含めるか、おひねりで案内する。  
+https://coconala-support.zendesk.com/hc/ja/articles/218832727  
+https://coconala-support.zendesk.com/hc/ja/articles/218179888
+
+- 正式な納品は「合意した提供が完了した状態」でのみ実行する。未提供・提供途中でのクローズ目的納品は行わない。  
+https://coconala-support.zendesk.com/hc/ja/articles/218721047  
+https://coconala-support.zendesk.com/hc/ja/articles/10003485737881
+
+- 差し戻しは原則1回。2回目の正式納品後は72時間経過（次の00分）で自動承諾クローズとなる。  
+https://coconala-support.zendesk.com/hc/ja/articles/900005474606
+
+- トークルームはオープンから120日で自動クローズ。クローズ後は投稿・追加購入・ファイル送信が不可。  
+https://coconala-support.zendesk.com/hc/ja/articles/218723567  
+https://coconala-support.zendesk.com/hc/ja/articles/218723147
+
+- ファイル添付はトークルーム200MB/メッセージ100MB、1回最大5ファイル。まずは添付機能を優先する。  
+https://coconala-support.zendesk.com/hc/ja/articles/218180658
+
+- 出品者初回返信は24時間以内を推奨（要対応化の回避）。このworkspaceでは「遅くとも48時間、通常24時間」を維持する。  
+https://coconala-support.zendesk.com/hc/ja/articles/5894870734745
 
 ## このworkspaceの固定運用
 - サービス経由見積り受付: ON

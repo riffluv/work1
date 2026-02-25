@@ -1,6 +1,8 @@
 # CASE
 
 - Case ID: case-001
+- Service ID: bugfix-15000
+- Service Name: Next.js/Stripe不具合診断・修正
 - Status: ACTIVE
 - Created: 2026-02-24
 - Platform: Coconala

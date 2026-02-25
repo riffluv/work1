@@ -1,6 +1,6 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
-最終更新: 2026-02-21
+最終更新: 2026-02-25
 
 ## 目的
 
@@ -48,12 +48,16 @@
 - `README.md`
 - `Next.js_Stripe不具合診断・修正.md`（現行サービス内容の正本）
 - `docs/service-plan.ja.md`
+- `docs/service-catalog.ja.md`（サービスID台帳）
 - `docs/coconala-premium-roadmap.ja.md`（上位サービス派生ロードマップ）
 - `docs/coconala-guide-market-ops.ja.md`（ココナラ公式段取りの運用メモ）
 - `docs/coconala-seller-help-key-links.ja.md`（見積り機能・紐付け・受付設定の要点）
 - `docs/coconala-message-templates-short.ja.md`（返信・見積り判定テンプレ）
+- `docs/next-codex-prompt.txt`（次セッション起動時の固定手順）
 - `docs/coconala-listing-checklist.md`
 - `docs/README.ja.md`
+- `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`（返信文の特化レイヤ）
+- `/home/hr-hm/.codex/skills/japanese-chat-natural-ja/SKILL.md`（返信文の汎用自然化レイヤ）
 - `TEMPLATES/*.md`
 - `scripts/new-case.sh`
 - `scripts/move-case.sh`
@@ -68,6 +72,7 @@
 ## 更新ルール（大事）
 
 - セッションが終わる前に、このファイルの「更新履歴」に必ず追記する
+- 新しいサービス（新規出品/将来ドラフト）を追加したら、`docs/service-catalog.ja.md` と案件 `CASE.md` の `Service ID` も同時更新する
 - 追記するのは以下の3点だけ
   1. 何を決めたか
   2. 何を変更したか（ファイルパス）
@@ -355,3 +360,23 @@
 - 何を決めたか: Stripe案内は次セッション以降も「日本語UI名を優先」して行う運用に固定した。依頼者案内時は Checkout と Billing Portal を明確に分離し、`prod_...` と `price_...` の混同を防ぐ。
 - 何を変更したか（ファイルパス）: `docs/stripe-dashboard-japanese-ui-guide.ja.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: Stripe関連の相談では新ガイドを参照し、最初に「テスト/本番」「現在の画面（Checkout/Portal）」「必要ID（price_...）」の3点を確認してから案内する。
+
+### 2026-02-25（追記55）
+- 何を決めたか: 複数サービス化に備え、サービス定義を `Service ID` で管理する運用へ拡張した。新サービス追加時は `service-catalog` と案件 `CASE.md` を同時更新する。
+- 何を変更したか（ファイルパス）: `docs/service-catalog.ja.md`, `docs/README.ja.md`, `scripts/new-case.sh`, `cases/ACTIVE/case-001/CASE.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 新規サービスを公開するタイミングで `docs/service-catalog.ja.md` のステータス（将来案→運用中）と正本リンクを更新し、以後の案件で `Service ID` を必須記録にする。
+
+### 2026-02-25（追記56）
+- 何を決めたか: ChatGPT/GeminiのDeepResearch結果を統合し、公式根拠が強い運用項目（提案期限1週間、見積り経由オプション不可、正式納品の実行条件、差し戻し1回、72時間自動承諾、120日期限、添付制約）を採用した。外部共有はworkspace方針どおり「誘導禁止」を維持する。
+- 何を変更したか（ファイルパス）: `docs/coconala-seller-help-key-links.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/delivery-checklist.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: Gemini版の未確定項目（URL共有境界・差し戻し時UI入力・再提案頻度の実務閾値）は実機運用でログを取り、確定したものだけskillsへ追加する。
+
+### 2026-02-25（追記57）
+- 何を決めたか: 返信品質を安定化するため、2層運用を固定した。`coconala-reply-bugfix-ja` で内容とスコープを作成し、`japanese-chat-natural-ja` で日本語自然化を行う。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/japanese-chat-natural-ja/SKILL.md`, `/home/hr-hm/.codex/skills/japanese-chat-natural-ja/references/replace-dictionary.ja.md`, `/home/hr-hm/.codex/skills/japanese-chat-natural-ja/references/duplicate-question-gate.ja.md`, `/home/hr-hm/.codex/skills/japanese-chat-natural-ja/references/tone-templates.ja.md`
+- 次回の最優先タスク: 実案件1件で2層運用を実施し、重複質問回避と文体自然さの指摘有無を案件メモに記録する。
+
+### 2026-02-25（追記58）
+- 何を決めたか: 次セッション起動時の読み込み漏れを防ぐため、`docs/next-codex-prompt.txt` を最新化した。誤パスを修正し、返信Skillの推奨実行順（特化->汎用）を明記した。
+- 何を変更したか（ファイルパス）: `docs/next-codex-prompt.txt`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 新しいCodex起動時に `docs/next-codex-prompt.txt` を渡し、初回応答が「読み込み完了 + 運用要約」になっているか確認する。

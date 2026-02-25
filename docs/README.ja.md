@@ -15,19 +15,22 @@
 4. `docs/coconala-premium-roadmap.ja.md`  
 現行15,000円サービスから上位プレミアムへ派生する実行ロードマップ
 
-5. `docs/coconala-guide-market-ops.ja.md`  
+5. `docs/service-catalog.ja.md`  
+サービスIDと公開状態の台帳（複数サービス運用時の正本）
+
+6. `docs/coconala-guide-market-ops.ja.md`  
 ココナラ公式段取り（購入時挨拶 / 滞留時連絡 / 正式納品）を固定した運用メモ
 
-6. `docs/coconala-seller-help-key-links.ja.md`  
+7. `docs/coconala-seller-help-key-links.ja.md`  
 サービス出品者向けヘルプの要点（見積り経路・紐付け・受付設定）
 
-7. `docs/coconala-special-case-policy.ja.md`
+8. `docs/coconala-special-case-policy.ja.md`
 特例対応の判断基準・文面・記録ルール（価格崩壊防止）
 
-8. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
+9. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
 見積り設定UIの挙動を3行で確認するチートシート
 
-9. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
+10. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
 Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal/price_idの切り分け）
 
 ## 正本ルール（重要）
@@ -36,6 +39,7 @@ Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal
 - 出品画面に反映する実文面・実価格は `docs/coconala-listing-final.ja.md` を正本とする。
 - `deepresearch.clean` 系は調査ログであり、旧案（LIGHT/STANDARD/PREMIUM）を含む場合がある。
 - 実運用で矛盾が出た場合は、正本側（listing final）を優先して更新する。
+- 複数サービス運用時は `docs/service-catalog.ja.md` の `Service ID` を起点に参照先を固定する。
 
 ## 文章運用
 - `docs/writing-guideline.ja.md`  
@@ -64,11 +68,19 @@ Stripeダッシュボードを日本語UIで案内するためのチートシー
 提供プランの定義
 
 ## Skill一覧
-- `coconala-reply-ja`  
-返信文の作成・自然化
+- `coconala-reply-bugfix-ja`  
+不具合修正サービス専用の返信作成（固定条件・規約・スコープ判定前提）
+- `japanese-chat-natural-ja`  
+サービス非依存の日本語自然化（重複質問回避・過剰敬語抑制）
+- `coconala-reply-ja`（互換・旧テンプレ参照）
+旧返信テンプレの参照用
 - `scope-judge-ja`  
 スコープ判定（同一原因/別原因の分岐）
 - `delivery-pack-ja`  
 納品物3点セット + 正式納品文の作成
 - `coconala-listing-ja`  
 出品文の整備
+
+## 返信作成の推奨順
+1. `coconala-reply-bugfix-ja` で内容判定と下書き作成
+2. `japanese-chat-natural-ja` で最終自然化
