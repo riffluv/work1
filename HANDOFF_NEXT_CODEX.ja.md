@@ -1,6 +1,6 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
-最終更新: 2026-02-25
+最終更新: 2026-02-26
 
 ## 目的
 
@@ -380,3 +380,8 @@
 - 何を決めたか: 次セッション起動時の読み込み漏れを防ぐため、`docs/next-codex-prompt.txt` を最新化した。誤パスを修正し、返信Skillの推奨実行順（特化->汎用）を明記した。
 - 何を変更したか（ファイルパス）: `docs/next-codex-prompt.txt`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 新しいCodex起動時に `docs/next-codex-prompt.txt` を渡し、初回応答が「読み込み完了 + 運用要約」になっているか確認する。
+
+### 2026-02-26（追記59）
+- 何を決めたか: 本番反映済みの出品文面を正本へ再同期し、追加料金の選択制・最終確認の完了分岐・FAQ最新化を基準として固定した。
+- 何を変更したか（ファイルパス）: `docs/coconala-listing-final.ja.md`, `Next.js_Stripe不具合診断・修正.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 出品文面を更新した場合は、同日中に `現在の製品ページとプロフィール` と `docs/coconala-listing-final.ja.md` の差分を照合し、正本を先に更新してから運用する。
