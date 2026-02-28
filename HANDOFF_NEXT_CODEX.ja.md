@@ -1,6 +1,6 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
-最終更新: 2026-02-26
+最終更新: 2026-02-28
 
 ## 目的
 
@@ -385,3 +385,18 @@
 - 何を決めたか: 本番反映済みの出品文面を正本へ再同期し、追加料金の選択制・最終確認の完了分岐・FAQ最新化を基準として固定した。
 - 何を変更したか（ファイルパス）: `docs/coconala-listing-final.ja.md`, `Next.js_Stripe不具合診断・修正.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 出品文面を更新した場合は、同日中に `現在の製品ページとプロフィール` と `docs/coconala-listing-final.ja.md` の差分を照合し、正本を先に更新してから運用する。
+
+### 2026-02-28（追記60）
+- 何を決めたか: 納品形式の標準を「修正済みファイルZIP」に固定し、patchはGit運用者向けの任意補助とした。納品時は優先適用方法（通常はZIP差し替え）を必ず明記する。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/pack-templates.ja.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/delivery-checklist.ja.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/references/examples.ja.md`, `/home/hr-hm/.codex/skills/delivery-pack-ja/agents/openai.yaml`, `docs/coconala-guide-market-ops.ja.md`, `docs/coconala-message-templates-short.ja.md`, `docs/coconala-listing-final.ja.md`, `docs/first-case-sop-1page.ja.md`, `docs/service-plan.ja.md`, `Next.js_Stripe不具合診断・修正.md`, `現在の製品ページとプロフィール`, `納品物codex例/*`
+- 次回の最優先タスク: 実案件1件で「ZIP標準＋patch任意」運用を適用し、適用方法に関する往復回数（質問ラリー）を記録してテンプレを最終調整する。
+
+### 2026-02-28（追記61）
+- 何を決めたか: 本番ページ採用文（サービス内容1000文字制限対応）を正本へ同期する際、文体維持を優先し、差分は「納品形式表記（ZIP標準 / patch任意）」と重複削減のみに限定する方針に統一した。
+- 何を変更したか（ファイルパス）: `docs/coconala-listing-final.ja.md`, `docs/next-codex-prompt.txt`, `Next.js_Stripe不具合診断・修正.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: サービス本文を再更新する場合は `現在の製品ページとプロフィール` を先に確定し、同日中に `docs/coconala-listing-final.ja.md` を完全一致で同期する。
+
+### 2026-02-28（追記62）
+- 何を決めたか: 返信目安は「初回返信24時間以内（通常数時間以内）」を前面にし、結果見通しは「必要情報が揃い次第48時間以内を目標に切り分け結果と修正方針案内」の2段構成へ統一した。
+- 何を変更したか（ファイルパス）: `docs/coconala-listing-final.ja.md`, `Next.js_Stripe不具合診断・修正.md`, `docs/coconala-guide-market-ops.ja.md`, `現在のプロフィール`, `docs/next-codex-prompt.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 返信SLAを再変更する場合は、サービス本文/プロフィール/運用ガイドの3点を同時更新し、`docs/next-codex-prompt.txt` の同期注記を必ず更新する。
