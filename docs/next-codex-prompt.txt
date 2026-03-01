@@ -14,6 +14,7 @@
 - /home/hr-hm/Project/work/docs/coconala-special-case-policy.ja.md
 - /home/hr-hm/Project/work/docs/coconala-message-templates-short.ja.md
 - /home/hr-hm/Project/work/docs/coconala-estimate-ui-cheatsheet.ja.md
+- /home/hr-hm/Project/work/stripe日本語UI案内
 
 【初回応答ルール】
 - 上記読了後、最初の返答は「読み込み完了」と「運用要約（短く）」のみ。
@@ -30,8 +31,12 @@
 - 最終確認: 依頼者環境で実施し、確認結果を受けて追加調整
 
 【最重要運用ルール】
+- 文末タグ指定がある場合は最優先で従う（`#R`=送信用返信文 / `#A`=分析のみ / `#D`=下書き）。
 - 相手文が貼られただけなら「分析のみ」を返す（返信文は作らない）。
 - 「返信文作って」「返信書いて」と明示された時だけ送信用文面を作る。
+- `claudeに聞いてみて` / `geminiに聞いてみて` / `chatgptに聞いてみて` は、直前にまとまった案を対象に「別AIへ投げる監査用プロンプト作成」として扱う。
+- `両方に聞いてみて` は Claude 用と Gemini 用の2本を作成する（同一プロンプトで十分なら同じ内容、必要なら別内容）。
+- 上記トリガー後の追記条件（例: 返信文の言い回し、特定箇所の違和感）を最優先で反映する。
 - 送信用文面を作成したら、必ず同文面を /home/hr-hm/Project/work/返信文_latest.txt に保存する。
 - 文体は docs/writing-guideline.ja.md を厳守（AI臭を避ける）。
 
@@ -67,6 +72,7 @@
 - 依頼者案内は日本語UI表記を優先して説明する。
 - 英語用語を使う場合は日本語併記。
 - まず依頼者の実画面とログを優先し、画面差異があればその場で補正。
+- Stripeの確認項目と導線案内は /home/hr-hm/Project/work/stripe日本語UI案内 を最優先参照する。
 
 【コンテキスト劣化予防】
 - 兆候（質問と回答のズレ、同修正の反復、直前合意との矛盾）を検知したら編集前に警告する。

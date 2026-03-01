@@ -33,6 +33,9 @@
 10. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
 Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal/price_idの切り分け）
 
+11. `/home/hr-hm/Project/work/stripe日本語UI案内`
+Stripeでお客さんに確認してもらう項目と導線の運用版（返信文作成時の参照先）
+
 ## 正本ルール（重要）
 
 - 現行サービス内容の簡易正本は `Next.js_Stripe不具合診断・修正.md`（ルート直下）とする。
