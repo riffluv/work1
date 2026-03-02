@@ -400,3 +400,8 @@
 - 何を決めたか: 返信目安は「初回返信24時間以内（通常数時間以内）」を前面にし、結果見通しは「必要情報が揃い次第48時間以内を目標に切り分け結果と修正方針案内」の2段構成へ統一した。
 - 何を変更したか（ファイルパス）: `docs/coconala-listing-final.ja.md`, `Next.js_Stripe不具合診断・修正.md`, `docs/coconala-guide-market-ops.ja.md`, `現在のプロフィール`, `docs/next-codex-prompt.txt`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 返信SLAを再変更する場合は、サービス本文/プロフィール/運用ガイドの3点を同時更新し、`docs/next-codex-prompt.txt` の同期注記を必ず更新する。
+
+### 2026-03-02（追記63）
+- 何を決めたか: Stripe確認導線は `/home/hr-hm/Project/work/stripe日本語UI案内` を最優先参照に固定し、返信運用は文末タグ `#R/#A/#D` を最優先判定に統一した。加えて `claudeに聞いてみて` などは別AI監査プロンプト作成トリガーとして扱い、対象未指定時は「直前のCodex最終出力1件」を既定にした。
+- 何を変更したか（ファイルパス）: `AGENTS.md`, `docs/next-codex-prompt.txt`, `docs/README.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `stripe日本語UI案内`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 初回案件で `#A -> #R` と `両方に聞いてみて` を実運用し、(1) 返信作成時間 (2) 追質問回数 (3) 案内導線の修正回数 を記録して微調整する。
