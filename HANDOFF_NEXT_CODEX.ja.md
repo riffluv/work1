@@ -1,6 +1,6 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
-最終更新: 2026-02-28
+最終更新: 2026-03-02
 
 ## 目的
 
@@ -34,6 +34,12 @@
 - 実績参照（ゲーム）: `/home/hr-hm/Project/jomonsho`
 - 実績参照（Stripeキット）: `/home/hr-hm/Project/stripe`
 
+## 一次ソース（最優先）
+
+- サービス商品ページ: `/home/hr-hm/Project/work/現在の製品ページとプロフィール`
+- プロフィール: `/home/hr-hm/Project/work/現在のプロフィール`
+- `docs/coconala-listing-final.ja.md` は同期ミラーとして扱う（一次ソース優先）
+
 ## 返信運用（固定）
 
 - 相手文の貼り付けのみは「分析のみ」で返す（返信文は作らない）
@@ -46,7 +52,9 @@
 - `CLAUDE.md`
 - `OPERATIONS.md`
 - `README.md`
-- `Next.js_Stripe不具合診断・修正.md`（現行サービス内容の正本）
+- `現在の製品ページとプロフィール`（サービス商品ページの一次ソース）
+- `現在のプロフィール`（プロフィールの一次ソース）
+- `Next.js_Stripe不具合診断・修正.md`（参考要約）
 - `docs/service-plan.ja.md`
 - `docs/service-catalog.ja.md`（サービスID台帳）
 - `docs/coconala-premium-roadmap.ja.md`（上位サービス派生ロードマップ）
@@ -61,6 +69,7 @@
 - `TEMPLATES/*.md`
 - `scripts/new-case.sh`
 - `scripts/move-case.sh`
+- `scripts/check-coconala-listing-sync.sh`（一次ソースと docs 同期の整合チェック）
 
 ## 新しいCodexに最初に依頼する内容（コピペ可）
 
@@ -79,6 +88,8 @@
   3. 次回の最優先タスク
 
 ## 更新履歴
+
+※古い履歴にある「正本」表現は当時の運用です。現行ルールは上記「一次ソース（最優先）」を優先してください。
 
 ### 2026-02-11
 - `work` を恒久運用の案件ワークスペースとして整備
@@ -405,3 +416,8 @@
 - 何を決めたか: Stripe確認導線は `/home/hr-hm/Project/work/stripe日本語UI案内` を最優先参照に固定し、返信運用は文末タグ `#R/#A/#D` を最優先判定に統一した。加えて `claudeに聞いてみて` などは別AI監査プロンプト作成トリガーとして扱い、対象未指定時は「直前のCodex最終出力1件」を既定にした。
 - 何を変更したか（ファイルパス）: `AGENTS.md`, `docs/next-codex-prompt.txt`, `docs/README.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `stripe日本語UI案内`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 初回案件で `#A -> #R` と `両方に聞いてみて` を実運用し、(1) 返信作成時間 (2) 追質問回数 (3) 案内導線の修正回数 を記録して微調整する。
+
+### 2026-03-02（追記64）
+- 何を決めたか: 出品文面の一次ソースを固定した。サービス商品ページは `現在の製品ページとプロフィール`、プロフィールは `現在のプロフィール` を最優先とし、`docs/coconala-listing-final.ja.md` は同期ミラーとして扱う。
+- 何を変更したか（ファイルパス）: `docs/README.ja.md`, `docs/next-codex-prompt.txt`, `docs/coconala-listing-final.ja.md`, `docs/coconala-launch-prep.ja.md`, `docs/coconala-guide-market-ops.ja.md`, `docs/service-catalog.ja.md`, `docs/coconala-listing-checklist.md`, `Next.js_Stripe不具合診断・修正.md`, `HANDOFF_NEXT_CODEX.ja.md`, `scripts/check-coconala-listing-sync.sh`
+- 次回の最優先タスク: 出品文面を更新するときは、必ず一次ソースを先に更新し `./scripts/check-coconala-listing-sync.sh` で同期/文字数確認してから docs 側へ反映する。

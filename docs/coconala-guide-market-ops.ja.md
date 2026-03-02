@@ -1,6 +1,6 @@
 # ココナラ公式段取りメモ（guide_market準拠）
 
-更新日: 2026-02-28
+更新日: 2026-03-02
 参照: https://coconala.com/pages/guide_market
 
 ## 目的
@@ -75,7 +75,9 @@
 - 送信用文面は `/home/hr-hm/Project/work/返信文_latest.txt` に保存する
 
 ## 参照優先順位
-1. `docs/coconala-listing-final.ja.md`（出品文の正本）
-2. `docs/coconala-guide-market-ops.ja.md`（公式段取り）
-3. `docs/coconala-message-templates-short.ja.md`（短文テンプレ）
-4. `docs/writing-guideline.ja.md`（文体ルール）
+1. `/home/hr-hm/Project/work/現在の製品ページとプロフィール`（サービス商品ページの一次ソース）
+2. `/home/hr-hm/Project/work/現在のプロフィール`（プロフィールの一次ソース）
+3. `docs/coconala-listing-final.ja.md`（同期ミラー）
+4. `docs/coconala-guide-market-ops.ja.md`（公式段取り）
+5. `docs/coconala-message-templates-short.ja.md`（短文テンプレ）
+6. `docs/writing-guideline.ja.md`（文体ルール）

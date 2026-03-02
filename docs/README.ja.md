@@ -2,9 +2,16 @@
 
 このファイルは、人間が「今どの資料を見ればいいか」を迷わないための入口です。
 
+## 一次ソース（最優先）
+1. `/home/hr-hm/Project/work/現在の製品ページとプロフィール`
+サービス商品ページの実体正本（本番反映ベース）
+
+2. `/home/hr-hm/Project/work/現在のプロフィール`
+プロフィールの実体正本（本番反映ベース）
+
 ## まず見る（優先順）
 1. `docs/coconala-listing-final.ja.md`  
-出品ページに反映する本文の正本
+出品ページ文面の同期ミラー（一次ソースから同期する）
 
 2. `docs/20260212-coconala-monetization-deepresearch.clean.ja.md`  
 価格・追加料金・KPI・90日運用の方針
@@ -38,11 +45,18 @@ Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal
 
 ## 正本ルール（重要）
 
-- 現行サービス内容の簡易正本は `Next.js_Stripe不具合診断・修正.md`（ルート直下）とする。
-- 出品画面に反映する実文面・実価格は `docs/coconala-listing-final.ja.md` を正本とする。
+- サービス商品ページの実体正本は `/home/hr-hm/Project/work/現在の製品ページとプロフィール` とする。
+- プロフィールの実体正本は `/home/hr-hm/Project/work/現在のプロフィール` とする。
+- `docs/coconala-listing-final.ja.md` は同期ミラー。直接編集より、一次ソース更新後の同期を優先する。
+- `Next.js_Stripe不具合診断・修正.md` は参考要約（一次ソースではない）。
 - `deepresearch.clean` 系は調査ログであり、旧案（LIGHT/STANDARD/PREMIUM）を含む場合がある。
-- 実運用で矛盾が出た場合は、正本側（listing final）を優先して更新する。
+- 実運用で矛盾が出た場合は、一次ソース（直下2ファイル）を優先する。
 - 複数サービス運用時は `docs/service-catalog.ja.md` の `Service ID` を起点に参照先を固定する。
+
+## 同期手順（固定）
+1. 先に一次ソース（直下2ファイル）を更新する
+2. `./scripts/check-coconala-listing-sync.sh` で同期/文字数を確認する
+3. 必要な `docs` 側へ同期反映する
 
 ## 文章運用
 - `docs/writing-guideline.ja.md`  
@@ -65,6 +79,8 @@ Stripeダッシュボードを日本語UIで案内するためのチートシー
 収益化設計の要点整理
 
 ## 公開前チェック
+- `docs/coconala-launch-prep.ja.md`
+公開当日の入力値・設定値・48時間運用を1ページで確認するための実行用キット
 - `docs/coconala-listing-checklist.md`  
 出品前の確認リスト
 - `docs/service-plan.ja.md`  
