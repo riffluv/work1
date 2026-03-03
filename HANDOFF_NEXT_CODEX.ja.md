@@ -426,3 +426,8 @@
 - 何を決めたか: 本番反映予定の現行文面を一次ソース基準で再同期し、Q&A/回答例の最新版を固定。あわせて予想お届け日数は本番運用に合わせて3日に統一した。次セッションのズレ防止のため、起動プロンプトとhandoffの更新日を当日に合わせた。
 - 何を変更したか（ファイルパス）: `現在の製品ページとプロフィール`, `現在のプロフィール`, `docs/coconala-listing-final.ja.md`, `docs/coconala-launch-prep.ja.md`, `docs/next-codex-prompt.txt`, `scripts/check-coconala-listing-sync.sh`, `HANDOFF_NEXT_CODEX.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`
 - 次回の最優先タスク: サービス本文を本番画面に反映した当日中に、一次ソースとの差分を再確認し `./scripts/check-coconala-listing-sync.sh` を再実行して同期状態を維持する。
+
+### 2026-03-03（追記66）
+- 何を決めたか: キャッチコピーを「Webhook・API連携エラーの原因特定から修正まで」に更新し、一次ソースと運用ドキュメントの整合を取った。
+- 何を変更したか（ファイルパス）: `現在の製品ページとプロフィール`, `docs/coconala-listing-final.ja.md`, `docs/coconala-launch-prep.ja.md`, `docs/coconala-listing-checklist.md`, `Next.js_Stripe不具合診断・修正.md`, `ココナラ出品を最終確定するための調査レポート.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 本番反映後に表示文言を確認し、変更が出た場合は一次ソース更新→`./scripts/check-coconala-listing-sync.sh` 実行→docs同期の順で維持する。
