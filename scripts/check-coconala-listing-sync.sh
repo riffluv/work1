@@ -56,7 +56,7 @@ fi
 
 if grep -q '^見積りにあたってのお願い※任意 (200字以内)$' "$LIVE_FILE"; then
   estimate_chars="$({
-    awk 'BEGIN{flag=0} /^分かる範囲で次をご共有ください。$/{flag=1} /^  【トークルーム回答例1】$/{flag=0} flag{print}' "$LIVE_FILE" \
+    awk 'BEGIN{flag=0} /^分かる範囲で次をご共有ください。$/{flag=1} /^[[:space:]]*【トークルーム回答例1】$/{flag=0} flag{print}' "$LIVE_FILE" \
       | sed '/^$/d' | tr -d '\n' | wc -m
   } | awk '{print $1}')"
 
