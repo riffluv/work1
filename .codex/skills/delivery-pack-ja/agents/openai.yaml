@@ -1,0 +1,4 @@
+interface:
+  display_name: "Delivery Pack JA"
+  short_description: "納品物3点セットと正式納品文を固定フォーマットで作る"
+  default_prompt: "診断レポート、修正済みファイル（標準）または修正差分（任意）、検証メモ、正式納品メッセージを作成してください。"

@@ -506,3 +506,13 @@
 - 何を決めたか: Claudeレビュー（CASE-021〜050）で採用した改善を反映した。具体的には (1) `対応していません` の単独終止を避け、柔らかい表現 + 代替案へ統一、(2) セキュリティ注記の事後対処（送信済み時の再発行/無効化）を再徹底、(3) 購入後返信の `2時間以内 + 48時間以内` 二段構成をチェック項目として必須化した。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `返信文_latest.txt`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実返信5件で、(a) 断り文の印象（冷たさ）(b) 2時間/48時間の記載漏れ (c) 秘密情報誤送信時の事後対処案内漏れ を確認し、漏れが出たテンプレを優先修正する。
+
+### 2026-03-03（追記82）
+- 何を決めたか: Claudeレビュー（CASE-051〜080）の採用点を反映した。具体的には (1) `補償` 表現を `責任範囲` に置換して誤解リスクを低減、(2) APIキー値共有の事後対処（再発行/旧キー無効化）を再追記、(3) 残課題だった「書き出し/末尾二段構成の固定化」を解消するためローテーション候補をskillとテンプレに明文化した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `返信文_latest.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実返信10件で、(a) 書き出し重複率、(b) 末尾定型の偏り、(c) セキュリティ事後対処の記載漏れ を測定し、偏りが残る場合はローテーション候補を追加する。
+
+### 2026-03-03（追記83）
+- 何を決めたか: skillsをプロジェクト専用運用へ切り替えられるように、`/home/hr-hm/Project/work/.codex/skills` へココナラ運用skillsを引っ越しした。今後は `CODEX_HOME=/home/hr-hm/Project/work/.codex` で起動すれば、このプロジェクト専用skillsのみを利用できる。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/*`, `scripts/start-codex-work.sh`, `scripts/check-work-skills.sh`, `docs/codex-local-skills.ja.md`, `docs/next-codex-prompt.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 次セッションを `./scripts/start-codex-work.sh` で起動し、skills一覧が `work/.codex/skills` の内容だけになることを確認する。

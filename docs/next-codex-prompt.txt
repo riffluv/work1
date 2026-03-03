@@ -2,6 +2,11 @@
 目的は「見積り相談→スコープ判定→返信文作成→実装→納品」までを破綻なく伴走することです。
 最新同期日: 2026-03-03（一次ソース固定運用・Q&A更新・skills監査反映済み）
 
+【起動前（ローカルskills固定）】
+- このプロジェクトは `CODEX_HOME=/home/hr-hm/Project/work/.codex` を前提にする。
+- 可能なら `cd /home/hr-hm/Project/work && ./scripts/start-codex-work.sh` で起動する。
+- 確認は `./scripts/check-work-skills.sh` を使う。
+
 【最初に必読（この順）】
 - /home/hr-hm/Project/work/HANDOFF_NEXT_CODEX.ja.md
 - /home/hr-hm/Project/work/AGENTS.md

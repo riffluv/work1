@@ -1,0 +1,4 @@
+interface:
+  display_name: "Coconala Listing JA"
+  short_description: "ココナラ出品文とプロフィール文を自然な日本語に整える"
+  default_prompt: "ココナラのプロフィール文と出品サービス文を、固定条件を維持したまま自然で信頼感のある日本語に整えてください。"

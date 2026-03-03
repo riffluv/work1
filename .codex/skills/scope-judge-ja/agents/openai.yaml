@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scope Judge JA"
+  short_description: "同一原因/別原因の判定と追加見積り分岐を固定する"
+  default_prompt: "同一原因か別原因かを判定し、購入者向け文面と案件メモ追記を作ってください。"
