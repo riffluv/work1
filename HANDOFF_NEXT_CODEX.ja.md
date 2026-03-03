@@ -431,3 +431,78 @@
 - 何を決めたか: キャッチコピーを「Webhook・API連携エラーの原因特定から修正まで」に更新し、一次ソースと運用ドキュメントの整合を取った。
 - 何を変更したか（ファイルパス）: `現在の製品ページとプロフィール`, `docs/coconala-listing-final.ja.md`, `docs/coconala-launch-prep.ja.md`, `docs/coconala-listing-checklist.md`, `Next.js_Stripe不具合診断・修正.md`, `ココナラ出品を最終確定するための調査レポート.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 本番反映後に表示文言を確認し、変更が出た場合は一次ソース更新→`./scripts/check-coconala-listing-sync.sh` 実行→docs同期の順で維持する。
+
+### 2026-03-03（追記67）
+- 何を決めたか: 見積り返信で完了時刻が未確定な場合は「資料受領後2時間以内（JST）で一次見解」を既定文として案内する運用に統一した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件で一次見解の返答時刻をこの既定文で案内し、返信速度の安心感と再質問回数の変化を確認する。
+
+### 2026-03-03（追記68）
+- 何を決めたか: 非エンジニア向け初回返信は「スクショ中心・ID必須化しない」方針に調整した。Stripe詳細（イベント/Webhook配信履歴）は必要時のみ2通目で依頼する。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件で「A最短/B標準/Cエンジニア/D2通目」の使い分けを試し、初回離脱率と追質問回数の変化を記録する。
+
+### 2026-03-03（追記69）
+- 何を決めたか: 非エンジニア初回の最短版は負荷を抑えつつ、必須3点（期待/実際/環境）を回収する形に統一した。初回2点化は行わない。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件でA最短版の回答率を確認し、回答が止まる場合は2通目で質問数を増やす運用を維持する。
+
+### 2026-03-03（追記70）
+- 何を決めたか: 返信テンプレの「AI感」を下げるため、文面を自然化した。具体的には「大丈夫です」の連発を抑制し、非エンジニア向けは短く前向きな表現へ統一。末尾の時間案内は 2時間（方向性）+48時間（一次結果）の2段構成を維持したまま言い回しを柔らかくした。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件3件で A/B/C/D の返信後に「追質問回数」「初回返信率」「相手の理解停滞（同じ質問の再発）」を記録し、短文化か詳細化のどちらが効くかを再判定する。
+
+### 2026-03-03（追記71）
+- 何を決めたか: Claude監査のうち採用項目のみ反映した。採用したのは、(1) A/B/Cの末尾3行の表現差分付け、(2) Aの`OK`連打の緩和、(3) Cの例文の自然化と依頼文の口語化、(4) Dの断定回避、(5) 追加料金注記の平易化。固定条件・価格・スコープは変更していない。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件でA/B/C/Dを使ったあと、(a) 相手の初回返信率 (b) 追加質問の回数 (c) 「固い/機械的」反応の有無 を記録し、必要なら「安心文の強さ」だけ微調整する。
+
+### 2026-03-03（追記72）
+- 何を決めたか: 追加レビューの採用項目として、(1) `追って` の誤用を `絞って` に修正、(2) 3ファイルの主要テンプレ文言（「まず次の3点をお願いします」）を同期、(3) A/B/Cの書き出しを軽く分岐してパターン固定を緩和した。`発生環境` の語は技術精度を優先して維持した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件で「冒頭文の分岐（ご相談/ご連絡/ありがとうございます）」が不自然にならないかを確認し、違和感が出る場合のみ語尾を微調整する。
+
+### 2026-03-03（追記73）
+- 何を決めたか: 辛口レビューの採用可能項目を追加反映した。採用したのは、(1) 冷たく聞こえる文の緩和（`不足分は...` → `他に必要なことがあれば...`）、(2) Dテンプレ終端の案内文を共同作業寄りに変更（`ご案内します` → `別の確認方法を探します`）、(3) 2時間既定文を公文書調からチャット調へ変更。固定条件・価格・スコープは変更していない。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件2〜3件で「冷たい印象」の反応有無を確認し、必要ならA/Bの冒頭1文だけ微調整して本文構造は固定維持する。
+
+### 2026-03-03（追記74）
+- 何を決めたか: practice_audit_v3 の採用項目として、(1) A/Bの依頼導入文を分岐（`3つだけ教えてください` / `次の3つだけ教えてください`）、(2) A/B/Cの末尾1行目を分岐（`いただき次第` / `確認できしだい` / `まず`）して再固定を回避した。`発生環境` は技術精度優先で維持した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件でA/B誤選択が起きたときの分岐理由（非エンジニア度/情報量）を記録し、必要ならテンプレ名のラベルを運用メモに追記する。
+
+### 2026-03-03（追記75）
+- 何を決めたか: 「言い換え自由 + 禁止表現ガード」の運用を skill に正式導入した。3層線引き（完全固定/構造固定/表現自由）を明文化し、Must 10 / Ban 10 / 段階導入（5件試行→判定）を追加した。テンプレは固定文ではなく「参考例」扱いに変更した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件5件で (a) 追質問回数 (b) 初回返信率 (c) 冷たい印象の反応有無 を記録し、2件以上悪化した場合は追記74時点の運用へロールバックする。
+
+### 2026-03-03（追記76）
+- 何を決めたか: 見積り段階のスコープ文は断定（`可能です`）より見込み表現（`対応できる見込みです`）を優先し、別原因時は「事前相談で進め方を決める」1文を添える運用に統一した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `返信文_latest.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 見積り返信5件で「断定に起因する期待ズレ」の有無を確認し、ズレが続く場合はスコープ判定の前置き文をテンプレ化する。
+
+### 2026-03-03（追記77）
+- 何を決めたか: Claudeレビュー（CASE-002〜006）で採用した横断ルールを skill に反映した。具体的には (1) `不足分は/不足分だけ` をBan化、(2) 「見込み+別原因は事前相談」文の連投定型回避、(3) 非エンジニア向けの技術語連続チェックを追加した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 次の5件で「冷たい印象」「難しい用語で詰まる反応」「定型感の指摘」の有無を記録し、1件でも発生した場合は該当文を即時言い換え辞書へ追加する。
+
+### 2026-03-03（追記78）
+- 何を決めたか: Claudeレビュー（CASE-007〜011）で採用した3点を反映した。具体的には (1) 「見込み+別原因は事前相談」文のローテーション運用を明文化、(2) `1質問1情報` ルールを追加、(3) `対応範囲外です` で終わらせず代替案併記を必須化した。あわせてエンジニア向け文面の語感を更新（`対応できるか確認` → `確認`、`発生環境` → `起きている環境`）。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 次の実案件5件で、(a) 同一文の連投率、(b) 質問1項目あたりの情報数、(c) 範囲外回答後の返信継続率 を記録し、必要なら見込み文の候補を追加する。
+
+### 2026-03-03（追記79）
+- 何を決めたか: Claudeレビュー（CASE-012〜016）で採用した3点を反映した。具体的には (1) 見積り初手の料金案内は「基本料金 + 追加は事前相談」を原則化して情報過多を防ぐ、(2) 時刻未確定文言はフェーズで使い分け（見積り=`方向性` / 購入後=`確認結果・判定結果`）、(3) セキュリティ注記を「禁止 -> 代替 -> 事後対処」の3点セットで標準化した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 購入後トークルーム返信5件で、(a) 料金説明での離脱反応、(b) 「方向性/確認結果」語の使い分けミス、(c) .env誤送信時の二次事故（再発行漏れ）を記録し、必要ならセキュリティ定型を短文化する。
+
+### 2026-03-03（追記80）
+- 何を決めたか: Claudeレビュー（CASE-017〜020）で採用した3点を反映した。具体的には (1) 判定前は追加料金の具体金額を先出ししない、(2) 責任/保証回答は「保証範囲 -> ただし（同一原因の追加調整）-> リスク低減手順」の3段構成を標準化、(3) 購入後フェーズ返信は毎回時刻目安を必須化した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 購入後返信5件で、(a) 時刻未記載の発生有無、(b) 判定前の料金詳細先出し再発、(c) 保証質問への回答で読みづらい長文化の有無を記録し、再発時は該当テンプレを即修正する。
+
+### 2026-03-03（追記81）
+- 何を決めたか: Claudeレビュー（CASE-021〜050）で採用した改善を反映した。具体的には (1) `対応していません` の単独終止を避け、柔らかい表現 + 代替案へ統一、(2) セキュリティ注記の事後対処（送信済み時の再発行/無効化）を再徹底、(3) 購入後返信の `2時間以内 + 48時間以内` 二段構成をチェック項目として必須化した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `返信文_latest.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実返信5件で、(a) 断り文の印象（冷たさ）(b) 2時間/48時間の記載漏れ (c) 秘密情報誤送信時の事後対処案内漏れ を確認し、漏れが出たテンプレを優先修正する。
