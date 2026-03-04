@@ -1,6 +1,7 @@
 
-/home/hr-hm/Project/work/docs/next-codex-prompt.txt を最初に読んで、読み込み完了と運用要約を返してから作業開始して。
- 
+ cd /home/hr-hm/Project/work && ./scripts/start-codex-work.sh で開始して
+ その後に　
+ /home/hr-hm/Project/work/docs/next-codex-prompt.txt を最初に読んで、読み込み完了と運用要約を返してから作業開始して。
  
   日本語対応ならこう覚えると簡単です。
 
