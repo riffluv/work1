@@ -40,7 +40,10 @@ else
 fi
 
 service_chars="$({
-  awk 'BEGIN{flag=0} /^サービス内容$/{flag=1;next} /^予想お届け日数/{flag=0} flag{print}' "$LIVE_FILE" | wc -m
+  # ココナラUIの体感値に合わせ、末尾の空行/改行はカウントから除外する。
+  awk 'BEGIN{flag=0} /^サービス内容$/{flag=1;next} /^予想お届け日数/{flag=0} flag{print}' "$LIVE_FILE" \
+    | perl -0777 -pe 's/(?:\n[ \t]*)+\z//' \
+    | wc -m
 } | awk '{print $1}')"
 
 if [ -z "$service_chars" ]; then
