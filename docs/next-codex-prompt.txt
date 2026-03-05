@@ -6,6 +6,7 @@
 - このプロジェクトは `CODEX_HOME=/home/hr-hm/Project/work/.codex` を前提にする。
 - 可能なら `cd /home/hr-hm/Project/work && ./scripts/start-codex-work.sh` で起動する。
 - 確認は `./scripts/check-work-skills.sh` を使う。
+- `./scripts/check-work-skills.sh` が `NG` の場合は作業を開始しない。`NG` 内容をそのまま報告して停止する。
 
 【最初に必読（この順）】
 - /home/hr-hm/Project/work/HANDOFF_NEXT_CODEX.ja.md

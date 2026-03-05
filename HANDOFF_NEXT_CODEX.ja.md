@@ -433,7 +433,7 @@
 - 次回の最優先タスク: 本番反映後に表示文言を確認し、変更が出た場合は一次ソース更新→`./scripts/check-coconala-listing-sync.sh` 実行→docs同期の順で維持する。
 
 ### 2026-03-03（追記67）
-- 何を決めたか: 見積り返信で完了時刻が未確定な場合は「資料受領後2時間以内（JST）で一次見解」を既定文として案内する運用に統一した。
+- 何を決めたか: 見積り返信で完了時刻が未確定な場合は「資料受領後2時間以内で一次見解」を既定文として案内する運用に統一した。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実案件で一次見解の返答時刻をこの既定文で案内し、返信速度の安心感と再質問回数の変化を確認する。
 
@@ -516,3 +516,38 @@
 - 何を決めたか: skillsをプロジェクト専用運用へ切り替えられるように、`/home/hr-hm/Project/work/.codex/skills` へココナラ運用skillsを引っ越しした。今後は `CODEX_HOME=/home/hr-hm/Project/work/.codex` で起動すれば、このプロジェクト専用skillsのみを利用できる。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/*`, `scripts/start-codex-work.sh`, `scripts/check-work-skills.sh`, `docs/codex-local-skills.ja.md`, `docs/next-codex-prompt.txt`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 次セッションを `./scripts/start-codex-work.sh` で起動し、skills一覧が `work/.codex/skills` の内容だけになることを確認する。
+
+### 2026-03-05（追記84）
+- 何を決めたか: 国内向けの返信文では `JST` 表記を使わない。見積り初回（資料未受領）は `2時間以内を目標に`、資料受領後は `本日[時刻]までに` で具体時刻を案内する運用に分離した。海外在住者が明確な場合のみ `日本時間` を補足する。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `返信文_latest.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実返信5件で時刻案内の理解詰まり有無を確認し、海外案件が来た場合のみ `日本時間` 補足テンプレを追加する。
+
+### 2026-03-05（追記85）
+- 何を決めたか: 資料受領後の無音不安を防ぐため、「受領直後の一言 -> 30〜60分の中間報告 -> 本日[時刻]までの具体時刻コミット」の3段階返信を標準化した。`この返信から` は購入後文面で使わない。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `返信文_latest.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実返信5件で、(a) 受領後30〜60分の中間報告送信率 (b) 時刻コミットの具体化率 (c) 「放置不安」反応の有無 を記録し、漏れがあればテンプレに即反映する。
+
+### 2026-03-05（追記86）
+- 何を決めたか: 受領後3段階を呼び出しやすくするため、`#R 受領返信` / `#R 進捗返信` / `#R 方向性返信` を運用ショート指示として固定した。いずれも自動送信ではなく、ユーザー明示時のみ生成する。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件5件でショート指示の使い分け（受領/進捗/方向性）が混同されないかを確認し、混同が出た場合は語彙をさらに短く統一する。
+
+### 2026-03-05（追記87）
+- 何を決めたか: Claude監査の採用項目として、購入者向け文面の語感を自然化した。具体的には `方向性` を `見立て` 中心へ置換し、`確認開始のご連絡を入れます` を `届きしだい確認に入りますね` へ変更。あわせて `2時間以内を目標に` を `2時間以内には` に調整した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `docs/coconala-message-templates-short.ja.md`, `返信文_latest.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実返信5件で、(a) 「機械的」反応の有無 (b) `見立て` 語の理解詰まり (c) 2時間案内の超過時フォロー実施率 を記録し、必要なら語彙を再調整する。
+
+### 2026-03-05（追記88）
+- 何を決めたか: `#R 受領返信 / 進捗返信 / 方向性返信` は、時刻未指定時に `JST現在時刻+2時間` を自動補完する運用にした（同日=`本日HH:MMまで`、日付またぎ=`明日HH:MMまで`）。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `docs/coconala-message-templates-short.ja.md`, `返信文_latest.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実返信5件で、(a) 自動補完時刻の運用ミス有無 (b) 深夜帯の「明日HH:MM」表記の違和感有無 を記録し、必要なら夜間専用文面を追加する。
+
+### 2026-03-05（追記89）
+- 何を決めたか: Claude監査の納品文面レビューを採用した。正式納品文は「約3日間未操作で自動承諾」を平易に案内し、`差し戻しは原則1回` の先出しは抑制。評価依頼は1回のみ・任意トーン（`ひと言いただけるとうれしいです`）へ統一した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/pack-templates.ja.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/examples.ja.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/delivery-checklist.ja.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実納品5件で、(a) 承諾率 (b) 差し戻し率 (c) 評価依頼への抵抗反応 を記録し、必要なら納品後フォロー文の温度を微調整する。
+
+### 2026-03-05（追記90）
+- 何を決めたか: 納品フェーズの呼び出しを短縮するため、`#R 納品前確認` / `#R 正式納品案内` / `#R 承諾前フォロー` / `#R 差し戻し返信` / `#R クローズお礼` をショート指示として追加した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実納品5件でショート指示の使い分けミス（納品前確認と正式納品案内の取り違え）がないかを記録し、必要ならラベル名をさらに短くする。
