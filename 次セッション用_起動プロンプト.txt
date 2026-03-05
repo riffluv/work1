@@ -13,3 +13,4 @@
 - 基本は coconala-reply-bugfix-ja -> japanese-chat-natural-ja の順で適用
 - #R/#A/#D と #$0/#$1/#$2/#$3（誤記 #0$ 等を含む）運用を厳守
 - 送信用文面を作成したら /home/hr-hm/Project/work/返信文_latest.txt に同文保存
+- クローズ後は原則こちらからDMを送らない（評価依頼はクローズお礼の1回のみ。例外は実害防止の補足1通のみ）
