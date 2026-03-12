@@ -39,7 +39,10 @@
 - サービス商品ページ: `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 - プロフィール: `/home/hr-hm/Project/work/現在のプロフィール`
 - `docs/coconala-listing-final.ja.md` は同期ミラーとして扱う（一次ソース優先）
-- 現在の出品文は Claude レビューを反映済み。特に「AI/外注コードでも相談しやすい温度感」「購入にあたってのお願い」「Q&A」の自然さを 2026-03-12 時点で調整済み。
+- 現在の出品文は Claude レビューを反映済み。特に「AI/外注コードでも相談しやすい温度感」「購入にあたってのお願い」「Q&A」「トークルーム回答例」の自然さを 2026-03-12 時点で調整済み。
+- 返信 skill も同日更新済み。`coconala-reply-bugfix-ja` と `japanese-chat-natural-ja` は、相手の言葉を拾ってから返す / 質問票に見せない / 判定前に金額を出しすぎない、を新しい既定トーンとして扱う。
+- 温度感監査の結果、方向性は維持で問題なし。残っていた旧テンプレは `coconala-reply-bugfix-ja` 内で 2026-03-12 に更新済み（非エンジニア初回 / エンジニア初回 / 同一原因・別原因通知 / 中間報告）。
+- 納品物テンプレも 2026-03-12 に調整済み。`今回の対応に含まれない部分` を独立見出しで固定せず、誤解されやすい場合だけ `今回の修正が関係する部分` の中で自然に補足する。
 
 ## 返信運用（固定）
 
@@ -264,6 +267,11 @@
 - 何を決めたか: 出品前の文章調整は、サービス本文・プロフィール・購入にあたってのお願い・Q&A まで含めて一旦完成とし、次フェーズは実務での微調整に移る。
 - 何を変更したか（ファイルパス）: `サービスページ/bugfix-15000.live.txt`, `docs/coconala-listing-final.ja.md`, `現在の製品ページとプロフィール`, `現在のプロフィール`, `docs/coconala-win-strategy.ja.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/pack-templates.ja.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/examples.ja.md`, `納品物codex例/01_診断レポート.md`, `納品物codex例/03_検証手順と確認結果メモ.md`
 - 次回の最優先タスク: 本番ページへ反映して出品し、初回相談で入口OSと価格判断の実運用を確認する。
+
+### 2026-03-12（追記32）
+- 何を決めたか: 返信 skill の温度感は大枠で良好。追加修正は大改修ではなく、旧テンプレ文の更新にとどめる。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/japanese-chat-natural-ja/SKILL.md`, `docs/writing-guideline.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談で、サービスページと実務返信の温度差が出ないかだけを確認し、違和感があればテンプレを局所修正する。
 - 何を決めたか: `skill-japanese-teacher-review.md` は実務に有効。採用は「自然さ/誤読防止に直結する最小修正」に限定し、価格・仕様変更系は不採用方針を維持した。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実案件ログを1週間分採点表で評価し、返信率が落ちる文型（語尾固定・専門語先行）を追加で削る。

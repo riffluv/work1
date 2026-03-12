@@ -1,54 +1,46 @@
-*** Begin Patch
-*** Update File: app/api/webhook/route.ts
-@@
- import { NextResponse } from "next/server";
+diff --git a/app/api/stripe/webhook/route.ts b/app/api/stripe/webhook/route.ts
+index 4f6b1a2..a93d7c1 100644
+--- a/app/api/stripe/webhook/route.ts
++++ b/app/api/stripe/webhook/route.ts
+@@ -1,22 +1,29 @@
+ import { NextRequest, NextResponse } from "next/server";
  import Stripe from "stripe";
-@@
- export async function POST(req: Request) {
--  const body = await req.json();
--  const sig = req.headers.get("stripe-signature") as string;
-+  const rawBody = await req.text();
-+  const sig = req.headers.get("stripe-signature");
-+
-+  if (!sig) {
-+    return NextResponse.json(
-+      { ok: false, error: "missing stripe-signature header" },
-+      { status: 400 }
-+    );
-+  }
-@@
-   let event: Stripe.Event;
-   try {
--    event = stripe.webhooks.constructEvent(
--      JSON.stringify(body),
--      sig,
--      process.env.STRIPE_WEBHOOK_SECRET!
--    );
-+    event = stripe.webhooks.constructEvent(
-+      rawBody,
-+      sig,
-+      process.env.STRIPE_WEBHOOK_SECRET!
-+    );
-   } catch (err) {
--    console.error("Webhook signature verification failed", err);
-+    console.error("Webhook signature verification failed", {
-+      error: err instanceof Error ? err.message : String(err),
-+    });
-     return NextResponse.json({ ok: false }, { status: 400 });
-   }
-@@
--  if (event.type === "checkout.session.completed") {
--    const session = event.data.object as Stripe.Checkout.Session;
--    await activatePlan(session);
-+  if (event.type === "checkout.session.completed") {
-+    const session = event.data.object as Stripe.Checkout.Session;
-+    await activatePlan(session);
-+    console.info("webhook processed", {
-+      event_id: event.id,
-+      type: event.type,
-+    });
+ import { stripe } from "@/lib/stripe";
+ import { grantPaidPlan } from "@/lib/server/grantPaidPlan";
+ 
+ export async function POST(request: NextRequest) {
+   const signature = request.headers.get("stripe-signature");
+ 
+   if (!signature) {
+     return NextResponse.json({ error: "Missing Stripe-Signature" }, { status: 400 });
    }
  
-   return NextResponse.json({ ok: true });
+-  const payload = await request.json();
++  // 署名検証は raw body が必要（json() で読むと検証に失敗する）
++  const payload = await request.text();
+   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+ 
+   if (!webhookSecret) {
+     return NextResponse.json({ error: "Missing webhook secret" }, { status: 500 });
+   }
+ 
+   let event: Stripe.Event;
+ 
+   try {
+     event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+   } catch (error) {
++    console.error("[stripe-webhook] signature verification failed", error);
+     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+   }
+ 
+   if (event.type === "checkout.session.completed") {
+     const session = event.data.object as Stripe.Checkout.Session;
++    // event.id で重複排除する。同じイベントが再送されても二重反映しない
+     await grantPaidPlan({
+       sessionId: session.id,
+       eventId: event.id,
+       customerId: session.customer as string | null,
+@@ -24,4 +31,4 @@ export async function POST(request: NextRequest) {
+ 
+   return NextResponse.json({ received: true });
  }
-*** End Patch
