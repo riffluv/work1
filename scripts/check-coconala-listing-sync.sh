@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-LIVE_FILE="$ROOT_DIR/現在の製品ページとプロフィール"
+LIVE_FILE="$ROOT_DIR/サービスページ/bugfix-15000.live.txt"
 DOC_FILE="$ROOT_DIR/docs/coconala-listing-final.ja.md"
 
 if [ ! -f "$LIVE_FILE" ]; then

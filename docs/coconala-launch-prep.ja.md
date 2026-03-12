@@ -2,7 +2,7 @@
 
 更新日: 2026-03-03
 対象サービスID: `bugfix-15000`
-一次ソース（正本）: `/home/hr-hm/Project/work/現在の製品ページとプロフィール`
+一次ソース（正本）: `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 同期ミラー: `docs/coconala-listing-final.ja.md`
 
 ## 1. 先に確認（固定条件）
@@ -47,7 +47,7 @@ Webhook・API連携エラーの原因特定から修正まで
 ※ .envはキー名のみで、値は送らないでください。
 
 ## 3. 公開前チェック（実施順）
-- [ ] 一次ソース（`現在の製品ページとプロフィール`）を先に更新済み
+- [ ] 一次ソース（`サービスページ/bugfix-15000.live.txt`）を先に更新済み
 - [ ] `docs/coconala-listing-final.ja.md` に同期済み
 - [ ] `./scripts/check-coconala-listing-sync.sh` がOK
 - [ ] タイトル/キャッチ/価格/オプションを入力済み
@@ -65,7 +65,7 @@ Webhook・API連携エラーの原因特定から修正まで
 - 返信テンプレ参照: `docs/coconala-message-templates-short.ja.md`
 
 ## 5. 出品後に最初に見るファイル
-1. `/home/hr-hm/Project/work/現在の製品ページとプロフィール`
+1. `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 2. `/home/hr-hm/Project/work/現在のプロフィール`
 3. `docs/coconala-listing-final.ja.md`
 4. `docs/coconala-guide-market-ops.ja.md`

@@ -14,6 +14,8 @@ description: "ココナラ案件の納品物を、診断レポート・修正済
 - テンプレート: `references/pack-templates.ja.md`
 - 納品前ガード: `references/delivery-checklist.ja.md`
 - 運用正本: `/home/hr-hm/Project/work/docs/coconala-guide-market-ops.ja.md`
+- Scope Snapshot: `/home/hr-hm/Project/work/ops/common/scope-snapshot-template.md`
+- サービス定義: `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml`
 
 ## 入力（最低限）
 1. 原因の要約（何が壊れていたか）
@@ -25,7 +27,8 @@ description: "ココナラ案件の納品物を、診断レポート・修正済
 1. 診断レポート（原因 / 修正内容 / 影響範囲 / 確認手順）
 2. 修正済みファイル（標準）または修正差分（任意）
 3. 検証手順と確認結果メモ
-4. 正式納品メッセージ（そのまま送信可能）
+4. Scope Snapshot
+5. 正式納品メッセージ（そのまま送信可能）
 
 ## 作成フロー
 1. 納品形式の合意を確認する（未合意なら「標準は修正済みZIP、希望があればpatch併記」と案内する）。
@@ -42,6 +45,8 @@ description: "ココナラ案件の納品物を、診断レポート・修正済
 - `差し戻しは原則1回` は必要時に補足し、初回納品文で圧をかけない。
 - 評価依頼を入れる場合は1回のみ、任意トーンで短く書く。
 - 未提供/提供途中の状態では正式納品メッセージを作らず、状況確認またはキャンセル案内に切り替える。
+- Scope Snapshot を先に埋め、合意した範囲を再掲する。
+- 添付前にメタデータと不要ファイルの混入を確認する。
 
 ## 仕上げチェック
 - 「何が原因だったか」が1〜3行で読めるか。
@@ -50,3 +55,5 @@ description: "ココナラ案件の納品物を、診断レポート・修正済
 - 納品形式（ZIP/patch）と優先適用方法が明記されているか。
 - 正式納品メッセージに差し戻し案内があるか。
 - 正式納品メッセージに「約3日間未操作で自動承諾クローズ」案内があるか。
+- Scope Snapshot が現在の合意内容と一致しているか。
+- 添付前チェックでメタデータと不要ファイルを見ているか。

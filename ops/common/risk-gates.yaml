@@ -1,0 +1,69 @@
+version: 1
+
+gates:
+  - id: external_contact
+    decision: decline
+    when:
+      - line
+      - discord
+      - slack
+      - zoom
+      - email
+
+  - id: external_share
+    decision: decline
+    when:
+      - github
+      - google drive
+      - dropbox
+      - external url
+
+  - id: external_payment
+    decision: decline
+    when:
+      - bank transfer
+      - paypay
+      - direct payment
+
+  - id: raw_secret_value
+    decision: hold
+    when:
+      - env value requested
+      - api key value requested
+      - webhook secret value requested
+
+  - id: direct_push_or_prod
+    decision: decline
+    when:
+      - direct push
+      - prod deploy
+
+  - id: prepurchase_overdelivery
+    decision: hold
+    when:
+      - detailed diagnosis before purchase
+      - fix promise before purchase
+
+  - id: scope_undecidable
+    decision: hold
+    when:
+      - same_vs_different_unknown
+
+  - id: multi_flow_or_endpoint
+    decision: hold
+    when:
+      - multiple_flows_detected
+      - multiple_endpoints_detected
+
+  - id: speculative_stripe_claim
+    decision: hold
+    when:
+      - no_event_context
+      - no_endpoint_context
+      - no_live_test_context
+
+  - id: early_formal_delivery
+    decision: decline
+    when:
+      - deliverables_incomplete
+      - client_verification_not_requested

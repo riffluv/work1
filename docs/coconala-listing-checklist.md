@@ -1,6 +1,6 @@
 # Coconala Listing Checklist（現行）
 
-- [ ] 一次ソース（`現在の製品ページとプロフィール` / `現在のプロフィール`）を先に更新した
+- [ ] 一次ソース（`サービスページ/bugfix-15000.live.txt` / `現在のプロフィール`）を先に更新した
 - [ ] `docs/coconala-listing-final.ja.md` へ同期し、`./scripts/check-coconala-listing-sync.sh` がOK
 - [ ] カテゴリが `IT相談・システム開発 > プログラミング・ソフト開発 > バグ修正・コード改修代行` になっている
 - [ ] タイトルが `Next.js/Stripe不具合診断・修正します` になっている
@@ -14,6 +14,6 @@
 - [ ] 見積り設定が `受付ON / 必須OFF` になっている
 
 Reference:
-- `/home/hr-hm/Project/work/現在の製品ページとプロフィール`
+- `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 - `/home/hr-hm/Project/work/現在のプロフィール`
 - `docs/coconala-listing-final.ja.md`

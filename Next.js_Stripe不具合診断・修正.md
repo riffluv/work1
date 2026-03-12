@@ -3,7 +3,7 @@
 更新日: 2026-03-03
 位置づけ: 参考要約（一次ソースではありません）
 一次ソース:
-- `/home/hr-hm/Project/work/現在の製品ページとプロフィール`
+- `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 - `/home/hr-hm/Project/work/現在のプロフィール`
 
 ## サービスタイトル

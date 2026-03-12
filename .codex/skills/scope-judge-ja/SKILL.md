@@ -14,6 +14,8 @@ description: "ココナラ案件で、同一原因か別原因かを判定し、
 - 判定フロー: `references/judgement-flow.ja.md`
 - 出力例: `references/examples.ja.md`
 - 正本ポリシー: `/home/hr-hm/Project/work/docs/coconala-special-case-policy.ja.md`
+- サービス定義: `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml`
+- 具体例: `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/scope-matrix.md`
 
 ## 入力（最低限）
 1. 元の不具合（症状 / 原因 / 対象フロー）
@@ -27,17 +29,20 @@ description: "ココナラ案件で、同一原因か別原因かを判定し、
 4. 判定が割れる場合は「要相談」で止め、根拠を明記する。
 
 ## 出力
-- 判定: `吸収対応 / 追加見積り / 要相談`
+- 判定: `same_cause_likely / different_cause_likely / undecidable`
 - 根拠: 1〜3行（原因・フロー・収束見込み）
 - 購入者向け文面: そのまま送信可能な1本
 - 案件メモ追記: 1〜2行
 
 ## 文面ガード
 - `無料` `特例` `サービスで対応` を書かない。
-- 吸収時は `同一原因の範囲として対応します` を使う。
-- 追加見積り時は `原因が別` と `金額` を同一メッセージに入れる。
+- `same_cause_likely` では `同一原因の範囲として対応します` を使う。
+- `different_cause_likely` では `原因が別` を先に書く。
+- `undecidable` では追加料金の金額を先に出さない。
+- `undecidable` のまま受注可否を断定しない。
 
 ## 仕上げチェック
 - 判定と文面が一致しているか。
 - 原因/フローの根拠が書かれているか。
 - 購入者の次アクションが1行で明確か。
+- `undecidable` を無理に二択へ倒していないか。

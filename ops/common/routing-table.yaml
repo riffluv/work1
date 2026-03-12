@@ -1,0 +1,56 @@
+version: 1
+
+routes:
+  next_stripe_bugfix:
+    high_fit_keywords:
+      - next.js
+      - stripe
+      - webhook
+      - api
+      - vercel
+      - checkout
+      - billing portal
+      - subscriptions
+      - db reflects
+      - production only
+    medium_fit_keywords:
+      - firebase
+      - auth
+      - runtime
+      - deployment
+      - server action
+    low_fit_keywords:
+      - new feature
+      - redesign
+      - seo
+      - logo
+      - figma
+      - wordpress
+      - shopify app build
+
+decision_rules:
+  - if: "service fit is high and state is prequote"
+    next_action: ask_minimum_questions
+  - if: "service fit is medium and route is profile or message"
+    next_action: ask_boundary_questions
+  - if: "service fit is service_mismatch_but_feasible"
+    next_action: request_human_business_judgement
+  - if: "service fit is low"
+    next_action: decline_or_future_service
+  - if: "risk gate is hold"
+    next_action: request_human_review
+  - if: "state is purchased"
+    next_action: collect_required_five
+  - if: "state is predelivery"
+    next_action: prepare_scope_snapshot_and_delivery
+
+question_limits:
+  prequote_default: 3
+  prequote_stripe_conditional: 3
+  purchased_required: 5
+
+service_fit_notes:
+  high: "現行サービス内容と技術領域がほぼ一致する"
+  medium: "現行サービスに近いが、境界確認が必要"
+  service_mismatch_but_feasible: "現行サービス説明とはズレるが、技術的には現実的で、実績目的なら人間判断で拾う余地がある"
+  low: "現行サービスとのズレが大きく、現時点では無理に乗せない方が安全"

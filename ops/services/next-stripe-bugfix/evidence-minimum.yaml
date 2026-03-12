@@ -1,0 +1,32 @@
+version: 1
+
+phases:
+  prequote:
+    required:
+      - expected_behavior
+      - actual_behavior
+      - environment
+    question_limit: 3
+    fallback:
+      - one_screenshot
+
+  purchased:
+    required:
+      - expected_behavior
+      - actual_behavior
+      - reproduction_steps
+      - error_logs
+      - stack_runtime_hosting
+    question_limit: 5
+
+conditional:
+  stripe:
+    ask_if_detected:
+      - event_name
+      - webhook_endpoint_path
+      - mode_test_or_live
+
+rules:
+  - ask_only_missing_items
+  - do_not_repeat_known_facts
+  - if_scope_is_unclear_then_hold_pricing

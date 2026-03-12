@@ -1,0 +1,111 @@
+version: 1
+
+routes:
+  service:
+    prequote:
+      allowed_actions:
+        - analyze
+        - ask_minimum_questions
+        - draft_reply_on_request
+        - prepare_estimate
+      forbidden_actions:
+        - formal_delivery
+        - external_share
+        - promise_free_extra_work
+    quote_sent:
+      allowed_actions:
+        - gentle_follow_up
+        - answer_questions
+      forbidden_actions:
+        - formal_delivery
+        - resend_with_pressure
+    purchased:
+      allowed_actions:
+        - collect_required_five
+        - progress_update
+        - implement
+        - scope_recheck
+      forbidden_actions:
+        - external_share
+        - prod_deploy
+    predelivery:
+      allowed_actions:
+        - share_delivery_summary
+        - request_client_verification
+        - prepare_formal_delivery
+      forbidden_actions:
+        - early_formal_delivery
+    delivered:
+      allowed_actions:
+        - answer_verification_questions
+        - handle_single_remand
+        - close_with_thanks
+      forbidden_actions:
+        - aggressive_follow_up
+    closed:
+      allowed_actions:
+        - wait_for_inbound_message
+      forbidden_actions:
+        - outbound_sales_dm
+
+  profile:
+    prequote:
+      allowed_actions:
+        - analyze
+        - route_to_service_fit
+        - ask_boundary_questions
+        - draft_reply_on_request
+      forbidden_actions:
+        - assume_service_fit
+        - force_service_binding
+    quote_sent:
+      allowed_actions:
+        - answer_questions
+        - gentle_follow_up
+      forbidden_actions:
+        - formal_delivery
+
+  message:
+    prequote:
+      allowed_actions:
+        - analyze
+        - route_to_service_fit
+        - ask_boundary_questions
+        - draft_reply_on_request
+      forbidden_actions:
+        - assume_service_fit
+        - force_service_binding
+    quote_sent:
+      allowed_actions:
+        - answer_questions
+        - gentle_follow_up
+      forbidden_actions:
+        - formal_delivery
+
+  talkroom:
+    purchased:
+      allowed_actions:
+        - collect_required_five
+        - progress_update
+        - implement
+        - scope_recheck
+      forbidden_actions:
+        - new_unagreed_scope
+    predelivery:
+      allowed_actions:
+        - share_delivery_summary
+        - request_client_verification
+        - prepare_formal_delivery
+      forbidden_actions:
+        - early_formal_delivery
+    delivered:
+      allowed_actions:
+        - answer_verification_questions
+        - handle_single_remand
+      forbidden_actions:
+        - aggressive_follow_up
+    closed:
+      allowed_actions:
+        - wait_for_inbound_message
+      forbidden_actions:
+        - outbound_sales_dm

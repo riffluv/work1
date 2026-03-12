@@ -1,0 +1,63 @@
+service_id: next-stripe-bugfix
+display_name: Next.js/Stripe不具合診断・修正
+base_price: 15000
+addons:
+  extra_fix: 15000
+  extra_research_30m: 5000
+
+scope_unit: same_cause_and_same_flow_and_same_endpoint
+purchase_before_estimate_required: false
+proposal_binding_required_for_profile_or_message: true
+
+in_scope:
+  - Next.js / Stripe / API連携の不具合診断と修正
+  - 本番のみ再現する500系や反映漏れ
+  - Stripe Webhook の署名検証、不達、重複処理
+  - Checkout / Billing Portal / Subscriptions 周辺の不具合
+
+out_of_scope:
+  - 通話、ビデオ会議
+  - 依頼者リポジトリへの直接push
+  - 本番デプロイ代行
+  - 新機能開発
+  - 仕様追加
+  - データ移行
+
+prequote_minimum:
+  - expected_behavior
+  - actual_behavior
+  - environment
+
+implementation_required:
+  - expected_behavior
+  - actual_behavior
+  - reproduction_steps
+  - error_logs
+  - stack_runtime_hosting
+
+stripe_conditional_questions:
+  - event_name
+  - webhook_endpoint_path
+  - mode_test_or_live
+
+deliverables:
+  - diagnostic_report
+  - fixed_zip_or_patch
+  - verification_note
+
+hard_no:
+  - raw_secret_values
+  - direct_push
+  - prod_deploy
+  - external_contact
+  - external_share
+  - external_payment
+
+human_review_when:
+  - scope_undecidable
+  - multiple_flows
+  - multiple_endpoints
+  - profile_route_low_fit
+  - service_mismatch_but_feasible
+  - pricing_change
+  - formal_delivery

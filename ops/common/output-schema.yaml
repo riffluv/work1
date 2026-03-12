@@ -1,0 +1,60 @@
+version: 1
+
+required_fields:
+  - src
+  - state
+  - user_intent
+  - service_fit
+  - risk_level
+  - risk_flags
+  - scope_judgement
+  - missing_info
+  - next_action
+  - human_review_required
+  - reply_generation
+
+field_rules:
+  src:
+    allowed:
+      - service
+      - profile
+      - message
+      - talkroom
+  state:
+    allowed:
+      - prequote
+      - quote_sent
+      - purchased
+      - predelivery
+      - delivered
+      - closed
+  service_fit:
+    allowed:
+      - high
+      - medium
+      - service_mismatch_but_feasible
+      - low
+      - unknown
+  risk_level:
+    allowed:
+      - low
+      - medium
+      - high
+  scope_judgement:
+    allowed:
+      - same_cause_likely
+      - different_cause_likely
+      - undecidable
+      - not_applicable
+  reply_generation:
+    allowed:
+      - analysis_only
+      - draft_if_requested
+      - ready_to_draft
+
+optional_fields:
+  - service_id
+  - summary
+  - evidence_found
+  - ask_count
+  - reply_notes

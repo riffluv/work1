@@ -36,7 +36,7 @@
 
 ## 一次ソース（最優先）
 
-- サービス商品ページ: `/home/hr-hm/Project/work/現在の製品ページとプロフィール`
+- サービス商品ページ: `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 - プロフィール: `/home/hr-hm/Project/work/現在のプロフィール`
 - `docs/coconala-listing-final.ja.md` は同期ミラーとして扱う（一次ソース優先）
 
@@ -52,7 +52,7 @@
 - `CLAUDE.md`
 - `OPERATIONS.md`
 - `README.md`
-- `現在の製品ページとプロフィール`（サービス商品ページの一次ソース）
+- `サービスページ/bugfix-15000.live.txt`（サービス商品ページの一次ソース）
 - `現在のプロフィール`（プロフィールの一次ソース）
 - `Next.js_Stripe不具合診断・修正.md`（参考要約）
 - `docs/service-plan.ja.md`
@@ -64,8 +64,17 @@
 - `docs/next-codex-prompt.txt`（次セッション起動時の固定手順）
 - `docs/coconala-listing-checklist.md`
 - `docs/README.ja.md`
-- `/home/hr-hm/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`（返信文の特化レイヤ）
-- `/home/hr-hm/.codex/skills/japanese-chat-natural-ja/SKILL.md`（返信文の汎用自然化レイヤ）
+- `ops/common/coconala-rule-guard.md`
+- `ops/common/interaction-states.yaml`
+- `ops/common/risk-gates.yaml`
+- `ops/common/output-schema.yaml`
+- `ops/common/routing-table.yaml`
+- `ops/services/next-stripe-bugfix/service.yaml`
+- `ops/services/next-stripe-bugfix/evidence-minimum.yaml`
+- `ops/services/next-stripe-bugfix/scope-matrix.md`
+- `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`（返信文の特化レイヤ）
+- `/home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md`（入口判定レイヤ）
+- `/home/hr-hm/Project/work/.codex/skills/japanese-chat-natural-ja/SKILL.md`（返信文の汎用自然化レイヤ）
 - `TEMPLATES/*.md`
 - `scripts/new-case.sh`
 - `scripts/move-case.sh`
@@ -551,3 +560,13 @@
 - 何を決めたか: 納品フェーズの呼び出しを短縮するため、`#R 納品前確認` / `#R 正式納品案内` / `#R 承諾前フォロー` / `#R 差し戻し返信` / `#R クローズお礼` をショート指示として追加した。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `docs/coconala-message-templates-short.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実納品5件でショート指示の使い分けミス（納品前確認と正式納品案内の取り違え）がないかを記録し、必要ならラベル名をさらに短くする。
+
+### 2026-03-12（追記91）
+- 何を決めたか: 返信 skill の量産より先に、入口OSを追加する方針にした。具体的には `入口判定 -> スコープ補強 -> 返信生成 -> 自然化` の順にし、規約ガード・状態遷移・サービス定義・証跡回収・Scope Snapshot を表と設定ファイルへ寄せた。
+- 何を変更したか（ファイルパス）: `ops/common/coconala-rule-guard.md`, `ops/common/interaction-states.yaml`, `ops/common/risk-gates.yaml`, `ops/common/output-schema.yaml`, `ops/common/routing-table.yaml`, `ops/common/model-escalation.md`, `ops/common/scope-snapshot-template.md`, `ops/services/next-stripe-bugfix/service.yaml`, `ops/services/next-stripe-bugfix/evidence-minimum.yaml`, `ops/services/next-stripe-bugfix/scope-matrix.md`, `ops/review-checkpoints.md`, `ops/macro-15.md`, `ops/case-log.csv`, `ops/future-service-candidates.csv`, `/home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/japanese-chat-natural-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/scope-judge-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/delivery-checklist.ja.md`, `docs/README.ja.md`, `docs/next-codex-prompt.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談で `coconala-intake-router-ja` を先に通し、(a) 聞きすぎの減少、(b) `undecidable` の扱い、(c) プロフィール経由相談の誤ルーティング有無 を3〜5件分記録して、必要なら routing-table と service.yaml を微調整する。
+
+### 2026-03-12（追記92）
+- 何を決めたか: `低適合 = 自動で見送り` にはせず、`サービス説明とはズレるが技術的には現実的で、実績目的なら検討余地がある案件` を `service_mismatch_but_feasible` として人手判断へ上げることにした。
+- 何を変更したか（ファイルパス）: `ops/common/output-schema.yaml`, `ops/common/routing-table.yaml`, `ops/services/next-stripe-bugfix/service.yaml`, `ops/review-checkpoints.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談で `service_mismatch_but_feasible` が出た案件を記録し、(a) 価格が見合ったか、(b) 実績価値があったか、(c) 今後サービス化すべき需要か を案件メモへ残す。

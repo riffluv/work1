@@ -10,7 +10,7 @@
 
 | Service ID | ステータス | サービス名 | 役割 | 価格モデル | 正本 |
 | --- | --- | --- | --- | --- | --- |
-| `bugfix-15000` | 運用中 | Next.js/Stripe不具合診断・修正 | 入口サービス（現行） | 基本15,000円 + 追加修正15,000円 + 追加調査30分5,000円 | 一次: `現在の製品ページとプロフィール` / 同期: `docs/coconala-listing-final.ja.md` |
+| `bugfix-15000` | 運用中 | Next.js/Stripe不具合診断・修正 | 入口サービス（現行） | 基本15,000円 + 追加修正15,000円 + 追加調査30分5,000円 | 一次: `サービスページ/bugfix-15000.live.txt` / 同期: `docs/coconala-listing-final.ja.md` |
 | `premium-bugfix-draft` | 将来案 | 不具合修正プレミアム | 上位派生（複数修正/再発防止） | 30,000〜60,000円想定（未公開） | `docs/coconala-premium-roadmap.ja.md` |
 | `stripe-impl-draft` | 将来案 | Stripe実装（既存Next.js向け・UIデザイン除く） | 単価向上用の別サービス | 見積り前提（未確定） | `docs/coconala-stripe-implementation-listing-draft.ja.md` |
 

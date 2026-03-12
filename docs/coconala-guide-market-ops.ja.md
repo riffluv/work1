@@ -75,7 +75,7 @@
 - 送信用文面は `/home/hr-hm/Project/work/返信文_latest.txt` に保存する
 
 ## 参照優先順位
-1. `/home/hr-hm/Project/work/現在の製品ページとプロフィール`（サービス商品ページの一次ソース）
+1. `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`（サービス商品ページの一次ソース）
 2. `/home/hr-hm/Project/work/現在のプロフィール`（プロフィールの一次ソース）
 3. `docs/coconala-listing-final.ja.md`（同期ミラー）
 4. `docs/coconala-guide-market-ops.ja.md`（公式段取り）
