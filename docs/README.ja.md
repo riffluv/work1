@@ -12,6 +12,7 @@
 ## まず見る（優先順）
 1. `docs/coconala-listing-final.ja.md`  
 出品ページ文面の同期ミラー（一次ソースから同期する）
+補足: 2026-03-12 時点で、サービス本文・プロフィール・購入にあたってのお願い・Q&A まで文章調整済み
 
 2. `docs/20260212-coconala-monetization-deepresearch.clean.ja.md`  
 価格・追加料金・KPI・90日運用の方針

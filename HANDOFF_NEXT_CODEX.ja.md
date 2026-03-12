@@ -1,6 +1,6 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
-最終更新: 2026-03-03
+最終更新: 2026-03-12
 
 ## 目的
 
@@ -39,6 +39,7 @@
 - サービス商品ページ: `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 - プロフィール: `/home/hr-hm/Project/work/現在のプロフィール`
 - `docs/coconala-listing-final.ja.md` は同期ミラーとして扱う（一次ソース優先）
+- 現在の出品文は Claude レビューを反映済み。特に「AI/外注コードでも相談しやすい温度感」「購入にあたってのお願い」「Q&A」の自然さを 2026-03-12 時点で調整済み。
 
 ## 返信運用（固定）
 
@@ -258,6 +259,11 @@
 - 次回の最優先タスク: 実相談1件で「初回返信後の回答率」「任意3項目の回収率」「追加料金説明後の離脱有無」を観測し、必要ならテンプレをさらに短文化する。
 
 ### 2026-02-16（追記30）
+
+### 2026-03-12（追記31）
+- 何を決めたか: 出品前の文章調整は、サービス本文・プロフィール・購入にあたってのお願い・Q&A まで含めて一旦完成とし、次フェーズは実務での微調整に移る。
+- 何を変更したか（ファイルパス）: `サービスページ/bugfix-15000.live.txt`, `docs/coconala-listing-final.ja.md`, `現在の製品ページとプロフィール`, `現在のプロフィール`, `docs/coconala-win-strategy.ja.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/pack-templates.ja.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/examples.ja.md`, `納品物codex例/01_診断レポート.md`, `納品物codex例/03_検証手順と確認結果メモ.md`
+- 次回の最優先タスク: 本番ページへ反映して出品し、初回相談で入口OSと価格判断の実運用を確認する。
 - 何を決めたか: `skill-japanese-teacher-review.md` は実務に有効。採用は「自然さ/誤読防止に直結する最小修正」に限定し、価格・仕様変更系は不採用方針を維持した。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/.codex/skills/coconala-reply-ja/references/message-patterns.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/estimate-reply-flow.ja.md`, `/home/hr-hm/.codex/skills/coconala-reply-ja/references/consistency-guard.ja.md`, `/home/hr-hm/.codex/skills/coconala-listing-ja/references/listing-style-rules.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実案件ログを1週間分採点表で評価し、返信率が落ちる文型（語尾固定・専門語先行）を追加で削る。
