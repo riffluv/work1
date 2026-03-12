@@ -20,12 +20,12 @@ IT相談・システム開発 > プログラミング・ソフト開発 > バグ
 Next.js/Stripe不具合診断・修正します
 
 タイトル補足説明（キャッチコピー）
-Webhook・API連携エラーの原因特定から修正まで
+決済反映・Webhook失敗の原因説明から修正まで
 
-サービス内容（全文で現在1000文字、冒頭4行は205文字）
-基本料金15,000円で、Next.js / Stripe / API連携の不具合1件（同一原因）に対応します。
-再現確認→原因切り分け→修正内容の作成まで対応します。必要情報が揃い次第、48時間以内を目標に一次結果をお返しします。
-納品は「診断レポート / 修正済みファイル（ZIP・標準）または修正差分（patch・任意） / 検証手順メモ」です。
+サービス内容（全文で現在955文字、冒頭4行は288文字）
+「決済は成功しているのに反映されない」「本番だけWebhookが失敗する」「AI/外注から引き継いだコードの原因が分からない」といった、Next.js / Stripe / API連携の不具合1件（同一原因）に、基本料金15,000円で対応します。
+再現確認→原因切り分け→修正内容の作成まで対応し、必要情報が揃い次第、48時間以内を目標に一次結果をお返しします。
+納品は「何が原因だったか / 何を修正したか / どう確認するか」が追える形で、診断レポート・修正済みZIPまたはpatch・検証手順メモをお渡しします。
 やり取りと共有はココナラのトークルーム内で行います。
 
 予想お届け日数
@@ -68,7 +68,8 @@ Webhook・API連携エラーの原因特定から修正まで
 1. `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 2. `/home/hr-hm/Project/work/現在のプロフィール`
 3. `docs/coconala-listing-final.ja.md`
-4. `docs/coconala-guide-market-ops.ja.md`
-5. `docs/coconala-seller-help-key-links.ja.md`
-6. `docs/writing-guideline.ja.md`
-7. `/home/hr-hm/Project/work/stripe日本語UI案内`
+4. `docs/coconala-win-strategy.ja.md`
+5. `docs/coconala-guide-market-ops.ja.md`
+6. `docs/coconala-seller-help-key-links.ja.md`
+7. `docs/writing-guideline.ja.md`
+8. `/home/hr-hm/Project/work/stripe日本語UI案内`

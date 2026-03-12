@@ -16,37 +16,40 @@
 2. `docs/20260212-coconala-monetization-deepresearch.clean.ja.md`  
 価格・追加料金・KPI・90日運用の方針
 
-3. `docs/first-case-sop-1page.ja.md`  
+3. `docs/coconala-win-strategy.ja.md`
+今の主力サービスで、最初の高評価コメントを取りにいくための勝ち筋メモ
+
+4. `docs/first-case-sop-1page.ja.md`  
 初案件を受注してから納品までの最短手順
 
-4. `docs/coconala-premium-roadmap.ja.md`  
+5. `docs/coconala-premium-roadmap.ja.md`  
 現行15,000円サービスから上位プレミアムへ派生する実行ロードマップ
 
-5. `docs/service-catalog.ja.md`  
+6. `docs/service-catalog.ja.md`  
 サービスIDと公開状態の台帳（複数サービス運用時の正本）
 
-6. `docs/coconala-guide-market-ops.ja.md`  
+7. `docs/coconala-guide-market-ops.ja.md`  
 ココナラ公式段取り（購入時挨拶 / 滞留時連絡 / 正式納品）を固定した運用メモ
 
-7. `docs/coconala-seller-help-key-links.ja.md`  
+8. `docs/coconala-seller-help-key-links.ja.md`  
 サービス出品者向けヘルプの要点（見積り経路・紐付け・受付設定）
 
-8. `docs/coconala-special-case-policy.ja.md`
+9. `docs/coconala-special-case-policy.ja.md`
 特例対応の判断基準・文面・記録ルール（価格崩壊防止）
 
-9. `ops/common/coconala-rule-guard.md`
+10. `ops/common/coconala-rule-guard.md`
 返信・提案・納品の前に読む共通ガード（規約事故・外部共有・秘密情報・正式納品の境界）
 
-10. `ops/services/next-stripe-bugfix/service.yaml`
+11. `ops/services/next-stripe-bugfix/service.yaml`
 主力サービスの固定条件・証跡回収・人手判断条件をまとめた設定ファイル
 
-11. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
+12. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
 見積り設定UIの挙動を3行で確認するチートシート
 
-12. `/home/hr-hm/Project/work/stripe日本語UI案内`
+13. `/home/hr-hm/Project/work/stripe日本語UI案内`
 Stripeでお客さんに確認してもらう項目と導線の運用版（返信文作成時の最優先参照先）
 
-13. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
+14. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
 Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal/price_idの切り分け）
 
 ## 正本ルール（重要）

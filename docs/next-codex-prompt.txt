@@ -15,6 +15,7 @@
 - /home/hr-hm/Project/work/現在のプロフィール
 - /home/hr-hm/Project/work/docs/README.ja.md
 - /home/hr-hm/Project/work/docs/service-catalog.ja.md
+- /home/hr-hm/Project/work/docs/coconala-win-strategy.ja.md
 - /home/hr-hm/Project/work/docs/coconala-listing-final.ja.md
 - /home/hr-hm/Project/work/docs/coconala-guide-market-ops.ja.md
 - /home/hr-hm/Project/work/docs/coconala-seller-help-key-links.ja.md

@@ -57,6 +57,7 @@
 - `Next.js_Stripe不具合診断・修正.md`（参考要約）
 - `docs/service-plan.ja.md`
 - `docs/service-catalog.ja.md`（サービスID台帳）
+- `docs/coconala-win-strategy.ja.md`（主力サービスの勝ち筋と価格・納品物の見せ方メモ）
 - `docs/coconala-premium-roadmap.ja.md`（上位サービス派生ロードマップ）
 - `docs/coconala-guide-market-ops.ja.md`（ココナラ公式段取りの運用メモ）
 - `docs/coconala-seller-help-key-links.ja.md`（見積り機能・紐付け・受付設定の要点）
@@ -570,3 +571,13 @@
 - 何を決めたか: `低適合 = 自動で見送り` にはせず、`サービス説明とはズレるが技術的には現実的で、実績目的なら検討余地がある案件` を `service_mismatch_but_feasible` として人手判断へ上げることにした。
 - 何を変更したか（ファイルパス）: `ops/common/output-schema.yaml`, `ops/common/routing-table.yaml`, `ops/services/next-stripe-bugfix/service.yaml`, `ops/review-checkpoints.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実相談で `service_mismatch_but_feasible` が出た案件を記録し、(a) 価格が見合ったか、(b) 実績価値があったか、(c) 今後サービス化すべき需要か を案件メモへ残す。
+
+### 2026-03-12（追記93）
+- 何を決めたか: 勝ち筋は「広く何でも直す人」ではなく、「AI/外注から引き継いだ Next.js / Stripe / API 連携の1不具合を、原因説明つきで安全に直す人」に寄せることにした。最初の1件は利益より高評価コメントを優先し、プロフィールも正式な相談導線として使う。
+- 何を変更したか（ファイルパス）: `サービスページ/bugfix-15000.live.txt`, `docs/coconala-listing-final.ja.md`, `現在のプロフィール`, `docs/coconala-win-strategy.ja.md`, `docs/README.ja.md`, `docs/coconala-launch-prep.ja.md`, `docs/next-codex-prompt.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 出品前に、(a) サービス画像1枚目で「症状・対象者・納品価値」が伝わるか、(b) プロフィール文で相談導線が自然か、(c) 納品物サンプルの1ページ目を画像化する必要があるか を確認する。
+
+### 2026-03-12（追記94）
+- 何を決めたか: 納品物は情報量の追加より、`冒頭の結論サマリー` と `購入者目線の見出し` を優先して改善することにした。特に非技術者向けに「直ったか」「何を直したか」「どう確認するか」が最初の数行で伝わる形へ寄せた。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/pack-templates.ja.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/examples.ja.md`, `納品物codex例/01_診断レポート.md`, `納品物codex例/03_検証手順と確認結果メモ.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件またはサンプル運用で、(a) 結論サマリーだけで概要が伝わるか、(b) `影響範囲` など旧見出しが残っていないか、(c) 正式納品メッセージの温度感が事務的すぎないか を確認する。
