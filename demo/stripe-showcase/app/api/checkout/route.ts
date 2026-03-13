@@ -22,13 +22,13 @@ const paymentPlans: Record<PaymentPlan["id"], PaymentPlan> = {
     id: "standard",
     name: "Standard",
     amount: 2980,
-    description: "単発決済パターン（標準金額）",
+    description: "単発決済 — Standard",
   },
   premium: {
     id: "premium",
     name: "Premium",
     amount: 29800,
-    description: "単発決済パターン（高額）",
+    description: "単発決済 — Premium",
   },
 };
 

@@ -17,12 +17,12 @@ type Plan = {
 
 const modeMeta: Record<CheckoutMode, { title: string; subtitle: string }> = {
   payment: {
-    title: "Checkout Patterns",
-    subtitle: "Stripe Checkout（単発決済）→ Webhook受信の動作確認",
+    title: "Checkout Demo",
+    subtitle: "Stripe Checkout × Webhook — 単発決済の実装例",
   },
   subscription: {
-    title: "Subscription Patterns",
-    subtitle: "Stripe Checkout（定期決済）→ Webhook受信の動作確認",
+    title: "Subscription Demo",
+    subtitle: "Stripe Checkout × Webhook — 定期決済の実装例",
   },
 };
 
@@ -31,28 +31,28 @@ const paymentPlans: Plan[] = [
     id: "standard",
     title: "Standard",
     price: "¥2,980",
-    note: "標準金額の単発決済フローを確認できます。",
+    note: "通常価格帯の決済フローを体験できます。",
     points: [
-      "Stripe Checkoutで単発決済を実行",
-      "テストカードで決済フローを検証",
-      "success / cancel画面の遷移を確認",
-      "session_id付きで結果画面へ戻る",
-      "Webhook受信イベントをサーバーへ記録",
-      "イベントログ画面で受信結果を確認",
+      "Stripe Checkout で決済を開始",
+      "テストカードで安全に動作確認",
+      "完了 / キャンセル画面への遷移",
+      "Session ID 付きで結果を取得",
+      "Webhook イベントをサーバーで受信",
+      "イベントログで受信結果を表示",
     ],
   },
   {
     id: "premium",
     title: "Premium",
     price: "¥29,800",
-    note: "高額決済パターンの挙動を確認できます。",
+    note: "高額決済時のフローと画面遷移を体験できます。",
     points: [
-      "高額金額でCheckout決済を実行",
-      "metadata(planId / planName) を送信",
-      "success / cancel画面の遷移を確認",
-      "Webhook受信イベントをサーバーへ記録",
-      "イベントログ画面で受信結果を確認",
-      "高額決済時の表示と導線を確認",
+      "高額決済のフローを再現",
+      "metadata（プラン情報）を付与",
+      "完了 / キャンセル画面への遷移",
+      "Webhook イベントをサーバーで受信",
+      "イベントログで受信結果を表示",
+      "高額決済時の UI 表示を確認",
     ],
     isPopular: true,
   },
@@ -63,28 +63,28 @@ const subscriptionPlans: Plan[] = [
     id: "monthly",
     title: "Monthly",
     price: "¥2,980 / 月",
-    note: "月額サブスクの初回決済フローを確認できます。",
+    note: "月額課金の開始から Webhook 受信までを体験できます。",
     points: [
-      "Checkoutでサブスクを開始",
-      "Webhookで課金イベントを受信",
-      "success画面で契約状態を確認",
-      "同一プランの再購入導線を確認",
-      "イベントログ画面で受信結果を確認",
-      "運用時の確認手順をテンプレ化",
+      "Checkout で定期課金を開始",
+      "Webhook で課金イベントを受信",
+      "完了画面で契約ステータスを表示",
+      "同一プランの再登録フローに対応",
+      "イベントログで受信結果を表示",
+      "運用確認の手順をテンプレート化",
     ],
   },
   {
     id: "yearly",
     title: "Yearly",
     price: "¥29,800 / 年",
-    note: "年額サブスクの決済パターンを確認できます。",
+    note: "年額課金のフローと metadata 連携を体験できます。",
     points: [
-      "Checkoutで年額サブスクを開始",
-      "Webhookで課金イベントを受信",
-      "metadata(planId / planName) を送信",
-      "success / cancel画面の遷移を確認",
-      "イベントログ画面で受信結果を確認",
-      "年額プランの導線表示を確認",
+      "Checkout で年額課金を開始",
+      "Webhook で課金イベントを受信",
+      "metadata（プラン情報）を付与",
+      "完了 / キャンセル画面への遷移",
+      "イベントログで受信結果を表示",
+      "年額プランの表示と導線を確認",
     ],
     isPopular: true,
   },
@@ -293,7 +293,7 @@ export default function HomePage() {
                       borderRadius: "8px",
                     }}
                   >
-                    決済へ進む
+                    決済画面へ進む
                   </button>
                 </form>
               </div>
@@ -312,7 +312,7 @@ export default function HomePage() {
                   marginBottom: "14px",
                 }}
               >
-                含まれる機能
+                このデモの内容
               </div>
 
               <ul
@@ -389,7 +389,7 @@ export default function HomePage() {
           onMouseEnter={(e) => (e.currentTarget.style.color = "var(--foreground)")}
           onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
         >
-          webhook logs
+          Webhook Logs
         </Link>
       </footer>
     </main>
