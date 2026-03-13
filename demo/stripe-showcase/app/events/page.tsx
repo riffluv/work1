@@ -8,71 +8,167 @@ export default async function EventsPage() {
   const events = await readWebhookEvents();
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-6xl px-6 py-12 md:px-10"
-          style={{ color: "var(--foreground)" }}>
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <main
+      style={{
+        maxWidth: "860px",
+        margin: "0 auto",
+        padding: "48px clamp(20px, 4vw, 40px)",
+        minHeight: "100vh",
+        color: "var(--foreground)",
+      }}
+    >
+      {/* ヘッダー */}
+      <header
+        className="animate-in stagger-1"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: "16px",
+          marginBottom: "32px",
+          paddingBottom: "16px",
+          borderBottom: "1px solid var(--line)",
+        }}
+      >
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest"
-             style={{ color: "var(--accent-gold)" }}>
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--accent)",
+              marginBottom: "4px",
+            }}
+          >
             Webhook Monitor
           </p>
-          <h1 className="font-heading text-3xl font-semibold md:text-4xl">受信イベント</h1>
-          <p className="fine mt-2 text-sm">Webhook受信イベント一覧です。</p>
+          <h1
+            style={{
+              fontFamily: "var(--font-heading), sans-serif",
+              fontSize: "clamp(1.3rem, 1.1rem + 1vw, 1.8rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              margin: 0,
+            }}
+          >
+            受信イベント
+          </h1>
+          <p style={{ fontSize: "13px", color: "var(--muted)", marginTop: "4px" }}>
+            Webhook受信イベント一覧です。
+          </p>
         </div>
         <Link
           href="/"
-          className="cursor-pointer rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-          style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
+          className="cta-btn-outline"
+          style={{
+            padding: "8px 16px",
+            fontSize: "12px",
+            fontFamily: "var(--font-heading), sans-serif",
+            borderRadius: "6px",
+            textDecoration: "none",
+          }}
         >
           プランへ戻る
         </Link>
       </header>
 
-      <section className="glass p-5 md:p-7">
+      {/* イベント一覧 */}
+      <section className="animate-in stagger-2">
         {events.length === 0 ? (
-          <p className="fine text-sm">
+          <p style={{ fontSize: "13px", color: "var(--muted)", padding: "32px 0" }}>
             イベントはまだありません。
           </p>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: "flex", flexDirection: "column" }}>
             {events.map((event) => (
-              <article key={event.id} className="rounded-lg p-4"
-                       style={{ background: "var(--feature-icon-bg)", border: "1px solid var(--line)" }}>
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-mono text-sm font-medium"
-                     style={{ color: "var(--accent-gold)" }}>
+              <article
+                key={event.id}
+                style={{
+                  padding: "20px 0",
+                  borderBottom: "1px solid var(--line)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    gap: "12px",
+                    marginBottom: "12px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      fontFamily: "var(--font-heading), sans-serif",
+                      color: "var(--accent)",
+                      margin: 0,
+                    }}
+                  >
                     {event.type}
                   </p>
-                  <time className="fine text-xs">
+                  <time
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--muted)",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
                     {new Date(event.createdAt).toLocaleString("ja-JP")}
                   </time>
                 </div>
-                <dl className="grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+
+                <dl
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                    gap: "12px",
+                    margin: 0,
+                  }}
+                >
                   <div>
-                    <dt className="fine text-xs">Amount</dt>
-                    <dd className="font-semibold">{formatYen(event.amountTotal)}</dd>
+                    <dt style={{ fontSize: "10px", color: "var(--muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                      Amount
+                    </dt>
+                    <dd style={{ fontSize: "13px", fontWeight: 600, margin: "2px 0 0", fontVariantNumeric: "tabular-nums" }}>
+                      {formatYen(event.amountTotal)}
+                    </dd>
                   </div>
                   <div>
-                    <dt className="fine text-xs">Customer Email</dt>
-                    <dd className="font-semibold">{event.customerEmail ?? "-"}</dd>
+                    <dt style={{ fontSize: "10px", color: "var(--muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                      Customer Email
+                    </dt>
+                    <dd style={{ fontSize: "13px", fontWeight: 600, margin: "2px 0 0" }}>
+                      {event.customerEmail ?? "-"}
+                    </dd>
                   </div>
                   <div>
-                    <dt className="fine text-xs">Session ID</dt>
-                    <dd className="break-all font-mono text-xs">{event.sessionId ?? "-"}</dd>
-                  </div>
-                  <div>
-                    <dt className="fine text-xs">Event ID</dt>
-                    <dd className="break-all font-mono text-xs">{event.id}</dd>
-                  </div>
-                  <div>
-                    <dt className="fine text-xs">Plan</dt>
-                    <dd className="font-semibold">
+                    <dt style={{ fontSize: "10px", color: "var(--muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                      Plan
+                    </dt>
+                    <dd style={{ fontSize: "13px", fontWeight: 600, margin: "2px 0 0" }}>
                       {event.metadata?.planName ?? event.metadata?.planId ?? "-"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="fine text-xs">Mode</dt>
-                    <dd className="font-semibold">{event.metadata?.mode ?? "-"}</dd>
+                    <dt style={{ fontSize: "10px", color: "var(--muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                      Mode
+                    </dt>
+                    <dd style={{ fontSize: "13px", fontWeight: 600, margin: "2px 0 0" }}>
+                      {event.metadata?.mode ?? "-"}
+                    </dd>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <dt style={{ fontSize: "10px", color: "var(--muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                      Session ID
+                    </dt>
+                    <dd style={{ fontSize: "11px", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all", color: "var(--muted)" }}>
+                      {event.sessionId ?? "-"}
+                    </dd>
                   </div>
                 </dl>
               </article>

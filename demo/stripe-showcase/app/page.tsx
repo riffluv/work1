@@ -116,150 +116,278 @@ export default function HomePage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-8 md:px-10 md:py-10">
-      <header className="mb-8 text-center md:mb-10">
+    <main
+      style={{
+        maxWidth: "960px",
+        margin: "0 auto",
+        padding: "48px clamp(20px, 4vw, 40px)",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* ── ヘッダー ── */}
+      <header className="animate-in stagger-1" style={{ marginBottom: "48px" }}>
         <h1
-          className="font-heading text-2xl font-bold tracking-tight md:text-3xl"
-          style={{ color: "var(--foreground)" }}
+          style={{
+            fontFamily: "var(--font-heading), sans-serif",
+            fontSize: "clamp(1.5rem, 1.3rem + 1vw, 2rem)",
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            color: "var(--foreground)",
+            margin: 0,
+          }}
         >
           {header.title}
         </h1>
-        <p className="mt-2 text-xs font-medium md:text-sm" style={{ color: "var(--muted)" }}>
+
+        <p
+          style={{
+            fontSize: "13px",
+            color: "var(--muted)",
+            marginTop: "8px",
+            lineHeight: 1.6,
+          }}
+        >
           {header.subtitle}
         </p>
 
-        <div 
-          className="mt-5 mx-auto inline-flex rounded-full border p-1" 
-          style={{ borderColor: "var(--line)", background: "var(--card-header)" }}
+        {/* モード切替 — テキストタブ */}
+        <nav
+          className="animate-in stagger-2"
+          style={{
+            display: "flex",
+            gap: "24px",
+            marginTop: "28px",
+            borderBottom: "1px solid var(--line)",
+            paddingBottom: "0",
+          }}
         >
-          <button
-            type="button"
-            onClick={() => handleModeChange("payment")}
-            className="rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 md:px-5 md:py-2 md:text-sm"
-            style={{
-              background: mode === "payment" ? "var(--btn-bg)" : "transparent",
-              color: mode === "payment" ? "var(--btn-text)" : "var(--muted)",
-              boxShadow: mode === "payment" ? "0 2px 4px rgba(0,0,0,0.1)" : "none",
-            }}
-          >
-            One-time
-          </button>
-          <button
-            type="button"
-            onClick={() => handleModeChange("subscription")}
-            className="rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 md:px-5 md:py-2 md:text-sm"
-            style={{
-              background: mode === "subscription" ? "var(--btn-bg)" : "transparent",
-              color: mode === "subscription" ? "var(--btn-text)" : "var(--muted)",
-              boxShadow: mode === "subscription" ? "0 2px 4px rgba(0,0,0,0.1)" : "none",
-            }}
-          >
-            Subscription
-          </button>
-        </div>
+          {(["payment", "subscription"] as CheckoutMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => handleModeChange(m)}
+              style={{
+                background: "none",
+                border: "none",
+                padding: "8px 0",
+                fontSize: "13px",
+                fontWeight: mode === m ? 700 : 500,
+                color: mode === m ? "var(--foreground)" : "var(--muted)",
+                borderBottom: mode === m
+                  ? "2px solid var(--foreground)"
+                  : "2px solid transparent",
+                marginBottom: "-1px",
+                transition: "color 0.2s var(--ease-out-quart), border-color 0.2s var(--ease-out-quart)",
+                cursor: "pointer",
+                fontFamily: "var(--font-heading), sans-serif",
+              }}
+            >
+              {m === "payment" ? "One-time" : "Subscription"}
+            </button>
+          ))}
+        </nav>
       </header>
 
-      <div className="mx-auto grid w-full max-w-[900px] gap-5 md:grid-cols-2 md:gap-6">
-        {plans.map((plan) => (
-          <article
-            key={plan.id}
-            className="glass relative flex h-full w-full flex-col overflow-hidden border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-            style={{ borderColor: "var(--line)" }}
-          >
-            <div className="card-header flex flex-col px-6 py-6 md:px-7 md:py-7">
+      {/* ── プラン一覧 ── */}
+      <div
+        className="animate-in stagger-3"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
+          gap: "40px",
+          flex: 1,
+        }}
+      >
+        {plans.map((plan) => {
+          const [amount, period] = plan.price.split(" / ");
+          return (
+            <article
+              key={plan.id}
+              style={{ display: "flex", flexDirection: "column" }}
+            >
+              {/* バッジ行 — 高さを常に確保して段ズレを防ぐ */}
+              <div style={{ minHeight: "28px", marginBottom: "8px" }}>
+                {plan.isPopular && (
+                  <span className="badge-pill">
+                    Popular
+                  </span>
+                )}
+              </div>
+
+              {/* プランタイトル */}
               <h2
-                className="font-heading text-lg font-bold tracking-tight md:text-xl"
-                style={{ color: "var(--foreground)" }}
+                style={{
+                  fontFamily: "var(--font-heading), sans-serif",
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  color: "var(--foreground)",
+                  letterSpacing: "-0.01em",
+                  margin: 0,
+                }}
               >
                 {plan.title}
               </h2>
 
+              {/* 説明 */}
               <p
-                className="mt-2 min-h-[38px] text-[12px] leading-relaxed md:text-[13px]"
-                style={{ color: "var(--muted)" }}
+                style={{
+                  fontSize: "12px",
+                  color: "var(--muted)",
+                  lineHeight: 1.7,
+                  marginTop: "8px",
+                }}
               >
                 {plan.note}
               </p>
 
-              <div className="mt-5 flex items-baseline gap-1">
-                {(() => {
-                  const [amount, period] = plan.price.split(" / ");
-                  return (
-                    <>
-                      <span
-                        className="text-3xl font-extrabold tracking-tight md:text-4xl"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {amount}
-                      </span>
-                      {period && (
-                        <span
-                          className="ml-1 text-xs font-medium md:text-sm"
-                          style={{ color: "var(--muted)" }}
-                        >
-                          / {period}
-                        </span>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-
-            <div className="flex flex-1 flex-col p-6 md:p-7">
+              {/* 金額 */}
               <div
-                className="mb-4 text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: "var(--foreground)" }}
+                className="price-display"
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: "4px",
+                  marginTop: "16px",
+                }}
               >
-                含まれる機能
+                <span
+                  style={{
+                    fontFamily: "var(--font-heading), sans-serif",
+                    fontSize: "clamp(1.6rem, 1.4rem + 1vw, 2.2rem)",
+                    fontWeight: 800,
+                    color: "var(--foreground)",
+                    letterSpacing: "-0.02em",
+                    lineHeight: 1,
+                  }}
+                >
+                  {amount}
+                </span>
+                {period && (
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      color: "var(--muted)",
+                    }}
+                  >
+                    / {period}
+                  </span>
+                )}
               </div>
 
-              <ul className="flex-1 space-y-2.5 md:space-y-3">
-                {plan.points.map((point) => (
-                  <li
-                    key={point}
-                    className="flex items-start gap-3"
-                    style={{ color: "var(--foreground)" }}
-                  >
-                    <span
-                      className="mt-[1px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
-                      style={{
-                        background: plan.isPopular ? "var(--btn-bg)" : "var(--feature-icon-bg)",
-                        color: plan.isPopular ? "var(--btn-text)" : "var(--feature-icon-color)",
-                      }}
-                    >
-                      ✓
-                    </span>
-                    <span className="text-[12px] leading-relaxed md:text-[13px]">{point}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6 pt-2">
-                <form action="/api/checkout" method="post" className="w-full">
+              {/* CTA */}
+              <div style={{ marginTop: "20px" }}>
+                <form action="/api/checkout" method="post">
                   <input type="hidden" name="planId" value={plan.id} />
                   <input type="hidden" name="mode" value={mode} />
                   <button
                     type="submit"
-                    className="w-full rounded-xl px-4 py-3 text-sm font-bold transition-all cta-btn"
+                    className="cta-btn"
+                    style={{
+                      width: "100%",
+                      padding: "12px 20px",
+                      fontSize: "13px",
+                      fontFamily: "var(--font-heading), sans-serif",
+                      borderRadius: "8px",
+                    }}
                   >
                     決済へ進む
                   </button>
                 </form>
               </div>
-            </div>
-          </article>
-        ))}
+
+              {/* 区切り線 */}
+              <hr className="editorial-divider" style={{ margin: "24px 0" }} />
+
+              {/* 含まれる機能 */}
+              <div
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "var(--foreground)",
+                  marginBottom: "14px",
+                }}
+              >
+                含まれる機能
+              </div>
+
+              <ul
+                style={{
+                  listStyle: "none",
+                  padding: 0,
+                  margin: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  flex: 1,
+                }}
+              >
+                {plan.points.map((point) => (
+                  <li
+                    key={point}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "10px",
+                      fontSize: "12px",
+                      color: "var(--foreground)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        fontSize: "9px",
+                        fontWeight: 700,
+                        marginTop: "2px",
+                        flexShrink: 0,
+                        background: "var(--feature-icon-bg)",
+                        color: "var(--feature-icon-color)",
+                      }}
+                    >
+                      ✓
+                    </span>
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          );
+        })}
       </div>
 
-      <footer className="mt-8 flex justify-center pb-3 md:pb-4">
+      {/* ── フッター ── */}
+      <footer
+        className="animate-in stagger-4"
+        style={{
+          marginTop: "56px",
+          paddingTop: "20px",
+          borderTop: "1px solid var(--line)",
+          textAlign: "center",
+        }}
+      >
         <Link
           href="/events"
-          className="cursor-pointer text-xs font-medium underline underline-offset-4 transition-colors hover:opacity-70"
           style={{
+            fontSize: "12px",
+            fontWeight: 500,
             color: "var(--muted)",
+            textDecoration: "underline",
+            textUnderlineOffset: "4px",
             textDecorationColor: "var(--line)",
+            transition: "color 0.2s var(--ease-out-quart)",
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--foreground)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
         >
           webhook logs
         </Link>

@@ -20,6 +20,47 @@ async function fetchSessionSummary(sessionId: string) {
   };
 }
 
+/* ラベル+値 行 */
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        padding: "12px 0",
+        borderBottom: "1px solid var(--line)",
+        gap: "16px",
+      }}
+    >
+      <dt
+        style={{
+          fontSize: "11px",
+          fontWeight: 500,
+          color: "var(--muted)",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          flexShrink: 0,
+        }}
+      >
+        {label}
+      </dt>
+      <dd
+        style={{
+          fontSize: "13px",
+          fontWeight: 600,
+          color: "var(--foreground)",
+          margin: 0,
+          textAlign: "right",
+          wordBreak: "break-all",
+        }}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const { session_id: sessionId } = await searchParams;
   let summary: Awaited<ReturnType<typeof fetchSessionSummary>> | null = null;
@@ -34,63 +75,130 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   }
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12 md:px-10">
-      <section className="glass p-6 md:p-8">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-widest"
-           style={{ color: "var(--success)" }}>
-          Payment Complete
-        </p>
-        <h1 className="font-heading text-3xl font-semibold md:text-4xl"
-            style={{ color: "var(--foreground)" }}>
-          決済が完了しました
-        </h1>
-        <p className="fine mt-3 text-sm md:text-base">
-          決済情報を確認しました。詳細を確認してください。
-        </p>
+    <main
+      style={{
+        maxWidth: "640px",
+        margin: "0 auto",
+        padding: "clamp(40px, 6vw, 72px) clamp(20px, 4vw, 40px)",
+        minHeight: "100vh",
+      }}
+    >
+      <p
+        className="animate-in stagger-1"
+        style={{
+          fontSize: "11px",
+          fontWeight: 600,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "var(--success)",
+          marginBottom: "8px",
+        }}
+      >
+        Payment Complete
+      </p>
 
-        <div className="mt-6 grid gap-3 rounded-lg p-4 text-sm"
-             style={{
-               background: "var(--feature-icon-bg)",
-               border: "1px solid var(--line)",
-             }}>
-          {errorMessage ? (
-            <p style={{ color: "var(--warning)" }}>{errorMessage}</p>
-          ) : (
-            <>
-              <p><span className="fine">Session ID:</span> {summary?.id ?? sessionId ?? "-"}</p>
-              <p><span className="fine">Plan:</span> {summary?.planName ?? "-"}</p>
-              <p><span className="fine">Mode:</span> {summary?.mode ?? "-"}</p>
-              <p><span className="fine">Amount:</span> {formatYen(summary?.amountTotal)}</p>
-              <p><span className="fine">Email:</span> {summary?.email ?? "-"}</p>
-              <p><span className="fine">Status:</span> {summary?.status ?? "unknown"}</p>
-            </>
-          )}
-        </div>
+      <h1
+        className="animate-in stagger-1"
+        style={{
+          fontFamily: "var(--font-heading), sans-serif",
+          fontSize: "clamp(1.3rem, 1.1rem + 1vw, 1.8rem)",
+          fontWeight: 700,
+          letterSpacing: "-0.02em",
+          color: "var(--foreground)",
+          margin: 0,
+        }}
+      >
+        決済が完了しました
+      </h1>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          {summary?.mode === "subscription" && sessionId ? (
-            <form action="/api/portal" method="post">
-              <input type="hidden" name="sessionId" value={sessionId} />
-              <button
-                type="submit"
-                className="cta-btn cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold"
-              >
-                契約を管理
-              </button>
-            </form>
-          ) : null}
-          <Link href="/events" className="cta-btn cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold">
-            Webhookログ
-          </Link>
-          <Link
-            href="/"
-            className="cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
-            style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
-          >
-            プランへ戻る
-          </Link>
-        </div>
-      </section>
+      <p
+        className="animate-in stagger-2"
+        style={{
+          fontSize: "13px",
+          color: "var(--muted)",
+          marginTop: "8px",
+          lineHeight: 1.6,
+        }}
+      >
+        決済情報を確認しました。詳細を確認してください。
+      </p>
+
+      <dl
+        className="animate-in stagger-3"
+        style={{
+          marginTop: "32px",
+          borderTop: "1px solid var(--line)",
+        }}
+      >
+        {errorMessage ? (
+          <p style={{ color: "var(--warning)", fontSize: "13px", padding: "12px 0" }}>
+            {errorMessage}
+          </p>
+        ) : (
+          <>
+            <InfoRow label="Session ID" value={summary?.id ?? sessionId ?? "-"} />
+            <InfoRow label="Plan" value={summary?.planName ?? "-"} />
+            <InfoRow label="Mode" value={summary?.mode ?? "-"} />
+            <InfoRow label="Amount" value={formatYen(summary?.amountTotal)} />
+            <InfoRow label="Email" value={summary?.email ?? "-"} />
+            <InfoRow label="Status" value={summary?.status ?? "unknown"} />
+          </>
+        )}
+      </dl>
+
+      <div
+        className="animate-in stagger-4"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px",
+          marginTop: "32px",
+        }}
+      >
+        {summary?.mode === "subscription" && sessionId ? (
+          <form action="/api/portal" method="post">
+            <input type="hidden" name="sessionId" value={sessionId} />
+            <button
+              type="submit"
+              className="cta-btn"
+              style={{
+                padding: "10px 20px",
+                fontSize: "13px",
+                fontFamily: "var(--font-heading), sans-serif",
+                borderRadius: "8px",
+              }}
+            >
+              契約を管理
+            </button>
+          </form>
+        ) : null}
+        <Link
+          href="/events"
+          className="cta-btn"
+          style={{
+            padding: "10px 20px",
+            fontSize: "13px",
+            fontFamily: "var(--font-heading), sans-serif",
+            borderRadius: "8px",
+            textDecoration: "none",
+          }}
+        >
+          Webhookログ
+        </Link>
+        <Link
+          href="/"
+          className="cta-btn-outline"
+          style={{
+            padding: "10px 20px",
+            fontSize: "13px",
+            fontFamily: "var(--font-heading), sans-serif",
+            borderRadius: "8px",
+            textDecoration: "none",
+          }}
+        >
+          プランへ戻る
+        </Link>
+      </div>
     </main>
   );
 }

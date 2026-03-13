@@ -1,54 +1,58 @@
 @import "tailwindcss";
 
 /*
-  デザインシステム: UI/UX PRO MAX 生成
-  パレット: Banking/Traditional Finance (Trust navy + premium gold)
-  スタイル: Flat Design (グラデーションなし、シャドウ最小限)
-  フォント: Poppins (見出し) + Noto Sans JP (本文)
+  Impeccable frontend-design skill 準拠
+  方向性: Editorial — 非対称レイアウト、タイポグラフィ主導、余白のリズム
+  フォント: Plus Jakarta Sans (見出し) + Noto Sans JP (本文)
+  カラー: OKLCH ティンテッドニュートラル
 */
 
 /* ====== ライトモード ====== */
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
-  --card: #ffffff;
-  --card-header: #F1F5F9;
-  --line: #E2E8F0;
-  --accent: #0F172A;
-  --accent-gold: #CA8A04;
-  --success: #16A34A;
-  --warning: #D97706;
-  --muted: #64748B;
-  --badge-bg: #FFFBEB;
-  --badge-text: #92400E;
-  --badge-border: #FDE68A;
-  --feature-icon-bg: #EFF6FF;
-  --feature-icon-color: #1E3A8A;
-  --btn-bg: #0F172A;
-  --btn-text: #F8FAFC;
-  --btn-hover: #1E293B;
+  --background: oklch(97.5% 0.008 75);
+  --foreground: oklch(18% 0.015 250);
+  --card: oklch(99% 0.005 75);
+  --card-header: oklch(95.5% 0.01 75);
+  --line: oklch(90% 0.012 75);
+  --accent: oklch(40% 0.14 260);
+  --accent-gold: oklch(62% 0.16 80);
+  --success: oklch(55% 0.14 155);
+  --warning: oklch(62% 0.15 60);
+  --muted: oklch(55% 0.02 250);
+  --badge-bg: oklch(95% 0.04 75);
+  --badge-text: oklch(40% 0.08 60);
+  --badge-border: oklch(87% 0.06 75);
+  --feature-icon-bg: oklch(94% 0.03 260);
+  --feature-icon-color: oklch(35% 0.12 260);
+  --btn-bg: oklch(18% 0.02 250);
+  --btn-text: oklch(97% 0.005 75);
+  --btn-hover: oklch(25% 0.025 250);
+
+  /* イージング */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ====== ダークモード ====== */
 [data-theme="dark"] {
-  --background: #020617;
-  --foreground: #F8FAFC;
-  --card: #0F172A;
-  --card-header: #0C1322;
-  --line: #1E293B;
-  --accent: #F8FAFC;
-  --accent-gold: #EAB308;
-  --success: #4ADE80;
-  --warning: #FBBF24;
-  --muted: #94A3B8;
-  --badge-bg: rgba(234, 179, 8, 0.1);
-  --badge-text: #EAB308;
-  --badge-border: rgba(234, 179, 8, 0.25);
-  --feature-icon-bg: rgba(30, 58, 138, 0.2);
-  --feature-icon-color: #93C5FD;
-  --btn-bg: #F8FAFC;
-  --btn-text: #0F172A;
-  --btn-hover: #ffffff;
+  --background: oklch(13% 0.015 250);
+  --foreground: oklch(93% 0.008 250);
+  --card: oklch(17% 0.02 250);
+  --card-header: oklch(15% 0.018 250);
+  --line: oklch(23% 0.02 250);
+  --accent: oklch(70% 0.12 260);
+  --accent-gold: oklch(75% 0.14 80);
+  --success: oklch(72% 0.12 155);
+  --warning: oklch(75% 0.13 60);
+  --muted: oklch(62% 0.015 250);
+  --badge-bg: oklch(20% 0.04 80);
+  --badge-text: oklch(78% 0.1 80);
+  --badge-border: oklch(28% 0.05 80);
+  --feature-icon-bg: oklch(20% 0.025 250);
+  --feature-icon-color: oklch(72% 0.08 250);
+  --btn-bg: oklch(93% 0.008 250);
+  --btn-text: oklch(13% 0.015 250);
+  --btn-hover: oklch(98% 0.004 250);
 }
 
 @theme inline {
@@ -68,14 +72,17 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-body), sans-serif;
-  transition: background 0.25s ease, color 0.25s ease;
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s var(--ease-out-quart),
+              color 0.3s var(--ease-out-quart);
 }
 
 a {
   color: inherit;
 }
 
-/* クリック可能要素は必ずポインターにする */
 a[href],
 button,
 input[type="button"],
@@ -87,48 +94,37 @@ button:disabled,
 input[type="button"]:disabled,
 input[type="submit"]:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
-/* カードスタイル - Flat Design -> モダンSaaSデザイン */
-.glass {
-  border: 1px solid var(--line);
-  background: var(--card);
-  border-radius: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* カード上部ブロック */
-.card-header {
-  background: var(--card-header);
-  border-bottom: 1px solid var(--line);
-  border-radius: 19px 19px 0 0;
-  transition: background 0.25s ease, border-color 0.25s ease;
-}
-
-/* テキストの補助色 */
+/* 補助テキスト色 */
 .fine {
   color: var(--muted);
-  transition: color 0.25s ease;
+  transition: color 0.2s var(--ease-out-quart);
 }
 
-/* バッジ - ピル型、控えめ */
+/* 区切り線 */
+.editorial-divider {
+  border: none;
+  border-top: 1px solid var(--line);
+}
+
+/* バッジ */
 .badge-pill {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   white-space: nowrap;
   background: var(--badge-bg);
   color: var(--badge-text);
   border: 1px solid var(--badge-border);
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
-/* テーマトグルボタン */
+/* テーマトグル */
 .theme-toggle {
   position: fixed;
   top: 16px;
@@ -138,14 +134,15 @@ input[type="submit"]:disabled {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--line);
   background: var(--card);
   color: var(--muted);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s var(--ease-out-quart),
+              border-color 0.2s var(--ease-out-quart);
   font-family: var(--font-body), sans-serif;
 }
 
@@ -159,49 +156,76 @@ input[type="submit"]:disabled {
   line-height: 1;
 }
 
-/* CTAボタン - Primary (Solid) */
+/* CTAボタン - Primary */
 .cta-btn {
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   background: var(--btn-bg);
   color: var(--btn-text);
-  border: 1px solid var(--btn-bg);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: opacity 0.15s var(--ease-out-quart),
+              transform 0.15s var(--ease-out-quart);
   cursor: pointer;
-  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
 }
 
 .cta-btn:hover {
-  background: var(--btn-hover);
-  border-color: var(--btn-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
+  opacity: 0.85;
 }
 
 .cta-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(0.98);
 }
 
 /* CTAボタン - Secondary (Outline) */
 .cta-btn-outline {
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   background: transparent;
   color: var(--foreground);
   border: 1px solid var(--line);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  transition: border-color 0.15s var(--ease-out-quart);
   cursor: pointer;
 }
 
 .cta-btn-outline:hover {
-  background: var(--card-header);
-  border-color: var(--muted);
-  transform: translateY(-1px);
+  border-color: var(--foreground);
 }
 
-.cta-btn-outline:active {
-  transform: translateY(0);
+/* 入場アニメーション */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fade-up 500ms var(--ease-out-expo) both;
+}
+
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 80ms; }
+.stagger-3 { animation-delay: 140ms; }
+.stagger-4 { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 金額 — tabular-nums */
+.price-display {
+  font-variant-numeric: tabular-nums;
 }

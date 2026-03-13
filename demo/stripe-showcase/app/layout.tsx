@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Noto_Sans_JP, Poppins } from "next/font/google";
+import { Noto_Sans_JP, Plus_Jakarta_Sans } from "next/font/google";
 import ThemeToggle from "./components/ThemeToggle";
 import "./globals.css";
 
-/* Skillレコメンド: Modern Professional (Poppins + Open Sans) */
+/* Impeccable: Poppinsは汎用すぎるため Plus Jakarta Sans に差替え */
 /* 日本語ボディはNoto Sans JPを維持 */
-const heading = Poppins({
+const heading = Plus_Jakarta_Sans({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const body = Noto_Sans_JP({
