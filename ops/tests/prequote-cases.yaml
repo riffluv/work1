@@ -1,0 +1,68 @@
+version: 1
+
+cases:
+  - id: PQ-001
+    title: "典型的な15K案件"
+    src: service
+    state: prequote
+    raw_message: "本番だけStripe Webhookが失敗します。ローカルは成功します。Next.js + Vercelです。"
+    expected_decision: accept_15k
+    expected_template: "§11"
+    check_points:
+      - "15,000円が提示される"
+      - "同一原因1件として扱う説明がある"
+      - "次アクションが1つに絞られている"
+
+  - id: PQ-002
+    title: "情報不足で保留"
+    src: service
+    state: prequote
+    raw_message: "なんかStripeがおかしいです"
+    expected_decision: hold
+    expected_template: "§13-3"
+    check_points:
+      - "追加質問は2点以内"
+      - "金額を先出ししない"
+
+  - id: PQ-003
+    title: "値引き要求"
+    src: service
+    state: prequote
+    raw_message: "10,000円にはなりませんか？"
+    expected_decision: negotiation_fixed_price
+    expected_template: "§23"
+    check_points:
+      - "15,000円固定が崩れていない"
+      - "特別対応の文言がない"
+
+  - id: PQ-004
+    title: "確認だけ依頼"
+    src: service
+    state: prequote
+    raw_message: "テストでは動いているのですが、本番切替前に見てもらうことはできますか？"
+    expected_decision: accept_5k_or_ab
+    expected_template: "§13-2 or §13-2B"
+    check_points:
+      - "確認だけか修正込みかを分けて案内する"
+      - "修正を含まない場合はその旨が明記される"
+
+  - id: PQ-005
+    title: "範囲外の新規実装"
+    src: profile
+    state: prequote
+    raw_message: "Stripeを新しく導入したいです"
+    expected_decision: decline_or_alt
+    expected_template: "§18"
+    check_points:
+      - "現サービス範囲外の理由がある"
+      - "別提案の案内がある"
+
+  - id: PQ-006
+    title: "サービスミスマッチだが現実的"
+    src: profile
+    state: prequote
+    raw_message: "Firebase Authまわりの不具合を相談したいです"
+    expected_decision: hold_or_boundary
+    check_points:
+      - "無理に主力サービスへ乗せない"
+      - "境界確認が入る"

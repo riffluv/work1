@@ -1,0 +1,47 @@
+version: 1
+
+cases:
+  - id: EC-001
+    title: "見積り経路で追加原因が発生"
+    state: purchased
+    raw_message: "別の原因も見つかったので、追加で見てほしいです"
+    expected_template: "§21"
+    check_points:
+      - "有料オプション追加前提で書かない"
+      - "進め方を2択で案内する"
+
+  - id: EC-002
+    title: "5Kから15Kへの移行"
+    state: prequote
+    raw_message: "確認だけのつもりでしたが、そのまま修正もお願いしたいです"
+    expected_template: "§24"
+    check_points:
+      - "5,000円の範囲と15,000円の範囲が分かれている"
+      - "割高感への配慮がある"
+
+  - id: EC-003
+    title: "キャンセル寄り"
+    state: purchased
+    raw_message: "やっぱりキャンセルしたいです"
+    expected_template: "§25"
+    check_points:
+      - "理由を1点だけ確認する"
+      - "返金はココナラ側処理と書く"
+
+  - id: EC-004
+    title: "提案送信後の内容変更"
+    state: quote_sent
+    raw_message: "内容を少し変えたいです"
+    expected_template: "§26"
+    check_points:
+      - "変更点を1〜2点だけ聞く"
+      - "必要なら再提案と案内する"
+
+  - id: EC-005
+    title: "クローズ後の再相談"
+    state: closed
+    raw_message: "前回の続きでまた見てもらえますか？"
+    expected_template: "§27"
+    check_points:
+      - "既存トークルーム継続前提で書かない"
+      - "新規相談へ戻す"

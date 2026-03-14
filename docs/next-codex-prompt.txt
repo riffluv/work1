@@ -62,18 +62,28 @@
 - 対象が未指定の場合は「直前のCodex最終出力1件」を監査対象として扱う。
 - 上記トリガー後の追記条件（例: 返信文の言い回し、特定箇所の違和感）を最優先で反映する。
 - 送信用文面を作成したら、必ず同文面を /home/hr-hm/Project/work/返信文_latest.txt に保存する。
+- 案件記録ショートカットを使う:
+  - `#S` = 購入確定後の案件記録開始
+  - `#M` = 重要判断の中間保存
+  - `#C` = クローズ保存
+- `#S / #M / #C` は `/home/hr-hm/Project/work/ops/common/case-record-template.md` に従う。
+- `#S` は原則 `purchased` 以降で使う。見積り段階では乱用しない。
+- `#M` は毎回ではなく、価格変更 / 同一原因判定 / 感情注意 / 納品方針確定などの節目で使う。
+- `#C` はクローズ時に必ず使い、`ops/case-log.csv` へ1行追加する。
 - クローズ後は原則こちらからDMを送らない。評価依頼は `#R クローズお礼` の1回のみ。例外は実害防止の補足連絡1通のみ（営業目的DMは禁止）。
 - 文体は docs/writing-guideline.ja.md を厳守（AI臭を避ける）。
 
 【スキル運用（必須）】
 - 入口判定: coconala-intake-router-ja
+- 見積り相談の前段（prequote限定）: coconala-prequote-ops-ja
 - 返信文作成（不具合修正特化）: coconala-reply-bugfix-ja
 - 返信文の最終自然化（汎用）: japanese-chat-natural-ja
 - 旧テンプレ参照/互換: coconala-reply-ja
 - スコープ判定/追加料金判定: scope-judge-ja
 - 納品物作成: delivery-pack-ja
 - 出品文/プロフィール調整: coconala-listing-ja
-- 返信文は `coconala-intake-router-ja -> coconala-reply-bugfix-ja -> japanese-chat-natural-ja` を基本順にする。
+- 見積り相談の `#R / #A` は `coconala-prequote-ops-ja` を優先する。
+- 購入後の返信文は `coconala-intake-router-ja -> coconala-reply-bugfix-ja -> japanese-chat-natural-ja` を基本順にする。
 - 使うスキル名を短く宣言してから実行する。
 - 納品レポートで非対応事項を機械的に列挙しない。誤解されやすい場合だけ、`今回の修正が関係する部分` の中で自然に補足する。
 - 複数症状が並んでいて別原因の可能性がある場合は、こちらで先に「1件目」を選ばず、どちらを優先するか確認してから進める。

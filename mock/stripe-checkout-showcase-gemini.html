@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Demo</title>
+    <style>
+        /* Base Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #030305; /* Deep rich dark background */
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* -----------------------
+           1. Background Layers
+           ----------------------- */
+        .bg-dots {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Strict dot pattern reproduction */
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-position: center top;
+            z-index: -2;
+            mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
+            -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -20vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 900px;
+            /* Central atmospheric purple glow */
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* -----------------------
+           2. Layout Wrapper
+           ----------------------- */
+        .wrapper {
+            width: 100%;
+            max-width: 960px;
+            padding: 80px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* -----------------------
+           3. Header & Tabs
+           ----------------------- */
+        .header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #a1a1aa;
+            margin-bottom: 32px;
+        }
+
+        .tabs-container {
+            display: inline-flex;
+            background-color: #121214;
+            border: 1px solid #27272a;
+            border-radius: 999px;
+            padding: 4px;
+        }
+
+        .tab {
+            padding: 8px 20px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #71717a;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background-color: #27272a;
+            color: #ffffff;
+        }
+
+        /* -----------------------
+           4. Cards Container
+           ----------------------- */
+        .cards {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            width: 100%;
+            margin-bottom: 64px;
+        }
+
+        /* Base Card Styling */
+        .card {
+            width: 400px;
+            border-radius: 28px;
+            padding: 40px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Left Card (Standard) - Glow & Purple Theme */
+        .card.left-card {
+            background: linear-gradient(180deg, rgba(26, 11, 46, 0.8) 0%, rgba(12, 5, 20, 0.8) 100%);
+            border: 1px solid #8b5cf6;
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.15), inset 0 0 20px rgba(139, 92, 246, 0.1);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        /* Right Card (Premium) - Dark Solid Theme */
+        .card.right-card {
+            background: #0d0d10;
+            border: 1px solid #27272a;
+        }
+
+        /* -----------------------
+           5. Card Contents
+           ----------------------- */
+        .badge {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #ffffff;
+            backdrop-filter: blur(4px);
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .card-desc {
+            font-size: 15px;
+            color: #a1a1aa;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            min-height: 45px; /* Alignment lock */
+        }
+
+        .price-wrap {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 32px;
+        }
+
+        .price-symbol {
+            font-size: 24px;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .price-num {
+            font-size: 52px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 50px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            margin-bottom: 32px;
+        }
+
+        .btn-purple {
+            background-color: #8b5cf6;
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-white {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        /* Feature Lists */
+        .feature-heading {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        .features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .features li {
+            display: flex;
+            align-items: flex-start;
+            font-size: 15px;
+            color: #d4d4d8;
+            line-height: 1.5;
+        }
+
+        .icon {
+            margin-top: 2px;
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .card.left-card .icon { color: #a78bfa; }
+        .card.right-card .icon { color: #ffffff; }
+
+        /* -----------------------
+           6. Footer Link
+           ----------------------- */
+        .footer {
+            text-align: center;
+        }
+
+        .footer-link {
+            color: #71717a;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-link svg {
+            width: 18px;
+            height: 18px;
+            color: #71717a;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-dots"></div>
+    <div class="bg-glow"></div>
+
+    <div class="wrapper">
+        <header class="header">
+            <h1>Checkout Demo</h1>
+            <p>Stripe Checkout × Webhook — 単発決済の実装例</p>
+            <div class="tabs-container">
+                <div class="tab active">One-time</div>
+                <div class="tab">Subscription</div>
+            </div>
+        </header>
+
+        <div class="cards">
+            <!-- Left Card -->
+            <div class="card left-card">
+                <h2 class="card-title">Standard</h2>
+                <p class="card-desc">通常価格帯の決済フローを体験できます。</p>
+                <div class="price-wrap">
+                    <span class="price-symbol">¥</span>
+                    <span class="price-num">2,980</span>
+                </div>
+                <button class="btn btn-purple">決済画面へ進む</button>
+                
+                <div class="feature-heading">このデモの内容</div>
+                <ul class="features">
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Stripe Checkout で決済を開始
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        テストカードで安全に動作確認
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        完了 / キャンセル画面への遷移
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Session ID 付きで結果を取得
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Webhook イベントをサーバーで受信
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        イベントログで受信結果を表示
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Right Card -->
+            <div class="card right-card">
+                <div class="badge">POPULAR</div>
+                <h2 class="card-title">Premium</h2>
+                <p class="card-desc">高額決済時のフローと画面遷移を体験できます。</p>
+                <div class="price-wrap">
+                    <span class="price-symbol">¥</span>
+                    <span class="price-num">29,800</span>
+                </div>
+                <button class="btn btn-white">決済画面へ進む</button>
+                
+                <div class="feature-heading">このデモの内容</div>
+                <ul class="features">
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        高額決済のフローを再現
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        metadata（プラン情報）を付与
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        完了 / キャンセル画面への遷移
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Webhook イベントをサーバーで受信
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        イベントログで受信結果を表示
+                    </li>
+                    <li>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        高額決済時の UI 表示を確認
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <a href="#" class="footer-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Webhook Logs
+            </a>
+        </footer>
+    </div>
+</body>
+</html>

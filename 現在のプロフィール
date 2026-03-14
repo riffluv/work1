@@ -5,37 +5,10 @@ Webアプリ開発エンジニア
 業務領域
 
 自己紹介
-Next.js / Stripe / API連携の「本番環境で起きる原因不明の不具合」診断・修正を中心に対応しています。
-「決済は通るのに反映されない」「本番だけWebhookが失敗する」「どこを見ればよいか分からない」といった相談を、状況整理から進めます。
 
-個人で設計から公開まで手がけたWebアプリ（Next.js + Firebase、約20万行）の開発・運用の中で、本番で再現しにくい不具合の調査と修正を繰り返してきました。
-Stripe決済連携もそのアプリの一部として実装・運用しています。今の不具合修正サービスは、その延長です。
+ひとことアピール
+Next.js / Stripe / API連携の不具合診断・修正を中心に対応しています。
 
-対応内容
-・Stripe Webhook（署名検証エラー・イベント不達・重複処理）の調査・修正
-・「決済は成功しているのにアプリに反映されない」問題の原因特定
-・Next.js（App Router / API Routes）と外部API連携の不具合調査
-・Checkout / Billing Portal / Subscriptions 周辺の不具合対応
-・AI生成コードや引き継ぎコードの不具合整理（Next.js / Stripe / API連携の範囲）
+本文
 
-技術スタック
-・Next.js / React / TypeScript
-・Stripe（Checkout, Webhooks, Billing Portal, Subscriptions）
-・Firebase（Firestore, Realtime Database, Authentication, Functions）
-・Vercel / Node.js
 
-開発実績
-・オンラインゲームを個人で設計・実装・公開（Next.js + Firebase + PixiJS、約20万行）
-・埋め込み型の見積もり計算機SaaSを制作中（Next.js + Supabase + Stripe）
-・Stripe Billing / Webhook の実装テンプレートを個人で制作
-
-進め方
-・やり取りはメッセージのみです（通話なし）
-・症状、再現手順、ログをもとに原因を特定します
-・「何が原因だったか・何を直したか・どう確認するか」を整理してお返しします
-・最終確認は依頼者様の環境でお願いしています
-
-ご注意
-・通話対応・直接push・本番デプロイ代行は行っていません（詳細はサービスページをご覧ください）
-
-ご相談だけでも歓迎です。まず状況を確認し、今のサービス範囲で対応できるかと進め方を整理してお返しします。

@@ -58,3 +58,4 @@ optional_fields:
   - evidence_found
   - ask_count
   - reply_notes
+  - emotional_caution

@@ -1,0 +1,91 @@
+version: 1
+description: "見積り相談の受注判定。購入前の金額分岐と受注可否を決める。"
+
+inputs:
+  - service_fit
+  - cause_estimate
+  - info_sufficiency
+  - workload
+
+decisions:
+  accept_15k:
+    label: "15,000円で受注"
+    when: "高適合で、同一原因の1件として見積れるとき"
+    conditions:
+      service_fit:
+        - high
+      cause_estimate:
+        - single
+      info_sufficiency:
+        - decidable
+      workload:
+        - within_base
+    template_ref: "§11"
+    notes:
+      - "同一原因の1フロー / 1エンドポイントとして説明できる場合"
+      - "購入後は修正差分またはZIP、確認手順まで対応する"
+
+  accept_5k:
+    label: "5,000円で確認案件"
+    when: "方向性は見えるが、確認だけで終わる意図が明確で、修正1件とはまだ断定できないとき"
+    conditions:
+      service_fit:
+        - high
+        - medium
+      cause_estimate:
+        - unknown_but_narrow
+      info_sufficiency:
+        - partial
+      workload:
+        - research_only
+    template_ref: "§13-2"
+    notes:
+      - "30分で方向性や懸念点を返せる見込みがある場合"
+      - "修正対応は含めず、確認結果をもとに次の進め方を決める"
+      - "確認後に修正希望へ進む可能性が高い場合は、15,000円またはA/B案内を優先する"
+
+  hold:
+    label: "保留（追加質問1回）"
+    when: "適合はあるが、原因も情報も不足していて判定不能なとき"
+    conditions:
+      service_fit:
+        - medium
+        - unknown
+      cause_estimate:
+        - unknown
+      info_sufficiency:
+        - undecidable
+      workload:
+        - unknown
+    template_ref: "§13-3"
+    rules:
+      max_additional_questions: 1
+    notes:
+      - "追加質問は1回まで"
+      - "回答後も判定不能なら 5,000円確認案件か辞退へ倒す"
+
+  decline:
+    label: "断る"
+    when: "範囲外、新機能、新規実装級で現行サービスに乗せない方が安全なとき"
+    conditions:
+      service_fit:
+        - low
+        - out_of_scope
+      cause_estimate:
+        - new_feature
+        - multiple_independent
+      workload:
+        - new_implementation
+        - too_broad
+    template_ref: "§18"
+    notes:
+      - "現行サービス範囲外"
+      - "別提案が自然な場合だけ別提案を案内する"
+
+rules:
+  - "見積り経路では有料オプションが使えないため、提案金額で完結する前提で判断する"
+  - "15,000円で受けた後に別原因が見つかる可能性は、提案前の文面で補足する"
+  - "保留は最大1回。2回目は accept_5k か decline に倒す"
+  - "価格に影響する判断は human_review_when に従う"
+  - "5,000円確認案件は、確認だけで終わる意図が明確なときに限定する"
+  - "確認後にそのまま修正希望へ進む可能性が高いときは、最初から15,000円かA/B案内に倒す"
