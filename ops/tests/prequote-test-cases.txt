@@ -1,0 +1,1022 @@
+# ココナラ運用テスト用 相談文ケース集
+# 作成日: 2026-03-15
+# 用途: Codex に貼って判定・返信・運用ルールのテストに使う
+
+# 1. 典型的な見積り相談
+
+case_id: EST-001
+category: 典型的な見積り相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。ECサイトを運営しているのですが、Stripeでの決済後にお客さまへの自動メール（購入完了メール）が届かなくなりました。決済自体はStripeのダッシュボードで確認すると成功しているのですが、サイト側に反映されていないようです。2日前から起きています。Next.jsとVercelで公開しています。対応いただくことは可能でしょうか？
+note: 典型的な高適合ケース。必須3点がほぼ揃っている
+
+----
+
+case_id: EST-002
+category: 典型的な見積り相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: すみません、急ぎで相談したいのですが。うちのサービスでサブスク決済をStripeで使っていて、昨日から新規のお客さんがサブスク登録できなくなっています。チェックアウト画面までは行くのですが、決済ボタンを押すとエラーになるみたいで…。既存のお客さんは影響なさそうなのですが、新規が止まっているので売上に直結していて焦っています。見ていただけますか？
+note: 緊急感あり。感情注意ではないが不安感が強い
+
+----
+
+case_id: EST-003
+category: 典型的な見積り相談
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: Stripe Webhook の署名検証でエラーが出ています。checkout.session.completed を受信する API Route で 400 が返っていて、Stripe のダッシュボードのイベントログでも失敗になっています。ローカルでは stripe listen で正常に動くのですが、本番（Vercel）だけ失敗します。STRIPE_WEBHOOK_SECRET は Vercel の環境変数に設定済みです。Next.js 14 の App Router を使っています。原因の切り分けをお願いできますか？
+note: エンジニア寄り。情報量が多く、15K判定しやすい
+
+----
+
+case_id: EST-004
+category: 典型的な見積り相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: こんにちは。会員制のサイトを運営しています。Stripeで月額課金を使っているのですが、解約したお客さんのアカウントがまだ有料会員のままになっていることがあるようで、お客さんから指摘を受けました。ストライプ側では解約済みになっているのですが、サイト側の表示が変わっていないようです。こういった不具合も見ていただけるのでしょうか。
+note: Billing Portal / Webhook絡み。「こういった不具合も見ていただけるのでしょうか」の確認型
+
+----
+
+case_id: EST-005
+category: 典型的な見積り相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: お世話になります。先月AIツールを使ってECサイトを作ったのですが、Stripe連携がうまく動かなくて困っています。商品ページから購入ボタンを押すと画面が真っ白になります。コンソールにはエラーが出ているのですが、自分では内容がわかりません。Next.jsで作ったと思うのですが正直よく分かっていません。。見ていただけると助かります。
+note: AI生成コード案件。技術理解が浅い。出品ページの「AIで作ったコード」に該当
+
+# 2. プロフィール経由のざっくり相談
+
+case_id: PRF-001
+category: プロフィール経由のざっくり相談
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: プロフィールを見てご連絡しました。Stripeの不具合修正をされているとのことで。うちのサイトでもStripeを使っていて、ちょっと調子が悪いところがあるのですが、一度見ていただくことは可能ですか？
+note: 情報がほぼない。hold判定になるはず
+
+----
+
+case_id: PRF-002
+category: プロフィール経由のざっくり相談
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。Next.jsで作ったWebアプリの不具合で困っています。プロフィールを拝見して、対応いただけそうだったのでメッセージしました。具体的にはログイン後の画面遷移がおかしくて、たまに前のページに戻ってしまいます。Stripeは使っていないのですが、こういう不具合も対象になりますか？
+note: Stripe不使用。service_mismatch_but_feasible の判定が必要
+
+----
+
+case_id: PRF-003
+category: プロフィール経由のざっくり相談
+route: profile
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: プロフィール拝見しました。Firebase AuthとNext.jsの認証周りで不具合が出ていて、ログイン状態がセッション切れのたびにリセットされる問題があります。Stripeとの直接的な関係はないのですが、決済後のアクセス制御で影響が出ています。対応可能でしょうか。
+note: 間接的にStripe関連。medium fit判定が必要
+
+----
+
+case_id: PRF-004
+category: プロフィール経由のざっくり相談
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: こんにちは！外注さんに作ってもらったサイトなんですが、その外注さんと連絡が取れなくなってしまって。。決済周りで不具合が出てるんですが、コードの中身がよくわかりません。引き継ぎのコードでも見てもらえますか？
+note: 引き継ぎコード案件。出品ページの想定ケースに合致
+
+----
+
+case_id: PRF-005
+category: プロフィール経由のざっくり相談
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。ココナラでStripeの対応ができる方を探していてたどり着きました。今使っているサービスでStripe決済を導入しているんですが、テスト環境では動くのに本番で動かないという状態です。急ぎではないのですが、一度見ていただけるとありがたいです。
+note: 「テストでは動く、本番で動かない」典型パターン。情報は少なめ
+
+# 3. メッセージ経由の相談
+
+case_id: MSG-001
+category: メッセージ経由の相談
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 突然のメッセージ失礼します。出品ページを見て連絡しました。Stripeの定期課金で、お客さん側のカード期限切れ時に自動でリトライされるはずなんですが、それがうまく動いていないようです。お見積りをお願いしたいです。
+note: 明確な見積り依頼。service経由に近い
+
+----
+
+case_id: MSG-002
+category: メッセージ経由の相談
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: こんにちは、メッセージですみません。いま運営しているサイトで、Stripeのwebhookがエラーになっているみたいで。といっても自分ではwebhookが何なのかもよくわかってないんですが、Stripeのダッシュボードに赤いマークが出ていて不安です。これって放置するとまずいですか？まず相談だけでもいいですか？
+note: 技術理解が低い。「相談だけ」は5K判定の候補
+
+----
+
+case_id: MSG-003
+category: メッセージ経由の相談
+route: message
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: メッセージから失礼します。Next.js（App Router）+ Supabase + Stripeで個人開発しているのですが、Checkout後のリダイレクト先でsession_idからユーザー情報を取得する部分が動かず。成功URLに遷移はするのですがデータが空です。Vercelデプロイです。見積り次第でお願いしたいのですがいかがでしょうか。
+note: 個人開発者。情報量が多い。15K判定しやすい
+
+----
+
+case_id: MSG-004
+category: メッセージ経由の相談
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして！友人の紹介でココナラを使っています。ECサイトの不具合なんですが、注文完了メールが二重に送信されるんです。お客さんから「同じメールが2通来る」と言われて気づきました。Stripeは使っていてNext.jsで作ったサイトです。直せそうですか？
+note: 二重送信。Webhook重複処理の可能性。15K案件
+
+----
+
+case_id: MSG-005
+category: メッセージ経由の相談
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: すみません、ちょっと聞きたいことがあるのですが。Stripeで決済したあとにデータベースに保存する処理が、たまに失敗するみたいなんです。毎回ではなくて10回に1回くらいです。こういう断続的な不具合も対応してもらえるんでしょうか。料金感も教えてもらえると助かります。
+note: 間欠的な不具合。料金質問あり
+
+# 4. 購入後トークルームでの追加質問
+
+case_id: TRK-001
+category: 購入後トークルームでの追加質問
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+raw_message: お世話になっています。先ほどお送りいただいた確認項目の件なんですが、3番のStripeダッシュボードの画面って、テスト環境と本番環境のどちらを見ればいいですか？両方にデータがあるのですがどちらを送ればいいのか分からなくて。
+note: 通常の確認質問。即答で問題なし
+
+----
+
+case_id: TRK-002
+category: 購入後トークルームでの追加質問
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+raw_message: すみません、追加で聞いてもいいですか？今回の不具合とは別なんですが、同じサイトでもう一箇所気になるところがあって。プラン変更のときに金額が正しく表示されない画面があるんです。これも一緒に見てもらうことは可能ですか？
+note: 「ついでにこれも」パターン。スコープ判定が必要
+
+----
+
+case_id: TRK-003
+category: 購入後トークルームでの追加質問
+route: talkroom
+state: purchased
+user_type: semi_technical
+emotional_tone: normal
+raw_message: 確認ありがとうございます。.envの件ですが、値は送らなくて大丈夫とのことだったので、キー名だけ共有します。STRIPE_SECRET_KEY、STRIPE_WEBHOOK_SECRET、NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY の3つを使っています。あとVercelの環境変数にはDATABASE_URLもあります。
+note: セキュリティルール遵守ケース。特に問題なし
+
+----
+
+case_id: TRK-004
+category: 購入後トークルームでの追加質問
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: あの、このやり取りの途中で聞くのも変なんですが…完了までどのくらいかかりそうですか？実はお客さんから問い合わせが来ていて、「いつ直るのか」と聞かれてるんです。大まかな目安でいいので教えていただけると助かります。
+note: 納期の不安。感情注意ではないが丁寧に扱うべき
+
+----
+
+case_id: TRK-005
+category: 購入後トークルームでの追加質問
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+raw_message: お忙しいところすみません。先ほどのスクショの件ですが、Stripeの画面をスクショ撮ろうとしたらメニューの場所が分からなくて。「開発者」というところを探したのですが見当たりません。もしかしたら画面が違うかもしれないので、どのページを開けばいいか教えてもらえますか？
+note: Stripe UI操作の質問。日本語UI案内が必要
+
+# 5. 納品後・差し戻し寄りの相談
+
+case_id: DLV-001
+category: 納品後・差し戻し寄りの相談
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 納品ありがとうございます。手順どおりに確認してみたのですが、1点だけ気になるところがあります。修正していただいた決済フローは問題なく動くのですが、Stripeのダッシュボードに「テスト」と表示されるのは正常ですか？本番で使っているはずなのですが。
+note: モード取り違え疑い。修正内容とは別の問題の可能性
+
+----
+
+case_id: DLV-002
+category: 納品後・差し戻し寄りの相談
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: 確認しました。修正いただいた箇所は動いているんですが、修正前に動いていた別の機能が動かなくなっている気がします。具体的にはメール送信のところなんですが、これって今回の修正の影響ですかね…？
+note: 副作用の指摘。差し戻し寄り。スコープ判定が必要
+
+----
+
+case_id: DLV-003
+category: 納品後・差し戻し寄りの相談
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 修正ファイルを適用しました。教えていただいた手順で確認したところ、問題なく動いています！ありがとうございます。1つだけ確認なのですが、今回修正した部分って、今後また同じことが起きる可能性はありますか？もし予防できるなら教えてほしいです。
+note: 肯定的。再発予防の質問。承諾に近い
+
+----
+
+case_id: DLV-004
+category: 納品後・差し戻し寄りの相談
+route: talkroom
+state: delivered
+user_type: semi_technical
+emotional_tone: frustrated
+raw_message: すみません、差し戻しというか…。修正ファイルを適用したのですが、本番環境だとまだ同じエラーが出ます。ローカルでは直っているのですが、Vercelにデプロイすると500エラーのままです。環境変数は確認済みです。これって修正が足りていないのでしょうか。
+note: 差し戻し。環境差の問題。感情注意までは行かないが不満あり
+
+----
+
+case_id: DLV-005
+category: 納品後・差し戻し寄りの相談
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 度々すみません。前回差し戻しさせていただいた件で修正いただいたものを確認しました。今回は問題なく動いています。ありがとうございました。承諾に進んで大丈夫ですか？
+note: 差し戻し後の再確認OK。承諾進行
+
+# 6. クローズ後に再発した連絡
+
+case_id: CLS-001
+category: クローズ後に再発した連絡
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: frustrated
+raw_message: 以前Webhookの修正をお願いした者です。修正していただいた後しばらくは動いていたのですが、また同じエラーが出ています。まだ1週間しか経っていないのですが…。前回お金を払って直してもらったはずなのに、また同じ症状が出るのは正直困っています。
+note: 感情注意フラグ案件。高信頼シグナル「お金を払ったのに」
+
+----
+
+case_id: CLS-002
+category: クローズ後に再発した連絡
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: complaint_like
+raw_message: 先日対応いただいた件ですが、また同じ不具合が出ています。正直、前回15000円払って対応していただいたのに直っていないということに納得いかないです。追加でまたお金がかかるのでしょうか。
+note: 感情注意フラグ確実。「納得いかない」「お金を払ったのに」「またお金がかかるのか」
+
+----
+
+case_id: CLS-003
+category: クローズ後に再発した連絡
+route: message
+state: closed
+user_type: semi_technical
+emotional_tone: frustrated
+raw_message: お世話になります。前回修正いただいた Webhook の件ですが、違うイベント（invoice.payment_failed）で同じようなエラーが出ています。前回は checkout.session.completed で修正してもらったので、原因は別かもしれませんが、関連はありそうです。トークルームが閉じているようなのですが、どうすればいいですか？
+note: 別イベントでの類似エラー。同一原因か別原因か判定が必要
+
+----
+
+case_id: CLS-004
+category: クローズ後に再発した連絡
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: こんにちは、以前お世話になった者です。前回直していただいた部分なんですが、昨日からまたおかしくなってしまいました。前回の修正が戻っちゃったのか、それとも別の問題なのか自分ではわかりません。どうしたらいいでしょうか。。
+note: 不安寄り。苦情ではないが温度に配慮が必要
+
+----
+
+case_id: CLS-005
+category: クローズ後に再発した連絡
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: frustrated
+raw_message: すみません、前にお願いした不具合がまた起きています。毎回お金を払わないといけないんですか？ちゃんと直してもらったと思ったんですが。
+note: 短文。怒りが強い。感情注意フラグ + 金銭事故リスク
+
+# 7. 確認だけしてほしい相談
+
+case_id: CHK-001
+category: 確認だけしてほしい相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: こんにちは。修正までは求めていないのですが、今のStripe連携が正しく動いているかどうかだけ確認してもらうことは可能でしょうか。AIで作ったコードなので、そもそもちゃんと動いているのか不安で。
+note: 5K確認案件の典型。「修正までは求めていない」が明確
+
+----
+
+case_id: CHK-002
+category: 確認だけしてほしい相談
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。Stripe連携でエラーは出ていないんですが、なんか挙動が怪しい気がしていて。。実際に問題があるのかないのか、プロの目で見てもらえると安心できるんですが、そういう依頼も受けてもらえますか？
+note: 不具合未確定。5K確認か判定不能か
+
+----
+
+case_id: CHK-003
+category: 確認だけしてほしい相談
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: Stripeの本番環境への切り替えを自分でやったのですが、設定が正しいか不安です。テスト環境では問題なく動いていますが、本番に切り替えたあとにWebhookの設定とかAPIキーの設定が合っているか確認だけしてもらえませんか。
+note: 設定確認のみ。5K案件
+
+----
+
+case_id: CHK-004
+category: 確認だけしてほしい相談
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: メッセージ失礼します。実はまだ不具合は起きていないんですが、外注さんに作ってもらったコードのStripe部分が心配で。もし何か問題がありそうなら教えてほしいし、問題なければそれで安心できます。そういう確認だけの依頼って可能ですか？
+note: 予防的な確認依頼。5K判定が自然
+
+----
+
+case_id: CHK-005
+category: 確認だけしてほしい相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: お見積りの前に聞きたいのですが……不具合の原因だけ教えてもらって、修正は自分でやる、という依頼もありですか？修正方法がわかれば自分でできるかもしれないので。
+note: 「原因だけ教えて修正は自分で」パターン。5K調査の形だが、診断レポートの無償提供にならないよう注意
+
+# 8. 値引き・価格交渉
+
+case_id: PRC-001
+category: 値引き・価格交渉
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: サービス内容を見て相談しています。Webhook の不具合を見てほしいのですが、15000円は正直予算的に厳しくて…。もう少し安くしていただくことは可能でしょうか？
+note: 直球の値引き依頼。5K確認案件への誘導が適切
+
+----
+
+case_id: PRC-002
+category: 値引き・価格交渉
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。StripeのWebhookエラーで困っています。他の方にも見積りを出していただいたのですが、予算10000円くらいで考えています。対応可能でしょうか。
+note: 他社比較を匂わせる値引き。価格は崩さない
+
+----
+
+case_id: PRC-003
+category: 値引き・価格交渉
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 見積り相談です。今回は簡単な不具合だと思うので、もう少しお安くならないかなと思いまして。決済ボタンを押しても何も起きない、というだけなので。
+note: 「簡単だと思う」パターン。実際には複雑な可能性
+
+----
+
+case_id: PRC-004
+category: 値引き・価格交渉
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 提案を拝見しました。内容は問題ないのですが、15000円で即決するのが少し不安です。もし結果的に修正がいらなかった場合は返金してもらえるのでしょうか？
+note: 返金条件の確認。値引きではなくリスク確認に近い
+
+----
+
+case_id: PRC-005
+category: 値引き・価格交渉
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: すみません、個人でやっているサイトなのであまり予算がなくて。。最初に原因だけ教えてもらって、直すのは自分でやってみるのでも大丈夫ですか？その場合はもう少し安くなりますか？
+note: CHK-005と近いが「安くなりますか」が入っている。5K誘導が自然
+
+# 9. 苦情に近い相談
+
+case_id: CMP-001
+category: 苦情に近い相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: complaint_like
+raw_message: 前回お願いした件ですが、はっきり言って直っていません。15000円払ったのに状況が変わっていません。返金してもらえませんか。
+note: 返金要求。感情注意フラグ確実。金銭事故リスク最大
+
+----
+
+case_id: CMP-002
+category: 苦情に近い相談
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: complaint_like
+raw_message: 購入してから3日経ちますが、まだ何も進んでいませんよね？最初のメッセージで「2時間以内に」とおっしゃっていたのに、何も連絡がないのですが。このまま放置されるなら返金してほしいです。
+note: 進捗不満 + 返金希望。感情注意フラグ。対応遅延ケース
+
+----
+
+case_id: CMP-003
+category: 苦情に近い相談
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: complaint_like
+raw_message: 納品いただいたのですが、正直期待していた内容と違います。「原因特定と修正」をお願いしたつもりだったのですが、診断レポートだけで修正ファイルが入っていません。これで15000円は高いと感じます。
+note: 成果物への不満。スコープ認識のズレ。差し戻しか追加対応か
+
+----
+
+case_id: CMP-004
+category: 苦情に近い相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: complaint_like
+raw_message: 何度もすみませんが、前回対応してもらった件でまた連絡します。正直、もうこの不具合に何万円も払いたくないです。前回の修正で完全に直してもらえると思っていたのに、また壊れるなら意味がないです。
+note: 繰り返し連絡。金額累積への不満。感情注意フラグ確実
+
+----
+
+case_id: CMP-005
+category: 苦情に近い相談
+route: talkroom
+state: purchased
+user_type: semi_technical
+emotional_tone: frustrated
+raw_message: 確認ですが、こちらが送ったログは全部見てもらえたんでしょうか？前回の返信で聞かれている内容、すでに最初のメッセージで全部書いてあると思うんですが…。同じことをまた聞かれると不安になります。
+note: 重複質問への不満。感情注意フラグ（中信頼）。重複質問回避ゲートのテスト
+
+# 10. スコープが曖昧で危ない相談
+
+case_id: SCP-001
+category: スコープが曖昧で危ない相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: Stripeで困っています。決済自体は動くのですが、管理画面の表示がおかしいのと、メール通知が来ないのと、あとスマホで見ると崩れるのが気になっています。全部まとめてお願いできますか？
+note: 3件の症状。別原因の可能性大。スコープ判定が必要
+
+----
+
+case_id: SCP-002
+category: スコープが曖昧で危ない相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: Stripeの不具合修正をお願いしたいのですが、ついでにサイト全体の動作確認もしてもらえませんか？Stripe以外にもいくつか動きがおかしい部分がありそうなので。
+note: 「ついでに」パターン。範囲外に広がるリスク
+
+----
+
+case_id: SCP-003
+category: スコープが曖昧で危ない相談
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 今回の修正、順調に進んでいるみたいで安心しました。ところで、前から気になっていたんですが、サイトの読み込みが遅い部分があるんです。これも一緒に見てもらうことってできますか？追加料金はかかりますか？
+note: 購入中の追加要求。「追加料金はかかりますか」の質問付き
+
+----
+
+case_id: SCP-004
+category: スコープが曖昧で危ない相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: こんにちは。Stripeの決済が通らない不具合と、ログイン周りでたまに500エラーが出る問題があります。両方とも本番環境で起きています。片方だけでも大丈夫なんですが、2つとも1件で対応してもらえるとありがたいです。
+note: 2件を1件にまとめたい要望。同一原因か別原因かの判定必要
+
+----
+
+case_id: SCP-005
+category: スコープが曖昧で危ない相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: Stripeの不具合っぽいものがいくつかあるんですが、どこから手をつけていいかわかりません。全体的に見て、優先順位を教えてもらうことはできますか？修正は優先度の高いものだけでいいです。
+note: 「全体的に見て」はスコープが広い。5K調査→判断が安全
+
+# 11. 複数原因が混ざっていそうな相談
+
+case_id: MUL-001
+category: 複数原因が混ざっていそうな相談
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: 2点ご相談です。1つ目は、checkout.session.completedのWebhookが届いていないようで、Stripeでは決済完了だがDBに注文データがない状態です。2つ目は、Billing Portalでプラン変更した場合に、サイト側のプラン表示が更新されません。両方とも本番のみです。
+note: 典型的な2件相談。別原因の可能性が高い
+
+----
+
+case_id: MUL-002
+category: 複数原因が混ざっていそうな相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: Stripeの不具合がいろいろあって困っています。決済完了画面が表示されるのに注文メールが来ない、管理画面で売上が0になっている、あとお客さんから「二重に引き落とされた」と言われたことがあります。全部つながっている気もするのですが。
+note: 3件の症状。同一原因の可能性もあるが要判定
+
+----
+
+case_id: MUL-003
+category: 複数原因が混ざっていそうな相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: すみません、いろいろ壊れていてパニックです。決済はできるんですが、①完了ページに何も表示されない②メールが飛ばない③管理画面にデータが入らない、の3つが同時に起きています。全部Stripeのせいなのか、うちのコードがおかしいのかもわかりません。。
+note: パニック寄り。3症状だが同一WebhookのDB書き込み失敗が根本の可能性
+
+----
+
+case_id: MUL-004
+category: 複数原因が混ざっていそうな相談
+route: talkroom
+state: purchased
+user_type: semi_technical
+emotional_tone: normal
+raw_message: 修正を進めていただいている件で追加なのですが、Webhookの署名検証の修正とは別で、Stripe Customer Portalのリダイレクト先が404になる問題も見つかりました。これも同じ修正の中で見てもらえますか？
+note: 購入後に別件が見つかるパターン。scope-judge判定が必要
+
+----
+
+case_id: MUL-005
+category: 複数原因が混ざっていそうな相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: Stripeの件で相談です。テスト環境と本番環境で挙動が違うんです。テストではちゃんと購入完了メールが飛ぶのに、本番だと飛ばない。あとテスト環境ではWebhookのエラーもないのに、本番だけエラーが出ています。環境の違いが原因なのか、それぞれ別の問題なのか分かりません。
+note: 本番のみの問題。同一原因（Webhook設定）の可能性が高い
+
+# 12. 範囲外（新規実装・機能追加など）
+
+case_id: OOS-001
+category: 範囲外
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。これからECサイトにStripe決済を導入したいのですが、実装をお願いすることは可能ですか？Next.jsで作っているサイトです。
+note: 新規実装。明確な範囲外。断り + 別提案
+
+----
+
+case_id: OOS-002
+category: 範囲外
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: プロフィール拝見しました。WordPressのサイトにStripe決済を組み込みたいのですが対応可能ですか？プラグインでの導入を考えています。
+note: WordPress案件。技術スタック不一致
+
+----
+
+case_id: OOS-003
+category: 範囲外
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: Stripeで定期課金の機能を新しく追加したいです。今は単発決済だけなのですが、月額プランを作りたくて。設計から実装までお願いできますか？
+note: 新機能開発。範囲外
+
+----
+
+case_id: OOS-004
+category: 範囲外
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: こんにちは。サイトのデザインリニューアルに合わせて、決済画面のUIも新しくしたいんですが、対応いただけますか？Stripeの決済画面をカスタマイズしたいです。
+note: UI/デザイン変更。範囲外
+
+----
+
+case_id: OOS-005
+category: 範囲外
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: 現在 Stripe Connect を使ったマーケットプレイスを開発中なのですが、Connect のアカウント作成フロー全体の実装をお願いしたいです。不具合ではなく新規の実装です。対応可能ですか？
+note: 明確に新規実装。Connect案件
+
+# 13. 感情注意フラグが立ちそうな相談
+
+case_id: EMO-001
+category: 感情注意フラグが立ちそうな相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: complaint_like
+raw_message: まだ直っていないです。前回の修正は一体何だったんですか。
+note: 高信頼シグナル「直っていない」。短文で温度が高い
+
+----
+
+case_id: EMO-002
+category: 感情注意フラグが立ちそうな相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: frustrated
+raw_message: 前回15000円お支払いして修正していただいたのですが、また同じ問題が起きています。お金を払ったのに解決していないということでしょうか。今後どうなるのか教えてください。
+note: 高信頼シグナル「お金を払ったのに」「解決していない」
+
+----
+
+case_id: EMO-003
+category: 感情注意フラグが立ちそうな相談
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: frustrated
+raw_message: 何度もやり取りしているのに、まだ原因が分からないんですか？もう1週間経っています。48時間以内と言われたのに、いつになったら結果が出るんでしょうか。
+note: 進捗不満。中信頼シグナル「まだ + 否定」+ 時間経過への不満
+
+----
+
+case_id: EMO-004
+category: 感情注意フラグが立ちそうな相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: complaint_like
+raw_message: 返金を希望します。前回の修正後にテストした時は動いていましたが、1週間で再発しました。これでは修正してもらった意味がありません。
+note: 高信頼シグナル「返金」。明確な返金要求
+
+----
+
+case_id: EMO-005
+category: 感情注意フラグが立ちそうな相談
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: frustrated
+raw_message: すみません、前にも同じ質問したと思うのですが、まだ回答をもらえていません。もう一度聞きますが、この不具合はいつまでに直りますか？お客さんからのクレームが来ていて対応してもらわないと困ります。
+note: 中信頼シグナル「困る + してもらわないと」「まだ」
+
+# 14. 感情注意フラグが誤検知しそうな通常相談
+
+case_id: FPO-001
+category: 感情注意フラグが誤検知しそうな通常相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。前回別の出品者さんにお願いしたのですが、うまくいかなかったので改めてこちらにご相談させていただきました。Stripeの決済エラーの件です。
+note: 「前回」は別の出品者。不満はこちらに向いていない
+
+----
+
+case_id: FPO-002
+category: 感情注意フラグが誤検知しそうな通常相談
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+raw_message: お世話になっています。また追加で質問してすみません。先ほどの件ですが、Stripeの「テスト環境」と書いてあるところは、前回教えていただいたとおりに設定しました。次は何をすればいいですか？
+note: 「また」「前回」は通常の文脈。不満ではない
+
+----
+
+case_id: FPO-003
+category: 感情注意フラグが誤検知しそうな通常相談
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 前回の続きでご相談です。先日メッセージを送ったのですが返信がなかったので再度連絡しました。Stripeの件で見積りをお願いしたいです。
+note: 「前回」「また」は再連絡の文脈。未返信フォロー
+
+----
+
+case_id: FPO-004
+category: 感情注意フラグが誤検知しそうな通常相談
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 困っているのでお願いしたいのですが、Stripeの管理画面で「失敗」と出ているイベントがあるんです。これのスクショを送ればいいですか？
+note: 「困っている」は単純な相談。要求語との組み合わせなし
+
+----
+
+case_id: FPO-005
+category: 感情注意フラグが誤検知しそうな通常相談
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: まだサービスを利用するか決めていないのですが、質問だけさせてください。Webhookの修正って、だいたい何日くらいかかるものですか？
+note: 「まだ」は購入検討中。否定語との組み合わせなし
+
+# 15. quote_sent 後の変更・期限切れ再連絡
+
+case_id: QST-001
+category: quote_sent 後の変更・期限切れ再連絡
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 先日いただいた提案なのですが、少し内容を変更してほしいところがあります。最初は決済エラーだけだったのですが、よく見たらメール通知も飛んでいないことに気づきました。同じ提案で対応可能ですか？
+note: 提案後の内容追加要求。スコープ変更の判定が必要
+
+----
+
+case_id: QST-002
+category: quote_sent 後の変更・期限切れ再連絡
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 提案を拝見しました。内容は問題ないのですが、いま少し手元がバタバタしていて来週購入してもいいですか？期限が切れたりしませんか？
+note: 購入タイミングの質問。期限（1週間）の案内が必要
+
+----
+
+case_id: QST-003
+category: quote_sent 後の変更・期限切れ再連絡
+route: message
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+raw_message: こんにちは、先日提案をいただいた件で連絡しました。購入しようとしたのですが「この提案は期限切れです」と表示されてしまいました。もう一度同じ内容で提案し直してもらうことは可能ですか？
+note: 期限切れの再提案依頼。典型ケース
+
+----
+
+case_id: QST-004
+category: quote_sent 後の変更・期限切れ再連絡
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 提案いただいた15000円は了解なのですが、もし修正がうまくいかなかった場合はどうなりますか？最悪、直らなかった場合でも15000円はかかるのでしょうか？
+note: リスク確認。保証/返金ルールの説明が必要
+
+----
+
+case_id: QST-005
+category: quote_sent 後の変更・期限切れ再連絡
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 度々すみません。さっき提案を購入しようとしたのですが、支払い方法のところでクレジットカードしか選べないみたいで。コンビニ払いとかはできないんですかね？
+note: 決済手段の質問。ココナラの仕組みなので出品者側では案内しにくい
+
+# 16. closed 後の別件相談 / 同件相談
+
+case_id: CLO-001
+category: closed 後の別件・同件相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 以前お世話になった者です。前回とは別の件なのですが、今度は Stripe の定期課金のほうで不具合が出ています。前回の対応がとてもよかったので、またお願いしたいのですが、見積りをいただけますか？
+note: 別件のリピーター。好意的。通常の新規見積りフロー
+
+----
+
+case_id: CLO-002
+category: closed 後の別件・同件相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+raw_message: こんにちは、以前Webhookの修正をお願いした者です。トークルームが閉じているのでメッセージで失礼します。前回直していただいた箇所は問題なく動いています。今回は別のエンドポイントで似たような問題が出ているのですが、新しく依頼することは可能ですか？
+note: 別件 + 前回の成果を認めている。通常の新規案内でOK
+
+----
+
+case_id: CLO-003
+category: closed 後の別件・同件相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: すみません、前回の件の続きなのですが。。修正していただいた後にコードを少し触ったら、修正が戻ってしまったような気がします。自分のせいだと思うのですが、どうしたらいいですか？
+note: 自責寄り。感情注意フラグは不要だが丁寧に扱うべき
+
+----
+
+case_id: CLO-004
+category: closed 後の別件・同件相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 前回ありがとうございました。無事に動いています。ところで、サイトに新しい機能を追加したいのですが、そちらの実装もお願いできたりしますか？クーポン機能をつけたいんです。
+note: 好意的だが範囲外（新規実装）。断り + 別提案
+
+----
+
+case_id: CLO-005
+category: closed 後の別件・同件相談
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: frustrated
+raw_message: また連絡してすみません。前回修正してもらった決済の件ですが、今日になってまたエラーが出ています。前回のときは修正後にちゃんと動いていたのですが、もう何がなんだかわかりません。正直、もう同じことでお金を払いたくないです。
+note: 再発 + 金銭への不満。感情注意フラグ案件。CLS系と重複するが温度の微妙さを見るケース
+
+
+##################################################
+# 難易度分析
+##################################################
+
+# 判定が特に難しいケース TOP10
+
+case_id: CHK-005
+reason: 「原因だけ教えて」は5K調査の形だが、診断レポートの無償提供にならない線引きが必要
+
+case_id: SCP-004
+reason: 2件を1件にまとめたい要望。同一原因か別原因か、情報不足で判定できない段階
+
+case_id: PRF-002
+reason: Stripe不使用のNext.js不具合。service_mismatch_but_feasible の判定が必要
+
+case_id: MUL-003
+reason: 3症状が同時発生。パニック寄りの相手に対して冷静にスコープを切る必要がある
+
+case_id: CLS-003
+reason: 別イベントでの類似エラー。前回と同一原因か別原因か技術的判断が必要
+
+case_id: DLV-002
+reason: 修正の副作用の指摘。差し戻しかスコープ追加か、事実確認が先に必要
+
+case_id: QST-001
+reason: 提案送信後の内容追加。同一提案でカバーできるか、再提案が必要かの判定
+
+case_id: SCP-005
+reason: 「全体的に見て優先順位を」はスコープが広い。5K調査に倒すか15Kで受けるかの分岐
+
+case_id: MSG-002
+reason: 「相談だけでもいいですか」は5K確認か無償範囲かの線引きが必要
+
+case_id: PRC-004
+reason: 「修正がいらなかった場合は返金できるか」は保証ルールの説明が必要
+
+----
+
+# 感情注意フラグの誤検知が起きそうなケース TOP10
+
+case_id: FPO-001
+reason: 「前回」が別の出品者を指す。不満はこちらに向いていない
+
+case_id: FPO-002
+reason: 「また」「前回」が通常の追加質問の文脈で使われている
+
+case_id: FPO-003
+reason: 「前回」が以前のメッセージを指す再連絡。未返信フォロー
+
+case_id: FPO-004
+reason: 「困っている」が単純な状況説明。要求語との組み合わせなし
+
+case_id: FPO-005
+reason: 「まだ」が購入検討中の意味。否定語との組み合わせなし
+
+case_id: CLO-003
+reason: 「前回の件の続き」だが自責寄りで苦情ではない
+
+case_id: EST-002
+reason: 「焦っています」は不安だが、こちらへの不満ではなく状況への焦り
+
+case_id: DLV-004
+reason: 「これって修正が足りていないのでしょうか」は質問であり苦情ではないが、文面から不満に誤検知する可能性
+
+case_id: CLO-001
+reason: 「以前お世話になった」「前回」が好意的な文脈で使われている
+
+case_id: TRK-004
+reason: 「聞くのも変なんですが」「焦っています」は不安だが苦情ではない
+
+----
+
+# 金銭事故につながりやすいケース TOP10
+
+case_id: CMP-001
+reason: 直接的な返金要求。金額の話を先に出すと事故。受け止めてから整理が必要
+
+case_id: CLS-002
+reason: 「また同じ不具合 + 納得いかない + またお金がかかるのか」の3重苦
+
+case_id: CLS-005
+reason: 「毎回お金を払わないといけないのか」は価格設計への疑問。5K調査の案内が必要
+
+case_id: CMP-004
+reason: 複数回連絡 + 金額累積への不満。次の提案金額が致命的に重要
+
+case_id: PRC-001
+reason: 直球の値引き。価格を崩すと前例になる
+
+case_id: SCP-001
+reason: 3件まとめて15Kで受けると、途中で別原因が見つかった時に追加できない
+
+case_id: SCP-003
+reason: 購入中に追加要求。「追加料金はかかりますか」の回答で事故するリスク
+
+case_id: QST-004
+reason: 「直らなかった場合も15000円かかるか」への回答で保証範囲を広げすぎると事故
+
+case_id: CMP-003
+reason: 成果物への不満。スコープ認識のズレがあり、差し戻し対応か追加対応かの判定が必要
+
+case_id: MUL-004
+reason: 購入後に別件が見つかる。scope-judgeで「同一原因の範囲」に入れるかどうかの判定
+
+----
+
+# 実案件で揉めやすそうなケース TOP10
+
+case_id: CLS-001
+reason: 再発 + 1週間 + 金銭不満。初回返信の順序を間違えると苦情化する
+
+case_id: CMP-002
+reason: 「3日放置 + 返金希望」は対応遅延への直接的な不満。事実確認が先
+
+case_id: CMP-005
+reason: 重複質問への不満。Codexの重複質問回避ゲートが正しく動いているかのテスト
+
+case_id: DLV-002
+reason: 修正の副作用。「こちらのせいか」の質問に対する回答で揉める可能性
+
+case_id: CMP-003
+reason: 「診断レポートだけで修正ファイルがない」への不満。サービス定義の説明が必要
+
+case_id: EMO-003
+reason: 長期化 + 進捗不満。時間コミットの再設定が必要
+
+case_id: CLS-005
+reason: 短文 + 怒り。最初の返信で料金を出すと致命的
+
+case_id: SCP-002
+reason: 「ついでに」が拡大すると全体のスコープが崩れる
+
+case_id: CLO-005
+reason: 再発 + 「もう同じことでお金を払いたくない」。5K調査の提案タイミングが重要
+
+case_id: PRC-003
+reason: 「簡単だと思うので安くして」は実際には複雑な可能性。期待値のズレが揉める原因になる

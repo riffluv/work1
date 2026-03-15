@@ -26,6 +26,7 @@
 - /home/hr-hm/Project/work/docs/coconala-message-templates-short.ja.md
 - /home/hr-hm/Project/work/docs/coconala-estimate-ui-cheatsheet.ja.md
 - /home/hr-hm/Project/work/stripe日本語UI案内
+- /home/hr-hm/Project/work/ops/tests/README.ja.md
 
 【初回応答ルール】
 - 上記読了後、最初の返答は「読み込み完了」と「運用要約（短く）」のみ。
@@ -70,6 +71,8 @@
 - `#S` は原則 `purchased` 以降で使う。見積り段階では乱用しない。
 - `#M` は毎回ではなく、価格変更 / 同一原因判定 / 感情注意 / 納品方針確定などの節目で使う。
 - `#C` はクローズ時に必ず使い、`ops/case-log.csv` へ1行追加する。
+- 見積り・返信運用のテストや調整時は、`/home/hr-hm/Project/work/ops/tests/prequote-test-cases.txt` を自然文ケース集の正本として使う。
+- 代表ケースの回帰確認は `ops/tests/prequote-cases.yaml` と `ops/tests/edge-cases.yaml` を使う。
 - クローズ後は原則こちらからDMを送らない。評価依頼は `#R クローズお礼` の1回のみ。例外は実害防止の補足連絡1通のみ（営業目的DMは禁止）。
 - 文体は docs/writing-guideline.ja.md を厳守（AI臭を避ける）。
 

@@ -109,6 +109,12 @@
 - 検証手順が通る
 - 追加説明なしでも依頼者が引き継げる
 
+## 運用テスト資産
+- 見積り・返信・感情注意の運用テストは `/home/hr-hm/Project/work/ops/tests/README.ja.md` を起点に行う。
+- 自然文の主ケース集は `/home/hr-hm/Project/work/ops/tests/prequote-test-cases.txt` を使う。
+- 代表ケースの回帰確認は `/home/hr-hm/Project/work/ops/tests/prequote-cases.yaml` と `/home/hr-hm/Project/work/ops/tests/edge-cases.yaml` を使う。
+- 新しいテンプレや skill を変えた後は、少なくとも自然文ケース数件と edge ケース数件で崩れていないか確認する。
+
 ## パッケージング / セキュリティ
 - 次の内容は絶対に含めない:
   - `.env*`
