@@ -1,0 +1,32 @@
+version: 1
+
+phases:
+  prequote:
+    required:
+      - target_flow
+      - expected_behavior
+      - unknowns_or_fears
+      - environment
+    question_limit: 4
+    fallback:
+      - one_screenshot
+      - one_existing_note
+
+  purchased:
+    required:
+      - target_flow
+      - expected_behavior
+      - environment
+      - code_bundle_or_related_files
+      - intended_reader_of_memo
+    preferred:
+      - logs
+      - screenshots
+      - existing_notes
+    question_limit: 5
+
+rules:
+  - ask_only_missing_items
+  - do_not_repeat_known_facts
+  - if_scope_is_unclear_then_hold_pricing
+  - prefer_zip_or_talkroom_attachments_for_code_share

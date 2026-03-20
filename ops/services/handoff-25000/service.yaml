@@ -1,0 +1,66 @@
+service_id: handoff-25000
+display_name: AI/外注コード現状整理・引き継ぎメモ作成
+base_price: 25000
+addons:
+  extra_flow: 15000
+
+scope_unit: one_main_process_flow
+purchase_before_estimate_required: false
+proposal_binding_required_for_profile_or_message: true
+
+in_scope:
+  - Next.js / Stripe / API連携コードの現状整理
+  - 主要な処理の流れ1つの構成把握
+  - 関連ファイル / ディレクトリの特定
+  - 危険箇所 / 影響が広がりやすい箇所の洗い出し
+  - 次に着手する場所と順序の整理
+  - 実務向けの引き継ぎメモ作成
+
+out_of_scope:
+  - コード修正
+  - 新機能開発
+  - 正式な仕様書作成
+  - リポジトリ全体の網羅調査
+  - テスト作成
+  - 通話、ビデオ会議
+  - 依頼者リポジトリへの直接push
+  - 本番デプロイ代行
+
+prequote_minimum:
+  - target_flow
+  - expected_behavior
+  - unknowns_or_fears
+  - environment
+
+implementation_required:
+  - target_flow
+  - expected_behavior
+  - environment
+  - code_bundle_or_related_files
+  - intended_reader_of_memo
+
+optional_evidence:
+  - logs
+  - screenshots
+  - existing_notes
+
+deliverables:
+  - summary_md
+  - handoff_memo_md
+
+hard_no:
+  - raw_secret_values
+  - direct_push
+  - prod_deploy
+  - external_contact
+  - external_share
+  - external_payment
+
+human_review_when:
+  - scope_undecidable
+  - whole_repo_requested
+  - specification_document_expected
+  - repair_bundle_requested
+  - service_mismatch_but_feasible
+  - pricing_change
+  - formal_delivery
