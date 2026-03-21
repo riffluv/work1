@@ -1,5 +1,5 @@
 service_id: handoff-25000
-display_name: AI/外注コード現状整理・引き継ぎメモ作成
+display_name: AI/外注コードの主要1フロー整理・引き継ぎメモ作成
 base_price: 25000
 addons:
   extra_flow: 15000
@@ -45,8 +45,8 @@ optional_evidence:
   - existing_notes
 
 deliverables:
-  - summary_md
-  - handoff_memo_md
+  - 00_結論と要点.md
+  - 01_[対象フロー名]_引き継ぎメモ.md
 
 hard_no:
   - raw_secret_values
