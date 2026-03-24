@@ -1,0 +1,359 @@
+# 見積り相談文テストケース（量産30件・bugfix + handoff + boundary）
+# 作成日: 2026-03-24
+# 用途: bugfix-15000 / handoff-25000 の判定テスト用
+# 補足: prequote-bulk-20.txt（BLK-001〜020）と症状・文型が重複しないよう設計
+
+============================================================
+bugfix-15000 向け（15件）
+============================================================
+
+----
+
+case_id: V2-001
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 至急です。お客さんが「2回引き落とされた」と連絡してきました。Stripeの管理画面を見ると確かに同じ人に2件の決済が入っています。1件は返金した方がいいと思うのですが、なぜ2回決済されたのか原因が分かりません。同じことがまた起きると困るので、原因を調べて直してほしいです。
+note: 二重決済。Checkout Session の二重作成 or ボタン連打。返金は範囲外だが原因調査+修正は bugfix
+
+----
+
+case_id: V2-002
+route: message
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: メッセージ失礼します。Next.js の middleware で認証チェックをしているのですが、本番で稀に認証済みユーザーがログインページにリダイレクトされる現象が起きています。ローカルでは再現できていませんが、Vercelのログに「JWT malformed」が出ています。Stripe直接は関係ないのですが、課金ユーザーが課金後のページにアクセスできなくなる問題なので困っています。
+note: JWT認証エラー。Stripe不使用だがNext.js不具合として流入。semi_technical
+
+----
+
+case_id: V2-003
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 相談です。Stripeで月額プランを販売しているのですが、トライアル期間が終わっても課金が始まらないお客さんがいるらしいです。全員ではなくて一部です。Stripeの管理画面では「トライアル中」のままのサブスクリプションがいくつかあるんですが、期日は過ぎています。サイトはNext.jsです。
+note: トライアル→有料移行の失敗。invoice作成やWebhook系の問題候補
+
+----
+
+case_id: V2-004
+route: profile
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: プロフ見て連絡してます。個人開発のサービスで、Stripe の coupon を使った割引決済をしてるんですが、特定のクーポンコードを入力すると Checkout Session の作成でエラーになります。couponのIDは間違ってないはずなんですが、「resource_missing」みたいなエラーが返ってきます。Next.js + Vercelです。ちょっと見てもらえますか。
+note: coupon/promo code エラー。resource_missing。indie_hacker
+
+----
+
+case_id: V2-005
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: ここ3日くらい、決済後に自動で送っている領収書メールが届かない人が出てきています。全員じゃないんですが、お客さんから「領収書が届かない」と言われます。Stripeからの自動メールなのか、うちのシステムから送っているのか実は分かっていなくて…。何が原因か調べて修正してもらえますか。
+note: 領収書メール不達。BLK-006（購入完了メール）と似ているが「領収書」で差別化。原因不明度が高い
+
+----
+
+case_id: V2-006
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: Stripe Webhook の署名検証で400が返ります。`stripe.webhooks.constructEvent` で `Webhook signature verification failed` が出ていて、STRIPE_WEBHOOK_SECRET は .envにセットしてあるんですが、Vercel上の環境変数と手元のCLIで使ってるシークレットが違うのかもしれないです。App Router の route.ts で受けています。修正をお願いしたいです。
+note: 署名検証エラー。Webhook Secret の環境差異。Codex の強み分野
+
+----
+
+case_id: V2-007
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: はじめまして。うちのサイトで「お気に入り」ボタンを押すと、たまに画面が固まって操作できなくなります。Stripeは使っていますが、決済とは関係ない画面で起きます。Next.jsで作ってもらったサイトです。こういう不具合も対象になりますか？
+note: Stripe不使用の画面フリーズ。Next.js不具合として受けられるか判定が必要
+
+----
+
+case_id: V2-008
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 個人開発してるんですが、Stripeでone-time paymentのCheckout Sessionを作ってて、決済後にsuccess_urlに飛ぶまでにWebhookでDBに書き込む設計にしてます。でもたまにsuccess_urlにリダイレクトされた時点でDBに書き込みが終わってなくて、「購入完了」画面にデータが表示されないことがあります。race conditionっぽいんですが、どう直せばいいか分からなくて。
+note: Webhook/success_url の race condition。indie_hacker が問題を理解しているが解法が分からない
+
+----
+
+case_id: V2-009
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: プロフィールを見て相談します。うちの会員サイトで、月初に一斉課金が走るタイミングでサイトが重くなって500エラーが出ることがあります。毎月じゃないんですが、先月と今月は出ました。お客さんがログインできなくなるので困っています。Next.jsです。Stripeの定期課金を使っています。対応できますか。
+note: 月初一斉課金時の負荷起因500。Webhookの大量同時到達が原因候補
+
+----
+
+case_id: V2-010
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: customer.subscription.updated のWebhookを受けているんですが、quantity変更時にだけハンドラで例外が出ます。通常のプラン変更では問題ないです。Next.js 14 のApp Router + Supabaseで、Webhookハンドラのコードは自分で書きました。quantityの値がどう渡ってくるかの仕様が怪しい気がしています。修正含めてお願いできますか。
+note: quantity変更時のWebhookハンドラ例外。特定条件の不具合。semi_technical
+
+----
+
+case_id: V2-011
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: メッセージ失礼します。最近サイトを公開したばかりなんですが、Stripeの決済テストをしたら、テスト用カードで決済できたのに管理画面に反映されませんでした。テストモードでの話です。Next.jsで作りました。初歩的な質問かもしれませんが、これって設定の問題ですか？見てもらえますか？
+note: テストモードでのDB反映不具合。初期設定系。non_engineer
+
+----
+
+case_id: V2-012
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 個人開発のSaaSなんですが、Stripeのカスタマーポータルで支払い方法を変更すると、なぜかセッションが切れてログアウトされます。ポータルのreturn_urlは設定しているんですが、戻ってきたときにセッションが消えてます。Cookie関連だと思うんですが特定できてないです。Next.js + NextAuth です。
+note: Billing Portal return後のセッション消失。Cookie/NextAuth問題。indie_hacker
+
+----
+
+case_id: V2-013
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: お見積りお願いします。うちのサービスで、お客さんがStripeで決済したあとに「マイページ」に飛ぶんですが、そのマイページに購入した商品が表示されません。画面を更新すると出ることもあるんですが、毎回ではないです。Stripeの管理画面では決済成功になっています。
+note: 決済後マイページ未反映。BLK-009（遅延反映）と似ているが「商品表示」で差別化
+
+----
+
+case_id: V2-014
+route: profile
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: プロフィール拝見しました。Stripe Elements で作ったカスタム決済フォームがあるんですが、3Dセキュア認証後の処理で失敗するケースがあります。PaymentIntentのステータスが requires_action のまま止まっていて、confirmCardPayment のコールバックが返ってこないことがあるようです。Vercel + Next.js です。
+note: 3Dセキュア認証後のPaymentIntent stuck。Elements + confirmCardPayment問題
+
+----
+
+case_id: V2-015
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 相談です。Stripeで年額プランを売っているのですが、今日お客さんから「去年の購入なのにまた引き落としされた」とクレームが来ました。年額のはずなのになぜ2回目が来たのか分からなくて。サイト側の設定なのか、Stripe側の設定なのか分かりません。今後同じことが起きないようにしたいです。
+note: 年額プランの意図しない自動更新。サブスクの自動更新設定の問題候補
+
+============================================================
+handoff-25000 向け（10件）
+============================================================
+
+----
+
+case_id: V2-016
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: はじめまして。去年まで開発を担当していた人が退職してしまい、今コードを触れる人がいません。サイト自体は動いているんですが、何かあったときにどこを見ればいいか分からない状態です。修正はまだ必要ないのですが、まず「決済完了から会員登録されるまでの流れ」だけでも整理してもらえると助かります。
+note: 前任退職。修正不要、構造把握が目的。「決済→会員登録」フロー指定
+
+----
+
+case_id: V2-017
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: メッセージ失礼します。外注で作ってもらったECサイトがあるんですが、外注先との契約が終了し、今後は別の開発者に引き継ぐ予定です。ただ、引き継ぎ資料がまったくなくて、コードの中身が分かりません。次の人に渡せるメモを作ってほしいんですが、そういう依頼はできますか？全部ではなく、注文→決済→在庫更新の流れだけで大丈夫です。
+note: 外注契約終了→別開発者引き継ぎ。引き継ぎメモ作成。1フロー指定あり
+
+----
+
+case_id: V2-018
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: ChatGPTでWebサービスを作ったんですが、ファイルが大量にあって、どのファイルが何をしているのか自分でも分からなくなりました。Stripeでの決済は一応動いているんですが、触ると壊れそうで怖いです。まず「どこを触ると危ないか」だけでも教えてもらえると助かります。修正はまだ依頼しません。
+note: AI生成コード。「触ると壊れそう」で整理が先。修正は依頼しないと明言
+
+----
+
+case_id: V2-019
+route: profile
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: プロフ拝見して連絡しました。前のチームメンバーが書いたWebhookまわりのコードを引き継いだんですが、イベントハンドラが10個以上あって、どれが本番で使われていてどれが死んでるコードか分からない状態です。全部を見てもらう必要はなくて、まずは checkout.session.completed → DB更新の流れだけ整理してもらえればOKです。
+note: チーム引き継ぎ。Webhookハンドラが多数で死活不明。1フロー指定あり。semi_technical
+
+----
+
+case_id: V2-020
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: お見積りお願いします。知り合いのエンジニアに作ってもらったサイトなんですが、その人が忙しくなって対応してもらえなくなりました。今のところ不具合はないんですが、何かあったときに別の人に頼めるように、主要な処理の流れだけでも書き出してほしいです。Stripeの月額プランがメインの機能です。
+note: 知り合いエンジニアが対応不能に。予防的な整理依頼。不具合なし
+
+----
+
+case_id: V2-021
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: すみません、少し焦っています。来月から新しい開発会社に保守を引き継ぐのですが、今のコードの説明ができません。前の外注先に聞こうにも連絡がつかなくなっています。全体は無理だと思うので、決済と会員登録のところだけでも整理してもらえませんか。引き継ぎ資料として渡せるものが欲しいです。
+note: 保守引き継ぎの期限あり。anxious。1フロー指定で引き継ぎメモ希望
+
+----
+
+case_id: V2-022
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: handoff
+raw_message: 個人で作ったサービスなんですが、正直1年前に書いたコードの構造をもう忘れてます。今後機能追加したいんですが、どこがどうつながってるか把握し直したいです。全体じゃなくて、Webhook受信→ユーザーのプラン更新の流れだけで大丈夫です。自分用の整理メモとして使いたいです。
+note: 自分のコードを忘れた indie_hacker。自分用の整理メモ。1フロー指定
+
+----
+
+case_id: V2-023
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 相談です。うちのサイトで、Stripe Checkout → 決済完了 → 自動メール送信、という流れがあるんですが、去年作ってもらった外注先が対応してくれなくなりました。今後自分で少しずつ管理したいのですが、まず処理の流れと、どのファイルが何をしているかを整理してもらえると助かります。
+note: 外注対応不能→自己管理移行。Checkout→メール送信の1フロー整理
+
+----
+
+case_id: V2-024
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: プロフィールを見てご連絡しています。LP制作と決済部分を別々の人に外注して作ったサイトがあるんですが、両方の外注先が辞めてしまって、決済のところが完全にブラックボックスです。不具合は出ていませんが、いつ壊れるか分からないのが不安です。どこが危ないかだけでも把握したいです。
+note: 複数外注→全員離脱。ブラックボックス。「どこが危ないか」系
+
+----
+
+case_id: V2-025
+route: message
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: メッセージからすみません。前の外注先が残したNext.jsのコードを見ているんですが、API Routeが30個以上あって、どれが決済フローに関係しているか特定できません。Webhook受信用のエンドポイントも複数あって、どれが生きてるか分からないです。サブスクの決済→プラン変更反映の流れだけ整理してほしいです。
+note: API Route大量で迷子。semi_technical だが構造把握が先。1フロー指定
+
+============================================================
+境界ケース（5件）
+============================================================
+
+----
+
+case_id: V2-026
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 相談です。外注で作ってもらったサイトなんですが、最近Stripeの決済後にメールが届かないことがあります。まず修正してもらいたいんですが、正直コードの中身が全然分からないので、どこが問題かも分かりません。直す前にまずどうなっているか見てもらった方がいいですかね？
+note: 本人は「直してほしい」が、整理不足が先。bugfix か handoff か判定が必要。自分で「先に見た方がいいですかね？」と聞いている
+
+----
+
+case_id: V2-027
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: boundary
+raw_message: メッセージ失礼します。AIで作ったサイトで、お客さんから「決済したのに会員ページに入れない」と連絡がありました。とりあえず中を見てもらいたいんですが、コードの中身は全く分かりません。修正できるなら修正もしてほしいんですが、まず何が起きているか知りたいです。
+note: 症状はbugfix的だが、AI生成コードで構造理解がゼロ。「まず何が起きているか知りたい」でhandoff寄り
+
+----
+
+case_id: V2-028
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: boundary
+raw_message: Webhook受信後のDB更新とメール送信の両方で問題が出ていて、複数の処理フローにまたがってる気がします。まずは決済→DB更新の流れと、決済→メール送信の流れの2つを整理してもらって、その上で修正に入ってほしいんですが、全部まとめてお願いできますか？
+note: 複数フロー+修正。handoff 2フロー+bugfix が混在。スコープ整理が必要
+
+----
+
+case_id: V2-029
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: プロフィール拝見しました。サイトの決済まわりで不具合が出ているんですが、外注先が連絡取れなくなって、原因を調べようにもどのコードを見ればいいか分かりません。不具合修正と引き継ぎ整理、どちらのサービスを買った方がいいか相談させてもらえますか？
+note: 「どちらを買えばいいか」を直接聞いている。判定案内が必要なケース
+
+----
+
+case_id: V2-030
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: boundary
+raw_message: 個人開発のサービスで、前に書いたWebhookまわりが最近エラー吐くようになったんですが、正直1年くらい前のコードで自分でも構造を忘れてます。エラーを直したいんですが、まず構造を把握し直してから修正に入った方がいいですかね？どう進めるのがいいか教えてもらえると助かります。
+note: 本人がbugfix希望だが構造忘却を自覚。「まず把握してから修正」で段階的案内が必要
+
+============================================================
+判定が迷いやすいケース TOP 3
+============================================================
+
+1. V2-026
+理由: 本人は「直してほしい」と言っているが、「コードの中身が全然分からない」「先に見た方がいいですかね？」の2つが手がかり。症状（メール不達）は明確で bugfix に入れたいが、コード理解ゼロなら handoff が先の可能性がある。相手が自分で判断を委ねているので、こちらの提案力が問われる。
+
+2. V2-028
+理由: 「2フローの整理 + 修正」を1件でまとめて依頼している。handoff は1フローが基本、bugfix は修正1件が基本。そのまま受けるとスコープが膨らむ。「まず1フロー整理 → 修正」の段階提案か、「2フロー分はオプション費用がかかる」の説明が必要。
+
+3. V2-030
+理由: 症状はある（Webhookエラー）ので bugfix に入れられるが、本人が「構造を忘れている」と言っている。bugfix だけで直してもまた分からなくなるリスクがある。handoff → bugfix の段階提案が自然だが、indie_hacker で「まずどう進めるか教えて」と聞いているので、いきなり2サービス案内すると重く見える可能性もある。

@@ -51,6 +51,14 @@
 - 「返信文作って」「返信書いて」など明示があるときだけ送信用文面を作る
 - 送信用文面を作った場合は、毎回 `/home/hr-hm/Project/work/返信文_latest.txt` に同内容を保存する
 
+## handoff-25000 の追加フロー運用
+
+- `handoff-25000` の追加1フローはオプション第一候補とする
+- 同一ドメイン内で合計3フロー程度までは、内容確認のうえオプションまたは見積りで調整してよい
+- 合計4フロー以上、別ドメイン混在、修正依頼の混在、購入前に対象フローを確定できない案件は別見積りへ切り替える
+- `handoff-25000` で修正依頼が出た場合は、その場で吸収せず、`bugfix-15000` または別見積りへ切り分ける
+- 将来の上位版を検討する場合も、「全部見る」ではなく、同一ドメイン内の優先2〜3フロー限定で考える
+
 ## work配下の重要ファイル
 
 - `AGENTS.md`
@@ -596,3 +604,13 @@
 - 何を決めたか: 納品物は情報量の追加より、`冒頭の結論サマリー` と `購入者目線の見出し` を優先して改善することにした。特に非技術者向けに「直ったか」「何を直したか」「どう確認するか」が最初の数行で伝わる形へ寄せた。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/pack-templates.ja.md`, `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/references/examples.ja.md`, `納品物codex例/01_診断レポート.md`, `納品物codex例/03_検証手順と確認結果メモ.md`, `HANDOFF_NEXT_CODEX.ja.md`
 - 次回の最優先タスク: 実案件またはサンプル運用で、(a) 結論サマリーだけで概要が伝わるか、(b) `影響範囲` など旧見出しが残っていないか、(c) 正式納品メッセージの温度感が事務的すぎないか を確認する。
+
+### 2026-03-23（追記）
+- 何を決めたか: `handoff-25000` の追加フロー運用は、追加1フローをオプション第一候補、合計3フロー程度までを調整可、4フロー以上や別ドメイン混在/修正混在は別見積りへ切り替える方針で固定した。
+- 何を変更したか（ファイルパス）: `サービスページ/handoff-25000.ready.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: `handoff-25000` の実相談で、追加フロー需要の件数と同一ドメイン集中の有無を記録し、上位版公開の要否を判断する。
+
+### 2026-03-23（追記2）
+- 何を決めたか: skill設計を best practices に寄せ、`coconala-reply-bugfix-ja` は本体を短くして `references/` に詳細を逃がす progressive disclosure 構成へ変更した。`intake-router` と `prequote-ops` には標準ルートと gotchas を追加した。
+- 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/ui-progress-tags.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/post-purchase-stages.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/emotional-caution-mode.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/edge-cases.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/scope-boundary-phrases.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/style-rules.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/scene-templates.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-prequote-ops-ja/SKILL.md`
+- 次回の最優先タスク: 実案件または代表テストケースで、`prequote` / `purchased` / `closed` の3系統を通し、分割後の参照導線で返答品質が落ちていないか確認する。

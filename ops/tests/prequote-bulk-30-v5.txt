@@ -1,0 +1,417 @@
+# 見積り相談文テストケース V5（Codex初手精度テスト特化30件）
+# 作成日: 2026-03-24
+# 用途: bugfix-15000 / handoff-25000 の返信精度テスト（初手で崩れやすいケース）
+# 補足: V3（難ケース）V4（エッジ）を前提に、初手の優先順位・取捨選択・詰め込み回避を試す
+
+============================================================
+bugfix寄り（8件）
+============================================================
+
+----
+
+case_id: V5-001
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: すみません急ぎで。Stripeの決済がおかしくて、昨日からお客さんに謝ってます。15,000円で対応してもらえますか？あと何日くらいかかりますか？今日中は無理ですか？
+note: 感情+価格+納期+対応可否が1メッセージに全部入っている。全部答えると長くなりすぎる
+
+----
+
+case_id: V5-002
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 決済のあと画面が白くなります。あ、あとメールも届かないみたいです。
+note: 話題が途中で増える。2つの症状が同一原因か別原因か分からない。「あ、あと」の追加が自然
+
+----
+
+case_id: V5-003
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: もう意味わかんないです。チェックアウトの画面で止まるんですけど、たまに通るんですよ。通ったり通らなかったりで、お客さんにも説明できないし、Stripeのダッシュボードの見方も分かりません。こういうの直せます？15,000円で済みますか？
+note: 感情の吐き出し+間欠エラー+知識不足告白+価格質問。論点が散っている
+
+----
+
+case_id: V5-004
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: api/webhookのRoute Handlerで署名検証してるんですが、ローカルだとOKなのにVercelだと400になります。STRIPE_WEBHOOK_SECRETはVercelの環境変数にも入れてます。stripe listenで転送してるのはローカルだけなので、本番のendpointURLが違うのかもしれないですが。あと関係あるか分からないけど、最近Next.js 14から15にアップデートしました。
+note: 情報は多いが仮説が複数（環境変数/エンドポイント/バージョン）。どこから手をつけるか
+
+----
+
+case_id: V5-005
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: 正直怖いんですけど、決済データが二重に入ってるみたいで。自分で触って壊すのも怖いし、放置するのも怖い。見てもらいたいんですが、15,000円と書いてあったのでそれでお願いしたいです。あ、これ↓の値送った方が早いですか？ sk_live_xxxxxx
+note: 恐怖+二重処理+即購入意思+秘密情報を貼ろうとしている。複数の対応が同時に必要
+
+----
+
+case_id: V5-006
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: ウェブフック直せますか
+note: 5文字。V4-001よりさらに短い。何のWebhookか、何が起きているかが一切不明
+
+----
+
+case_id: V5-007
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: すみません、今Vercelからメール来て、ファンクションがタイムアウトしてるって書いてあるんですけど、これってStripeのWebhookに関係ありますか？お客さんの決済に影響出てるかもしれないです。すぐ見てもらえますか？あと、GitHub連携してるんで、リポジトリURL送った方が早いですか？
+note: Vercelの通知をそのまま転送+影響不明の不安+「すぐ」圧+GitHub URL提案
+
+----
+
+case_id: V5-008
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: 個人開発で月の売上5万くらいなんで、正直15,000円はきついです。でもStripe Checkoutのsuccess_urlに飛ばなくて困ってます。自分でも色々やったんですが、session.payment_statusは"paid"になってるのにリダイレクトされない。5,000円とか10,000円でできるケースってないですか？
+note: 個人開発の収入事情+具体的な症状+値引き交渉。同情を引く要素あり
+
+============================================================
+handoff寄り（7件）
+============================================================
+
+----
+
+case_id: V5-009
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 外注で作ってもらったコード、自分では全然読めないんですけど、引き継ぎメモ作ってもらったら次の人に渡せますか？あとそのメモ見たら自分でもある程度分かるようになりますか？
+note: 質問が2つ（次の人に渡せるか + 自分でも分かるか）。2つの期待に同時対応が必要
+
+----
+
+case_id: V5-010
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: handoff
+raw_message: お金のことを先に聞いてすみません。25,000円で整理してもらって、そのあと不具合修正も頼むと合計40,000円ですよね？正直40,000円は出しにくいです。でもコードの中身も分からないし不具合も出てるし、どっちから手をつけていいか分からなくて。
+note: 価格不安+判定不明+自己判断できない。V4-017に近いが「お金のことを先に」の自責が入る
+
+----
+
+case_id: V5-011
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: AI（Claude）にほぼ全部書いてもらったコードなんですが、動くけど自分で何も触れない状態です。ファイルがめちゃくちゃ多くて、どこが何してるのか分からない。整理してメモにしてもらえるってことですよね？全部見てもらうのは無理なんですか？
+note: AIコード+「全部見てほしい」+サービス理解の確認。「全部」をどう1フローに絞るか
+
+----
+
+case_id: V5-012
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: handoff
+raw_message: 前の外注さんに払った分も含めるともう相当使ってて、整理に25,000円は正直出せるか微妙です。でもこのままだと次の人にも引き継げなくて詰んでます。分割で払えたりしますか？あとメモだけもらって修正は自分でやるっていうのもありですか？
+note: 予算限界+分割払い質問+「修正は自分で」確認。ココナラの支払い方法は出品者が決められない
+
+----
+
+case_id: V5-013
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: Notionにまとめたドキュメントと、GoogleドライブにコードのZIPがあるので、両方のURL送りますね。整理対象はStripeのサブスク課金まわりの処理です。
+note: 外部共有を2つ同時に提案+対象は明確。共有は止めつつ、情報は活かす必要がある
+
+----
+
+case_id: V5-014
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: 外注先が急に廃業してしまって、コードだけ残ってる状態です。一応動いてますが触るのが怖い。引き継ぎメモ作ってもらいたいんですが、万が一作業中に壊れたりしませんか？本番のコードは触りませんよね？
+note: 廃業不安+「壊れないか」の不安+本番コード操作の確認。保証と作業方法の質問が混在
+
+----
+
+case_id: V5-015
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: すみません、まだ買うか決めてないんですが質問です。25,000円のサービスは、何がもらえるんですか？引き継ぎメモっていうのは、Wordみたいなファイルですか？何ページくらいですか？
+note: 購入前の商品説明要求。「何がもらえるか」「形式」「分量」の3質問同時
+
+============================================================
+boundary寄り（7件）
+============================================================
+
+----
+
+case_id: V5-016
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: boundary
+raw_message: 不具合が出てるんですけど、コードの中身も分からないし、これが15,000円の方なのか25,000円の方なのか、ページ見ても正直分かりません。急いでるのであんまり悩んでいる時間もなくて。とりあえずどっちがいいか教えてもらえますか？
+note: 判定を丸投げ + 急ぎ + 価格不安。全部に答えると長くなる
+
+----
+
+case_id: V5-017
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 決済はStripeなんですが、メール送信はSendGridで、認証はNextAuthです。全部つながってる1つの処理なんですけど、Webhookのあとの処理が壊れてて、メールも届かないし認証トークンも更新されない。これ全部で1件ですか？
+note: Stripe+SendGrid+NextAuth。外部サービス3つが絡む1フロー。1件判定が難しい
+
+----
+
+case_id: V5-018
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 本番環境はないです。VercelのPreviewデプロイだけで開発してて、Stripeもテストモードです。Checkout Sessionを作るところまではできたんですけど、その後のWebhookの受け方が分からなくて。
+note: V4-022の発展形。「壊れた」ではなく「作り方が分からない」。実装支援とbugfixの境界
+
+----
+
+case_id: V5-019
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: boundary
+raw_message: Billing Portalでサブスクのアップグレードができるんですけどダウングレードができない状態です。Stripe側の設定だけの問題なのか、コード側で制御してるのかが分からなくて。設定だけならStripeのダッシュボードでやれそうなんですが、もしコード側の問題なら見てもらいたいです。
+note: Stripe設定かコードか。出品者が判断する前に条件分岐がある。「設定だけなら自分でやる」
+
+----
+
+case_id: V5-020
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: boundary
+raw_message: もう3回目の相談です。前に別の人に2回頼んだんですが、2回とも「直した」って言われて結局直ってなくて。今回こそちゃんと直したいんですけど、そもそもこれ不具合なのか仕様なのかも分からないです。15,000円で見てもらって、もし仕様だったらお金返してもらえますか？
+note: 他社2回失敗+仕様/不具合不明+返金条件の質問。V4-002の発展形
+
+----
+
+case_id: V5-021
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: うちのサイト、StripeじゃなくてPAY.JPを使ってるんですが、Next.jsのAPI Routeで決済後処理を書いてます。症状としてはStripeのときと同じような感じだと思うんですが、対応可能ですか？料金は変わりますか？
+note: PAY.JP案件。V3-009(PayPal)/V4-018(Square)の次。「料金は変わるか」も同時質問
+
+----
+
+case_id: V5-022
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: boundary
+raw_message: 急ぎなんですけど、たぶん不具合が2つあって。1つはStripeの決済後にメールが送られないやつ。もう1つは管理画面の注文一覧が空になるやつ。2件分の料金かかりますか？急ぎなんで早めに教えてもらえると助かります。
+note: 2件の症状+料金質問+急ぎ×2。同一原因か別件かの判定+急ぎの受け止め+料金説明の3つが必要
+
+============================================================
+purchased / closed後（8件）
+============================================================
+
+----
+
+case_id: V5-023
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_purchase
+raw_message: そういえば、さっき確認してたら別のページでも同じようなエラー出てました。あと、ログイン画面のデザインが崩れてるのも気づいたんですけど、ついでに見てもらえます？
+note: 「別ページの同じエラー」+「デザイン崩れ」の2つ追加。1つは関連あり得る、1つは明らかに範囲外
+
+----
+
+case_id: V5-024
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: after_purchase
+raw_message: すみません、今やってもらってる件の進捗聞きたいのと、あともう1個別件なんですが、お客さんから「退会できない」って問い合わせ来てて。これ今のやつと関係ありますか？急ぎで見てもらえますか？Slackに招待した方が早いですかね？
+note: 進捗確認+別件追加+Slack誘導が1メッセージ。3つの話題を処理する優先順位が試される
+
+----
+
+case_id: V5-025
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_purchase
+raw_message: 先ほどの件に関連して、.envの中身送っておきますね。STRIPE_SECRET_KEY=sk_live_51Hxxxxxx... STRIPE_WEBHOOK_SECRET=whsec_xxxxxx... DATABASE_URL=postgresql://user:pass@host... 他にも必要なものあれば言ってください。
+note: 善意で秘密情報3つを実際に貼ってきた。即座に止めて削除依頼する必要がある
+
+----
+
+case_id: V5-026
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_purchase
+raw_message: あ、そうだ。電話でしゃべった方が早くないですか？平日の10時〜17時ならいつでも出られます。
+note: 電話提案。ココナラ規約で外部連絡は禁止。テキストのみ方針との両立
+
+----
+
+case_id: V5-027
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_close
+raw_message: すみません、前回直してもらったのとは別の件なんですが、同じシステムの別ページで似た症状が出てます。前回のコード見れば早いと思うので、今回は10,000円とかでやってもらえませんか？
+note: 別件+値引き提案+「前回のコード見れば早い」の工数見積り。相手が作業量を判断しようとしている
+
+----
+
+case_id: V5-028
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: after_close
+raw_message: また同じところが壊れたんですけど、正直もう嫌になってきました。前回も15,000円払ってるし、また同じ金額かかるんですか？前回直してもらったんだからそこに関しては無料で見てもらえませんか？
+note: 再発疲弊+2回の15K負担+無償期待が明確。感情と価格が強く混ざる
+
+----
+
+case_id: V5-029
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_close
+raw_message: 前回ありがとうございました。あの時「メール送信のところも怪しいかも」って言ってましたよね。今日メール送信でエラーが出たので、やっぱりあそこだったみたいです。前回の流れで見てもらえますか？新しく買い直す必要ありますか？
+note: V4-029の発展形。「やっぱりあそこだった」で因果を確定してきている。事実確認が必要
+
+----
+
+case_id: V5-030
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_close
+raw_message: 前回の件、知り合いの開発者に見せたら「ここの修正の仕方だと別のところに影響出るかもしれない」と言われました。実際に今は問題ないんですが、予防的に直しておいた方がいいですか？これも前回分の範囲ですか？
+note: V4-030の発展形。第三者の「将来壊れるかも」予測。現時点で問題なし=不具合ではない
+
+============================================================
+Codexの初手精度を崩しやすいケース TOP5
+============================================================
+
+1. V5-001
+理由: 感情(急ぎ+謝罪疲れ) + 価格確認 + 納期質問 + 対応可否がワンメッセージ。全部に答えようとすると返信が5段落以上になり、「質問票への回答リスト」化する。何を先に答えて何を保留するかの優先順位設計が必要。
+
+2. V5-005
+理由: 秘密情報(sk_live)の即座ストップ + 恐怖への感情応答 + 即購入意思への見立て提案 + 二重処理の技術的受け止めが同時に必要。1つでも抜けると事故か冷たさにつながる。
+
+3. V5-024
+理由: 進捗確認 + 別件追加 + Slack誘導の3話題。purchased状態でのマルチトピック処理は、答える順序を間違えると「別件の方を先に処理して本件を忘れた」印象になる。
+
+4. V5-010
+理由: 40K問題(25K+15K) + 自己判断不能 + 価格の自責(「お金のことを先に聞いてすみません」)。金額が正しいことを認めつつ、段階提案で不安を下げ、かつ自責を受け止める3重の要求。
+
+5. V5-003
+理由: 間欠エラー(通ったり通らなかったり) + 知識不足告白 + 感情の吐き出し + 価格質問。論点が散っていて、技術的な切り分けポイントを返信側が整理する必要がある。相手の「意味わかんない」に共感しつつ、構造的に返す難しさ。
+
+============================================================
+purchased / closed後で特に危ないケース TOP5
+============================================================
+
+1. V5-025（秘密情報3つを実際に貼ってきた）
+理由: 善意で.env全体を貼ってしまっている。止めるだけでなく、ココナラのメッセージは削除できない仕様なので「今後は送らないでください」+ 実害の有無確認が必要。最も運用事故リスクが高い。
+
+2. V5-028（再発疲弊+無償期待が明確）
+理由: 「前回直してもらったんだからそこは無料で」が直接的。感情的な疲弊と金銭不満が混ざっており、「新規です」だけでは冷たく、「分かります」だけではスコープが崩れる。
+
+3. V5-024（3話題同時: 進捗+別件+Slack）
+理由: 3つの異なる性質の話題を1通で処理する必要がある。進捗(回答義務あり)、別件(判定+別件案内)、Slack(規約上の停止)の優先順位を間違えると、重要な話題が漏れる。
+
+4. V5-029（「やっぱりあそこだった」で因果確定）
+理由: 相手が「前回の指摘通りだった」と因果を確定させている。こちらの過去コメントが根拠になっており、「まだ確認が必要です」と返すと「前に自分で言ったじゃないですか」と反論される可能性がある。
+
+5. V5-030（第三者の「将来壊れるかも」予測）
+理由: 現時点で問題が起きていないケースは「不具合修正」のスコープに入りにくい。予防的修正を前回の範囲とするかどうかの判断が必要で、「今は問題ないなら大丈夫です」と言うと不安が残り、「直した方がいいです」と言うと無償の約束になる。
+
+============================================================
+V5の新しい難しさ（V3/V4との差分）
+============================================================
+
+V3: 標準テンプレでは対応しにくい「1つの難しさ」を持つケース
+V4: 運用事故（秘密情報/外部共有/規約違反）や判定困難な単独エッジケース
+V5: 以下の複合要素が追加
+
+1. マルチトピック処理
+- 1メッセージに2〜3の話題が混在
+- すべてに答えると長くなりすぎる
+- 何を先に答え、何を保留するかの優先順位設計が必要
+
+2. 感情+要件の同時処理
+- 「急ぎ」「怖い」「高い」が同じメッセージに同居
+- 感情だけ拾うと要件が漏れ、要件だけ拾うと冷たくなる
+
+3. 相手の自己判断・自己診断
+- 「たぶん同じ原因」「これで1件ですよね」「前回のコード見れば早い」
+- 相手の判断を否定すると冷たく、肯定すると約束になる
+
+4. 不在の情報に気づく力
+- 相手が書いていないが、こちらが聞かなければ進まない情報がある
+- 「情報が少ない」だけでなく「何が足りないか」を見抜く必要がある
+
+5. 規約事故の複合
+- 秘密情報+外部共有+電話+即購入が、他の要件と混ざって届く
+- 規約対応だけ切り出すと不自然、混ぜると埋もれる

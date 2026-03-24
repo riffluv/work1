@@ -1,0 +1,401 @@
+# 見積り相談文テストケース V4（エッジケース特化30件）
+# 作成日: 2026-03-24
+# 用途: bugfix-15000 / handoff-25000 の判定・返信品質テスト（返信運用を壊しに来るケース）
+# 補足: 標準(BLK/V2) + 難ケース(V3) を前提に、さらに対応が難しいエッジに特化
+
+============================================================
+bugfix寄り（8件）
+============================================================
+
+----
+
+case_id: V4-001
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 決済見れますか？Stripe使ってます
+note: V3-001よりさらに短い。サービス名だけで何を見てほしいか不明。省略しすぎ
+
+----
+
+case_id: V4-002
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: すみません、もう3社目なんです。1社目は見積り出してそのまま音信不通、2社目は直ったと言われたけどまた壊れた。正直もう騙されたくないので、本当に直るなら頼みたいです。Stripeの決済後に会員ステータスが変わらない問題です。
+note: 3社目の不信感。「本当に直るなら」に対して保証を求められているが、100%は約束できない
+
+----
+
+case_id: V4-003
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: ココナラで他の方にも見積り出してもらっているんですが、そちらだと10,000円でやれるという方もいます。15,000円にした理由があれば教えてもらえますか。
+note: 他社との相見積りで価格比較される。値下げ圧力への返し方
+
+----
+
+case_id: V4-004
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 本当にすみません、.envの中身そのまま貼った方が早いですか？whsec_から始まるやつと、sk_liveから始まるやつがあるんですが。あと、GitHubのリポジトリURLも送りましょうか？
+note: 秘密情報を貼ろうとしている + GitHub URL共有提案。止める必要あり。ココナラ規約上も外部誘導はNG
+
+----
+
+case_id: V4-005
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: 今日中になんとかなりますか。月末の締めが今日で、決済が止まってるとお客さんに請求できない状態です。15,000円は大丈夫なのですぐ始めてほしいです。
+note: 「今日中」圧 + 即購入宣言。納期約束せずに受け入れる必要がある
+
+----
+
+case_id: V4-006
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: WEBフックが動かないです。サブスクリプションの更新ができてないみたい。
+note: 「WEBフック」「サブスクリプション」。技術用語が微妙にカタカナ（Webhookではない）。意味は通る
+
+----
+
+case_id: V4-007
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: Vercelのログにcustomer.subscription.updatedのイベントが来てるんですけど、DBのステータスが変わってない気がします。コンソールにはエラーは出てないです。Webhookの署名検証は通ってます。
+note: 署名検証OKなのにDB更新されない。症状が具体的で切り分けが必要。「気がします」が不確実
+
+----
+
+case_id: V4-008
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: さっきお客さんから電話きて、「同じ商品が2個届いた」って言われました。決済も2回入ってるみたいです。Webhookの重複？っていうのかよく分かりませんが、とにかく二重になったみたいで。返金もしないといけないかもしれないし、どうしたらいいですか。
+note: 二重処理 + 返金不安 + 「どうしたらいいですか」の丸投げ。返金自体はサービス範囲外だが助言は必要
+
+============================================================
+handoff寄り（7件）
+============================================================
+
+----
+
+case_id: V4-009
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 整理してもらったあと、結局どうなるんですか？メモだけもらっても、自分でどうしていいか分からないと思うんですが。
+note: 「整理後に何が残るか不安」。サービスの価値を理解していない。V3-017より踏み込んだ懐疑
+
+----
+
+case_id: V4-010
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: handoff
+raw_message: 整理だけで25,000円は正直ちょっと出しにくいです。修正もセットで30,000円くらいにまとめてもらえませんか？そのほうがこっちとしては頼みやすいので。
+note: 独自の値段設定を提案してくる。handoff+bugfixのバンドル値引き要求。受けられない
+
+----
+
+case_id: V4-011
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 1フローって言われても正直ピンとこないです。決済って1フローですか？決済してから会員になるまでが1フローですか？決済してからメール送ってDBに書き込むところまで全部で1フローですか？
+note: 「1フロー」の定義を本気で聞いてきている。返信で定義を出す必要がある
+
+----
+
+case_id: V4-012
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: Google Driveにコードまとめたんで、URL送りますね。あと、Notion にも前の外注さんとのやりとり残ってるのでそれも共有します。
+note: Google Drive + Notion の外部共有を自然に提案。ココナラ規約上止める必要あり
+
+----
+
+case_id: V4-013
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: とりあえず全体をざっと見てもらって、その中から1フロー決めるっていう進め方はできますか？自分ではどこが大事か分からないので。
+note: 「全体をざっと見てから決める」= 事前調査を無料で求めている。1フロー選定自体が一定の工数
+
+----
+
+case_id: V4-014
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: 前の外注さんが急に連絡取れなくなって、コードだけ残ってる状態です。本番は一応動いてるんですが、いつ壊れるか分からない。正直この先どうしたらいいか分からなくて。引き継ぎも修正も全部まとめてお願いしたいんですが。
+note: 引き継ぎ + 修正 + 保守を全部まとめて。handoff → bugfix の段階提案が必要だが「全部」の圧がある
+
+----
+
+case_id: V4-015
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: あの、整理してもらったメモって、別の開発者に渡せるレベルのものですか？次の人がそのまま見て続きからやれるような。もしそうでないなら、そこまでやってほしいんですが。
+note: 納品物の品質期待が高い。「別の開発者がそのまま引き継げる」がどこまで保証できるか
+
+============================================================
+boundary寄り（7件）
+============================================================
+
+----
+
+case_id: V4-016
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 不具合があるのは分かってるんですが、それがStripeのせいなのかうちのコードのせいなのか分かりません。診断と修正で15,000円ですか？それとも整理の方で25,000円になりますか？
+note: 「15Kか25Kかどっち？」の直球質問。判定基準を出す必要がある
+
+----
+
+case_id: V4-017
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: boundary
+raw_message: もう疲れました。3ヶ月くらいずっとこの決済の問題を抱えてて、自分で調べてもChatGPTに聞いても解決しない。何が悪いのかすら分からない。とにかく誰かに全部見てもらって、壊れてるところを直してほしい。予算は3万以内で収まりますか。
+note: 疲弊 + 「全部見て全部直して」+ 予算上限。handoff+bugfixを予算内に収める提案が必要
+
+----
+
+case_id: V4-018
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: うちのサイト、StripeじゃなくてSquareの決済使ってるんですが、Next.jsです。Square → Webhook → DB更新の流れで不具合が出てます。対応可能ですか？
+note: Square案件。V3-009のPayPalと同類だがWebhookが絡む分さらに境界が近い
+
+----
+
+case_id: V4-019
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 不具合っていうか、動くんですけど遅いんです。決済完了後のリダイレクトがめちゃくちゃ遅くて、お客さんが途中で離脱してるっぽい。これって不具合扱いになりますか？
+note: パフォーマンス問題を不具合として依頼。bugfixの範囲に入るか微妙
+
+----
+
+case_id: V4-020
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: boundary
+raw_message: Route Handlerで作ったAPIが3本あるんですが、1本だけたまにレスポンスが返らなくなります。他の2本は関係ないと思うんですが、念のため3本とも見てもらえると助かります。1件15,000円×3ですか？
+note: 3つのAPIを見てほしいが1本だけ問題あり。「念のため」で範囲が広がる。料金計算の質問
+
+----
+
+case_id: V4-021
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 正直に聞くと、最初にお試しで5,000円くらいで軽く見てもらうことってできますか？それでいけそうなら正式にお願いしたいと思ってます。
+note: お試し価格の要求。サービス設計にないプランを求められている
+
+----
+
+case_id: V4-022
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: あの、相談なんですが、今まだ開発中のサイトなんです。本番には出してないです。Stripeのテストモードで決済周りを作ってるんですが、うまく動かなくて。これも見てもらえますか？
+note: テスト環境のみ・開発中。「不具合」ではなく「まだ作れていない」=実装支援の可能性
+
+============================================================
+purchased / closed後（8件）
+============================================================
+
+----
+
+case_id: V4-023
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_purchase
+raw_message: あ、そういえば最初に言い忘れてたんですが、同じページにクーポンコードの入力欄もあって、そこも最近動かないんです。ついでに見てもらえるとありがたいです。
+note: 「言い忘れてた」+「ついでに」の追加。元の依頼と関係あるか不明な追加を自然に押し込む
+
+----
+
+case_id: V4-024
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: after_purchase
+raw_message: すみません、今やってもらってる件とは別なんですが、さっきお客さんから「個人情報が見えてる」と連絡ありました。決済履歴のページで別のお客さんの名前が出てるみたいです。これ至急見てもらえますか？
+note: 個人情報漏洩の可能性。既存依頼とは別の超緊急案件。セキュリティ事案の対応判断
+
+----
+
+case_id: V4-025
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_purchase
+raw_message: 進捗どうですか？あと、Slackでやりとりした方が早くないですか？招待送りますよ。
+note: 進捗確認 + Slack誘導。ココナラ規約で外部連絡ツール利用は禁止
+
+----
+
+case_id: V4-026
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_purchase
+raw_message: すみません、もう1個だけ。管理画面の売上集計のところも、数字がずれてる気がするんです。たぶんさっきの件と同じ原因だと思うんですけど。
+note: 「たぶん同じ原因」の自己判断で追加。同一原因かは見ないと分からない
+
+----
+
+case_id: V4-027
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_close
+raw_message: すみません、前回やってもらったときに、こちらが確認したら大丈夫だったんですが、今日また同じところがおかしくなりました。前回の保証みたいなのはありますか？
+note: 「保証」を直接聞いてくる。保証制度がない場合の自然な伝え方
+
+----
+
+case_id: V4-028
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: after_close
+raw_message: また別の箇所で同じような問題が出てきてるんですが、毎回15,000円だとちょっと厳しいです。2回目以降は少し安くなったりしませんか？リピーター割引みたいなのがあると嬉しいのですが。
+note: リピーター割引要求。制度がない場合の断り方
+
+----
+
+case_id: V4-029
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_close
+raw_message: 前回ありがとうございました。ところで、前回見てもらったときに「ここも怪しいかも」って言ってたところ、やっぱり気になるので見てもらえますか？前回の続きだと思うんですが。
+note: 前回の「副産物コメント」を根拠に無償/続き扱いを期待。skill側で有償新規として案内する必要
+
+----
+
+case_id: V4-030
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_close
+raw_message: 先日の件ですが、知り合いのエンジニアに見てもらったら「ここもおかしい」と言われました。前回の修正範囲に含まれていた部分だと思うんですが、元のお値段の中で直してもらえますか？
+note: 第三者の見解を根拠に前回の修正範囲に含めようとする。本当に範囲内だったかは確認が必要
+
+============================================================
+判定が難しいケース TOP 5
+============================================================
+
+1. V4-017
+理由: 「全部見て全部直して」+ 予算3万。handoff(25K)+bugfix(15K)=40Kなので予算オーバー。しかも「何が悪いか分からない」ので整理が先。予算に合わせてスコープを絞れるが、相手が「全部」を期待しているため、期待値の調整が非常に難しい。
+
+2. V4-022
+理由: テスト環境・開発中のサイトで「うまく動かない」。これは「不具合修正」ではなく「実装支援」の可能性がある。bugfixサービスの想定スコープ（動いていたものが壊れた）から外れるが、技術的には対応可能。受けるか断るかの判断ラインの設計が問われる。
+
+3. V4-024
+理由: 個人情報漏洩の可能性という超緊急セキュリティ事案。既存依頼とは別件だが、「至急」で別件の有償判断をしているとタイミング的に冷たく見える。しかし無償で受けると範囲が際限なく広がる。
+
+4. V4-019
+理由: 「動くけど遅い」はパフォーマンス問題。bugfixの不具合修正とは性質が違うが、「お客さんが離脱している」という実害がある。リダイレクト速度がStripe Checkout側の仕様なのか、コード側のボトルネックなのかで対応が変わる。
+
+5. V4-029
+理由: 前回の作業中に出した「ここも怪しいかも」という副産物コメントを根拠に、無償の続き扱いを期待している。こちらが出した情報が根拠なので、「それは新規です」と言いにくい。しかし対象外の作業を無償で受けると前例になる。
+
+============================================================
+返信品質を最も鍛えられるケース TOP 5
+============================================================
+
+1. V4-002（3社目の不信感「本当に直るなら」）
+理由: 修理保証を暗に求められているが、100%は約束できない。信頼と誠実さのバランスで「約束できることと約束できないこと」を明確にする文が必要。
+
+2. V4-004（秘密情報を貼ろうとする + GitHub共有提案）
+理由: 相手は善意で情報を出そうとしているので、止め方が重要。「それは危険です」と言いつつ「助けは要りません」に聞こえないようにする技術。
+
+3. V4-010（「整理+修正まとめて30,000円にして」）
+理由: 相手の提案する独自プランは受けられないが、「できません」だけでは冷たい。サービス設計の理由を「あなたにとっての安全」として伝える必要がある。
+
+4. V4-013（「全体をざっと見てから1フロー決めたい」）
+理由: 合理的に聞こえる要望だが、「ざっと見る」に一定の工数がかかる。無料の事前調査に応じるか、1フロー選定は情報ヒアリングで対応するかの判断が必要。
+
+5. V4-025（Slack誘導 + 進捗確認）
+理由: 自然な提案（Slackの方が早い）だが、ココナラ規約上は外部誘導NG。規約の話をせずに「ここでのやりとりで大丈夫です」と伝える自然さが問われる。
+
+============================================================
+purchased / closed 後で特に危ないケース TOP 3
+============================================================
+
+1. V4-024（個人情報漏洩の可能性）
+理由: セキュリティ事案の緊急度と、別件の有償判断のタイミングが衝突する。「至急」に応じつつ、無償の前例を作らない。かつ、個人情報問題は放置リスクが高いので、対応を遅らせることもできない。
+
+2. V4-029（「ここも怪しいかも」を根拠に無償期待）
+理由: こちらの発言が根拠になっているため、「それは別件です」で片付けにくい。前回の作業メモに出した「参考情報」と「対応約束」の線引きを明確にする必要がある。
+
+3. V4-030（第三者の見解で前回範囲を広げようとする）
+理由: 知り合いのエンジニアの見解を根拠にしているため、技術的な権威が暗に使われている。「前回の修正範囲に含まれていた部分だと思う」に対して、事実確認なしに否定も肯定もできない。

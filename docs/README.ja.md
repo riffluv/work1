@@ -126,6 +126,8 @@ same / different / undecidable の具体例
 ## Skill一覧
 - `coconala-intake-router-ja`
 相手文を、経路・状態・サービス適合・リスク・不足情報・次アクションへ構造化する入口判定
+- `coconala-prequote-ops-ja`
+見積り相談の前段専用。入口判定から 15,000円 / 5,000円 / 保留 / 断る の分岐と返信文作成まで一貫処理する
 - `coconala-reply-bugfix-ja`  
 不具合修正サービス専用の返信作成（固定条件・規約・スコープ判定前提）
 - `japanese-chat-natural-ja`  
@@ -141,10 +143,11 @@ same / different / undecidable の具体例
 出品文の整備
 
 ## 返信作成の推奨順
-1. `coconala-intake-router-ja` で入口判定
-2. 必要なら `scope-judge-ja` で same / different / undecidable を補強
-3. `coconala-reply-bugfix-ja` で下書き作成
-4. `japanese-chat-natural-ja` で最終自然化
+1. 見積り相談（`prequote`）は `coconala-prequote-ops-ja` を優先する
+2. 購入後や個別返信は `coconala-intake-router-ja` で入口判定
+3. 必要なら `scope-judge-ja` で same / different / undecidable を補強
+4. `coconala-reply-bugfix-ja` で下書き作成
+5. `japanese-chat-natural-ja` で最終自然化
 
 補足:
 - 入口判定で `service_mismatch_but_feasible` が出た場合は、「サービス説明とは少しズレるが技術的には現実的」の意味。

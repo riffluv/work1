@@ -1,0 +1,204 @@
+# 見積り相談文テストケース（量産20件）
+# 作成日: 2026-03-24
+# 用途: 実案件テスト用。Codex に貼って判定・返信の品質を検証する
+# 補足: prequote-test-cases.txt と症状・文型が重複しないよう設計
+
+----
+
+case_id: BLK-001
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: こんにちは。月額課金のサービスを運営しているのですが、昨晩から一部のお客さんが「有料プランなのに無料プランに戻っている」と連絡してきています。Stripeの管理画面ではサブスクリプションは有効のままなのですが、サイト側だけおかしいようです。お客さんからの問い合わせが増えていて困っています。Next.jsとVercelで運用しています。対応できるものか教えてください。
+note: サブスク会員状態不整合。customer.subscription.updated の Webhook 受信漏れ候補。情報は十分
+
+----
+
+case_id: BLK-002
+route: profile
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: プロフィール拝見しました。Stripe Checkout → Webhook → Firestore 書き込みの流れで、Firestore 側に書き込みが反映されないケースが週に数件出ています。Cloud Functions のログを見ると timeout になっているようです。Next.js 14 の App Router + Firebase で構成しています。原因の切り分けだけでもお願いできますか？
+note: 間欠的な Firestore 書き込み失敗。timeout 系。semi_technical で情報が具体的
+
+----
+
+case_id: BLK-003
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: メッセージ失礼します。知り合いにChatGPTで作ってもらったサイトがあるんですが、決済ボタンを押すとたまにエラーが出ます。毎回ではなくて、3回に1回くらいです。エラーの内容は画面に「Something went wrong」と出るだけで、詳しいことは分かりません。こういうのも見てもらえますか。
+note: AI生成コード + 断続的エラー。情報が少なくhold寄り
+
+----
+
+case_id: BLK-004
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+raw_message: 個人開発でSaaS作ってます。Stripe Billing でサブスク解約したユーザーに対して、解約確認メールを送る処理を仕込んでるんですが、メールが2通飛ぶことがあります。customer.subscription.deleted を受けてるんですが、同じイベントが2回来てる？ような気がしていて。冪等処理が甘いのかもしれないです。Vercel + Next.js 14 です。見てもらえますか。
+note: 解約メール二重送信。冪等性の問題を自分で推測できている indie_hacker
+
+----
+
+case_id: BLK-005
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: 急ぎで相談です。今朝からStripeの決済完了後にリダイレクトされるはずのページが404になっています。昨日まで普通に動いていました。デプロイは最近していないはずなんですが、突然壊れた形です。お客さんが決済しても完了画面に行けない状態なので至急見てほしいです。
+note: 成功URL 404。Vercel のデプロイかルーティング変更の可能性。緊急感
+
+----
+
+case_id: BLK-006
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: プロフィールを見てご連絡しました。うちのECサイトでStripeを使っているんですが、最近お客さんから「購入完了メールが届かない」って言われることが増えてきました。全員じゃなくて、一部のお客さんだけらしいんですが。メールの設定はStripeに任せているのか、サイト側でやっているのか、正直自分でもよく分かっていません。。見ていただけそうですか？
+note: メール不達。Webhook 経由のメール送信か Stripe の自動メールか不明。non_engineer で情報不足
+
+----
+
+case_id: BLK-007
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: Stripe Webhook で invoice.paid を受けているのですが、テスト環境で送ったテストイベントは正常に処理されるのに、本番の実イベントだと 500 が返ります。ログを見ると「Cannot read properties of undefined」が出ていて、payload の構造がテスト用と実際で違う可能性を疑っています。Next.js の Pages Router で API Route を書いています。切り分けをお願いしたいです。
+note: テスト/本番でペイロード構造差異。Pages Router。情報量が多い
+
+----
+
+case_id: BLK-008
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。外注で作ってもらったサイトなんですが、外注先が廃業してしまって、今コードを触れる人がいません。最近になって「会員登録できない」という問い合わせが来るようになりました。StripeのCheckout画面までは行けるらしいんですが、そこから先に進めないそうです。コードの中身はまったく分かりません。依頼できそうですか？
+note: 外注廃業 + 引き継ぎコード。Checkout 画面以降の不具合。non_engineer
+
+----
+
+case_id: BLK-009
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+raw_message: 個人で作ってるアプリで、Stripe Connect は使ってないんですが、通常のCheckout Sessionで決済→ webhook → DB反映の流れで、反映に2〜3分かかるケースがたまにあります。ほとんどは数秒で終わるんですが、遅延が起きてユーザーから「購入したのに反映されてない」と問い合わせが来ます。タイムアウトかキューの問題な気がするんですが、自分では特定できていません。
+note: 遅延反映。Webhook 処理の遅延 or Vercel の cold start 候補。indie_hacker
+
+----
+
+case_id: BLK-010
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: お見積りお願いします。Stripeでの決済は問題ないのですが、プラン変更（アップグレード）をしたときに、サイト上の表示が変わりません。Stripeの管理画面では変更されているんですが、サイト側は前のプランのままです。再ログインすると反映されることもあるんですが、毎回ではないです。
+note: プラン変更の反映不具合。Webhook + キャッシュ or セッション問題の候補
+
+----
+
+case_id: BLK-011
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: すみません、ちょっと焦っています。Stripeのダッシュボードを見たら、Webhookのところにオレンジ色の警告が出ていて「失敗」と表示されているイベントがたくさんあります。いつからこうなっていたのか分からないのですが、少なくとも1週間前からありそうです。放置してたのがまずかったのか不安です。これって影響ありますか？対応をお願いできますか。
+note: Webhook 大量失敗の発見。non_engineer で状況理解が浅い。「影響ありますか」から入る
+
+----
+
+case_id: BLK-012
+route: profile
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: プロフィール拝見して連絡しています。Next.js（App Router）でAPIルートを書いているのですが、本番だけ特定のエンドポイントで断続的に500が出ます。Stripeは使っていません。Vercel の Function Logs を見ると FUNCTION_INVOCATION_TIMEOUT と出ています。似たような案件を扱ったことはありますか？対応可能であればお見積りいただきたいです。
+note: Stripe不使用。Next.js + Vercel の500エラー。service_mismatch_but_feasible 判定が必要
+
+----
+
+case_id: BLK-013
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: サービスページを見て相談しています。クレジットカード決済でStripeを使っていて、お客さんが購入するとSlackに通知が来る仕組みにしているんですが、先月くらいから通知が来たり来なかったりします。決済自体は成功しているみたいです。Next.jsで作ったサイトです。対応内容と料金感を教えてください。
+note: Slack通知の断続的不達。Webhook 後段の処理失敗候補。料金質問あり
+
+----
+
+case_id: BLK-014
+route: message
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+raw_message: メッセージからすみません。Stripe の Billing Portal でサブスクを解約すると、Stripe 側は解約済みになるんですが、うちの DB のユーザーテーブルの plan カラムが更新されないです。customer.subscription.deleted を listen してるはずなんですが、ハンドラの中で DB 更新が走ってないっぽいです。Supabase 使ってます。ログはまだ見れてないんですが、お願いできますか。
+note: 解約後の DB 未更新。customer.subscription.deleted ハンドラの問題。ログ未確認
+
+----
+
+case_id: BLK-015
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: はじめまして。1つ確認してから依頼したいんですが。先月AIで作ったWebサイトがあって、一応Stripeで決済できるようになっています。ただ、自分では本当にちゃんと動いているのか判断がつきません。テスト決済は1回やって成功したのですが、本番で使い始めて問題が起きないか不安です。チェックだけしてもらうことは可能ですか。
+note: AI生成コードの検証依頼。不具合未発生。5K 確認案件候補
+
+----
+
+case_id: BLK-016
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+raw_message: Webhook の受信自体は成功しているのですが、checkout.session.completed のイベントで customer フィールドが null になるケースがあります。Checkout Session 作成時に customer を渡していないリクエストがあるらしく、既存ユーザーとの紐付けが失敗しています。App Router + Prisma + Vercel です。原因の特定と修正をお願いしたいです。
+note: customer null 問題。Session 作成時のパラメータ設計の問題。情報量が多い
+
+----
+
+case_id: BLK-017
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: プロフィール拝見しました。相談だけなんですが、今 Next.js で作ったサイトを運営していて、ページの読み込みがすごく遅いです。特にログイン後のダッシュボードが重くて、お客さんにも指摘されています。Stripeは使っているんですが、この遅さとは関係ない気がします。こういうパフォーマンスの相談も受けてもらえますか？
+note: パフォーマンス問題。Stripe直接関係なし。service_mismatch 寄り
+
+----
+
+case_id: BLK-018
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+raw_message: 今日お客さんから「カード引き落としがあったのに、サイトにログインしたらまだ無料会員と表示される」と連絡がありました。Stripeを確認したところ、決済は成功しているようです。これまで同じような指摘が2〜3件来ていたのですが、放置してしまっていました。何人に影響が出ているか分からないのが怖いです。至急見てもらうことは可能でしょうか。
+note: 決済成功→会員状態未反映の複数報告。過去の放置あり。緊急＋不安
+
+----
+
+case_id: BLK-019
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+raw_message: 個人開発のサービスで、Stripe のテストモードから本番モードに切り替えたんですが、本番で Checkout を開くと「No such price」というエラーが出ます。テストモードでは動きます。price_... のIDはコードにハードコードしていて、本番用の価格IDに変えたはずなんですが。。環境変数は NEXT_PUBLIC_ で公開しています。Vercel です。
+note: テスト→本番切替時のprice ID不一致。よくある初歩的な問題。indie_hacker
+
+----
+
+case_id: BLK-020
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+raw_message: 見積りをお願いします。今使っているサイトで、Stripeの定期課金を使っています。更新日に課金が失敗したお客さんに「カード情報を更新してください」というメールが自動で飛ぶはずなんですが、飛んでいないようです。Stripeのメール設定は触った記憶がないのですが、サイト側の問題かStripe側の問題か分かりません。Next.jsです。
+note: カード失敗時の自動メール不達。Stripe 側の設定問題 or Webhook 経由のカスタムメール問題。切り分けが必要

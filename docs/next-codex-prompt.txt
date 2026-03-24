@@ -20,6 +20,8 @@
 - /home/hr-hm/Project/work/docs/coconala-guide-market-ops.ja.md
 - /home/hr-hm/Project/work/docs/coconala-seller-help-key-links.ja.md
 - /home/hr-hm/Project/work/docs/writing-guideline.ja.md
+- /home/hr-hm/Project/work/docs/coconala-reply-principles.ja.md
+- /home/hr-hm/Project/work/docs/coconala-reply-judgment-flow.ja.md
 - /home/hr-hm/Project/work/docs/coconala-special-case-policy.ja.md
 - /home/hr-hm/Project/work/ops/common/coconala-rule-guard.md
 - /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml
@@ -27,6 +29,9 @@
 - /home/hr-hm/Project/work/docs/coconala-estimate-ui-cheatsheet.ja.md
 - /home/hr-hm/Project/work/stripe日本語UI案内
 - /home/hr-hm/Project/work/ops/tests/README.ja.md
+- /home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md
+- /home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md
+- /home/hr-hm/Project/work/docs/coconala-prequote-review-patterns.ja.md
 
 【初回応答ルール】
 - 上記読了後、最初の返答は「読み込み完了」と「運用要約（短く）」のみ。
@@ -75,6 +80,29 @@
 - 代表ケースの回帰確認は `ops/tests/prequote-cases.yaml` と `ops/tests/edge-cases.yaml` を使う。
 - クローズ後は原則こちらからDMを送らない。評価依頼は `#R クローズお礼` の1回のみ。例外は実害防止の補足連絡1通のみ（営業目的DMは禁止）。
 - 文体は docs/writing-guideline.ja.md を厳守（AI臭を避ける）。
+- 返信文の優先順位は `相手への正確な応答 -> スコープ・価格・規約の維持 -> そのうえで自然な日本語` とする。
+- まず `docs/coconala-reply-principles.ja.md` の5行原則、次に `docs/coconala-reply-judgment-flow.ja.md` の判断順を使ってから、個別テンプレや詳細ルールを参照する。
+- 自然化のために、相手が言っていない論点をテンプレで先回りして増やさない。
+- 選択肢型質問を使う場合は、テンプレ固定語より相手の語彙を優先する。
+- ただし、診断上必要な質問を出すこと自体は先回りではない。相手が言っていない論点をテンプレ都合で増やすことだけを避ける。
+- 2通目以降は判定と次アクションを前に出し、`可能性があります` を続けない。
+- 感情応答は初手中心にし、2通目以降は要件優先に寄せる。
+- `〜する形になります` は routing / 別件導線 / closed案内で再発しやすいので、送信前に self-check で抜き打ち確認する。
+- 見積り相談では `次の3点だけお願いします` を固定で使わず、`次の3点が分かると、見立てを出しやすいです` など理由提示型を優先する。
+- 見積り相談の質問数は 0〜3 点。3点は上限であり、毎回の標準ではない。今ある情報で判断できるなら質問なしで提案や見立てへ進む。
+- 見積り相談はフォームではなく軽いチャットに近い場として扱い、返信構造を毎回同じ5段に固定しない。
+- `.envやAPIキーの値は不要です` と `2時間以内` は必要な場面だけに使い、全件の末尾定型にしない。
+- 送信前の自己確認は、まず `docs/coconala-reply-self-check.ja.md` の `最小5項目` だけを必ず回し、必要な時だけ詳細チェックへ降りる。
+- 購入後や進行中の確認では `次の3点だけお願いします` の依頼型でよい。
+- closed クレーム対応と納品物不満対応は、初回のみ監査前提の慎重運用にする。
+- `主要1フロー整理 -> 原因判明 -> 修正` は、見積り中 / 取引中なら同じトークルーム内で追加料金対応へつなぐ表現を優先する。
+- ただし内部では `25,000円の整理` と `15,000円の修正` の価格・納品物・スコープを分けて管理する。
+- handoff の段階納品を説明するときは、作業説明だけでなく `引き継ぎメモを先に渡す` など納品物を明示する。
+- closed 後だけは別ルールで、新規依頼 / おひねり案内の公式導線を崩さない。
+- ココナラ上の場を混同しない。購入前は見積り相談 / メッセージ、購入後はトークルーム。
+- 購入前の返信で `トークルーム添付` を前提に書かない。必要なら `ファイル添付でお送りください` または `ご購入後にコード一式をお送りください` と書く。
+- handoff で購入前にZIPを受け取る場合も、構成確認までに止める。コード読解・原因特定・フロー整理は購入後。
+- 対象フローが明確で 25,000円 で即答できる高確度 handoff は、ZIP依頼より先に `見積もり提案を送ります` を案内する。
 
 【スキル運用（必須）】
 - 入口判定: coconala-intake-router-ja
@@ -107,6 +135,7 @@
 【ココナラ仕様の扱い】
 - 見積り機能・紐付け運用は docs/coconala-seller-help-key-links.ja.md を正本にする。
 - 見積り経由は提案金額購入であり、有料オプション可否や二重決済の扱いは正本に従う。
+- 見積り相談の場とトークルームの場を混同しない。トークルーム経由の見積り提案は定期購入のみで、単発案件の購入前相談はサービス/プロフィール/メッセージ経由。
 - 推測で断定しない。仕様が揺れる箇所は「要確認」と明示する。
 
 【Stripe案内ルール】

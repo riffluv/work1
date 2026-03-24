@@ -5,7 +5,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SKILLS_DIR="$ROOT_DIR/.codex/skills"
 
 required=(
+  "coconala-intake-router-ja/SKILL.md"
   "coconala-listing-ja/SKILL.md"
+  "coconala-prequote-ops-ja/SKILL.md"
   "coconala-reply-bugfix-ja/SKILL.md"
   "coconala-reply-ja/SKILL.md"
   "delivery-pack-ja/SKILL.md"

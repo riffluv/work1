@@ -33,6 +33,15 @@ description: "ココナラ相談文の入口判定専用。相手文を、経路
 - `raw_message`: 相手文そのまま
 - `service_hint`: 任意。分かるときだけ
 
+## 標準ルート
+1. 相手文から事実だけ抽出する。
+2. 主力サービス適合を `high / medium / service_mismatch_but_feasible / low / unknown` で置く。
+3. `risk-gates` に当てて、`allow / hold / decline` 相当の危険を拾う。
+4. スコープを `same_cause_likely / different_cause_likely / undecidable / not_applicable` のどれかへ落とす。
+5. 不足情報は、その状態で本当に必要なものだけ最大3点に絞る。
+6. `next_action` を1つに絞る。
+7. `reply` が明示されていない限り、送信用文面は作らない。
+
 ## 判定フロー
 1. 相手文から事実だけ抽出する。
 2. 主力サービス適合を `high / medium / service_mismatch_but_feasible / low / unknown` で置く。
@@ -41,6 +50,13 @@ description: "ココナラ相談文の入口判定専用。相手文を、経路
 5. 不足情報は、その状態で本当に必要なものだけ出す。
 6. 次アクションを1つに絞る。
 7. `reply` が明示されていない限り、送信用文面は作らない。
+
+## Gotchas
+- 相手文が貼られただけなら分析のみで止める。自動で返信文を作らない。
+- `service_mismatch_but_feasible` は売上都合で使わない。技術的現実性と実績上の検討余地が両方ある時だけ使う。
+- `undecidable` の場面で、こちらの都合で無理に `same` / `different` を決めない。
+- 価格や無料対応は、この段階で断定しない。
+- 既出情報を質問として再パッケージしない。
 
 ## 出力ルール
 - `output-schema.yaml` の項目名に沿って返す。

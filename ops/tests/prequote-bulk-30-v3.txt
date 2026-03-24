@@ -1,0 +1,388 @@
+# 見積り相談文テストケース（難ケース量産30件）
+# 作成日: 2026-03-24
+# 用途: bugfix-15000 / handoff-25000 の判定・返信品質テスト（高難度）
+# 補足: 標準ケース（BLK-001〜020, V2-001〜030）を前提に、未カバーの難ケースに特化
+
+============================================================
+bugfix寄り（10件）
+============================================================
+
+----
+
+case_id: V3-001
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 決済がおかしいです。見てもらえますか。
+note: 情報ほぼゼロの超短文。何がおかしいかも不明。hold対応の訓練
+
+----
+
+case_id: V3-002
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: 先月から何回もお客さんに「決済できない」と言われて、もう対応しきれません。外注に聞いてもログ見てくださいとしか言わない。ログの見方すら分かりません。こっちは毎日お客さんに謝っている状態です。もうプロに頼みたいです。
+note: frustrated + 外注不信。「毎日謝っている」圧がある。感情を受け止めつつ冷静に情報を回収する訓練
+
+----
+
+case_id: V3-003
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: サービスページ見ました。15,000円で1件とのことですが、うちの場合「決済後にメールが届かない」と「マイページに反映が遅い」の2つがあります。これは1件扱いになりますか？2件だと30,000円ですか？予算的にちょっと厳しいので、先に聞いておきたくて。
+note: 2件分の料金不安。同一原因なら1件、別原因なら2件。予算制約ありの price_sensitive
+
+----
+
+case_id: V3-004
+route: profile
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: Webhook見れますか？checkout.session.completedが本番だけ届いてないっぽいんですけど。
+note: 短文 + semi_technical。情報は少ないが技術的には明確。短文に対して質問票にならない返信が求められる
+
+----
+
+case_id: V3-005
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: すみません、今日の朝から決済ページが真っ白になっています。昨日の夜まで普通に動いていました。お客さんが買えない状態が続いていて、売上が止まっています。とにかく早く直したいんですが、何時間くらいで見てもらえますか。
+note: 緊急+納期質問。「何時間で直る？」に対して約束せずに進行感を出す訓練
+
+----
+
+case_id: V3-006
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: はじめまして。料金について先に確認なんですが、15,000円は調査も含めた金額ですか？見てもらったけど原因不明でした、でも15,000円かかります、ということはないですよね？
+note: 「原因不明でも課金されるのか」の不安。成果報酬的な期待。スコープの線引きを丁寧に説明する訓練
+
+----
+
+case_id: V3-007
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 個人開発です。StripeのWebhookのエンドポイントを2個作ってしまっていて、たぶん片方が死んでるんですが、どっちが本番で使われてるか自分でも分からなくなりました。整理してもらうか、不具合として直してもらうか、どっちで頼むのが正しいですか。
+note: 本人が bugfix/handoff の判定を聞いている。V2-029と似ているが「Webhookエンドポイント2個」という具体性がある
+
+----
+
+case_id: V3-008
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: 他のところに一度依頼したんですが、直ったと言われた箇所がまた壊れました。もう同じところに頼みたくないので、プロフィール見て連絡しています。Stripeの決済後に会員情報が更新されない問題です。Next.jsです。
+note: 他社リピート不信。前の修正が再発。「また壊れた」の原因が前回の修正品質か新規原因か不明
+
+----
+
+case_id: V3-009
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: すみません、Stripeじゃなくてpaypalなんですけど、こういうのも見てもらえますか？決済後の処理が動かなくて。Next.jsで作ってます。
+note: PayPal案件。Stripe不使用だが決済後処理+Next.jsとして受けられるか判定。範囲外に近い
+
+----
+
+case_id: V3-010
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: App RouterのRoute Handlerで書いたAPIが、デプロイ直後は動くんですが、数時間経つとたまに504になります。Edge Runtimeにしてないのが原因かもとは思うんですが、確証がないです。Stripe Webhookで使ってるエンドポイントなので放置できなくて。
+note: 504間欠エラー + Edge Runtime仮説。相手が自分で推測しているが確証なし。パフォーマンスか不具合か境界
+
+============================================================
+handoff寄り（8件）
+============================================================
+
+----
+
+case_id: V3-011
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 見てもらいたいのは、決済のところと、あと会員登録と、あとメール送信の部分です。まとめてお願いできますか。
+note: 「主要1フロー」のはずが3フロー。スコープ整理が必要。やんわり1フローに絞る案内
+
+----
+
+case_id: V3-012
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: コードを見てほしいんですが、何を見てほしいかがうまく説明できません。とりあえず全体的に不安というか。触ると壊れそうな気がして何もできない状態です。
+note: 「何を見たいか自分でも分からない」ケース。フロー特定の質問設計が必要
+
+----
+
+case_id: V3-013
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: handoff
+raw_message: 引き継ぎメモのサービスを見たんですが、25,000円で整理だけで修正はしないんですよね。ちょっと高い気がするんですが、他にもっと安い方法はありますか？
+note: 直球の「高い」。価値を説明しつつ押しつけない。代替提案が難しい
+
+----
+
+case_id: V3-014
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 外注先が急にいなくなったので引き継ぎを頼みたいです。ただ、整理だけだとその後の修正費もかかるんですよね？トータルでどのくらいかかるか、先に教えてもらえるとありがたいです。
+note: 「トータル費用」の質問。handoff+後続bugfixの総額を聞かれている。確約できない見積り
+
+----
+
+case_id: V3-015
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: AIで作ったサイトなんですが、修正はしなくていいです。ただ、できれば決済の部分と、あとユーザー登録の部分と、メール送信も見てもらいたくて。3つだと料金はどうなりますか。
+note: 「修正しなくていい」明言 + 3フロー + 料金質問。追加フロー料金の案内が必要
+
+----
+
+case_id: V3-016
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: 前の担当者が辞めてから半年放置していたんですが、最近動きが怪しくなってきました。壊れる前に中身を見ておいてほしいんですが、間に合いますか。もし壊れたら修正もお願いしたいんですが。
+note: 「壊れる前に見て」+ 「壊れたら修正も」。handoff→bugfixの段階提案。anxious+放置
+
+----
+
+case_id: V3-017
+route: profile
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: プロフィール拝見して連絡しました。引き継いだリポジトリのどこから見ればいいか分からないのですが、「引き継ぎメモ」って、具体的にどんな内容が書いてあるんですか？発注前に中身のイメージを知りたいです。
+note: 納品物の中身を事前に知りたい。サービスの具体性を示す回答が必要
+
+----
+
+case_id: V3-018
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: ChatGPTで作ったコードなんですが、自分でも何がどうなっているか分からなくて。全部見てもらうのは無理ですか？1フローって言われても、自分でどれが1フローか分からないです。
+note: 「全部見てほしい」+「1フローが分からない」。スコープ説明と分かりやすい質問設計が必要
+
+============================================================
+boundary寄り（7件）
+============================================================
+
+----
+
+case_id: V3-019
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: Stripeで決済したあとの画面遷移が変なんですが、これってバグですか？それとも最初からこういう仕様だったのか、外注先に聞けないので分かりません。直すにしても、まず仕様なのかバグなのかを教えてほしいです。
+note: 「仕様かバグか分からない」。整理（handoff）→判定→必要なら修正（bugfix）の段階案内
+
+----
+
+case_id: V3-020
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 不具合を直してほしいんですが、コードが全く分からないので、整理も必要かもしれません。25,000円+15,000円で40,000円になると思うとちょっときつくて。整理なしでいきなり修正だけお願いすることはできますか？
+note: 合計金額への抵抗 + 「整理スキップして修正だけ」の要望。段階の必要性を説明する訓練
+
+----
+
+case_id: V3-021
+route: message
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: boundary
+raw_message: Next.jsのビルドが本番だけ落ちます。Stripe関係のコードが原因かもしれないし、そうでないかもしれない。Webhook受信後の処理で import エラーが出ているログがあるんですが、それが原因かどうかも分からないです。切り分けてほしいです。
+note: 原因がStripeかNext.jsか不明。bugfixとして切り分けから入れるが、構造把握が先かも
+
+----
+
+case_id: V3-022
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: サイトの表示速度が遅いのがまず気になっていて、あとStripeの決済後のメールが飛ばないこともあります。両方一緒にお願いできますか？
+note: パフォーマンス（範囲外）+ メール不達（bugfix）の混在。範囲分けの説明が必要
+
+----
+
+case_id: V3-023
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: boundary
+raw_message: サブスク解約→Webhookでステータス更新→メール送信、この一連の流れがたまにコケるんですが、どこが悪いか分からないです。整理が先か修正が先か、おまかせでいい感じに進めてもらえますか？
+note: 「おまかせで」の丸投げ。判断をこちらに委ねている。段階提案の自然さが問われる
+
+----
+
+case_id: V3-024
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: boundary
+raw_message: 急ぎで相談です。今朝からお客さんが「ログインできない」と連絡してきていて。決済は関係あるか分かりません。外注のコードなので自分では何も分かりません。とにかく見てもらえますか。
+note: 緊急 + 原因不明 + 外注コード。ログイン問題がStripe/API関連か不明。情報回収が最優先
+
+----
+
+case_id: V3-025
+route: profile
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: プロフィール見ました。不具合修正と引き継ぎ整理の2つサービスがあるみたいですが、まず安い方で試してみて、必要なら追加でお願いする流れはできますか？
+note: 「安い方でまず試す」。bugfix(15K)が安いので先に試したいが、コード不明なら handoff が先かも
+
+============================================================
+購入後 / closed後寄り（5件）
+============================================================
+
+----
+
+case_id: V3-026
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_purchase
+raw_message: あ、すみません、さっきの件に追加なんですが、もう1つ気づいたことがあって。決済後のリダイレクト先が、スマホだけ404になるみたいです。これも一緒に見てもらうことってできますか？
+note: 購入後の追加依頼。同一原因か別件かの判定。スコープ拡大の可否判断
+
+----
+
+case_id: V3-027
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_purchase
+raw_message: さっき引き継ぎメモの依頼をしたんですが、やっぱり修正もお願いしたいです。追加の費用はかかりますか？
+note: handoff購入後に修正も追加希望。bugfix追加の料金案内
+
+----
+
+case_id: V3-028
+route: message
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: after_purchase
+raw_message: すみません、依頼した件とは別なんですが、今日新しくお客さんから「二重に引き落とされた」と連絡が来ました。元の依頼とは別の話ですよね？これも見てもらえますか？焦ってます。
+note: 購入中に別の緊急案件が発生。別件としての新規見積りか、既存依頼との関連確認
+
+----
+
+case_id: V3-029
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: after_close
+raw_message: 先日はありがとうございました。1つだけ確認したいんですが、前回修正してもらった箇所と同じところで、また同じような症状が出ました。これって前回の修正の範囲内で見てもらえますか？それとも新しい依頼になりますか？
+note: closed後の再発連絡。同一原因の再発か新規かの判定。無償対応範囲の説明
+
+----
+
+case_id: V3-030
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: after_close
+raw_message: 前回お世話になりました。別の箇所でも似たような不具合が出てきたんですが、前回の結果を活かして安くしてもらうことはできますか？割引とか。
+note: closed後の別件依頼 + 割引要求。前回の知見が使えるか + 値引き対応
+
+============================================================
+判定が難しいケース TOP 5
+============================================================
+
+1. V3-003
+理由: 「メール不達」と「マイページ反映遅延」が同一原因かどうかは見ないと分からない。1件15Kか2件30Kかを事前に断定できない。「同一原因なら1件」と回答しつつ、結果的に2件になる可能性を安全に伝える必要がある。
+
+2. V3-020
+理由: 「整理なしで修正だけ」を希望しているが、コードが分からないなら整理が先。とはいえ40Kという合計金額への抵抗は正当な不安。「整理が必要です」と一方的に言うと押しつけになる。症状次第ではbugfixだけで済む可能性を残しつつ案内する難しさ。
+
+3. V3-024
+理由: 「ログインできない」がStripe/API連携の問題かどうかすら不明。外注コードで原因調査すらできない。緊急なのに情報がほぼない。hold対応だが、急いでいる相手にholdと伝えるストレス。
+
+4. V3-011
+理由: 「決済」「会員登録」「メール送信」の3フローを「まとめて」と言っている。1フロー25Kを3つで75Kになるとは言いにくい。1+オプション1で40K、残り1は別見積り、という段階案内が必要だが、冒頭から金額の話が出ると身構えられる。
+
+5. V3-029
+理由: 同じ箇所で同じ症状が再発。前回の修正の不備なら無償対応すべきだが、環境変化や別原因の可能性もある。確認してから判断すると伝えつつ、「無償で対応します」とも「追加費用です」とも言えない宙ぶらりんな回答が必要。
+
+============================================================
+返信品質を最も鍛えられるケース TOP 5
+============================================================
+
+1. V3-002（frustrated + 外注不信）
+理由: 感情が強い相手に対して、共感しつつも冷静に情報を回収する技術が問われる。「毎日謝っている」に引きずられず、かつ冷たくならない返信の温度感が鍛えられる。
+
+2. V3-006（「原因不明でも課金？」の不安）
+理由: サービスの料金体系と成果範囲を正確に伝えつつ、防衛的にならない文面が必要。「何を約束して何を約束しないか」の線引きが購入者満足と事業安全の両方に影響する。
+
+3. V3-012（「何を見てほしいか分からない」）
+理由: 相手がフローを特定できない状態で、こちらからフローを提案する必要がある。questionnaire にならず、相手が「それです」と答えられる選択肢型質問の設計力が問われる。
+
+4. V3-018（「全部見てほしい」+「1フローが分からない」）
+理由: サービスの制約（1フロー限定）を伝えつつ、相手に「制限された」感を出さない。1フローの例を具体的に出して「あ、それでいいです」と思わせる案内力が鍛えられる。
+
+5. V3-025（「安い方で試す」）
+理由: 表面的には合理的な要望だが、bugfix(15K)でコード不明のまま修正に入ると手戻りリスクがある。「安い方がいいです」に対して「高い方が先です」と言わざるを得ない状況での自然な説明力が問われる。
