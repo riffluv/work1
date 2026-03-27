@@ -1,6 +1,6 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
-最終更新: 2026-03-12
+最終更新: 2026-03-26
 
 ## 目的
 
@@ -75,6 +75,7 @@
 - `docs/coconala-guide-market-ops.ja.md`（ココナラ公式段取りの運用メモ）
 - `docs/coconala-seller-help-key-links.ja.md`（見積り機能・紐付け・受付設定の要点）
 - `docs/coconala-message-templates-short.ja.md`（返信・見積り判定テンプレ）
+- `docs/code-comment-style.ja.md`（コードコメントのデフォルト規約）
 - `docs/next-codex-prompt.txt`（次セッション起動時の固定手順）
 - `docs/coconala-listing-checklist.md`
 - `docs/README.ja.md`
@@ -89,10 +90,12 @@
 - `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`（返信文の特化レイヤ）
 - `/home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md`（入口判定レイヤ）
 - `/home/hr-hm/Project/work/.codex/skills/japanese-chat-natural-ja/SKILL.md`（返信文の汎用自然化レイヤ）
+- `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/SKILL.md`（納品パックと正式納品文）
 - `TEMPLATES/*.md`
 - `scripts/new-case.sh`
 - `scripts/move-case.sh`
 - `scripts/check-coconala-listing-sync.sh`（一次ソースと docs 同期の整合チェック）
+- `scripts/check-coconala-bootstrap.sh`（起動時の必読・skill・納品/コメント規約の整合チェック）
 
 ## 新しいCodexに最初に依頼する内容（コピペ可）
 
@@ -614,3 +617,23 @@
 - 何を決めたか: skill設計を best practices に寄せ、`coconala-reply-bugfix-ja` は本体を短くして `references/` に詳細を逃がす progressive disclosure 構成へ変更した。`intake-router` と `prequote-ops` には標準ルートと gotchas を追加した。
 - 何を変更したか（ファイルパス）: `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/ui-progress-tags.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/post-purchase-stages.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/emotional-caution-mode.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/edge-cases.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/scope-boundary-phrases.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/style-rules.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/scene-templates.ja.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md`, `/home/hr-hm/Project/work/.codex/skills/coconala-prequote-ops-ja/SKILL.md`
 - 次回の最優先タスク: 実案件または代表テストケースで、`prequote` / `purchased` / `closed` の3系統を通し、分割後の参照導線で返答品質が落ちていないか確認する。
+
+### 2026-03-26（追記）
+- 何を決めたか: 起動プロンプトに沿った受託システム準備として、一次ソース・同期ミラー・必読運用資料・skills を再確認し、サービス正本の未同期分を一次ソースへ反映してチェックが通る状態へ戻した。
+- 何を変更したか（ファイルパス）: `サービスページ/bugfix-15000.live.txt`, `docs/coconala-listing-final.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実相談では `coconala-prequote-ops-ja` を入口に使い、送信用文面作成時は self-check の最小5項目と `返信文_latest.txt` 保存を毎回通す。
+
+### 2026-03-26（追記2）
+- 何を決めたか: 起動導線は `次セッション用_起動プロンプト.txt -> docs/next-codex-prompt.txt` の単一正本構成に寄せ、起動時に comments / delivery / skill運用の取りこぼしを検知する `check-coconala-bootstrap.sh` を必須化した。
+- 何を変更したか（ファイルパス）: `scripts/check-coconala-bootstrap.sh`, `次セッション用_起動プロンプト.txt`, `docs/next-codex-prompt.txt`, `docs/README.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実際の新規セッション起動で bootstrap check が想定どおり NG/OK を返すかを確認し、取りこぼしが出る資料があれば正本側へ追加する。
+
+### 2026-03-26（追記3）
+- 何を決めたか: 実案件前の段階ではルールを増やしすぎず、起動正本には `見積り相談 / 購入後返信 / コード編集` の最短ルーティング3行だけを追加して、追加の多層チェックは実案件の取りこぼしが出てから判断する方針にした。
+- 何を変更したか（ファイルパス）: `docs/next-codex-prompt.txt`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 最初の実案件5件は手動確認を優先し、skill取りこぼしが出た時だけ追加ガードを最小限で足す。
+
+### 2026-03-26（追記4）
+- 何を決めたか: 購入後トークルームの途中報告専用タグとして `#P`（Progress）を追加し、`#M` は従来どおり内部保存専用のまま維持する方針にした。`#P` は3行骨格（進捗共有 / 境界 / 次アクション+時刻または必要情報）を原則とし、未確認の原因断定・進捗率・ログ生貼りは避ける。
+- 何を変更したか（ファイルパス）: `AGENTS.md`, `docs/next-codex-prompt.txt`, `docs/coconala-message-templates-short.ja.md`, `.codex/skills/coconala-reply-bugfix-ja/references/ui-progress-tags.ja.md`, `HANDOFF_NEXT_CODEX.ja.md`
+- 次回の最優先タスク: 実案件または模擬ケースで `#P` の途中報告を数件作成し、非エンジニア向けに重すぎないか、エンジニア向けに薄すぎないかを確認する。

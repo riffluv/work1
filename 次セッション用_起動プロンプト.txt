@@ -3,21 +3,20 @@
 
 1) cd /home/hr-hm/Project/work && ./scripts/start-codex-work.sh で開始
 2) ./scripts/check-work-skills.sh を実行して結果確認
-3) check-work-skills が NG の場合は作業開始せず、NG内容をそのまま報告して停止
-4) /home/hr-hm/Project/work/docs/next-codex-prompt.txt を最初に読む
-5) /home/hr-hm/Project/work/AGENTS.md を読む
-6) /home/hr-hm/Project/work/docs/coconala-reply-principles.ja.md を読む
-7) /home/hr-hm/Project/work/docs/coconala-reply-judgment-flow.ja.md を読む
-8) /home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md を読む
-9) /home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md を読む
-10) 読了後の最初の返答は「読み込み完了」と「運用要約（短く）」のみ
-11) 以後は next-codex-prompt.txt / AGENTS.md / principles / judgment-flow / self-check / golden replies に従って実務を進める
+3) ./scripts/check-coconala-bootstrap.sh を実行して結果確認
+4) check-work-skills または check-coconala-bootstrap が NG の場合は作業開始せず、NG内容をそのまま報告して停止
+5) /home/hr-hm/Project/work/docs/next-codex-prompt.txt を最初に読む
+6) 読了後の最初の返答は「読み込み完了」と「運用要約（短く）」のみ
+7) 以後は /home/hr-hm/Project/work/docs/next-codex-prompt.txt を単一正本として実務を進める
 
 重要:
+- 起動時の必読一覧は next-codex-prompt.txt を正本にし、このファイルへ重複転記しない
 - 返信文作成は skill を必ず使うこと
 - 見積り相談は coconala-prequote-ops-ja を優先
 - bugfix の購入後返信は coconala-intake-router-ja -> coconala-reply-bugfix-ja -> japanese-chat-natural-ja を基本順にする
 - 汎用返信や bugfix 以外の自然化は coconala-reply-ja を優先し、必要なら japanese-chat-natural-ja で仕上げる
+- コード実装時は docs/code-comment-style.ja.md を毎回デフォルト適用する
+- 正式納品前の納品物作成は delivery-pack-ja を使う
 - 返信文の優先順位は `相手への正確な応答 -> スコープ・価格・規約の維持 -> そのうえで自然な日本語`
 - まず 5行原則で考え、次に判断フローで `主質問 -> サービス種別 -> フェーズ -> 確度` を決めてから詳細ルールへ進む
 - 相手が言っていない論点をテンプレで先回りして増やさない

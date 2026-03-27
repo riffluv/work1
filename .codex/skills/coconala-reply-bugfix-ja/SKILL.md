@@ -46,7 +46,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 1. 可能なら先に `coconala-intake-router-ja` を使い、経路・状態・リスク・不足情報を確定する。
 2. モードを判定する。
    - UI進行タグ（`#$0` / `#$1` / `#$2` / `#$3`）があるか
-   - 文末タグ（`#R` / `#A` / `#D`）があるか
+   - 文末タグ（`#R` / `#A` / `#D` / `#P`）があるか
    - `#R 受領返信` などのショート指示があるか
 3. 購入者文の既出情報を抽出する（環境 / 症状 / 時期 / エラー / スタック）。
 4. 先頭1〜2行で受領 + 要点復唱を入れる。相手が書いた情報を一度拾ってから進める。
@@ -56,7 +56,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 8. 送信用文面モードでは `/home/hr-hm/Project/work/返信文_latest.txt` に保存する。
 
 ## 条件付きで読む references
-- UI進行タグや `#R` ショート指示を使うとき:
+- UI進行タグや `#R` / `#P` ショート指示を使うとき:
   - `references/ui-progress-tags.ja.md`
 - 受領後 / 納品前後 / クローズ前後の購入後フェーズ:
   - `references/post-purchase-stages.ja.md`
