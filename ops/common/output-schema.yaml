@@ -4,10 +4,14 @@ required_fields:
   - src
   - state
   - user_intent
+  - case_type
+  - certainty
   - service_fit
   - risk_level
   - risk_flags
   - scope_judgement
+  - reply_stance
+  - reply_contract
   - missing_info
   - next_action
   - human_review_required
@@ -28,6 +32,17 @@ field_rules:
       - predelivery
       - delivered
       - closed
+  case_type:
+    allowed:
+      - bugfix
+      - handoff
+      - boundary
+      - after_purchase
+      - after_close
+  certainty:
+    allowed:
+      - high
+      - low
   service_fit:
     allowed:
       - high
@@ -59,3 +74,69 @@ optional_fields:
   - ask_count
   - reply_notes
   - emotional_caution
+
+nested_field_rules:
+  reply_stance:
+    required:
+      - answer_timing
+      - burden_owner
+      - empathy_first
+      - reply_skeleton
+    answer_timing:
+      allowed:
+        - now
+        - after_check
+    burden_owner:
+      allowed:
+        - us
+        - client
+        - shared
+    empathy_first:
+      allowed:
+        - true
+        - false
+    reply_skeleton:
+      allowed:
+        - estimate_initial
+        - estimate_followup
+        - post_purchase_receipt
+        - post_purchase_quick
+        - post_purchase_report
+        - delivery
+  reply_contract:
+    required:
+      - issue_plan
+      - required_moves
+      - forbidden_moves
+    issue_plan:
+      required_item_fields:
+        - issue
+        - disposition
+      disposition:
+        allowed:
+          - answer_now
+          - answer_after_check
+          - ask_client
+          - decline
+      optional_item_fields:
+        - reason
+        - depends_on
+    required_moves:
+      allowed:
+        - answer_directly_now
+        - defer_with_reason
+        - request_minimum_evidence
+        - commit_next_update_time
+        - react_briefly_first
+        - decide_for_user
+        - confirm_receipt
+        - give_purchase_path
+        - explain_scope_boundary
+    forbidden_moves:
+      allowed:
+        - reopen_estimate_intake
+        - numbered_QA_for_all_questions
+        - ask_client_to_prioritize_when_burden_owner_us
+        - vague_hold_without_reason
+        - internal_term_exposure
+        - overexplain_branching

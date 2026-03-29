@@ -9,6 +9,18 @@
 2. `/home/hr-hm/Project/work/現在のプロフィール`
 プロフィールの実体正本（本番反映ベース）
 
+## 表示ラベル（新構成）
+- 基本設定（`os/`）: `/home/hr-hm/Project/work/os/core/boot.md`
+- 返信の基本設定: `/home/hr-hm/Project/work/os/coconala/boot.md`
+- 実装の基本設定: `/home/hr-hm/Project/work/os/implementation/boot.md`
+- 納品の基本設定: `/home/hr-hm/Project/work/os/delivery/boot.md`
+- いまの状態（`runtime/`）: `/home/hr-hm/Project/work/runtime/`
+- 進行中案件: `/home/hr-hm/Project/work/runtime/active-case.txt`
+- 返信保存先: `/home/hr-hm/Project/work/runtime/replies/latest.txt`
+- 案件管理（`ops/`）: `/home/hr-hm/Project/work/ops/`
+- handoff history: `/home/hr-hm/Project/work/HANDOFF_NEXT_CODEX.ja.md`（履歴専用）
+- operator guide: `/home/hr-hm/Project/work/Codex実運用ガイド.ja.md`
+
 ## まず見る（優先順）
 1. `docs/coconala-listing-final.ja.md`  
 出品ページ文面の同期ミラー（一次ソースから同期する）
@@ -62,6 +74,7 @@ Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal
 - `deepresearch.clean` 系は調査ログであり、旧案（LIGHT/STANDARD/PREMIUM）を含む場合がある。
 - 実運用で矛盾が出た場合は、一次ソース（サービス正本 + プロフィール正本）を優先する。
 - 複数サービス運用時は `docs/service-catalog.ja.md` の `Service ID` を起点に参照先を固定する。
+- 外向けに案内してよいのは、`docs/service-catalog.ja.md` で `運用中` のサービスだけとする。
 
 ## 同期手順（固定）
 1. 先に一次ソース（サービス正本 + プロフィール正本）を更新する
@@ -83,7 +96,7 @@ AI臭を避けるコードコメント規約（確定版）
 - `docs/stripe-dashboard-japanese-ui-guide.ja.md`
 Stripeダッシュボードを日本語UIで案内するためのチートシート
 
-## 入口OS
+## 案件管理まわりの設定
 - `ops/common/interaction-states.yaml`
 経路 × 状態ごとの allowed / forbidden action
 - `ops/common/risk-gates.yaml`
@@ -96,6 +109,8 @@ Stripeダッシュボードを日本語UIで案内するためのチートシー
 Codex / Claude / Gemini / ChatGPT Pro の使い分け
 - `ops/common/scope-snapshot-template.md`
 見積り時と納品時の範囲固定テンプレ
+- `os/core/service-registry.yaml`
+公開中サービスと内部専用サービスの正本
 - `ops/services/next-stripe-bugfix/evidence-minimum.yaml`
 最小3点、必須5点、Stripe条件付き質問
 - `ops/services/next-stripe-bugfix/scope-matrix.md`
@@ -132,6 +147,8 @@ same / different / undecidable の具体例
 不具合修正サービス専用の返信作成（固定条件・規約・スコープ判定前提）
 - `japanese-chat-natural-ja`  
 サービス非依存の日本語自然化（重複質問回避・過剰敬語抑制）
+- `reply-review-prompt-ja`
+直近の送信用返信文や指定文面を対象に、Claude / Gemini / ChatGPT 向けの監査プロンプトを作る
 - `coconala-reply-ja`（互換・旧テンプレ参照）
 旧返信テンプレの参照用
 - `scope-judge-ja`  
@@ -147,8 +164,26 @@ same / different / undecidable の具体例
 2. 購入後や個別返信は `coconala-intake-router-ja` で入口判定
 3. 必要なら `scope-judge-ja` で same / different / undecidable を補強
 4. `coconala-reply-bugfix-ja` で下書き作成
-5. `japanese-chat-natural-ja` で最終自然化
+5. `japanese-chat-natural-ja` で毎回最終自然化
 
 補足:
 - 入口判定で `service_mismatch_but_feasible` が出た場合は、「サービス説明とは少しズレるが技術的には現実的」の意味。
 - この場合は自動で断らず、人手で「実績目的で拾うか」「価格が見合うか」を判断する。
+
+## script 正本
+- `scripts/os-check.sh`
+起動時の Internal OS 整合確認
+- `scripts/internal-os-status.sh`
+いまの状態の確認
+- `scripts/check-internal-os-flows.sh`
+Internal OS のスモークテスト
+- `scripts/case-open.sh`
+case 作成 + active case / mode 更新
+- `scripts/case-note.sh`
+重要判断の追記
+- `scripts/case-phase.sh`
+open case の phase / mode 切替
+- `scripts/case-close.sh`
+close + case-log 更新
+- `scripts/reply-save.sh`
+送信用返信の保存

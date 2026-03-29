@@ -9,6 +9,14 @@
 - 骨格ケース: `/home/hr-hm/Project/work/ops/tests/prequote-cases.yaml`
 - エッジケース: `/home/hr-hm/Project/work/ops/tests/edge-cases.yaml`
 
+## mode 別の入口
+- `coconala`: 既存の `prequote-test-cases.txt` / `prequote-cases.yaml` / `edge-cases.yaml`
+- `implementation`: `/home/hr-hm/Project/work/ops/tests/implementation/README.ja.md`
+- `delivery`: `/home/hr-hm/Project/work/ops/tests/delivery/README.ja.md`
+- `case`: `/home/hr-hm/Project/work/ops/tests/case/README.ja.md`
+- `journeys`: `/home/hr-hm/Project/work/ops/tests/journeys/README.ja.md`
+- 自動スモーク: `/home/hr-hm/Project/work/scripts/check-internal-os-flows.sh`
+
 ## 役割の違い
 - `prequote-test-cases.txt`
   - Claude 作成の自然文ケース集。
@@ -43,3 +51,4 @@
 - 実案件で新しい危険パターンが出たら、まずは `edge-cases.yaml` に追加する。
 - 自然文で再現したい場合は `prequote-test-cases.txt` と同形式で追記する。
 - 代表ケースは増やしすぎず、回帰確認で毎回見る最小セットに保つ。
+- `implementation` / `delivery` / `case` の運用変更を入れた時は、`check-internal-os-flows.sh` を最低1回通す。

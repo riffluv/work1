@@ -1,0 +1,18 @@
+version: 1
+
+services:
+  - service_id: bugfix-15000
+    status: operational
+    public: true
+    kind: bugfix
+    source_of_truth: /home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt
+
+  - service_id: handoff-25000
+    status: registered_private
+    public: false
+    kind: handoff
+    source_of_truth: /home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt
+
+rules:
+  - public_reply_must_use_public_true_only
+  - private_services_are_internal_reference_only

@@ -12,6 +12,7 @@ required=(
   "coconala-reply-ja/SKILL.md"
   "delivery-pack-ja/SKILL.md"
   "japanese-chat-natural-ja/SKILL.md"
+  "reply-review-prompt-ja/SKILL.md"
   "scope-judge-ja/SKILL.md"
 )
 

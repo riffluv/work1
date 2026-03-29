@@ -24,5 +24,18 @@ Thumbs.db
 **/deliverables/*.zip
 **/deliverables/*.patch
 
+# Runtime state
+/runtime/*
+!/runtime/.gitkeep
+!/runtime/replies/
+/runtime/replies/*
+!/runtime/replies/.gitkeep
+
+# Case data
+/ops/cases/open/*
+!/ops/cases/open/.gitkeep
+/ops/cases/closed/*
+!/ops/cases/closed/.gitkeep
+
 # Windows ADS
 *:Zone.Identifier

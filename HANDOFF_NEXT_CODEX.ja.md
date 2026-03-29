@@ -1,6 +1,21 @@
 # HANDOFF_NEXT_CODEX.ja.md
 
+> このファイルは履歴ログ専用です。
+> 現行運用の正本は `docs/next-codex-prompt.txt` / `os/**` / `OPERATIONS.md` です。
+> この中にある `返信文_latest.txt` / `new-case.sh` / `move-case.sh` / `CASE.md` などの記述は、当時の記録としてのみ扱ってください。
+
 最終更新: 2026-03-26
+
+## 読み方
+
+- このファイルは、現行ルールの正本ではなく、更新履歴と引き継ぎメモを兼ねた恒久ログです。
+- 実務判断の正本は次を優先してください。
+  - `/home/hr-hm/Project/work/AGENTS.md`
+  - `/home/hr-hm/Project/work/docs/next-codex-prompt.txt`
+  - `/home/hr-hm/Project/work/os/core/boot.md`
+  - `/home/hr-hm/Project/work/os/core/service-registry.yaml`
+  - `/home/hr-hm/Project/work/docs/README.ja.md`
+- このファイル内の過去運用メモは、履歴としては正しくても現行ルールとは限りません。
 
 ## 目的
 
@@ -49,7 +64,7 @@
 
 - 相手文の貼り付けのみは「分析のみ」で返す（返信文は作らない）
 - 「返信文作って」「返信書いて」など明示があるときだけ送信用文面を作る
-- 送信用文面を作った場合は、毎回 `/home/hr-hm/Project/work/返信文_latest.txt` に同内容を保存する
+- 送信用文面を作った場合は、毎回 `/home/hr-hm/Project/work/runtime/replies/latest.txt` に同内容を保存する
 
 ## handoff-25000 の追加フロー運用
 
@@ -92,8 +107,9 @@
 - `/home/hr-hm/Project/work/.codex/skills/japanese-chat-natural-ja/SKILL.md`（返信文の汎用自然化レイヤ）
 - `/home/hr-hm/Project/work/.codex/skills/delivery-pack-ja/SKILL.md`（納品パックと正式納品文）
 - `TEMPLATES/*.md`
-- `scripts/new-case.sh`
-- `scripts/move-case.sh`
+- `scripts/case-open.sh`
+- `scripts/case-note.sh`
+- `scripts/case-close.sh`
 - `scripts/check-coconala-listing-sync.sh`（一次ソースと docs 同期の整合チェック）
 - `scripts/check-coconala-bootstrap.sh`（起動時の必読・skill・納品/コメント規約の整合チェック）
 
@@ -107,7 +123,7 @@
 ## 更新ルール（大事）
 
 - セッションが終わる前に、このファイルの「更新履歴」に必ず追記する
-- 新しいサービス（新規出品/将来ドラフト）を追加したら、`docs/service-catalog.ja.md` と案件 `CASE.md` の `Service ID` も同時更新する
+- 新しいサービス（新規出品/将来ドラフト）を追加したら、`docs/service-catalog.ja.md` と案件 `README.md` の `Service ID` も同時更新する
 - 追記するのは以下の3点だけ
   1. 何を決めたか
   2. 何を変更したか（ファイルパス）

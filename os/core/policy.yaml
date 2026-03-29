@@ -1,0 +1,24 @@
+version: 1
+
+workspace_root: /home/hr-hm/Project/work
+reply_storage: /home/hr-hm/Project/work/runtime/replies/latest.txt
+active_case_pointer: /home/hr-hm/Project/work/runtime/active-case.txt
+mode_pointer: /home/hr-hm/Project/work/runtime/mode.txt
+case_open_root: /home/hr-hm/Project/work/ops/cases/open
+case_closed_root: /home/hr-hm/Project/work/ops/cases/closed
+
+always_on_rules:
+  - no_external_contact
+  - no_external_share
+  - no_external_payment
+  - no_direct_push
+  - no_prod_deploy
+  - no_raw_secret_values
+
+mode_boundaries:
+  coconala:
+    purpose: purchase_before_and_reply_operations
+  implementation:
+    purpose: purchased_code_analysis_and_fix_only
+  delivery:
+    purpose: delivery_pack_and_formal_delivery_only

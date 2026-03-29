@@ -2,9 +2,9 @@
 - Start workspace (expected path-local CODEX_HOME setup): `cd /home/hr-hm/Project/work && ./scripts/start-codex-work.sh`
 - Verify local skills before work: `./scripts/check-work-skills.sh`
 - Check service page/docs sync: `./scripts/check-coconala-listing-sync.sh`
-- Create a new client case: `./scripts/new-case.sh`
-- Move a case to HOLD: `./scripts/move-case.sh <case-id> HOLD`
-- Move a case to CLOSED: `./scripts/move-case.sh <case-id> CLOSED`
+- Start a purchased case record: `#S #R` or `#S #A`
+- Save a key decision during a case: `#M`
+- Close a case record: `#C`
 - Read next-session startup prompt: `sed -n '1,260p' docs/next-codex-prompt.txt`
 - Read current handoff: `sed -n '1,260p' HANDOFF_NEXT_CODEX.ja.md`
 - Read workspace overview: `sed -n '1,220p' README.md`

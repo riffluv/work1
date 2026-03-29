@@ -10,6 +10,17 @@ AGENTS_FILE="$ROOT_DIR/AGENTS.md"
 COMMENT_STYLE_FILE="$ROOT_DIR/docs/code-comment-style.ja.md"
 DELIVERY_SKILL_FILE="$ROOT_DIR/.codex/skills/delivery-pack-ja/SKILL.md"
 HANDOFF_TEMPLATE_FILE="$ROOT_DIR/docs/handoff-delivery-template.ja.md"
+CORE_BOOT_FILE="$ROOT_DIR/os/core/boot.md"
+IMPLEMENTATION_BOOT_FILE="$ROOT_DIR/os/implementation/boot.md"
+SERVICE_REGISTRY_FILE="$ROOT_DIR/os/core/service-registry.yaml"
+CASE_OPEN_SCRIPT="$ROOT_DIR/scripts/case-open.sh"
+CASE_NOTE_SCRIPT="$ROOT_DIR/scripts/case-note.sh"
+CASE_PHASE_SCRIPT="$ROOT_DIR/scripts/case-phase.sh"
+CASE_CLOSE_SCRIPT="$ROOT_DIR/scripts/case-close.sh"
+REPLY_SAVE_SCRIPT="$ROOT_DIR/scripts/reply-save.sh"
+OS_CHECK_SCRIPT="$ROOT_DIR/scripts/os-check.sh"
+FLOW_SMOKE_SCRIPT="$ROOT_DIR/scripts/check-internal-os-flows.sh"
+STATUS_SCRIPT="$ROOT_DIR/scripts/internal-os-status.sh"
 
 errors=0
 
@@ -52,6 +63,17 @@ check_file "$AGENTS_FILE"
 check_file "$COMMENT_STYLE_FILE"
 check_file "$DELIVERY_SKILL_FILE"
 check_file "$HANDOFF_TEMPLATE_FILE"
+check_file "$CORE_BOOT_FILE"
+check_file "$IMPLEMENTATION_BOOT_FILE"
+check_file "$SERVICE_REGISTRY_FILE"
+check_file "$CASE_OPEN_SCRIPT"
+check_file "$CASE_NOTE_SCRIPT"
+check_file "$CASE_PHASE_SCRIPT"
+check_file "$CASE_CLOSE_SCRIPT"
+check_file "$REPLY_SAVE_SCRIPT"
+check_file "$OS_CHECK_SCRIPT"
+check_file "$FLOW_SMOKE_SCRIPT"
+check_file "$STATUS_SCRIPT"
 
 if [[ $errors -ne 0 ]]; then
   exit 1
@@ -63,14 +85,15 @@ require_contains "$START_PROMPT" "/home/hr-hm/Project/work/docs/next-codex-promp
 
 require_contains "$NEXT_PROMPT" "./scripts/check-work-skills.sh" "next prompt must mention skill availability check"
 require_contains "$NEXT_PROMPT" "./scripts/check-coconala-bootstrap.sh" "next prompt must mention bootstrap guard"
+require_contains "$NEXT_PROMPT" "./scripts/os-check.sh" "next prompt must mention internal os check"
 require_contains "$NEXT_PROMPT" "/home/hr-hm/Project/work/docs/code-comment-style.ja.md" "next prompt must require code-comment-style.ja.md"
 require_contains "$NEXT_PROMPT" "coconala-prequote-ops-ja" "next prompt must require the prequote skill"
 require_contains "$NEXT_PROMPT" "delivery-pack-ja" "next prompt must require the delivery skill"
 require_contains "$NEXT_PROMPT" "japanese-chat-natural-ja" "next prompt must require the final naturalization skill"
-require_contains "$NEXT_PROMPT" "/home/hr-hm/Project/work/返信文_latest.txt" "next prompt must require saving sendable replies"
+require_contains "$NEXT_PROMPT" "/home/hr-hm/Project/work/runtime/replies/latest.txt" "next prompt must require saving sendable replies to runtime"
 
 require_contains "$AGENTS_FILE" "docs/code-comment-style.ja.md" "AGENTS.md must keep the default comment-style rule"
-require_contains "$AGENTS_FILE" "/home/hr-hm/Project/work/返信文_latest.txt" "AGENTS.md must keep the reply persistence rule"
+require_contains "$AGENTS_FILE" "/home/hr-hm/Project/work/runtime/replies/latest.txt" "AGENTS.md must keep the reply persistence rule"
 
 require_contains "$README_FILE" "docs/code-comment-style.ja.md" "README must point to the comment-style rule"
 require_contains "$README_FILE" "00_結論と確認方法.md" "README must describe the delivery pack around 00_結論と確認方法.md"

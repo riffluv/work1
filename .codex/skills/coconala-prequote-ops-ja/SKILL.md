@@ -47,7 +47,7 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
 3. `risk_level` が高く、価格や規約判断が揺れる場合は分析のみで止める。
 4. `estimate-decision.yaml` を参照し、`15,000円 / 5,000円 / 保留 / 断る` を判定する。
 5. `#R` のときだけ送信用返信文を作る。
-6. 必要なら `japanese-chat-natural-ja` で自然さだけ整える。
+6. `#R` の送信用返信は、毎回 `japanese-chat-natural-ja` で最終自然化する。
 7. `#A` のときは、判定メモと次アクションだけ返す。
 
 ## 実行フロー
@@ -61,7 +61,7 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
    - `hold` -> `§13-3`
    - `decline` -> `§18`
 6. `#R` のときだけ `coconala-reply-bugfix-ja` で送信用返信文を作る。
-7. 必要なら `japanese-chat-natural-ja` で自然さだけ整える。
+7. `#R` の送信用返信は、毎回 `japanese-chat-natural-ja` で最終自然化する。
 8. `#A` のときは、判定メモと次アクションだけ返す。
 
 ## Gotchas
@@ -123,9 +123,15 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
 - 2回目も判定不能なら、`5,000円` または辞退へ倒す
 
 ## 送信用返信文の扱い
-- 送信用文面を作ったときは `/home/hr-hm/Project/work/返信文_latest.txt` に保存する
+- 送信用文面を作ったときは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する
+- 相手文があるときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する
 - `#R` は prequote のときだけ、このskillを優先する
 - 購入後の `#R` は従来どおり `coconala-reply-bugfix-ja` を使う
+- 送信用返信は、保存前に毎回 `japanese-chat-natural-ja` を通す
+- 最終自然化では、結論・質問項目数・価格・禁止事項・次アクションを増減させない
+- `〜する形が安全です` のような提案書寄りの言い方は避ける
+- 条件がそろうと判断しやすくなる場面では、`出しやすいです` より `出しやすくなります` を優先する
+- 見積り相談で、購入後に起こりうる別原因や追加対応へ触れるときは、`ご購入後に` `その時点で` を入れて時点を明示する。`事前にご相談します` だけで曖昧にしない
 
 ## 仕上げ前チェック
 - `prequote` かどうかを取り違えていないか

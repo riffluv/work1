@@ -105,7 +105,7 @@ https://coconala-support.zendesk.com/hc/ja/articles/5894870734745
 ## 相談対応時の判定ルール（Codex用）
 - 相手文の貼り付けのみ: 分析のみ返す
 - 「返信文作って」「返信書いて」がある: 送信用文面を作る
-- 送信用文面は `/home/hr-hm/Project/work/返信文_latest.txt` に保存する
+- 送信用文面は `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する
 
 ## 補助リンク
 - メッセージ経由の提案フロー  

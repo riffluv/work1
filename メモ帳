@@ -1,0 +1,103 @@
+ChatGPT Pro にそのまま投げる用
+
+あなたは「LLMを使った実務返信装置の設計監査者」です。
+返信文の添削ではなく、返信装置の構造設計について監査してください。
+
+## 背景
+この装置は、ココナラ（日本のスキルマーケット）で、
+見積もり相談・購入後チャット・途中報告・納品前後の返信を生成します。
+
+パイプライン:
+1. intake-router: 相手文を分析し、経路・状態・リスク・サービス適合を判定
+2. reply_stance: 返信姿勢を4軸で判定
+3. reply-bugfix: テンプレ・golden-replies・出力ルールを参照して返信文を生成
+4. natural-ja: 最終的な日本語自然化
+
+## 解決しようとしている問題
+日本語の自然さだけでは解決しないズレが繰り返し発生した:
+- 見積もり相談の骨格で購入後に返す（骨格ミス）
+- おまかせ相手に判断を返す（負担方向ミス）
+- 見てから答えるべきことを今答えようとする（タイミングミス）
+- はぐらかしに聞こえる（向き合い不足）
+
+これを受けて、パイプラインの段2に `reply_stance` を追加した:
+- answer_timing: now / after_check
+- burden_owner: us / client / shared
+- empathy_first: true / false
+- reply_skeleton: estimate_initial / estimate_followup / post_purchase_receipt / post_purchase_quick / post_purchase_report / delivery
+
+## 具体例
+重要: 下の失敗例・成功例は、文面添削のためではなく、パイプラインのどの段で失敗・改善が起きているかを具体化するための参照例です。
+
+### 失敗例（reply_stance 導入前）
+相手文:
+「すみません、3つ聞いてもいいですか？①これStripeの問題ですか、うちのコードの問題ですか？②15,000円は税込みですか？③今週中に直りますか？」
+
+生成された返信:
+番号付きQ&Aで3問全部に今すぐ答えようとし、見積もり初回と同じ構造（情報回収 + SLA文）で返した。
+
+問題:
+- 購入後チャットなのに受付窓口に戻っている
+- ①③はコードを見てから答える方が正確で価値が高い
+
+### 成功例（reply_stance 導入後、同じ相手文）
+reply_stance 判定:
+- answer_timing: after_check（①③はコード確認後）
+- burden_owner: shared
+- empathy_first: false
+- reply_skeleton: post_purchase_quick
+
+生成された返信:
+②（税込み）だけ即答し、①③は「コードを見てから正確にお返しします」で保留。
+
+結果:
+- 購入後チャットとして自然
+- 今答えること / 見てから返すことが分かれた
+
+## このシステムにおける「相手にちゃんと向き合う」の定義
+- reply_stance の4軸が正しく判定されること
+- 判定された骨格に沿った返信構造で生成されること
+- テンプレや定型に引っ張られて骨格が崩れないこと
+- こちらが持つべき負担を相手へ返しすぎないこと
+- はぐらかしに聞こえる曖昧な保留を減らすこと
+
+## 知りたいこと（3点）
+1. reply_stance の4項目で、返信姿勢の前段判定として十分か。
+   まだ構造的に漏れている軸があるか。
+
+2. 分類（reply_stance）が正しくても、生成段でテンプレの引力に
+   引っ張られて骨格が崩れる問題がある。
+   これは分類層の追加で防げるか、生成時の構造制約が別途必要か。
+   現代のLLM技術で実装可能な方法はあるか。
+
+3. reply_stance の判定が正しかったかを、
+   人間のリハーサルなしで事後検証する方法はあるか。
+   例: reply_skeleton と実際の返信構造の不整合を自動検出するなど。
+
+## 補足で見てほしいこと
+- intake-router が `reply_stance` を出しても、reply-bugfix 側がそれを十分使えていない可能性はあるか
+- `reply_stance` を増やしすぎずに、今の4項目のまま精度を上げるならどこを強くすべきか
+- 現代のLLMで再現できない部分があるなら、それはどこか
+
+## 出力形式
+1. 総評
+2. 3つの質問への回答
+3. 今の構造を前提にした最小改善案（1〜3件、優先順位つき）
+4. もし追加で見るべきファイルや情報があるなら、その最小セット
+
+## 重要
+- 文面添削ではなく、パイプライン設計の監査として答えてください
+- LLMの一般的な能力論より、この具体的なパイプラインの弱点に集中してください
+- 全面再設計は安易に勧めず、現行構造を前提にしてください
+- 今回は「相手に向き合う返信装置」を現代技術でどこまで再現できるかが主題です
+
+## 参考として必要なら追加で見せられるファイル
+必要なら次のファイルを追加で渡せます。必要最小限だけ指定してください。
+- /home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md
+- /home/hr-hm/Project/work/ops/common/output-schema.yaml
+- /home/hr-hm/Project/work/docs/coconala-reply-judgment-flow.ja.md
+- /home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md
+- /home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/style-rules.ja.md
+- /home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/references/post-purchase-stages.ja.md
+- /home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md
+- /home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md

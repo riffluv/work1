@@ -6,7 +6,7 @@ routes:
       allowed_actions:
         - analyze
         - ask_minimum_questions
-        - draft_reply_on_request
+        - reply_on_request
         - prepare_estimate
       forbidden_actions:
         - formal_delivery
@@ -54,7 +54,7 @@ routes:
         - analyze
         - route_to_service_fit
         - ask_boundary_questions
-        - draft_reply_on_request
+        - reply_on_request
       forbidden_actions:
         - assume_service_fit
         - force_service_binding
@@ -71,7 +71,7 @@ routes:
         - analyze
         - route_to_service_fit
         - ask_boundary_questions
-        - draft_reply_on_request
+        - reply_on_request
       forbidden_actions:
         - assume_service_fit
         - force_service_binding

@@ -1,1 +1,1 @@
-date,case_id,route,state,service_fit,scope_judgement,risk_level,next_action,outcome,notes
+date,case_id,service_id,route,final_phase,scope_status,next_action,outcome,notes

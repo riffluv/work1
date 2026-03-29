@@ -1,0 +1,212 @@
+1. 総評
+
+方向性はかなり良いです。
+今回の問題は「日本語を自然にする」ことではなく、「いつ・誰が・どの骨格で・どこまで答えるか」を先に固定しないと、下流の生成が受付テンプレに引っ張られる、という構造問題でした。reply_stance の導入は、その失敗モードに対して筋が良い打ち手です。実際、reply_stance は output-schema 上も必須で、intake-router でも返信姿勢の固定として定義されています。購入後の質問返しでも「今答えられる事実だけ先に返し、残りは確認後に返す」という運用が、購入後フェーズ文書と Golden Reply にも明示されています。
+
+ただし、いまの主な弱点は 分類の発想 ではなく 契約の弱さ です。
+上流は姿勢を決めていますが、下流の reply-bugfix は「可能なら先に intake-router」を見る設計で、自身の標準ルートもかなり汎用的です。そのうえ購入後会話で「初回ヒアリングへ戻らない」「番号リストを機械適用しない」「今答えられる事実だけ返す」といった禁止事項が、Gotchas・style-rules・self-check に繰り返し書かれています。これは、reply_stance が 強い実行契約 ではなく 強めのヒント としてしか効いていない兆候です。
+
+要するに、現状のボトルネックは「LLMが理解できない」ことではありません。
+stage 3 と stage 4 が stage 2 を再解釈できてしまうこと がボトルネックです。ここは現代のLLM技術でかなり改善できます。Structured Outputs で中間契約を JSON Schema に固定でき、現在のモデル系は明示的な output contract・検証ループ・サーバ側バリデーションを前提にした運用が推奨されています。さらに graders / trace grading で、最終文面だけでなくパイプライン trace 全体の逸脱も自動評価できます。
+
+2. 3つの質問への回答
+2-1. reply_stance の4項目で十分か
+
+結論
+「返信姿勢の最小セット」としては十分に近いです。
+ただし、これだけで全返信を制御するには足りません。足りないのは新しい“感情軸”ではなく、主に次の3つです。
+
+1) answer_timing がメッセージ単位すぎる
+
+成功例では、実際に必要だったのは「②は今答える」「①③は確認後」の混在制御です。
+これは answer_timing: after_check だけでは表現しきれません。実際、購入後フェーズ文書も Golden Reply 9-2 も、「一部は即答・一部は確認後」という運用を前提にしています。
+
+なので不足しているのは新しいトップレベル軸というより、reply_stance の横に置く issue_plan です。
+例としては、各論点ごとに answer_now / answer_after_check / decline / ask_client を持たせる形です。
+
+2) あなたの判断フローで使っている 案件種別 と 確度 が、出力契約に残っていない
+
+判断フローには bugfix / handoff / boundary / after_purchase / after_close と 高確度 / 低確度 があり、返信の型選択に使っています。ところが output-schema の必須項目にはそれがありません。つまり下流は、それをもう一度推定し直す余地があります。
+
+これは reply_stance に新軸を足すというより、返信姿勢の外にある sibling field の欠落 です。
+ここが抜けると、分類が正しくても生成が再推論してズレます。
+
+3) reply_skeleton の enum coverage が state machine に対して足りない
+
+state には quote_sent と closed がありますが、reply_skeleton の許可値は estimate_* / post_purchase_* / delivery しかありません。
+一方で self-check には quote_sent と closed 後再発 の明示チェックがあります。つまり、運用上は存在する局面なのに、骨格ラベル側に正規の置き場がない 状態です。
+
+ここは新しい軸というより、reply_skeleton の値集合が未完 です。
+
+監査結論
+4軸は残してよい
+ただし reply_stance を「全制御面」と見なすのは危険
+足すなら新しい感情軸ではなく
+issue_plan[]
+case_type
+certainty
+必要なら reply_skeleton の enum 拡張
+が先です
+2-2. 分類が正しくても生成で骨格が崩れる。分類層の追加で防げるか、構造制約が必要か
+
+結論
+分類層の追加だけでは防げません。生成時の構造制約が別途必要です。
+
+理由は単純で、今の reply-bugfix は intake-router を参照する前提ではあるものの、実装上はなお「送信用文面を自由生成する中心」になっています。標準ルートは受領・既出情報抽出・不足情報依頼・時刻コミットを汎用的に回し、購入後のズレを止める規則が downstream 側に大量に置かれています。これは、分類が正しくてもテンプレの重力で下流が戻る構造です。
+
+しかも style-rules 自体が、すでに「完全固定 / 構造固定 / 表現自由」の3層線引きを書いています。
+つまり思想は正しい。足りないのはその線引きを prompt 上の注意書きではなく、機械可読な契約にすることです。
+
+現代のLLM技術で実装可能な方法
+
+はい、可能です。しかも全面再設計までは不要です。
+
+推奨は reply_stance の次に “reply_contract” を置くことです。
+
+たとえば stage 2 の出力をこうします。
+
+reply_contract:
+  reply_stance: ...
+  case_type: bugfix | handoff | boundary | after_purchase | after_close
+  certainty: high | low
+  issue_plan:
+    - issue: 税込みか
+      disposition: answer_now
+    - issue: Stripeかコードか
+      disposition: answer_after_check
+      reason: needs_code_or_error
+    - issue: 今週中に直るか
+      disposition: answer_after_check
+      depends_on: root_cause_check
+  required_moves:
+    - answer_directly_now
+    - defer_with_reason
+    - request_minimum_evidence
+    - commit_next_update_time
+  forbidden_moves:
+    - reopen_estimate_intake
+    - numbered_QA_for_all_questions
+    - ask_client_to_prioritize_when_burden_owner_us
+
+そのうえで stage 3 は「自由生成」ではなく、skeleton ごとの section renderer にします。
+
+post_purchase_quick なら
+短い反応 -> 今答える事実 -> 確認後に返す事項 -> 必要最小限の依頼 -> 時刻
+estimate_initial なら
+受け止め -> 結論 -> 最小質問 or 購入導線
+post_purchase_report なら
+現状 -> 次アクション -> 次回報告時刻
+
+この section order と cardinality はコードで固定し、LLM には各 slot の文だけ書かせる形が効きます。
+
+これは現在のモデルで十分実装可能です。Structured Outputs は JSON Schema 準拠の中間出力を強く固定でき、Gemini も同様に JSON Schema 付き structured output をサポートしています。GPT-5.4 系の prompt guidance でも、block-structured prompts・output contract・strict format・verification が有効だと明示されています。さらにサーバ側バリデーションも推奨されています。
+
+重要な補足
+
+natural-ja は最後に残してよいですが、slot 内だけを自然化 するべきです。
+今の docs でも「結論・質問項目数・価格・禁止事項・次アクションを増減させない」と書いてありますが、これも prompt 上の約束に留まっています。stage 4 の後にも validator をかけるべきです。
+
+2-3. reply_stance の判定が正しかったかを、人間のリハーサルなしで事後検証できるか
+
+結論
+“かなりの部分はできる” が、100% ではありません。
+正確には、次の2層に分けるべきです。
+
+A. 返信が reply_stance に従っていたか
+
+これはかなり自動化できます。
+
+たとえば deterministic lint で次を見られます。
+
+state=purchased なのに「見積もり提案を送ります」や受付窓口文が出ていないか
+post_purchase_quick なのに全問を番号付きQ&Aで返していないか
+answer_timing=after_check なのに、因果や納期を断定していないか
+answer_timing=after_check なのに、「何を確認するか」「いつ返すか」が入っていない保留になっていないか
+burden_owner=us なのに、優先順位や判断を相手へ返していないか
+empathy_first=true なのに、最初の1〜2文で不便や不安への受け止めがないか
+
+この種の lint は、今ある self-check と style-rules をそのまま機械可読ルールへ落とせます。そもそも self-check は「毎回人間レビューしなくても最低限の品質チェックをする」ための文書なので、grader 化しやすいです。
+
+B. その reply_stance 自体が妥当だったか
+
+これは 部分的に可能 です。
+
+やり方は3つあります。
+
+Round-trip classification
+最終返信文だけを別モデルに読ませて、answer_timing / burden_owner / empathy_first / reply_skeleton を逆推定させる。
+upstream の stance と一致しなければ fail。
+Delayed outcome audit
+たとえば answer_timing=now で即答した内容が、後のコード確認で覆ったなら、その stance は誤り寄りと判定できる。
+逆に after_check を選んだ結果、後で正確な回答に着地したなら妥当性が上がる。
+Trace grading / evals
+stage 1〜4 の出力 trace を保存し、
+stage 2 が何を決めたか
+stage 3 が何を無視したか
+stage 4 が何を壊したか
+を別評価系で採点する。
+これは現在の graders / trace grading / evals の使い方にかなり合っています。graders は 0〜1 のスコアや複合判定を返せ、trace grading は agent trace 全体の adherence を評価する用途に向いています。
+ただし限界もある
+reply_skeleton の整合性は高精度で自動検出できます
+answer_timing と burden_owner もかなり検出できます
+いちばん難しいのは empathy_first が“相手に向き合って聞こえたか” です
+
+ここは text-only で完全判定は難しいです。
+なので、自動検証では 感情の言い換え を測るのではなく、
+
+主質問へ直接答えたか
+保留に理由があるか
+保留に次アクションと時刻があるか
+こちらが負うべき判断を返していないか
+
+という 観測可能な proxy で詰めるのが現実的です。これは現代LLMでかなり再現できますが、「人間が感じる向き合い度」を完全に代替するところまではまだ難しいです。
+
+3. 今の構造を前提にした最小改善案（優先順位つき）
+1位: reply_stance の次に reply_contract を置く
+
+いちばん効きます。
+増やすのは軸ではなく、実行契約 です。
+
+最低限、追加するのはこの4つです。
+
+case_type
+certainty
+issue_plan[]
+required_moves[] / forbidden_moves[]
+
+これで「分類は合っていたのに、生成で戻る」をかなり止められます。
+特にあなたの失敗例は、ほぼ issue_plan 欠落の問題です。
+
+2位: reply_skeleton ごとに section order を固定し、natural-ja 後に再検証する
+
+style-rules が言う「構造固定」を本当に固定にします。
+stage 3 は skeleton renderer、stage 4 は slot paraphraser に寄せる。
+そして 最終出力に対して lint をかける。natural-ja 前だけの検査では足りません。
+
+3位: self-check と golden / failure 例を grader 化し、回帰テスト化する
+
+今の self-check はそのまま rubric です。
+Golden Replies と失敗例を eval データセット化して、各変更で
+
+stance 一致率
+skeleton 一致率
+burden leak 率
+vague hold 率
+purchased で intake に戻る率
+
+を回してください。
+ここまでやると、改善が「良さそう」ではなく「どの失敗が減ったか」で見えます。
+
+4. 追加で見るべきファイルや情報の最小セット
+
+今回の監査だけなら、追加ファイルは必須ではありません。
+ただし、実装修正まで踏み込むなら最小で次の2点だけ見たいです。
+
+stage 2 reply_stance の実際の出力例
+できれば成功3件・失敗3件。
+ここで issue_plan 相当が暗黙に出ているのか、完全に欠けているのかを見たいです。
+同一案件の stage 1 → stage 2 → stage 3 → stage 4 の実トレース
+特に natural-ja 後に何が変わっているか。
+いまの docs だと、どこで骨格が壊れているかは推定できますが、確定には trace が最短です。
+
+ファイル指定に寄せるなら、今回いただいた一覧で十分でした。追加で repo から欲しいのは、文書よりも 各段の実出力サンプル です。
