@@ -5,7 +5,7 @@ cases:
     title: "見積り経路で追加原因が発生"
     state: purchased
     raw_message: "別の原因も見つかったので、追加で見てほしいです"
-    expected_template: "§21"
+    expected_template: "short:§21"
     check_points:
       - "有料オプション追加前提で書かない"
       - "進め方を2択で案内する"
@@ -14,7 +14,7 @@ cases:
     title: "5Kから15Kへの移行"
     state: prequote
     raw_message: "確認だけのつもりでしたが、そのまま修正もお願いしたいです"
-    expected_template: "§24"
+    expected_template: "short:§24"
     check_points:
       - "5,000円の範囲と15,000円の範囲が分かれている"
       - "割高感への配慮がある"
@@ -23,7 +23,7 @@ cases:
     title: "キャンセル寄り"
     state: purchased
     raw_message: "やっぱりキャンセルしたいです"
-    expected_template: "§25"
+    expected_template: "short:§25"
     check_points:
       - "理由を1点だけ確認する"
       - "返金はココナラ側処理と書く"
@@ -32,7 +32,7 @@ cases:
     title: "提案送信後の内容変更"
     state: quote_sent
     raw_message: "内容を少し変えたいです"
-    expected_template: "§26"
+    expected_template: "short:§26"
     check_points:
       - "変更点を1〜2点だけ聞く"
       - "必要なら再提案と案内する"
@@ -41,7 +41,35 @@ cases:
     title: "クローズ後の再相談"
     state: closed
     raw_message: "前回の続きでまた見てもらえますか？"
-    expected_template: "§27"
+    expected_template: "short:§27"
     check_points:
       - "既存トークルーム継続前提で書かない"
-      - "新規相談へ戻す"
+      - "トークルームが閉じている前提で、まず状況確認に戻す"
+      - "最初の1通で新規依頼や価格を前面に出しすぎない"
+
+  - id: EC-006
+    title: "Stripe以外の決済名が出る境界相談"
+    state: prequote
+    raw_message: "StripeではなくSquareを使っています。Square → Webhook → DB更新の流れで不具合が出ています。対応可能ですか？"
+    expected_template: "golden:§53"
+    check_points:
+      - "対象外です / 対応できます を即断しすぎない"
+      - "決済サービス側かサイト側の後続処理かを先に切る"
+
+  - id: EC-007
+    title: "二重決済と返金不安が同時に来る"
+    state: prequote
+    raw_message: "同じ商品が2個届いたと言われて、決済も2回入っているみたいです。返金もしないといけないかもしれません。どうしたらいいですか？"
+    expected_template: "golden:§52"
+    check_points:
+      - "返金や原因説明より先に、同じ操作を続けない方がよいかを返す"
+      - "返金をこちらが決める話として書かない"
+
+  - id: EC-008
+    title: "15Kか25Kか迷うが未公開側を出さない"
+    state: prequote
+    raw_message: "不具合も出ているし、コードの中身も分かりません。15,000円の方か25,000円の方かどっちがいいですか？"
+    expected_template: "golden:§46"
+    check_points:
+      - "未公開サービス名・価格・購入導線をそのまま出さない"
+      - "判定軸を先に返して、今の公開中サービスで見られるかへ戻す"

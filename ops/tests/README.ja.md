@@ -28,6 +28,9 @@
   - 金銭事故や状態遷移の谷間に寄せた確認用。
   - 値引き、5K→15K、quote_sent、closed 後などを見る。
 
+補足:
+- `expected_template` の参照先は 1 ファイルに固定しない。`short:§21` のような表記は `docs/coconala-message-templates-short.ja.md`、`golden:§53` のような表記は `docs/coconala-golden-replies.ja.md` を見る。
+
 ## 使い方
 1. `prequote-test-cases.txt` から 1件ずつ選ぶ
 2. `route / state / raw_message / note` を Codex に貼る

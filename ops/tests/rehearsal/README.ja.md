@@ -39,6 +39,7 @@
 - 入力ケース: `/home/hr-hm/Project/work/ops/tests/prequote-test-cases.txt`
 - 返信文バッチ: `/home/hr-hm/Project/work/ops/tests/rehearsal/batch-*.txt`
 - Claude 監査メモ: `/home/hr-hm/Project/work/ops/tests/rehearsal/review-*.md`
+- 回帰確認メモ: `/home/hr-hm/Project/work/ops/tests/rehearsal/regression-pass-*.md`
 
 ## 特に見る点
 - `お気持ちももっともです` のような過剰な感情要約が入っていないか
@@ -57,3 +58,5 @@
 - 個別ケースの直しだけで終わらせない。
 - Claude 監査後は、必ず `どの表現を禁止するか / どう置き換えるか` を skill に戻す。
 - 3バッチくらい回したら、ワークスペース全体の日本語品質はかなり安定する。
+- `batch-*.txt` や `review-*.md` は履歴資産で、当時の rule を反映した記録です。現行の正本は skill / rule / golden / test YAML を優先し、履歴バッチはそのまま最新の模範文として再利用しない。
+- `handoff` が未公開の間は、handoff 前提の履歴バッチを外向け canonical として更新しない。必要な現行文面は `golden replies` 側を優先する。
