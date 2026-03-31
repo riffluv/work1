@@ -39,6 +39,12 @@ mode の正本:
 - 外向けに案内してよいのは `public: true` のサービスだけ
 - 現時点の外向け live は `bugfix-15000` のみ
 - `handoff-25000` は内部準備用の参照にとどめ、外向け返信でサービス名・価格・購入導線を出さない
+- サービスページ文面の正本は `service-registry.yaml` の `source_of_truth` を使う
+- `bugfix-15000` の正本は `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
+- `handoff-25000` の正本は `/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt`
+- サービスページの確認・修正・監査では、上記2ファイルを最優先参照する
+- Claude / Gemini に監査させる時も、まず上記2ファイルを直接参照させる
+- `docs/coconala-listing-final.ja.md` などの mirror / 同期用ファイルは補助参照にとどめ、公開判断の基準にしない
 - 送信用文面を作成したら、必ず同文面を `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する
 - 相手文が明確なときは、直近の相手文も `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` に保存する
 
@@ -52,6 +58,8 @@ mode の正本:
 - 外部AIの提案は、出所ではなく妥当性・再発性・実務ノイズ・要点維持・既存ルールとの整合で採否を決める
 - 外部AIの案がより妥当なら、Codex はそれを採用して workspace に統合してよい
 - 外部レビューで妥当と判断した自然化ルールは、その場の返信だけで終わらせず、関連 skill の正本へ反映する
+- 反映前に、その改善が `reply-only` / `common` / `delivery-only` のどれかを必ず判定する
+- `reply-only` は返信文系正本だけ、`delivery-only` は納品物系正本だけへ反映し、`common` 判定なしで相互流用しない
 - 恒久反映の採用基準は `再発性がある / 実務ノイズを増やさない / 要点を薄めない / 既存ルールと衝突しない / 1回限りの好みではない`
 - `#CL` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Claude 向け監査プロンプトを作る
 - `#GE` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Gemini 向け監査プロンプトを作る
@@ -77,6 +85,8 @@ mode の正本:
 - 納品物作成: `delivery-pack-ja`
 - 正式納品前後は `/home/hr-hm/Project/work/os/delivery/boot.md` を主モードにする
 - 正式納品前後の外向け文面は、送信前に毎回 `japanese-chat-natural-ja` を通す
+- ここでいう外向け文面はトークルーム投稿文を指す。添付する納品物本文は自然化の対象にせず、`delivery-pack-ja` の構造とガードを優先する
+- delivery で得た改善も、`reply-only` / `common` / `delivery-only` を判定してから正本へ反映する
 
 【実務で維持するルール】
 - ココナラ規約違反（外部連絡、外部共有、外部決済）をしない
