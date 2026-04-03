@@ -1,0 +1,333 @@
+version: 1
+description: "prequote-bulk-20.txt 上位5件を reply_contract v2 前提で手マッピングした fixture。renderer / lint 実装前の正解形確認に使う。"
+
+source_cases:
+  - /home/hr-hm/Project/work/ops/tests/prequote-bulk-20.txt#BLK-001
+  - /home/hr-hm/Project/work/ops/tests/prequote-bulk-20.txt#BLK-002
+  - /home/hr-hm/Project/work/ops/tests/prequote-bulk-20.txt#BLK-003
+  - /home/hr-hm/Project/work/ops/tests/prequote-bulk-20.txt#BLK-004
+  - /home/hr-hm/Project/work/ops/tests/prequote-bulk-20.txt#BLK-005
+
+cases:
+  - id: BLK-001
+    title: "サブスク有効なのにサイト側だけ無料へ戻る"
+    service_id: bugfix-15000
+    src: service
+    state: prequote
+    raw_message: "こんにちは。月額課金のサービスを運営しているのですが、昨晩から一部のお客さんが「有料プランなのに無料プランに戻っている」と連絡してきています。Stripeの管理画面ではサブスクリプションは有効のままなのですが、サイト側だけおかしいようです。お客さんからの問い合わせが増えていて困っています。Next.jsとVercelで運用しています。対応できるものか教えてください。"
+    user_intent: "対応可否の確認"
+    case_type: bugfix
+    certainty: high
+    service_fit: high
+    risk_level: medium
+    risk_flags:
+      - customer_visible_impact
+      - anxious_tone
+    scope_judgement: same_cause_likely
+    summary: "Stripe上では有効だが、サイト側の会員状態だけ無料へ戻って見える。"
+    emotional_caution: true
+    ask_count: 0
+    missing_info: []
+    next_action: "service route のため、そのまま購入判断へ進める"
+    human_review_required: false
+    reply_generation: ready_to_draft
+    reply_stance:
+      burden_owner: us
+      empathy_first: true
+      reply_skeleton: estimate_initial
+      answer_timing: now
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "対応できるものか教えてください。"
+          priority: primary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "この内容なら15,000円で進められる。"
+          evidence_refs:
+            - service.scope
+            - stripe.subscription_active_but_site_state_wrong
+            - nextjs_vercel_in_scope
+      ask_map: []
+      issue_plan:
+        - issue: "対応可否と15,000円範囲の判断"
+          disposition: answer_now
+          reason: "同一原因の1件として切れる高確度 bugfix で、判断材料も足りている。"
+      required_moves:
+        - answer_directly_now
+        - give_purchase_path
+      forbidden_moves:
+        - vague_hold_without_reason
+        - internal_term_exposure
+        - numbered_QA_for_all_questions
+    renderer_checks:
+      first_answer_question_id: q1
+      expected_sections:
+        - react_briefly
+        - direct_answer
+        - short_scope_reason
+        - next_action
+      route_note: "service route は購入判断を前に出す"
+
+  - id: BLK-002
+    title: "Checkout から Firestore 反映で週次 timeout"
+    service_id: bugfix-15000
+    src: profile
+    state: prequote
+    raw_message: "プロフィール拝見しました。Stripe Checkout → Webhook → Firestore 書き込みの流れで、Firestore 側に書き込みが反映されないケースが週に数件出ています。Cloud Functions のログを見ると timeout になっているようです。Next.js 14 の App Router + Firebase で構成しています。原因の切り分けだけでもお願いできますか？"
+    user_intent: "原因切り分け依頼"
+    case_type: bugfix
+    certainty: high
+    service_fit: high
+    risk_level: low
+    risk_flags:
+      - profile_route
+      - semi_technical
+    scope_judgement: same_cause_likely
+    summary: "Checkout -> Webhook -> Firestore 書き込みで timeout が出て、週に数件だけ反映漏れする。"
+    emotional_caution: false
+    ask_count: 0
+    missing_info: []
+    next_action: "profile route のため、進める場合は15,000円提案へつなぐ"
+    human_review_required: false
+    reply_generation: ready_to_draft
+    reply_stance:
+      burden_owner: us
+      empathy_first: false
+      reply_skeleton: estimate_initial
+      answer_timing: now
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "原因の切り分けだけでもお願いできますか？"
+          priority: primary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "この内容なら15,000円の範囲で切り分けから修正可否確認まで進められる。"
+          evidence_refs:
+            - service.scope
+            - checkout_webhook_firestore_timeout
+            - next14_app_router_firebase
+      ask_map: []
+      issue_plan:
+        - issue: "切り分けだけでも依頼できるか"
+          disposition: answer_now
+          reason: "切り分けと修正可否確認は15,000円の範囲に含める。"
+      required_moves:
+        - answer_directly_now
+        - give_purchase_path
+      forbidden_moves:
+        - vague_hold_without_reason
+        - internal_term_exposure
+        - overexplain_branching
+    renderer_checks:
+      first_answer_question_id: q1
+      expected_sections:
+        - acknowledge_context
+        - direct_answer
+        - short_scope_reason
+        - next_action
+      route_note: "profile route は提案送付の含みを残す"
+
+  - id: BLK-003
+    title: "AI生成サイトの決済ボタンで断続的エラー"
+    service_id: bugfix-15000
+    src: message
+    state: prequote
+    raw_message: "メッセージ失礼します。知り合いにChatGPTで作ってもらったサイトがあるんですが、決済ボタンを押すとたまにエラーが出ます。毎回ではなくて、3回に1回くらいです。エラーの内容は画面に「Something went wrong」と出るだけで、詳しいことは分かりません。こういうのも見てもらえますか。"
+    user_intent: "対応可否の確認"
+    case_type: bugfix
+    certainty: low
+    service_fit: high
+    risk_level: medium
+    risk_flags:
+      - ai_generated_code
+      - message_route
+      - sparse_evidence
+    scope_judgement: undecidable
+    summary: "決済ボタンで 3 回に 1 回ほど Something went wrong が出るが、失敗地点が分からない。"
+    emotional_caution: false
+    ask_count: 1
+    missing_info:
+      - "失敗時の画面情報"
+    next_action: "message route のため、追加証跡を1つ受けてから 15,000円 範囲判定へ戻す"
+    human_review_required: false
+    reply_generation: ready_to_draft
+    reply_stance:
+      burden_owner: us
+      empathy_first: false
+      reply_skeleton: estimate_initial
+      answer_timing: after_check
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "こういうのも見てもらえますか。"
+          priority: primary
+      answer_map:
+        - question_id: q1
+          disposition: answer_after_check
+          answer_brief: "確認対象ではあるが、今の情報では1件として進められるかをまだ断定しない。"
+          hold_reason: "失敗地点が未特定で、決済前後のどこで止まっているか切れない。"
+          revisit_trigger: "失敗時の画面スクショを受領したあとに範囲判定を返す。"
+          evidence_refs:
+            - ai_generated_code
+            - intermittent_generic_error
+      ask_map:
+        - id: a1
+          question_ids:
+            - q1
+          ask_text: "エラーが出たときの画面スクショを1枚ください。"
+          why_needed: "決済画面の手前か、決済後処理かを切り分けるため。"
+          evidence_kind: screenshot
+      issue_plan:
+        - issue: "対応可否と15,000円範囲の判断"
+          disposition: answer_after_check
+          reason: "高適合ではあるが、今の情報だと症状の切れ目が見えない。"
+        - issue: "最小証跡の取得"
+          disposition: ask_client
+          depends_on:
+            - q1
+      required_moves:
+        - defer_with_reason
+        - request_minimum_evidence
+      forbidden_moves:
+        - vague_hold_without_reason
+        - numbered_QA_for_all_questions
+        - internal_term_exposure
+    renderer_checks:
+      first_answer_question_id: q1
+      expected_sections:
+        - acknowledge_context
+        - conditional_acceptance
+        - single_ask
+        - next_action
+      route_note: "message route は先に1証跡だけ取り、すぐ提案へ進まない"
+
+  - id: BLK-004
+    title: "解約確認メールが2通飛ぶ"
+    service_id: bugfix-15000
+    src: service
+    state: prequote
+    raw_message: "個人開発でSaaS作ってます。Stripe Billing でサブスク解約したユーザーに対して、解約確認メールを送る処理を仕込んでるんですが、メールが2通飛ぶことがあります。customer.subscription.deleted を受けてるんですが、同じイベントが2回来てる？ような気がしていて。冪等処理が甘いのかもしれないです。Vercel + Next.js 14 です。見てもらえますか。"
+    user_intent: "対応可否の確認"
+    case_type: bugfix
+    certainty: high
+    service_fit: high
+    risk_level: low
+    risk_flags:
+      - event_idempotency_suspected
+      - indie_hacker
+    scope_judgement: same_cause_likely
+    summary: "customer.subscription.deleted を受けた後に、解約確認メールが二重送信される。"
+    emotional_caution: false
+    ask_count: 0
+    missing_info: []
+    next_action: "service route のため、そのまま購入判断へ進める"
+    human_review_required: false
+    reply_generation: ready_to_draft
+    reply_stance:
+      burden_owner: us
+      empathy_first: false
+      reply_skeleton: estimate_initial
+      answer_timing: now
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "見てもらえますか。"
+          priority: primary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "この内容なら15,000円で進められる。"
+          evidence_refs:
+            - service.scope
+            - subscription_deleted_duplicate_mail
+            - idempotency_like_single_cause
+      ask_map: []
+      issue_plan:
+        - issue: "対応可否と15,000円範囲の判断"
+          disposition: answer_now
+          reason: "同一イベント処理の重複として1件にまとまりやすい。"
+      required_moves:
+        - answer_directly_now
+        - give_purchase_path
+      forbidden_moves:
+        - vague_hold_without_reason
+        - internal_term_exposure
+        - overexplain_branching
+    renderer_checks:
+      first_answer_question_id: q1
+      expected_sections:
+        - acknowledge_context
+        - direct_answer
+        - short_scope_reason
+        - next_action
+      route_note: "技術語を拾いつつも無料の原因説明は増やしすぎない"
+
+  - id: BLK-005
+    title: "決済完了後のリダイレクト先が404"
+    service_id: bugfix-15000
+    src: service
+    state: prequote
+    raw_message: "急ぎで相談です。今朝からStripeの決済完了後にリダイレクトされるはずのページが404になっています。昨日まで普通に動いていました。デプロイは最近していないはずなんですが、突然壊れた形です。お客さんが決済しても完了画面に行けない状態なので至急見てほしいです。"
+    user_intent: "至急対応可否の確認"
+    case_type: bugfix
+    certainty: high
+    service_fit: high
+    risk_level: medium
+    risk_flags:
+      - urgent
+      - customer_visible_impact
+    scope_judgement: same_cause_likely
+    summary: "決済完了後に行くはずの完了ページが 404 になる。"
+    emotional_caution: true
+    ask_count: 0
+    missing_info: []
+    next_action: "service route のため、そのまま購入判断へ進める"
+    human_review_required: false
+    reply_generation: ready_to_draft
+    reply_stance:
+      burden_owner: us
+      empathy_first: true
+      reply_skeleton: estimate_initial
+      answer_timing: now
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "至急見てほしいです。"
+          priority: primary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "この内容なら15,000円で進められる。"
+          evidence_refs:
+            - service.scope
+            - success_url_404
+            - nextjs_vercel_in_scope
+      ask_map: []
+      issue_plan:
+        - issue: "至急対応できるか"
+          disposition: answer_now
+          reason: "高確度の1フロー不具合で、見積りに必要な情報も足りている。"
+      required_moves:
+        - answer_directly_now
+        - give_purchase_path
+      forbidden_moves:
+        - vague_hold_without_reason
+        - internal_term_exposure
+        - numbered_QA_for_all_questions
+    renderer_checks:
+      first_answer_question_id: q1
+      expected_sections:
+        - react_briefly
+        - direct_answer
+        - short_scope_reason
+        - next_action
+      route_note: "urgent でも時間約束を増やしすぎず、受け入れ判断を先に出す"

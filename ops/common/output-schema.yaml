@@ -1,4 +1,4 @@
-version: 1
+version: 2
 
 required_fields:
   - src
@@ -78,10 +78,11 @@ optional_fields:
 nested_field_rules:
   reply_stance:
     required:
-      - answer_timing
       - burden_owner
       - empathy_first
       - reply_skeleton
+    optional_fields:
+      - answer_timing
     answer_timing:
       allowed:
         - now
@@ -103,11 +104,55 @@ nested_field_rules:
         - post_purchase_quick
         - post_purchase_report
         - delivery
+    derived_rules:
+      - answer_timing is a summary field derived from answer_map for primary_question_id
+      - when answer_timing is present, it must not conflict with answer_map[].disposition for primary_question_id
+      - writer and renderer must treat answer_map as the executable source of truth
   reply_contract:
     required:
+      - primary_question_id
+      - explicit_questions
+      - answer_map
+      - ask_map
       - issue_plan
       - required_moves
       - forbidden_moves
+    primary_question_id:
+      description: the question_id that must be answered in the earliest answer-bearing section
+    explicit_questions:
+      required_item_fields:
+        - id
+        - text
+        - priority
+      priority:
+        allowed:
+          - primary
+          - secondary
+      optional_item_fields:
+        - source_span
+    answer_map:
+      required_item_fields:
+        - question_id
+        - disposition
+      disposition:
+        allowed:
+          - answer_now
+          - answer_after_check
+          - ask_client
+          - decline
+      optional_item_fields:
+        - answer_brief
+        - hold_reason
+        - revisit_trigger
+        - evidence_refs
+    ask_map:
+      required_item_fields:
+        - id
+        - question_ids
+        - ask_text
+        - why_needed
+      optional_item_fields:
+        - evidence_kind
     issue_plan:
       required_item_fields:
         - issue
@@ -140,3 +185,8 @@ nested_field_rules:
         - vague_hold_without_reason
         - internal_term_exposure
         - overexplain_branching
+    derived_rules:
+      - answer_map and ask_map are the executable contract for renderer and lint
+      - issue_plan remains as a compatibility summary and must be derived from answer_map and ask_map, not treated as a separate source of truth
+      - every answer_after_check item in answer_map must include hold_reason and revisit_trigger
+      - ask_map must stay minimal and link each ask to one or more explicit_questions via question_ids

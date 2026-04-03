@@ -8,6 +8,8 @@
 - 主ケース集: `/home/hr-hm/Project/work/ops/tests/prequote-test-cases.txt`
 - 骨格ケース: `/home/hr-hm/Project/work/ops/tests/prequote-cases.yaml`
 - エッジケース: `/home/hr-hm/Project/work/ops/tests/edge-cases.yaml`
+- `reply_contract v2` fixture: `/home/hr-hm/Project/work/ops/tests/prequote-contract-v2-top5.yaml`
+- 評価ソース整理: `/home/hr-hm/Project/work/ops/tests/eval-sources.yaml`
 
 ## mode 別の入口
 - `coconala`: 既存の `prequote-test-cases.txt` / `prequote-cases.yaml` / `edge-cases.yaml`
@@ -27,6 +29,17 @@
 - `edge-cases.yaml`
   - 金銭事故や状態遷移の谷間に寄せた確認用。
   - 値引き、確認範囲の説明、quote_sent、closed 後などを見る。
+- `prequote-contract-v2-top5.yaml`
+  - `prequote-bulk-20.txt` 上位5件を、`reply_contract v2` 前提で手マッピングした fixture。
+  - renderer / lint 実装前に、`primary_question_id / answer_map / ask_map` の切り方を確認するのに使う。
+  - `./scripts/render-prequote-estimate-initial.py --case-id BLK-001` の入力にも使う。
+- `eval-sources.yaml`
+  - `ops/tests` 直下と `rehearsal` のどちらを、何の目的で使うかの整理。
+  - 構造評価は直下、文体回帰は rehearsal を使う。
+- `stock/`
+  - 実ストックの置き場。
+  - `inbox / seed / eval / holdout / edge` に分けて運用する。
+  - 詳細は `/home/hr-hm/Project/work/ops/tests/stock/README.ja.md` を見る。
 
 補足:
 - `expected_template` の参照先は 1 ファイルに固定しない。`short:§21` のような表記は `docs/coconala-message-templates-short.ja.md`、`golden:§53` のような表記は `docs/coconala-golden-replies.ja.md` を見る。
@@ -37,6 +50,29 @@
 3. 判定メモ / 返信文 / 補足提案が妥当かを見る
 4. 必要ならテンプレ・skill・rule を修正する
 5. 修正後は `prequote-cases.yaml` と `edge-cases.yaml` でも崩れていないかを見る
+6. `reply_contract v2` の整合を確認するときは `./scripts/check-reply-contract-v2-fixtures.sh` を使う
+7. `raw_message -> inferred reply_contract` の確認は `./scripts/check-inferred-prequote-contracts.py --show-passes` を使う
+8. contract checker の保存先は `/home/hr-hm/Project/work/runtime/regression/coconala-reply/contracts/latest.txt`
+9. `estimate_initial` の本文確認は `./scripts/check-rendered-prequote-estimate.py --fixture <path>` を使う
+10. `post_purchase_quick` の本文確認は `./scripts/check-rendered-post-purchase-quick.py --fixture <path>` を使う
+11. `closed` 後の再相談本文確認は `./scripts/check-rendered-closed-followup.py --fixture <path>` を使う
+12. `delivered` の本文確認は `./scripts/check-rendered-delivered-followup.py --fixture <path>` を使う
+13. `quote_sent` の本文確認は `./scripts/check-rendered-quote-sent-followup.py --fixture <path>` を使う
+14. 状態ごとの renderer をまとめて通すときは `./scripts/render-coconala-reply.py --fixture <path> --case-id <id> --lint` を使う
+15. 回帰結果を保存しながらまとめて見るときは `./scripts/check-coconala-reply-regression.py --save-report` を使う
+16. 保存先は `/home/hr-hm/Project/work/runtime/regression/coconala-reply/latest.txt` と `runtime/regression/coconala-reply/<timestamp>.txt`
+17. 直前結果との差分も見たいときは `./scripts/check-coconala-reply-regression.py --save-report --show-diff` を使う
+18. 差分保存先は `/home/hr-hm/Project/work/runtime/regression/coconala-reply/latest-diff.txt` と `runtime/regression/coconala-reply/<timestamp>.diff.txt`
+19. fail ケースの raw_message / rendered_reply も残したいときは、同じ `--save-report` で `/home/hr-hm/Project/work/runtime/regression/coconala-reply/failures/latest.txt` を見る
+20. fail ケースだけ再実行したいときは `./scripts/rerun-coconala-reply-failures.py --save-report` を使う
+21. 再実行結果の保存先は `/home/hr-hm/Project/work/runtime/regression/coconala-reply/failures/reruns/latest.txt`
+22. contract と本文回帰をまとめて見たいときは `./scripts/check-coconala-reply-full-regression.py --save-report` を使う
+23. 保存先は `/home/hr-hm/Project/work/runtime/regression/coconala-reply/full/latest.txt`
+24. 実ストックの件数と state 分布を見たいときは `./scripts/build-coconala-stock-report.py --save-report` を使う
+25. 保存先は `/home/hr-hm/Project/work/runtime/regression/coconala-reply/stock/latest.txt`
+26. seed / edge / eval / holdout / renderer_seed を箱ごとに回したいときは `./scripts/check-coconala-reply-role-suites.py --save-report` を使う
+27. 保存先は `/home/hr-hm/Project/work/runtime/regression/coconala-reply/suites/latest.txt`
+28. role を絞るときは `./scripts/check-coconala-reply-full-regression.py --role holdout` や `./scripts/check-coconala-reply-regression.py --role eval` を使う
 
 ## 返信文の温度感をまとめて整えたいとき
 - `/home/hr-hm/Project/work/ops/tests/rehearsal/README.ja.md` を使う

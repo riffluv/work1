@@ -1,0 +1,96 @@
+version: 1
+description: "返信システム強化の評価ソース整理。構造評価は ops/tests 直下、文体回帰は rehearsal を使う。"
+
+primary_sources:
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-cases.yaml
+    role: seed
+    purpose:
+      - 15K / hold / decline の基本分岐確認
+      - skeleton ごとの最小分岐確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/edge-cases.yaml
+    role: edge
+    purpose:
+      - 規約事故 / state 遷移 / boundary の崩れ確認
+      - purchased / closed / quote_sent の谷間確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-test-cases.txt
+    role: eval
+    purpose:
+      - route 差分を含む自然文評価
+      - prequote / purchased の通常会話ケース評価
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-bulk-20.txt
+    role: eval
+    purpose:
+      - 高適合 bugfix の連続判定
+      - high-fit / hold の切り分け確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-bulk-30-v2.txt
+    role: eval
+    purpose:
+      - 標準量産ケースの連続判定
+      - bugfix / handoff / boundary の基本精度確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-bulk-30-v3.txt
+    role: eval
+    purpose:
+      - 難ケースの通常評価
+      - 情報不足 / 複数論点 / 感情強め の処理確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-bulk-20-v6.txt
+    role: holdout
+    purpose:
+      - ブラインド検定
+      - multi-question / urgency / security / price / purchased / closed の混在確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-bulk-30-v5.txt
+    role: holdout
+    purpose:
+      - 初手で崩れやすい難ケース評価
+      - bugfix / boundary / price / secrecy の複合確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-bulk-30-v4.txt
+    role: holdout
+    purpose:
+      - edge に寄った難ケースのブラインド確認
+      - 返信運用を壊しに来るケースの耐性確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/prequote-contract-v2-top5.yaml
+    role: renderer_seed
+    purpose:
+      - reply_contract v2 の手マッピング正解形
+      - estimate_initial renderer / lint の初期入力
+    status: active
+
+secondary_sources:
+  - path: /home/hr-hm/Project/work/ops/tests/rehearsal/regression-pass-20260330.ja.md
+    role: regression_notes
+    purpose:
+      - 過去 drift 表現の確認
+      - current canonical batch の把握
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/rehearsal/archive/raw-batches-2026-04-03.tar.gz
+    role: style_regression_archive
+    purpose:
+      - 返信文の温度感回帰
+      - banned phrasing / opening rotation の spot-check
+    status: archive_only
+
+usage_rules:
+  - 構造変更の評価は primary_sources を優先する
+  - rehearsal archive は入力ケースの正本にしない
+  - rehearsal archive は文体回帰と禁止表現確認に限定する
+  - 新しい renderer / lint の良否判定は holdout を先に通して見る
+  - 実ストックの主運用は seed / eval / holdout / edge / renderer_seed の5箱で回す
+  - seed は構造変更直後の最小確認、eval は通常改善、holdout は混線防止、edge は事故防止、renderer_seed は contract の正解形確認に使う

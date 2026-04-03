@@ -13,8 +13,14 @@
 ## 送信前チェック
 - 相手の質問に直接答えているか
 - `case_type / certainty / reply_stance / reply_contract` の判定と、最終文面の骨格が矛盾していないか
+- `reply_contract.primary_question_id` に対応する質問へ、最初の answer-bearing section で答えているか
+- `reply_contract.explicit_questions` を取りこぼしていないか
+- `reply_contract.answer_map` と本文の `今答える / 確認後に返す / 依頼する / 断る` が一致しているか
+- `reply_stance.answer_timing` を reply-global の正本として扱わず、主質問の要約としてしか使っていないか
 - `reply_contract.issue_plan` で `answer_after_check` にした論点を、本文で無理に断定していないか
+- `answer_map` の `answer_after_check` に `hold_reason` と `revisit_trigger` があるか
 - `required_moves` が本文に残り、`forbidden_moves` を踏んでいないか
+- `ask_map` にない質問を勝手に増やしていないか
 - `可能ですか` `できますか` `大丈夫ですか` のような Yes/No 質問には、流れ説明より先に結論を返しているか
 - `そのまま続けて頼めますか` `別料金で修正までお願いできますか` のような継続可否質問には、先に `はい、可能です` / `現状では難しいです` を返しているか
 - `税込みですか` `追加でかかりますか` のような Yes/No で答えられる料金質問に、制度説明だけで逃げず直接答えているか
@@ -72,6 +78,7 @@
 - クロージングが `問題なければ` に固定しすぎていないか
 - `切り分けたうえで対応します` が機械的な標準文になっていないか
 - 本文の中段も含めて Ban 表現が残っていないか
+- naturalize 後にも、section order・価格・ask 数・hold reason・次アクション・forbidden claim を再チェックしたか
 - Stripe不使用ケースなら、対応可能か対象外かを一言で明示したか
 - 金額を出しているのに、同じ文面でヘッジしていないか
 
