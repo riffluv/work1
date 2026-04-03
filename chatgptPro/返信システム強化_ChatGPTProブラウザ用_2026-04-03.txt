@@ -1,0 +1,304 @@
+以下は、ブラウザ版 ChatGPT Pro にそのまま貼る前提の調査依頼です。
+この依頼文だけで意味が通るようにしてあります。
+repo 参照はできない前提で、必要な前提を文中に埋めています。
+
+---
+
+あなたは、AI を使った実務返信システムの設計レビュー担当です。
+今回は「日本語をきれいにする」より、「相手の主質問に正面から答える返信システムをどう作るか」を批判的にレビューしてください。
+
+褒めることが目的ではありません。
+足りない点、壊れやすい点、再解釈が起きる点、構造的に弱い点を優先して指摘してください。
+私の前提が間違っているなら、遠慮なく否定してください。
+背景の言い換えや要約を長く繰り返さず、設計判断を優先してください。
+
+## 背景
+
+私はココナラで、Next.js / Stripe / API 連携の不具合修正サービスを運用しています。
+理想は、
+
+- 相手の文章を貼る
+- AI がサービス内容・価格・スコープ・規約を踏まえて整理する
+- 相手の主質問に直接答える
+- 必要なときだけ最小限の追加質問をする
+- 購入後は進捗返信や受領返信も安定して返せる
+
+という状態です。
+
+一番の課題は、日本語の微妙ないい回しではなく、
+
+- 今あるサービス内容をちゃんと把握したうえで
+- 相手の文章にしっかり critical に返しているか
+- 答えるべき質問に答え、保留すべきものは保留理由つきで返せているか
+
+です。
+
+## 現在のサービス前提
+
+現時点の公開サービスは 1 つだけです。
+
+- `bugfix-15000`
+  - 価格は 15,000 円
+  - 対象は Next.js / Stripe / API 連携まわりの不具合修正
+  - 基本は「不具合1件（同一原因 / 1フロー / 1エンドポイント）」の範囲
+  - 原因切り分けと修正可否の確認を含む
+  - 範囲外は、新機能開発、通話、直接 push、本番デプロイ、外部連絡誘導、外部決済誘導
+  - `.env` や API キーの生値は扱わない
+
+重要なのは、このサービス内容を踏まえずに、一般的なカスタマーサポート論だけで答えてほしくないことです。
+
+## 現在の返信システムの構造
+
+ざっくり 4 段です。
+
+### Stage 1: intake / routing
+相手文から次を判定します。
+
+- どこから来た相談か
+- 状態は何か
+  - `prequote`
+  - `quote_sent`
+  - `purchased`
+  - `predelivery`
+  - `delivered`
+  - `closed`
+- 主力サービスに合うか
+- リスクは高いか
+- スコープは同一原因っぽいか / 別原因っぽいか / 未判定か
+- case_type
+  - `bugfix`
+  - `handoff`
+  - `boundary`
+  - `after_purchase`
+  - `after_close`
+- certainty
+  - `high`
+  - `low`
+
+### Stage 2: reply stance / contract
+返信文を作る前に、返信姿勢と契約を決めています。
+
+`reply_stance`:
+- `answer_timing`
+  - `now`
+  - `after_check`
+- `burden_owner`
+  - `us`
+  - `client`
+  - `shared`
+- `empathy_first`
+  - `true`
+  - `false`
+- `reply_skeleton`
+  - `estimate_initial`
+  - `estimate_followup`
+  - `post_purchase_receipt`
+  - `post_purchase_quick`
+  - `post_purchase_report`
+  - `delivery`
+
+`reply_contract`:
+- `issue_plan[]`
+  - `issue`
+  - `disposition`
+    - `answer_now`
+    - `answer_after_check`
+    - `ask_client`
+    - `decline`
+- `required_moves[]`
+- `forbidden_moves[]`
+
+### Stage 3: reply writer
+上の判定を使って返信文を作ります。
+
+### Stage 4: naturalize
+最後に日本語を自然に整える工程があります。
+ただし、ここでは本来
+
+- 結論
+- 質問項目数
+- 価格
+- 禁止事項
+- 次アクション
+
+を変えてはいけない想定です。
+
+## 現在ある問題
+
+仕組みはある程度ありますが、まだ次のズレが起きます。
+
+1. 相手の主質問に直接答えず、説明や保留に逃げることがある
+2. 上流で決めた stance / contract が、下流の writer で再解釈されて崩れることがある
+3. purchased なのに、見積もり初回のような受付テンプレに戻ることがある
+4. unnecessary ask が出る
+5. vague hold が出る
+6. 文として自然でも、「相手が本当に聞きたいことに答えていない」ことがある
+
+## 現在すでにあるもの
+
+次は既にあります。
+
+- intent / state / scope の routing
+- reply_stance
+- reply_contract
+- issue_plan
+- NG 表現リスト
+- self-check
+- 最終自然化
+
+つまり、完全なゼロベースではありません。
+この状態で、なお足りない構造が何かを見たいです。
+
+## 私の仮説
+
+今の不足は、新しい言い回しや文体ではなく、
+
+1. `answer-contract layer`
+   - 相手の主質問・暗黙質問・保留対象を明示的に持つ層
+2. `grounding packet layer`
+   - service facts / state / scope / guard / forbidden claim をまとめた根拠パケット
+3. `critic gate layer`
+   - writer 後、naturalize 前後に「主質問へ答えているか」「禁止を踏んでいないか」を止める層
+
+ではないかと考えています。
+
+## あなたにしてほしいこと
+
+この仮説を、かなり批判的にレビューしてください。
+
+特に知りたいのは、
+
+- 既にある `reply_contract` で本来足りるのか
+- それでもズレるなら、schema が足りないのか、writer が自由すぎるのか
+- 一番効く1手は `grounding_packet` なのか `reply_critic` なのか `section renderer` なのか
+- 実務上、人間の微修正を減らすにはどこを deterministic にすべきか
+
+です。
+
+## 重点質問
+
+### Q1.
+この構造なら、最優先で足すべきものは何ですか。
+候補:
+
+- grounding_packet
+- reply_critic
+- section renderer
+- deterministic lint
+- eval dataset
+
+優先順位を出し、第一推奨案を 1 つに絞ってください。
+「全部必要です」のような逃げ方はしないでください。
+
+### Q2.
+`reply_contract` が既にあるのにズレるなら、問題はどこですか。
+
+- schema 欠落
+- writer の自由生成度
+- naturalize での破壊
+- 上流判定と下流骨格の結線不足
+
+この中でどれが本丸か、順番をつけてください。
+最も支配的な原因を 1 つ選んでください。
+
+### Q3.
+「主質問に正面から答える率」を上げるには、どんな中間表現が必要ですか。
+たとえば次の候補があります。
+
+- explicit_questions[]
+- implicit_questions[]
+- answer_map[]
+- defer_map[]
+- ask_map[]
+
+最小構成を提案してください。
+
+### Q4.
+writer は自由生成のまま改善できますか。
+それとも、reply_skeleton ごとの section renderer に寄せるべきですか。
+
+もし renderer が必要なら、最小仕様を示してください。
+例:
+
+- post_purchase_quick
+  - 短い反応
+  - 今答えること
+  - 確認後に返すこと
+  - 最小依頼
+  - 次回時刻
+
+のように。
+
+### Q5.
+naturalize は最後に残してよいですか。
+残すなら、前後で何を validator すべきですか。
+壊れやすい項目を列挙してください。
+deterministic に検査できるものと、LLM judge が必要なものを分けてください。
+
+### Q6.
+この種の返信システムで、実務上いちばん効く eval は何ですか。
+候補:
+
+- 主質問直接回答率
+- unnecessary ask rate
+- vague hold rate
+- forbidden move 発生率
+- purchased なのに intake に戻る率
+- required move 欠落率
+
+よりよい指標があれば提案してください。
+また、自動採点しやすいかどうかも書いてください。
+
+### Q7.
+OpenAI / Anthropic / Google / Intercom / Zendesk などの一次情報から見て、
+プロの返信システムは「文章力」より「分類 / grounding / confidence / handoff / eval」をどう設計しているか、今回のケースに持ち込める形で要約してください。
+
+## 出力形式
+
+1. 総評
+- 方向性の妥当性
+- 一番危ない failure mode
+
+2. 結論
+- 最優先で足すべきもの 上位3
+- 第一推奨案 1つ
+- やらなくてよいこと
+
+3. 構造レビュー
+- 既にあるもの
+- 既にあるが効いていないもの
+- 新規追加が必要なもの
+
+4. 具体提案
+- 中間表現
+- critic / validator
+- renderer
+- naturalize 前後のチェック
+
+5. 実装順
+- 今すぐやること
+- 後回しでよいこと
+
+6. eval 設計
+- 最小セット
+- 回帰テスト化すべき failure mode
+
+7. 参照ソース
+- 一次情報の URL
+- どの結論がどのソースに依っているか
+
+8. 最終判断
+- もしあなたがこの案件の実装責任者なら、最初に 1 つだけ着手するものは何か
+- それを選ぶ理由
+- それ以外を後回しにする理由
+
+## 制約
+
+- きれいな理想論で終わらせない
+- 第一推奨案を曖昧にしない
+- 日本語の美しさより「主質問に正面から答える構造」を優先する
+- 「すでにある仕組み」を見落として、的外れな追加提案をしない
+- なるべく最小変更で効く案を優先する
+- 出力は冗長にしすぎず、実装判断に使える密度で返す
+
+---

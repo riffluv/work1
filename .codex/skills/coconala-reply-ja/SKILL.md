@@ -29,6 +29,13 @@ description: "ココナラ向けの自然な日本語返信を作る。相手文
 `相談点: ...`
 `希望: ...`
 
+## required_facts
+- 価格・追加料金・公開状態・public/private は、毎回 `/home/hr-hm/Project/work/os/core/service-registry.yaml` と、そこから辿る `facts_file` を正本として読む。
+- `bugfix-15000` / `handoff-25000` の hard facts は直書きで前提にせず、`service-registry.yaml` で `service_id` を解決して、その `facts_file` を正本にする。
+- 外向け自然文の参照は、`service-registry.yaml` の `source_of_truth` を使う。
+- サービスページ本文は外向け自然文の正本として参照してよいが、価格・追加料金・公開状態の機械判定は `service.yaml` を優先する。
+- `public: false` のサービスは、外向け返信でサービス名・価格・購入導線を出さない。
+
 ## 分析のみの出力形式
 - 要点（相手の主張）
 - 懸念（技術/運用/規約）
@@ -51,13 +58,15 @@ description: "ココナラ向けの自然な日本語返信を作る。相手文
    - 2行目: `どこまでは正常で、現在どこを見ているか`
    - 3行目: `次にやること` と `次回連絡目安` または `必要情報`
 10. `references/style-rules.ja.md` の禁止語・言い換えルールを適用して下書きを整える。
-11. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
-12. `references/consistency-guard.ja.md` で整合性チェックを実施する（項目数、番号例、矛盾語の有無）。
-13. 支払い・仕様説明がある場合は、公式仕様と矛盾しないか確認する（見積り経由オプション不可、正式納品後はおひねり、クローズ後は新規依頼）。
-14. 購入直後の初回連絡は24時間以内（通常数時間以内）を目安に送る（返信遅延リスク回避）。
-15. 返信文モードでは、本文を `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
-16. リスクやスコープ変更がある場合は、次アクションを1行で明記する。
-17. ユーザー指定がない限り短めにまとめる。
+11. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
+12. 近い場面があれば `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` から 1 本だけ見て、温度感と依頼数の基準を合わせる。
+13. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
+14. `references/consistency-guard.ja.md` で整合性チェックを実施する（項目数、番号例、矛盾語の有無）。
+15. 支払い・仕様説明がある場合は、公式仕様と矛盾しないか確認する（見積り経由オプション不可、正式納品後はおひねり、クローズ後は新規依頼）。
+16. 購入直後の初回連絡は24時間以内（通常数時間以内）を目安に送る（返信遅延リスク回避）。
+17. 返信文モードでは、本文を `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
+18. リスクやスコープ変更がある場合は、次アクションを1行で明記する。
+19. ユーザー指定がない限り短めにまとめる。
 
 ## 出力ルール
 - 行頭に不要なスペースを入れない。
@@ -166,14 +175,20 @@ description: "ココナラ向けの自然な日本語返信を作る。相手文
 - 納品パック: `delivery-pack-ja`（診断レポート/差分/検証手順/納品文の作成）
 
 ## 文体の参照
+- 返信品質の育成ループ: `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md`
 - 文体・言い換え: `references/style-rules.ja.md`
 - 返信の型: `references/message-patterns.ja.md`
 - ヒアリング分岐: `references/intake-flow.ja.md`
 - 破綻防止チェック: `references/consistency-guard.ja.md`
 - 見積り経路別テンプレ: `references/estimate-reply-flow.ja.md`
+- 再発 NG 表現: `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md`
+- Gold replies: `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md`
 
 ## 仕上げ前チェック
 - 相手の質問に正面から答えているか
+- `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` の NG 表現が残っていないか
+- 同じ内容を2回言っていないか
+- 相手がすでに答えたことを再度質問していないか
 - 双方の次アクションが明確か
 - 禁止事項（外部誘導/秘密情報要求）を含んでいないか
 - 読んで不自然な過剰敬語になっていないか

@@ -1,5 +1,9 @@
 # 回帰確認メモ 2026-03-30
 
+注記:
+- 当時の plain text batch は `/home/hr-hm/Project/work/ops/tests/rehearsal/archive/raw-batches-2026-04-03.tar.gz` に圧縮退避済み
+- 下記の `batch-*.txt` 表記は、当時の識別子を残すための履歴メモであり、現行の参照先ではない
+
 ## 対象
 - `ops/tests/rehearsal/batch-EST-001-005-v2.txt`
 - `ops/tests/rehearsal/batch-CLS-001-005-v2.txt`
@@ -82,7 +86,7 @@
 上記の drift 表現は、追加した 3 バッチでも 0 件
 
 意図:
-- `CHK`: 5,000円確認の出し方を現行 rule に合わせる
+- `CHK`: 旧確認案内の出し方を現行 rule に合わせる
 - `PRC`: 値下げ可否へ価格そのもので直接答える
 - `CMP`: 返金や苦情で、こちらが判断者に見えない順序へそろえる
 

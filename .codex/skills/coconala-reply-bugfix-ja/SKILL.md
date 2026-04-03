@@ -11,10 +11,10 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 固定条件（価格 / 範囲 / 規約）を崩さない。
 
 ## 固定条件（変更禁止）
-- 基本料金: 15,000円
-- 追加修正1件: 15,000円
-- 個別提示のみの確認枠: 追加調査30分 5,000円（公開オプションとしては扱わない）
-- 不具合1件: 同一原因 / 1フロー / 1エンドポイント
+- 価格・追加料金・公開状態・基本範囲は hardcode せず、毎回 `service-registry.yaml` で `bugfix-15000` を解決して `facts_file` を正本にする
+- 確認範囲の説明は `estimate-decision.yaml` と `source_of_truth` を正本にする
+- 公開中サービスに確認専用の別料金プランはない
+- 不具合1件の扱いは `同一原因 / 1フロー / 1エンドポイント` を基準にする
 - 範囲外: 通話、直接push、本番デプロイ、新機能開発
 - セキュリティ: `.env` はキー名のみ（値は不要）
 - 禁止: 外部連絡、外部共有、外部決済への誘導
@@ -31,14 +31,24 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 相手文の貼り付けだけで、送信用文面の明示依頼がないとき
   - この場合は分析のみを返す
 
+## required_facts
+- bugfix の hard facts は、毎回 `/home/hr-hm/Project/work/os/core/service-registry.yaml` と、そこから辿る `facts_file` を正本として読む。
+- 現在の公開 bugfix サービスは `bugfix-15000` のみで、価格・追加料金・公開状態・範囲は `service-registry.yaml` で `bugfix-15000` を解決し、その `facts_file` を正本にする。
+- 公開状態と外向け自然文の参照は、`service-registry.yaml` の `public` と `source_of_truth` を使う。
+- サービスページ本文は外向け自然文の正本として参照してよいが、価格・追加料金・公開状態の機械判定は `service.yaml` を優先する。
+- 古いテンプレや過去の返信例に旧確認プラン前提の文面が残っていても、外向け bugfix では採用しない。
+
 ## 先に見るファイル
+- `/home/hr-hm/Project/work/os/core/service-registry.yaml`
 - `/home/hr-hm/Project/work/ops/common/coconala-rule-guard.md`
 - `/home/hr-hm/Project/work/ops/common/output-schema.yaml`
-- `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml`
+- `service-registry.yaml` の `bugfix-15000` から辿る `facts_file`
 - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/evidence-minimum.yaml`
 - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/scope-matrix.md`
 - `/home/hr-hm/Project/work/docs/coconala-japanese-banlist.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-japanese-must-rules.ja.md`
+- `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md`
+- `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md`
 
@@ -55,9 +65,11 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 7. 重複質問を避けながら、不足情報だけを最大2〜3点で依頼する。
 8. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
 9. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
-10. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
-11. 自然化後も section order と `required_moves / forbidden_moves` を崩していないか確認する。
-12. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
+10. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
+11. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
+12. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
+13. 自然化後も section order と `required_moves / forbidden_moves` を崩していないか確認する。
+14. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
 
 ## `reply_contract` の使い方
 - `reply_contract` はヒントではなく、下流が守る実行契約として扱う。
@@ -83,7 +95,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
   - `references/post-purchase-stages.ja.md`
 - `emotional_caution: true` または苦情寄りの文面:
   - `references/emotional-caution-mode.ja.md`
-- 値引き、5,000円、`quote_sent`、`closed` 後などの例外運用:
+- 値引き、`quote_sent`、`closed` 後などの例外運用:
   - `references/edge-cases.ja.md`
 - 複数症状、対象外懸念共有、技術的には可能な別件案内:
   - `references/scope-boundary-phrases.ja.md`
@@ -95,7 +107,6 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 ## Gotchas
 - `reply_contract` があるのに、本文生成側で再解釈しない。特に `issue_plan` の `answer_after_check` を、良かれと思って即答へ変えない。
 - `prequote` で `#R / #A` を作る時は、先に `coconala-prequote-ops-ja` を使う。金額分岐をこのskillで抱え込まない。
-- 5,000円の確認だけ相談は、`/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` の §2 を基準にする。`確認案件` `30分の範囲` などの内部向け表現を外向け本文へ出さない。
 - `scope_judgement: undecidable` のまま、追加料金や無料対応を断定しない。
 - Webhookの複数イベント失敗でも、同一原因なら `bugfix-15000` の守備範囲に残す。
 - 複数症状が並ぶ時は、こちらで勝手に「1件目」を決めない。優先順位を確認する。
@@ -141,6 +152,8 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 次アクションと時刻が明確か
 - 結語が抜け落ちていないか（`.env` 注意文で終わっていないか）
 - non_engineer 向けで内部語や強すぎる技術語が混ざっていないか
+- `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` の NG 表現が残っていないか
 - Ban表現ヒット0件を確認したか
 - `prequote` で本来 `coconala-prequote-ops-ja` に寄せるべき場面を、このskillで無理に処理していないか
 - テンプレを使った場合でも、相手の文脈に合わせて調整したか
+- 公開 bugfix で確認専用の別料金案内が再発していないか

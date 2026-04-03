@@ -45,6 +45,9 @@
 - 返信が必要な時だけ `Coconala OS` の lane に戻る
 - Stripe案内は `/home/hr-hm/Project/work/stripe日本語UI案内` を最優先参照する
 - コードコメントは `/home/hr-hm/Project/work/docs/code-comment-style.ja.md` を毎回デフォルト適用する
+- Agent-Reach などの外部調査ツールは、ユーザーが明示した時だけ使う
+- 外部調査ツールは OS 本体に常駐させず、外部調査レーンとして切り離して扱う
+- 外部調査の結果はそのまま正本へ入れず、要約・選別した調査メモ経由で持ち込む
 
 ## 日本語品質の反映
 - 送信用返信は毎回 `japanese-chat-natural-ja` を最終自然化として通す

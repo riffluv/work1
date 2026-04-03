@@ -3,7 +3,6 @@ display_name: Next.js/Stripe不具合診断・修正
 base_price: 15000
 addons:
   extra_fix: 15000
-  extra_research_30m: 5000
 
 scope_unit: same_cause_and_same_flow_and_same_endpoint
 purchase_before_estimate_required: false

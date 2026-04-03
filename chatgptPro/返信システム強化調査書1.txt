@@ -1,0 +1,344 @@
+1. 総評
+
+方向性はかなり近いです。
+ただし、本丸は grounding_packet を厚くすることでも、reply_critic を増やすことでもありません。いま壊れているのは、上流で決めた判断が下流で再解釈可能なまま prose 化されていることです。OpenAI / Anthropic / Google の一次情報は、共通して「明示的な出力契約」「構造化出力」「タスク単位の eval」を重視しており、自由文のうまさに依存する設計を勧めていません。
+
+一番危ない failure mode は、答えられる主質問を答えず、purchased なのに intake に巻き戻した、丁寧だが実質無回答の返信です。実務ではこれが一番痛いです。Intercom と Zendesk も AI の運用品質を、resolution / handoff / understood / automated resolution のような指標で見ており、文章美では見ていません。
+
+2. 結論
+最優先で足すべきもの 上位3
+section renderer
+deterministic lint
+eval dataset
+第一推奨案
+
+section renderer に絞ります。
+ただし実装上は、reply_contract をそのまま使うのではなく、reply_contract v2（主質問と回答 disposition を持つ executable contract）を入力にした renderer にしてください。
+
+Q2 の本丸
+
+根本原因は schema 欠落 です。順位は次です。
+
+schema 欠落
+writer の自由生成度
+上流判定と下流骨格の結線不足
+naturalize での破壊
+
+ここは少し重要です。
+最初に着手する実装は section renderer ですが、一番支配的な原因は schema 欠落です。今の reply_contract は policy sheet であって answer plan ではありません。
+
+やらなくてよいこと
+answer-contract layer を reply_contract と別の真実源として増やすこと
+単一サービス段階で、大きな grounding_packet layer を新設すること
+free writer の上に reply_critic を先に載せること
+semantic freeze 前に naturalize を強くすること
+
+OpenAI / Anthropic / Google が structured outputs を推す理由は、「後から critic で叩く」より「最初から出力契約で縛る」方が安定するからです。
+
+3. 構造レビュー
+既にあるもの
+state / scope / risk routing
+reply_stance
+reply_contract
+required_moves[] / forbidden_moves[]
+skeleton 名
+self-check
+naturalize
+
+これはゼロベースではありません。むしろかなり揃っているので、追加すべきは「新しい賢い writer」ではなく、既存情報を拘束力ある形式に変えることです。
+
+既にあるが効いていないもの
+reply_contract.issue_plan[]
+issue と disposition はあるが、どの質問に対するものか、何を答えるか、なぜ保留か、何を聞けば解除できるかが持てていません。
+reply_skeleton
+名前はあるが、writer が守るべき section order になっていません。
+self-check
+under-specified な prose を同じ曖昧さで再審査しているので、取りこぼしが出やすいです。
+naturalize
+semantic freeze の後ではなく、意味をまだ変えられる位置にいます。
+既にあるが設計的に危ないもの
+reply_stance.answer_timing が reply-global
+実務返信は「Q1 は今答える / Q2 は確認後」が普通です。global now/after_check は粗すぎます。
+certainty が reply-global
+これも主質問への直接回答率を落とします。1つ不明だと全体が弱気になる。
+burden_owner も reply-global
+実際は ask ごとに owner が違います。
+新規追加が必要なもの
+primary_question_id
+explicit_questions[]
+answer_map[]
+ask_map[]
+render_rules
+小さい typed service_fact_packet
+deterministic lint
+
+Anthropic は明確な順序立て・XML 構造・例示で誤読を減らすよう勧め、OpenAI は explicit contract / completion criteria を明示するよう勧めています。あなたのケースも同じで、自由文の前に構造を固定すべきです。
+
+4. 具体提案
+中間表現
+
+最小構成はこれで足ります。
+
+primary_question_id
+explicit_questions[]
+answer_map[]
+ask_map[]
+
+implicit_questions[] は今は要りません。
+ここを先に入れると、勝手な善意解釈が増えて unnecessary ask が悪化します。必要なら後で latent_decision を 1 個だけ持てば十分です。
+
+最小 schema
+{
+  "primary_question_id": "q1",
+  "explicit_questions": [
+    {
+      "id": "q1",
+      "text": "15,000円で対応可能ですか？",
+      "priority": "primary",
+      "source_span": "..."
+    },
+    {
+      "id": "q2",
+      "text": "購入後すぐ確認できますか？",
+      "priority": "secondary",
+      "source_span": "..."
+    }
+  ],
+  "answer_map": [
+    {
+      "question_id": "q1",
+      "disposition": "answer_now",
+      "answer_brief": "bugfix-15000の範囲なら15,000円で対応可能",
+      "evidence_refs": ["svc.price", "svc.scope", "conv.state"]
+    },
+    {
+      "question_id": "q2",
+      "disposition": "answer_after_check",
+      "hold_reason": "再現箇所確認前は着手順と範囲確定ができないため",
+      "revisit_trigger": "対象フロー受領後"
+    }
+  ],
+  "ask_map": [
+    {
+      "id": "a1",
+      "question_ids": ["q2"],
+      "ask_text": "不具合が起きるURLか操作手順を1つだけ共有ください。",
+      "why_needed": "同一原因 / 1フロー判定のため"
+    }
+  ]
+}
+
+ポイントは、defer_map[] を別に作らず、既存 enum を使って answer_map[].disposition に統合することです。
+新しい層を増やすより、reply_contract をこれに進化させる方が安全です。
+
+critic / validator
+
+順番は deterministic lint → LLM judge です。
+
+deterministic に検査すべきもの
+state と skeleton の整合
+例: purchased 以降で estimate_initial 禁止
+価格 15,000円 の改変有無
+scope 定義の改変有無
+required_moves[] の欠落
+forbidden_moves[] の発生
+ask 数上限
+answer_after_check に hold_reason と revisit_trigger があるか
+.env / API キー生値要求の有無
+外部連絡 / 外部決済誘導の有無
+primary_question_id に対応する section が存在するか
+LLM judge が必要なもの
+主質問に正面から答えているか
+ask が最小限か
+hold が vague でないか
+答え方が scope を曖昧化していないか
+直接答えるべき所で逃げていないか
+
+OpenAI / Anthropic / Google は eval を task-specific / rubric-based / automated-first に寄せています。judge も自由作文ではなく、binary or small-scale rubric に寄せるべきです。
+
+renderer
+
+結論として、writer を自由生成のまま改善するのは限界があります。
+必要なのは reply_skeleton ごとの section renderer です。
+
+最小仕様
+
+renderer は少なくとも次を固定してください。
+
+section 順
+section の表示条件
+各 section に入れてよい slot
+ask 上限
+先頭 section で primary question を扱う規則
+estimate_initial
+結論（対応可 / 条件付き / 不可）
+根拠（価格・scope・範囲）
+最小 ask
+次アクション
+post_purchase_quick
+受領
+今答えること（answer_now を primary から）
+確認後に返すこと（answer_after_check + 理由）
+最小依頼（ask_map）
+次回アクション
+post_purchase_report
+進捗
+確認できた事実
+未確認点
+ブロッカーがある場合のみ ask
+次回更新
+
+重要なのは、writer は section の中身を言い換えるだけにすることです。
+section の有無・順序・ask 数・price・禁止事項は code が決めるべきです。
+
+naturalize 前後のチェック
+
+naturalize は最後に残してよいです。
+ただし条件があります。
+
+raw の相手文を渡さない
+service facts を渡しすぎない
+rendered draft だけを渡す
+tag / slot 境界を壊させない
+
+理想はこうです。
+
+[ACK]
+[ANSWER q1]
+[HOLD q2 reason=... trigger=...]
+[ASK a1 why=...]
+[NEXT]
+
+naturalize はこの中身だけを滑らかにする。
+tag の削除・移動・追加は禁止です。
+
+壊れやすい項目
+can / cannot の極性
+now / after_check の極性
+価格
+purchased / prequote の state 含意
+ask の数
+hold reason
+次アクション
+forbidden claim
+
+Anthropic は consistency が必要なら prompt 技法より structured outputs を使うよう明記しています。ここは自然化で頑張る場所ではありません。
+
+5. 実装順
+今すぐやること
+reply_contract を primary_question_id + explicit_questions + answer_map + ask_map に拡張
+estimate_initial と post_purchase_quick の 2 skeleton だけ renderer 化
+deterministic lint を実装
+直近実例から eval dataset を作る
+後回しでよいこと
+implicit_questions[]
+大きい grounding_packet layer
+reply_critic の reject/regenerate ループ
+skeleton 全面展開
+naturalize の高度化
+
+あなたは既に skeleton と required/forbidden moves を持っています。
+だから最小変更で効くのは、そこを executable にすることです。
+
+6. eval 設計
+最小セット
+Primary Question Resolution Accuracy
+主質問を正しく抽出し、正しい disposition（answer_now / answer_after_check / ask_client / decline）を選び、妥当な本文で実行できた率。
+これを North Star にしてください。
+自動採点しやすさ: 中（gold + LLM judge）
+State / Skeleton Integrity Rate
+purchased なのに estimate_* に戻らない率。
+自動採点しやすさ: 高
+Forbidden Move Rate
+外部連絡誘導、外部決済誘導、push / deploy 約束、生キー要求。
+自動採点しやすさ: 高
+Ask Minimality Precision
+ask_map にない質問をしていないか。
+自動採点しやすさ: 中
+Supported Defer Rate
+hold に理由と revisit trigger がある率。
+自動採点しやすさ: 高〜中
+候補指標への判断
+主質問直接回答率 は悪くないが、間違った直答も通してしまうので弱い
+unnecessary ask rate は重要。guardrail 指標
+vague hold rate は重要だが、Supported Defer Rate に置き換えた方が実装向き
+forbidden move 発生率 は ゼロ許容の canary
+purchased なのに intake に戻る率 は 回帰テスト専用の sentinel
+required move 欠落率 は renderer 後はかなり deterministic に取れる
+回帰テスト化すべき failure mode
+purchased → estimate_initial
+答えられる price / fit 質問を hold する
+hold に理由がない
+ask 不要なのに質問する
+ask が 2 個を超える
+価格改変
+forbidden move
+次アクション欠落
+.env / API キー生値要求
+
+OpenAI は production / historical data を含む task-specific eval を推奨し、Anthropic は automated-first grading と詳細 rubric を推奨、Google は adaptive rubric と production logs sampling を前面に出しています。あなたのケースもまったく同じです。
+
+7. 参照ソース
+一次情報 URL
+
+OpenAI
+
+https://developers.openai.com/api/docs/guides/structured-outputs
+https://developers.openai.com/api/docs/guides/evaluation-best-practices
+https://developers.openai.com/api/docs/guides/prompt-guidance
+https://developers.openai.com/api/docs/guides/prompt-engineering
+
+Anthropic
+
+https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+https://platform.claude.com/docs/en/build-with-claude/structured-outputs
+https://platform.claude.com/docs/en/test-and-evaluate/develop-tests
+https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency
+
+Google
+
+https://docs.cloud.google.com/vertex-ai/generative-ai/docs/model-reference/grounding
+https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-overview
+https://docs.cloud.google.com/vertex-ai/generative-ai/docs/rag-engine/rag-overview
+https://ai.google.dev/gemini-api/docs/structured-output
+
+Intercom
+
+https://www.intercom.com/help/en/articles/11390083-monitor-fin-s-performance-with-clarity-and-confidence
+https://www.intercom.com/help/en/articles/8890980-dig-into-fin-ai-agent-unresolved-questions
+https://www.intercom.com/help/en/articles/11813803-understand-why-fin-ai-agent-may-not-provide-an-answer
+https://www.intercom.com/help/en/articles/7995955-hand-over-fin-ai-agent-conversations-to-another-support-tool
+
+Zendesk
+
+https://support.zendesk.com/hc/en-us/articles/8357751694362-About-intents-in-advanced-AI-agents
+https://support.zendesk.com/hc/en-us/articles/8357756604186-Configuring-escalation-strategies-and-flows-for-advanced-AI-agents
+https://support.zendesk.com/hc/en-us/articles/9510024609178-Analyzing-advanced-AI-agent-performance-with-the-reporting-dashboard
+https://support.zendesk.com/hc/en-us/articles/5352026794010-About-automated-resolutions-for-AI-agents
+どの結論がどのソースに依っているか
+section renderer を first に置く判断
+OpenAI / Anthropic / Google の structured outputs と explicit output contract 重視からの推論です。
+eval dataset を early に置く判断
+OpenAI / Anthropic / Google の eval-first, task-specific, production-data-first の記述に依っています。
+confidence / handoff / unresolved analysis を重視する判断
+Intercom の no-answer / handover / performance docs と Zendesk の escalation / reporting / automated resolution docs に依っています。
+intent を実データ基準で狭く設計する判断
+Zendesk の intents / content coverage と Intercom の unresolved question grouping に依っています。
+8. 最終判断
+
+私が実装責任者なら、最初に 1 つだけ着手するのは estimate_initial と post_purchase_quick の section renderer 化です。
+正確には reply_contract v2 を作って、その入力から deterministic に section を組むところまでを 1 着手とみなします。
+
+それを選ぶ理由
+いまの主要 failure mode に最短で効く
+purchased → intake 回帰を止めやすい
+主質問を先頭で答える制約を入れられる
+unnecessary ask を ask_map ベースで抑制できる
+existing skeleton / required_moves / forbidden_moves をそのまま活かせる
+それ以外を後回しにする理由
+grounding_packet は今は大きな layer ではなく、小さい typed facts で足りる
+reply_critic は free writer の誤りを後追いするだけで、根治ではない
+eval dataset はすぐ作るべきだが、runtime を直接改善しない
+
+要するに、あなたの仮説は「構造が足りない」という点では正しいです。
+ただし、最初にやるべきは layer を増やすことではなく、既存の reply_contract を answer-executable にして writer から意思決定権を剥がすことです。

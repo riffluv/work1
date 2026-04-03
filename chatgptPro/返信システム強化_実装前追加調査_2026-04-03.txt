@@ -1,0 +1,200 @@
+以下は、`/home/hr-hm/Project/work` のココナラ受託 internal OS を前提にした、実装前の追加調査依頼です。
+一般論ではなく、この構造にどう足すべきかを、かなり批判的にレビューしてください。
+褒めることが目的ではありません。足りない点、再解釈が起きる点、実運用で壊れる点を優先して指摘してください。
+
+目的:
+- 相手文を貼るだけで、Codex が「相手の主質問に正面から答え、サービス内容を踏まえ、過不足なく返す」返信システムに近づけたい
+- 日本語自然化は副次です
+- 一番の課題は「サービス内容を理解したうえで、相手の質問に critical に答え切れているか」です
+- いまは自然化や NG 表現対策はかなり育ってきたが、まだ「何となく違和感がある」「少しズレる」が残る
+- リハーサル文章を増やすより、system / schema / gate の構造的不足があるのではと考えています
+
+前提:
+- これはココナラ受託運用用 workspace
+- 主力サービスは現時点で `bugfix-15000` のみ
+- 目的は「見積り相談 -> 返信文作成 -> 購入後の実装 -> 納品」を mode 切替で安定運用すること
+- 返信運用では、相手文を貼るだけで Codex が analysis -> reply draft を返せる状態を目指している
+- ただし、価格・公開状態・規約・スコープ境界は厳密に守る必要がある
+
+今回の最重要論点:
+1. 返信文の自然さより先に、主質問に直接答え切れているか
+2. service facts / state / scope / guard を踏まえた返答になっているか
+3. reply 生成で、上流の分類や契約が下流で再解釈されて崩れていないか
+4. 人手の微修正を減らすには、どの構造追加が最も効くか
+5. 「相手文を貼るだけ」で安定させるには、どこを deterministic にして、どこを LLM に任せるべきか
+
+現在の repo 上の主要構造:
+- intake router:
+  - `/home/hr-hm/Project/work/.codex/skills/coconala-intake-router-ja/SKILL.md`
+- prequote operator:
+  - `/home/hr-hm/Project/work/.codex/skills/coconala-prequote-ops-ja/SKILL.md`
+- reply writer:
+  - `/home/hr-hm/Project/work/.codex/skills/coconala-reply-bugfix-ja/SKILL.md`
+- self check:
+  - `/home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md`
+- reply quality:
+  - `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md`
+- output schema:
+  - `/home/hr-hm/Project/work/ops/common/output-schema.yaml`
+- service registry:
+  - `/home/hr-hm/Project/work/os/core/service-registry.yaml`
+
+重要な現状認識:
+- `reply_stance` と `reply_contract` はすでにある
+- `case_type` と `certainty` も schema にはある
+- `issue_plan`, `required_moves`, `forbidden_moves` も schema 上ある
+- つまり完全にゼロからではなく、すでに中間契約の発想はある
+- それでも、最終文面で「上流の契約どおりに返せていない」「質問に直接答えず、説明や保留に逃げる」ズレが残る
+- naturalize は最後に `japanese-chat-natural-ja` で通している
+- NG 表現や self-check は厚い
+- 逆にいうと、自然化や NG 防止より手前の “critical answerability” にまだ構造不足がある気がしている
+
+今回あなたに期待する立場:
+- 「うまくいきそう」ではなく「どこで壊れるか」を見つける reviewer
+- repo の現状を踏まえて、「既にあるものを過大評価しない」 reviewer
+- 実装者がそのまま schema / prompt / validator に落とせるレベルまで具体化する reviewer
+
+すでに別調査で出ている仮説:
+- いま不足しているのは新しい文体ルールより、`answer-contract layer` / `grounding packet layer` / `critic gate layer`
+- 強い返信システムは「意図分類 -> 参照知識固定 -> 回答/保留/断りの契約 -> 生成 -> critic -> eval」の流れが強い
+- 現在の repo は naturalize と NG 表現は厚いが、critic / validator が弱い
+
+あなたに求めたいこと:
+- この仮説が妥当か、repo 構造前提で厳しめにレビューしてほしい
+- 「それは既にある」「足すより運用変更で済む」「本当に足すべき」の線引きをしてほしい
+- 机上の理想ではなく、今の workspace に最小変更で効く順に整理してほしい
+- 「一番効く1手」と「二番手以降」を明確に分けてほしい
+- 曖昧に複数案を並べるより、第一推奨案をはっきり出してほしい
+
+調査方針:
+- 必ず browsing して、できるだけ official / primary source を優先してください
+- support AI / agent / customer service AI / eval / structured outputs / confidence / intent / critique pipeline あたりを中心に見てください
+- 可能なら OpenAI / Anthropic / Google / Intercom / Zendesk などの一次情報を優先してください
+- 一般ブログや SEO 記事は優先度を下げてください
+
+見たい観点:
+1. 返信生成 system で、実務上いちばん効く構造は何か
+2. intent classification と answer contract はどこまで分けるべきか
+3. retrieval / grounding packet は、返信システムでも必須に近いのか
+4. critic / grader / validator は、どの粒度で入れるのが最小コストで効くか
+5. naturalize の前後で何を検証すべきか
+6. eval set は rehearsal 文より実案件ログ中心に切り替えるべきか
+7. 「主質問への直接回答率」を上げるには、どの schema / gate が効くか
+
+特に答えてほしい質問:
+
+Q1.
+今の repo はすでに `reply_contract` を持っています。
+それでもズレる場合、次に足すべきものは
+- `grounding_packet`
+- `reply_critic`
+- `section renderer`
+- `deterministic lint`
+- `eval dataset`
+のどれが最優先ですか。
+優先順位と理由を出してください。
+さらに、「なぜ他の候補より先か」を、実務リスクと実装コストの両面から答えてください。
+
+Q2.
+`reply_contract` があるのにズレるなら、問題は schema 欠落ですか、それとも writer が自由生成すぎるのですか。
+「schema 追加」ではなく「rendering 方式変更」が必要なら、どこまで変えるべきかを具体化してください。
+「writer を完全廃止せずに最小変更で抑える案」と「本気で作り直す案」を分けてください。
+
+Q3.
+この repo で “主質問に正面から答えているか” を一番強くするには、どの中間表現を足すべきですか。
+たとえば:
+- explicit_questions[]
+- implicit_questions[]
+- issue_plan[]
+- answer_map[]
+- defer_reason[]
+のような候補があります。
+最小構成と、その理由を出してください。
+可能なら、「これを入れないと主質問回答率が上がりにくい」という必須項目と、「後から足せばよい」項目を分けてください。
+
+Q4.
+`japanese-chat-natural-ja` は最後に残してよいですか。
+残すなら、自然化前後で何を validator すべきですか。
+壊れやすい項目を列挙してください。
+
+Q5.
+この repo に新しく 1 つだけ追加するなら、`reply_critic` skill / prompt / schema のどれが最も費用対効果が高いですか。
+なぜかも述べてください。
+この回答では、必ず「追加後に何をブロックできるようになるか」を具体例で示してください。
+
+Q6.
+この repo に今後追加するなら、どんな eval を持つべきですか。
+特に
+- 主質問直接回答率
+- unnecessary ask rate
+- vague hold rate
+- purchased なのに intake へ戻る率
+- forbidden move 発生率
+などが妥当か、よりよい指標があるかを見てください。
+また、各指標について「自動採点しやすい / しにくい」も分けてください。
+
+Q7.
+OpenAI / Anthropic / Zendesk / Intercom などの一次情報から見て、
+「プロの返信文作成 system」は文章力ではなく、
+分類 / grounding / confidence / handoff / eval をどう設計しているか
+を、今回の repo に持ち込めるレベルで要約してください。
+
+出力形式:
+
+1. 総評
+- いまの方向性はどこまで正しいか
+- どこがまだ甘いか
+- いま最も危ない failure mode は何か
+
+2. 結論
+- 最優先で足すべきもの 上位3
+- やらなくていいこと
+- 第一推奨案を1つに絞った結論
+
+3. 構造レビュー
+- 現在の repo で既にあるもの
+- 実は弱いもの
+- 新規追加すべきもの
+- 「既にあるが、効いていないもの」を明示すること
+
+4. 具体提案
+- `output-schema.yaml` に足す / 変える項目
+- 新しい `reply_critic` があるなら、その入力と出力
+- `writer` を section renderer に寄せるなら、その最小仕様
+- naturalize 前後で回す validator
+- 可能なら擬似 schema または JSON 例を付けること
+- 可能なら deterministic に検査できる項目と LLM judge が必要な項目を分けること
+
+5. 実装順
+- 今すぐ着手する順
+- 後回しでよいもの
+- 1週間で入れる案と、後でやる案を分けること
+
+6. eval 設計
+- 最小の評価セット
+- 監査 rubric
+- どの失敗を回帰テスト化するか
+- 実案件ログと rehearsal 文の使い分け
+
+7. 参照ソース
+- 公式ソースの URL を列挙
+- どの結論がどのソースに依っているか分かるようにする
+
+8. Codex 実装指示
+- この追加調査のあと、Codex に最初にやらせるべきことを 1 位から 5 位まで並べる
+- 各項目に「なぜ今やるか」を1行付ける
+
+制約:
+- きれいな理想論だけで終わらせない
+- 「この repo は既に何を持っているか」を踏まえる
+- できるだけ最小変更で効く案を優先する
+- 曖昧な褒めより、足りない点をはっきり指摘してほしい
+- 既にある仕組みを見落として「それを足すべき」と誤提案しない
+- 複数案を出すときも、第一推奨案を曖昧にしない
+- “自然な日本語” ではなく “主質問に正面から答える構造” を優先して判断する
+
+参考メモ:
+- `/home/hr-hm/Project/work/chatgptPro/返信文強化に何が足りないのか.txt`
+- `/home/hr-hm/Project/work/docs/external-research/2026-04-02-reply-system-stability-patterns-agent-reach.ja.md`
+
+必要なら、最後に「この追加調査のあと Codex に何を実装させるべきか」を、優先順位つきで短く提案してください。

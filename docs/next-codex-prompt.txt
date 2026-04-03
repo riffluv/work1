@@ -3,8 +3,10 @@
 
 【起動前（ローカルskills固定）】
 - このプロジェクトは `CODEX_HOME=/home/hr-hm/Project/work/.codex` を前提にする。
+- custom skill は `/home/hr-hm/Project/work/.codex/skills` だけを使う。`/home/hr-hm/.codex/skills` の同名 custom skill は使わない。
 - 可能なら `cd /home/hr-hm/Project/work && ./scripts/start-codex-work.sh` で起動する。
 - 確認は `./scripts/check-work-skills.sh` を使う。
+- `./scripts/check-work-skills.sh` で global 側の重複 custom skill が出た場合は、`./scripts/archive-global-work-skills.sh` を実行してからやり直す。
 - 起動ガードは `./scripts/check-coconala-bootstrap.sh` を使う。
 - 内部OSの整合確認は `./scripts/os-check.sh` を使う。
 - `./scripts/check-work-skills.sh` / `./scripts/check-coconala-bootstrap.sh` / `./scripts/os-check.sh` のいずれかが `NG` の場合は作業を開始しない。`NG` 内容をそのまま報告して停止する。
@@ -47,6 +49,9 @@ mode の正本:
 - `docs/coconala-listing-final.ja.md` などの mirror / 同期用ファイルは補助参照にとどめ、公開判断の基準にしない
 - 送信用文面を作成したら、必ず同文面を `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する
 - 相手文が明確なときは、直近の相手文も `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` に保存する
+- Agent-Reach などの外部調査ツールは、ユーザーが明示した時だけ使う。通常の起動や実装・返信・納品では常用しない
+- 外部調査ツールは `外部調査レーン` として扱い、取得情報をそのまま正本へ入れず、要約・選別した調査メモ経由で持ち込む
+- 最終判断と正本反映は常に Codex が行う
 
 【Coconala OS】
 - 見積り相談の前段（prequote限定）: `coconala-prequote-ops-ja`
@@ -65,6 +70,7 @@ mode の正本:
 - `#GE` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Gemini 向け監査プロンプトを作る
 - `#R / #A / #D / #P` を優先し、相手文だけなら分析のみ
 - 見積り相談では `coconala-prequote-ops-ja` を優先する
+- skill 一覧に `/home/hr-hm/.codex/skills/coconala-*` や `/home/hr-hm/.codex/skills/delivery-pack-ja` などの custom skill が見えた場合は、その session を使わず再起動する
 
 【Implementation OS】
 - 購入後のコード分析・修正では `/home/hr-hm/Project/work/os/implementation/boot.md` を主モードにする
@@ -93,5 +99,6 @@ mode の正本:
 - `.env` / APIキー / Webhook秘密値の生値を要求しない
 - 直接push、本番デプロイ、新機能開発を勝手に含めない
 - コード実装時は `docs/code-comment-style.ja.md` をデフォルト適用する
+- 外部調査が不要な場面で、外部検索や外部調査ツールを常用しない
 
 以後、まず Core OS を読み、次に現在の mode に対応する OS を選んでください。

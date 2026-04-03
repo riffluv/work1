@@ -23,10 +23,10 @@
   - 実際の相談文に近い温度感で、手動テストや reply 品質確認に向く。
 - `prequote-cases.yaml`
   - 代表ケースの期待判定メモ。
-  - 15K / 5K / 保留 / 断る の基本分岐確認に使う。
+  - 15K / 保留 / 断る の基本分岐確認に使う。
 - `edge-cases.yaml`
   - 金銭事故や状態遷移の谷間に寄せた確認用。
-  - 値引き、5K→15K、quote_sent、closed 後などを見る。
+  - 値引き、確認範囲の説明、quote_sent、closed 後などを見る。
 
 補足:
 - `expected_template` の参照先は 1 ファイルに固定しない。`short:§21` のような表記は `docs/coconala-message-templates-short.ja.md`、`golden:§53` のような表記は `docs/coconala-golden-replies.ja.md` を見る。
@@ -42,9 +42,11 @@
 - `/home/hr-hm/Project/work/ops/tests/rehearsal/README.ja.md` を使う
 - 1件ずつではなく、カテゴリごとに 5件前後まとめて返信文を作る
 - まとめた返信文を Claude に監査させ、共通する AI感 を skill に戻す
+- raw の返信文バッチは `ops/tests/rehearsal` に常置せず、`/home/hr-hm/Project/work/runtime/rehearsal/` を一時置き場にする
+- 長期保存が必要な raw batch は、plain text のまま残さず `ops/tests/rehearsal/archive/*.tar.gz` に圧縮退避する
 
 ## 特に見る点
-- 15,000円 / 5,000円 / 保留 / 断る の分岐が妥当か
+- 15,000円 / 保留 / 断る の分岐が妥当か
 - 感情注意フラグが過不足なく立つか
 - 苦情寄りケースで冷たい文面になっていないか
 - 見積り経路なのに有料オプション前提で書いていないか

@@ -40,11 +40,11 @@ cases:
     src: service
     state: prequote
     raw_message: "テストでは動いているのですが、本番切替前に見てもらうことはできますか？"
-    expected_decision: accept_5k_or_ab
-    expected_template: "§13-2 or §13-2B"
+    expected_decision: accept_15k_or_hold
+    expected_template: "§13-2 or §13-3"
     check_points:
-      - "確認だけか修正込みかを分けて案内する"
-      - "修正を含まない場合はその旨が明記される"
+      - "15,000円に原因切り分けと修正可否の確認が含まれると分かる"
+      - "不足情報があれば追加質問で保留に倒せる"
 
   - id: PQ-005
     title: "範囲外の新規実装"

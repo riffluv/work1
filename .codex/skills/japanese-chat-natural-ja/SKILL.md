@@ -36,9 +36,11 @@ description: "サービス非依存で、業務チャット返信を自然な日
 5. 質問は最大5件、できれば3件以内に絞る。
 6. 目的に合うテンプレを `references/tone-templates.ja.md` から選ぶ。
 7. `references/replace-dictionary.ja.md` で不自然表現を最終置換する。
-8. 送信可能性を優先し、絵文字や強い断定を落とす。
-9. 最後に次アクションを1行で明記する。
-10. 相手の文から1点は拾い直して、読んで返している感触を残す。
+8. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
+9. 近い場面があれば `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` から 1 本だけ見て、文の温度感を合わせる。
+10. 送信可能性を優先し、絵文字や強い断定を落とす。
+11. 最後に次アクションを1行で明記する。
+12. 相手の文から1点は拾い直して、読んで返している感触を残す。
 
 ## 固定ルール
 - 事実を改変しない。推測は推測として書く。
@@ -97,7 +99,10 @@ description: "サービス非依存で、業務チャット返信を自然な日
 
 ## 仕上げ前チェック
 - 相手の質問に正面から答えているか
+- `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` の NG 表現が残っていないか
+- 同じ内容を2回言っていないか
 - 既出情報を聞き直していないか
+- 相手がすでに答えたことを再度質問していないか
 - 次アクションが1行で明確か
 - 期限や時刻が曖昧語になっていないか
 - 不自然表現が残っていないか
@@ -105,6 +110,9 @@ description: "サービス非依存で、業務チャット返信を自然な日
 - スコープや価格を勝手に広げていないか
 
 ## 参照
+- 返信品質の育成ループ: `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md`
 - 置換辞書: `references/replace-dictionary.ja.md`
 - 重複質問ゲート: `references/duplicate-question-gate.ja.md`
 - トーン別テンプレ: `references/tone-templates.ja.md`
+- 再発 NG 表現: `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md`
+- Gold replies: `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md`

@@ -95,6 +95,8 @@ Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal
 AI臭を避けるコードコメント規約（確定版）
 - `docs/stripe-dashboard-japanese-ui-guide.ja.md`
 Stripeダッシュボードを日本語UIで案内するためのチートシート
+- `docs/agent-reach-ops.ja.md`
+外部調査レーン専用の運用メモ
 
 ## 案件管理まわりの設定
 - `ops/common/interaction-states.yaml`
@@ -129,6 +131,10 @@ same / different / undecidable の具体例
 取引フロー・規約・テンプレ整理
 - `docs/20260212-coconala-monetization-deepresearch.clean.ja.md`  
 収益化設計の要点整理
+- `docs/external-research/README.ja.md`
+外部調査レーンのメモ置き場
+- `docs/external-research/2026-04-02-handoff-pain-points-agent-reach.ja.md`
+Agent-Reach を使った `handoff-25000` 向けの外部調査メモ
 
 ## 公開前チェック
 - `docs/coconala-launch-prep.ja.md`
@@ -142,7 +148,7 @@ same / different / undecidable の具体例
 - `coconala-intake-router-ja`
 相手文を、経路・状態・サービス適合・リスク・不足情報・次アクションへ構造化する入口判定
 - `coconala-prequote-ops-ja`
-見積り相談の前段専用。入口判定から 15,000円 / 5,000円 / 保留 / 断る の分岐と返信文作成まで一貫処理する
+見積り相談の前段専用。入口判定から 15,000円 / 保留 / 断る の分岐と返信文作成まで一貫処理する
 - `coconala-reply-bugfix-ja`  
 不具合修正サービス専用の返信作成（固定条件・規約・スコープ判定前提）
 - `japanese-chat-natural-ja`  
@@ -175,6 +181,8 @@ same / different / undecidable の具体例
 起動時の Internal OS 整合確認
 - `scripts/internal-os-status.sh`
 いまの状態の確認
+- `scripts/agent-reach-status.sh`
+Agent-Reach の導入状態と利用可能チャネルの確認
 - `scripts/check-internal-os-flows.sh`
 Internal OS のスモークテスト
 - `scripts/case-open.sh`

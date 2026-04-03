@@ -5,12 +5,14 @@ services:
     status: operational
     public: true
     kind: bugfix
+    facts_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml
     source_of_truth: /home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt
 
   - service_id: handoff-25000
     status: registered_private
     public: false
     kind: handoff
+    facts_file: /home/hr-hm/Project/work/ops/services/handoff-25000/service.yaml
     source_of_truth: /home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt
 
 rules:

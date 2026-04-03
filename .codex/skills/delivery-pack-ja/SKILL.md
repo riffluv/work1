@@ -14,6 +14,13 @@ description: "ココナラ案件の納品物を、bugfix は `00_結論と確認
 - テンプレート: `references/pack-templates.ja.md`
 - 納品前ガード: `references/delivery-checklist.ja.md`
 - handoff テンプレート: `/home/hr-hm/Project/work/docs/handoff-delivery-template.ja.md`
+- handoff 内部品質本丸:
+  - `/home/hr-hm/Project/work/docs/internal-quality-samples/handoff-25000/00_結論と要点.md`
+  - `/home/hr-hm/Project/work/docs/internal-quality-samples/handoff-25000/01_決済完了から会員状態更新_引き継ぎメモ.md`
+- bugfix 内部品質本丸:
+  - `/home/hr-hm/Project/work/docs/internal-quality-samples/bugfix-15000/00_結論と確認方法.md`
+  - `/home/hr-hm/Project/work/docs/internal-quality-samples/bugfix-15000/01_修正済みファイル_ZIP想定/app/api/stripe/webhook/route.ts`
+  - `/home/hr-hm/Project/work/docs/internal-quality-samples/bugfix-15000/02_修正差分.patch`
 - 運用正本: `/home/hr-hm/Project/work/docs/coconala-guide-market-ops.ja.md`
 - Scope Snapshot: `/home/hr-hm/Project/work/ops/common/scope-snapshot-template.md`
 - サービス定義: `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml`
@@ -50,7 +57,9 @@ description: "ココナラ案件の納品物を、bugfix は `00_結論と確認
 1. 納品形式の合意を確認する（未合意なら「標準は修正済みZIP、希望があればpatch併記」と案内する）。
 2. 対象サービスを確認する。
 3. `bugfix-15000` なら `pack-templates` で標準2点セットを埋める。
+3.5. `bugfix-15000` の本番納品物では、bugfix 内部品質本丸を参照し、`00_結論と確認方法.md` の温度感とコードコメントの濃さを合わせる。
 4. `handoff-25000` なら `/home/hr-hm/Project/work/docs/handoff-delivery-template.ja.md` を使い、`00_結論と要点.md` と `01_[対象フロー名]_引き継ぎメモ.md` を作る。
+4.5. `handoff-25000` の本番納品物では、handoff 内部品質本丸を品質基準として参照し、温度感・具体度・危険箇所 / 次の着手順の粒度を合わせる。
 5. `delivery-checklist` で秘密情報と説明不足を検査する。
 6. 正式納品メッセージを作る（承諾/差し戻し案内を含める）。
 
@@ -62,12 +71,18 @@ description: "ココナラ案件の納品物を、bugfix は `00_結論と確認
 - 外部レビューや実務で得た改善は、`reply-only` / `common` / `delivery-only` を判定してから反映する。
 - 納品物正本へ入れてよいのは `delivery-only` または `common` だけで、`reply-only` をそのまま流用しない。
 - `bugfix-15000` の `00_結論と確認方法.md` は `今回の対象 -> 結論 -> 確認手順 -> 原因 -> 修正内容` の順を基本とする。
+- `bugfix-15000` の本番納品物とコード納品物は、内部品質本丸の温度感を基準にする。
+- ただし、内部品質本丸の文言をそのまま流用せず、実案件の症状・原因・実ファイル名・一次証跡を優先する。
+- `bugfix-15000` のコードコメントは `/home/hr-hm/Project/work/docs/code-comment-style.ja.md` を前提に、WHY / 制約 / 副作用 / 運用条件だけを最小限残す。
 - `handoff-25000` の納品物は `00_結論と要点.md` と `01_[対象フロー名]_引き継ぎメモ.md` を標準にし、抽象語だけで終わらせない。
+- `handoff-25000` の本番納品物は、内部品質本丸の温度感・見出しの切り方・危険箇所 / 次の着手順の具体度を基準にする。
+- ただし、内部品質本丸の文言や構文を機械的に流用せず、実案件の対象フロー・一次証跡・実ファイル名を優先する。
 - 依頼者が次にやることを1行で明記する。
 - bugfix は冒頭3行で「直ったか / 原因 / 確認方法」が読めるようにする。
 - handoff は冒頭で「今回見たフロー / 危険箇所上位 / 次の1手」が読めるようにする。
 - 見出しは社内技術文書より購入者目線を優先する。
 - patchを併記する場合は「通常は修正済みファイルを差し替え、patchはGit運用者向け」と明記する。
+- `.md` 納品物だけでは見づらくなる相手を想定し、必要なら末尾に「VS Code 等のエディタで開き、プレビュー表示（Ctrl+Shift+V）にすると見やすい」旨を1行だけ添えてよい。
 - 正式納品文には「承諾/差し戻しの選択」と「約3日間未操作で自動承諾クローズ」の案内を入れる。
 - `差し戻しは原則1回` は必要時に補足し、初回納品文で圧をかけない。
 - 評価依頼を入れる場合は1回のみ、任意トーンで短く書く。

@@ -1,0 +1,28 @@
+diff --git a/app/api/stripe/webhook/route.ts b/app/api/stripe/webhook/route.ts
+index 1111111..2222222 100644
+--- a/app/api/stripe/webhook/route.ts
++++ b/app/api/stripe/webhook/route.ts
+@@ -18,10 +18,22 @@ export async function POST(request: NextRequest) {
+   switch (event.type) {
++    // 初回反映は /api/stripe/checkout の到達に依存しない。created でも同期する
++    case 'customer.subscription.created':
+     case 'customer.subscription.updated':
+     case 'customer.subscription.deleted':
++    {
+       const subscription = event.data.object as Stripe.Subscription;
+-      await handleSubscriptionChange(subscription);
++      try {
++        await handleSubscriptionChange(subscription);
++      } catch (err) {
++        console.error('Subscription sync failed.', err);
++        // 500 は一時障害。Stripe の再送で同期を回復させる
++        return NextResponse.json(
++          { error: 'Subscription sync failed.' },
++          { status: 500 }
++        );
++      }
+       break;
++    }
+     default:
+       console.log(`Unhandled event type ${event.type}`);
+   }
