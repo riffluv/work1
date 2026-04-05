@@ -1,0 +1,14 @@
+{
+  "case_id": "GMN-012",
+  "user_message": "checkout.tsで500エラーが取れません。これ、引き継ぎメモ作成の方で「どう直すか」だけ手順書にしてもらえますか？そしたら自分で直すので。",
+  "draft_reply": "メッセージありがとうございます。\nまず今の内容からお返しします。\n\nこの内容なら対応できます。\n15,000円で進められます。\n\nこの内容なら15,000円で進められる。\n\nまずはこの不具合を、同じ原因の1件として確認します。\n\n進める場合は、この内容でご提案します。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+  "signals": [
+    "stress"
+  ],
+  "buckets": [
+    "stress",
+    "boundary"
+  ],
+  "source_name": "gemini-bulk-60-poststates-01-holdout.txt",
+  "source_role": "holdout"
+}

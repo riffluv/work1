@@ -1,0 +1,115 @@
+この system は方向としては yesです。すでに routing / classification、scenario selection、reply_contract、renderer、validator / lint、buckets / regression、pair / reranker 用資産という外枠を持っており、しかも routing 系の大きな崩れは一度原因特定してかなり補修できています。これは「ただの freeform 運用」ではなく、production 用の制御面を持った設計です。Anthropic も、実運用でうまくいく agent/LLM system は複雑な framework よりsimple, composable patternsで組むことが多いと明言しており、今の骨格はその方向に乗っています。
+
+主に足りないのは、「理解したことを renderer に渡す前に、意思決定として保存する層」です。いま残っている失敗は、routing の失敗というより、buyer message -> system decision -> final prose のうち decision 層が薄いために起きています。最大リスクは、lane と文体は合っているので system 側は正常に見えるのに、実際には「主質問未回答」「金銭不安未処理」「既知情報の再要求」が出ることです。OpenAI のガイドでも、workflow 系では schema だけで縛るのではなく、exact step order / ambiguity behavior / completion criteria を明示せよとされており、Codex でも complex task はplan firstが推奨されています。
+
+production-grade に必要な core components
+必須
+service grounding、routing / classification、scenario selection、known facts carry、concern extraction、direct answer planning、ask gating、fallback discipline、reasoning preservation、renderer / tone control、answer coverage、slot / semantic dedupe、unresolved risk detection、validator / graders、regression / evals。これは「現行ルールに従う」「相手の主訴を外さない」「答えるべきことを先に答える」「聞かなくてよいことを聞かない」「機械的重複を通さない」を、それぞれ別責務で持つための最小構成です。OpenAI は customer-support で knowledge/policy を別に持つこと、Structured Outputs で中間オブジェクトを保証できること、guardrails と evals を別レイヤとして持つことを示しています。
+準必須
+planner / renderer のモデル分離、property-specific graders の強化、pair / reranker、長スレッド時の conversation state / compaction。これらは completeness の土台ではなく、安定性と運用性の増幅器です。OpenAI も ambiguous / planning-heavy な部分は reasoning 側、execution は GPT 側という分担を推奨し、eval では desired property ごとの narrow grader を勧めています。
+後回し可
+fine-tuning、human review queue、multi-agent 化、scenario 数の大幅増加、temperature tuning の深掘り。これらは今の残課題の一次原因ではありません。OpenAI は reasoning effort をlast-mile knobと位置づけ、Codex も「まず plan / context / done criteria」を揃えるべきだとしています。
+現在の system の充足状況
+
+以下の判定は、提示された骨格と残課題を基準にしています。
+
+routing / classification — 充足
+主要障害としてはすでに解析・補修済みで、現残課題は routing 単独では説明できない段階です。
+scenario selection — 部分充足
+lane は合うが、buyer の個別事情が downstream で同じ template に圧縮されている。
+service grounding — 部分充足
+目標には「現状のサービス内容・公開範囲・運用ルールの理解」が含まれるのに、骨格には first-class な grounding component が見えません。暗黙 prompt 資産に埋めるより、versioned rule state / retrieval に分けた方が安定します。
+known facts carry — 不足
+既出情報の再要求が出ている時点で、message/thread から抽出した known facts が renderer まで保持されていません。conversation state と context engineering は、これを別責務として扱うべきだとしています。
+concern extraction — 不足
+金銭不安、クレーム焦り、再発不満、リピート好意が opening に反映されていないので、opening_move ラベルが raw concern を食っています。
+direct answer planning — 不足
+「返金されるか」「また払うのか」への直接回答より制度文・手続き文が前に出るため、主質問優先順が設計されていません。
+ask gating — 不足
+相手が既に書いた情報をまた求めるので、ask only if blocking が未実装です。OpenAI の follow-through guidance でも、intent が clear で low-risk なら proceed、ask は blocking case に限るべきです。
+renderer / tone control — 部分充足
+温度感や外見の制御はあるが、user-specific な主訴が prose に乗る前に template に負けています。
+slot / semantic dedupe — 不足
+answer / bridge / hold の意味重複がそのまま出ているため、surface lint はあっても semantic dedupe がありません。OpenAI の customer-facing prompt examples でも repeated acknowledgments は避けるよう明示されています。
+answer coverage — 不足
+explicit question と final answer の対応表が無いため、金銭系の主質問未回答を validator が止められていません。
+unresolved risk detection — 部分充足
+scope / policy 系の lint はある前提ですが、金銭不安や再発不満のような会話上の business risk は立っていません。
+fallback discipline — 部分充足
+generic fallback の弱さはかなり直したが、まだ “lane は合うが機械的” という失敗を生んでいます。
+validator / lint — 部分充足
+存在はしているが、見ている性質が足りません。OpenAI の prompt optimizer も、欲しい性質ごとに narrow grader を作れと勧めています。
+regression / buckets / comparison assets — 充足
+これはすでに production 改善のための重要な土台になっています。
+reasoning preservation — 不足
+これが現時点の中心欠落です。理解そのものより、理解した判断が renderer まで生き残っていません。
+thought-preserving design 判定
+missing piece として妥当か: yes
+
+なぜ今必要か。残っている失敗は全部、routing before ではなく selection after / render before に集中しています。OpenAI も Codex も、complex / ambiguous task ではplan を先に作ること、Goal / Context / Constraints / Done when を明示すること、workflow では schema-only prompt に頼らずstep order と ambiguity behaviorを持つことを推奨しています。つまり、今必要なのは「もっと考えさせる」ことではなく、考えた結果を中間表現として固定することです。
+
+含むべきものは、抽象的な thought-preserving ではなく、pre-render の response_decision_plan です。最低限、次のフィールドが必要です。
+
+response_decision_plan = {
+  primary_concern,
+  explicit_questions[],
+  primary_question,
+  facts_known[],
+  blocking_missing_facts[],
+  ask_policy,
+  direct_answer_line,
+  opening_anchor,
+  response_order,
+  risk_flags[]
+}
+
+このオブジェクトに対して Structured Outputs を使うのは妥当です。Structured Outputs はrequired keys / enum / object shapeの保証に向いているので、最終日本語そのものではなく、この decision plan の整形に使うべきです。
+
+含めるべきでないものは、answer / bridge / hold のような意味が重なる固定文章 slot、canned opening 文、長い hidden rationale、edge case の羅列です。Anthropic も Codex も、edge case を先に全部詰め込むやり方は勧めていません。
+
+reasoning suppression 判定
+skill / system が model reasoning を潰しているか: yes
+primary failure layer
+reply_contract -> renderer の固定 slot / 固定順序レイヤです。
+secondary failure layer
+scenario selection -> generic fallback の handoff です。lane 情報しか渡らず、buyer 固有の主訴・質問優先順位・既知事実が落ちています。
+どういうメカニズムで潰れているか
+model は buyer message からそれなりに正しい判断をしている。
+その判断が lane や opening_move 程度の粗いラベルに圧縮される。
+renderer が required slot を埋めるために、手続き文・つなぎ文・hold 文を先に生成する。
+answer / bridge / hold が意味的に重なるため、同義反復が発生する。
+known_facts と ask_policy が無いため、ask slot が既知情報にも発火する。
+validator が form を見ていて coverage を見ていないので、未回答のまま通る。
+OpenAI も「small inclusions can unexpectedly steer the model undesirably」と書いており、Codex/ GPT-5.4 のガイドでも exact step order と what counts as done を明示せよとされています。
+何を hard constraint に置くべきか
+service facts / scope bounds / public range / operation rules、explicit question が answerable なら先に答える、known fact の再要求禁止、ask は blocking missing facts のみ、procedure を answer より前に置かない、semantic duplication 禁止、unsupported promise 禁止。この層は wording ではなくtruth / order / permission / coverageだけを縛るべきです。
+何を model reasoning に残すべきか
+primary_concern の選定、どの explicit question を first answer にするか、opening で何を拾うか、どの程度 reassuring にするか、どの説明量が最も friction が少ないか、という会話的判断です。OpenAI の customer-facing guidance でも、人格は保持しつつ task-specific output requirements を優先し、repeated acknowledgments を避けて momentum を保つことが推奨されています。
+どこを validator で止めるべきか
+answer_first_if_answerable、money_question_covered、no_reask_known_fact、semantic_dedupe、opening_anchor_present、no_unsupported_scope_claim、lane_consistency の7個です。ここは broad lint ではなく narrow grader で止めるべきです。
+thought-preserving design 以外に足りない primitive
+truly missing
+thought-preserving 以外で truly missing と呼べるのは、first-class な service groundingだけです。あなたの最終目標は「現状のサービス内容・公開範囲・運用ルールを理解したうえで返信する」ことですが、今の骨格にはそれを retrieval / versioned state として扱う層が見えません。これは本当に必要です。だが、いま列挙されている残失敗の主因ではないので、single next step ではありません。
+optional
+planner/render のモデル分離、reranker 強化、長スレッド compaction、fine-tuning。これらは quality booster であって、今の未回答・再要求・procedure-first を根治する primitive ではありません。
+不要
+いまの段階で、scenario をさらに増やすこと、slot をさらに増やすこと、human review を増やすこと、重い enterprise governance を入れることは不要です。むしろ edge case の書き足しと template 増殖は悪化要因です。
+keep / patch / add
+keep
+routing / classification、scenario selection、reply_contract の外枠、validator / lint の土台、buckets / regression、pair / reranker 用比較資産。外枠はもう捨てる段階ではありません。
+patch
+renderer、generic fallback、validator/grader set、service grounding の明示性。特に renderer は「slot を埋める役」から「decision plan を prose に変換する役」に落とし直すべきです。grader は broad lint ではなく answer_first、money_coverage、no_reask_known_fact、semantic_dedupe に分解します。
+add
+response_decision_plan。これが missing core component です。Structured plan を作り、renderer と validator が両方それを読む構成にします。
+実装順
+今すぐやる single next step
+scenario selection と renderer の間に、primary_concern・explicit_questions・facts_known・blocking_missing_facts・ask_policy・direct_answer_line・response_order を持つ response_decision_plan を追加し、plan が無いもの・plan と矛盾するものを render させない。これは thought-preserving design の実装本体です。
+その次にやること
+service grounding がまだ implicit なら、versioned rule state / retrieval に外出しし、response_decision_plan から policy_refs を引けるようにする。これで scope accident と rule drift を止める。
+まだやらなくてよいこと
+scenario の追加、slot 増殖、temperature の再調整、reranker 先行強化、fine-tuning、human review 拡張。いまは decision layer の欠落を埋める方が先です。
+最終結論
+
+この system は正しい方向にいる: yesです。足りないのは routing でも tone でもなく、「正しく理解した内容を final answer の意思決定として保持する中間層」です。skill / system が Codex の思考を潰しているという見立ても概ね正しいですが、原因は「skill を使うこと」ではなく、reasoning を固定 slot に早すぎる段階で圧縮していることです。Codex / GPT 系のガイドが勧めるのも、複雑タスクでは plan を先に作り、Goal/Context/Constraints/Done を明示し、verification と completion criteria を持たせることです。したがって、いま入れるべきなのは freeform 回帰ではなく、structured planning + freeform realization + narrow validators です。
+
+いま最初に実装すべき missing piece はこれである：scenario selection と renderer の間に、primary_concern・explicit_questions・direct_answer_line・facts_known・ask_policy・response_order を持つ pre-render の response_decision_plan を追加し、これを通らない出力を validator で落とす。

@@ -1,0 +1,178 @@
+# generated from stock-bulk-100.txt
+# bucket: stock-bulk-100-edge
+
+----
+
+case_id: STK-004
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: Vercelにデプロイしてるんですが、checkout.session.completedのWebhookが本番だけ404返してます。ローカルはstripe listenで問題ないです。route.tsのパスが間違ってるのか、Vercelの設定なのか切り分けできてないです。
+note: semi_technicalで情報が明確。短文だが技術的に具体的。質問形式でないが「切り分けてほしい」意図は明確
+
+----
+
+case_id: STK-010
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: はじめまして。Next.jsのApp Routerで作ったサイトで、APIルートが本番だけ500を返します。ローカルとプレビューでは問題なく動いています。Stripe関連のAPIです。Vercelのログを見ると「FUNCTION_INVOCATION_TIMEOUT」と出ていますが、ローカルでは数秒で返ってきます。
+note: 本番のみタイムアウト。パフォーマンス問題かコード問題かの境界判断。bugfixで受けるかhandoff的な構造確認が先かを判定
+
+----
+
+case_id: STK-019
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: もう3回目の相談先です。1つ目の方は途中で連絡が途絶えて、2つ目の方は「環境設定の問題だと思います」と言ったきり具体的な修正がなかったです。症状は単純で、Stripe Checkoutで決済後にリダイレクトされるはずのページが404になります。本番環境だけです。もし対応できるなら、具体的にどう進めるか先に教えてください。
+note: 3社目への不信の蓄積。「具体的にどう進めるか先に教えて」は信頼構築の要求。感情は強いが症状は明確
+
+----
+
+case_id: STK-029
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 本番のStripe Webhookが失敗しているようなのですが、Stripeのダッシュボードの見方がよく分からなくて、どのイベントが失敗しているかも特定できていません。分かっているのは、お客さんが「決済したのに使えない」と言っていることだけです。ログの見方を教えてもらうことも含めてお願いできますか？
+note: 情報不足＋教育的要求。bugfixとして受けるか、まず状況整理（handoff寄り）から入るかの判定
+
+----
+
+case_id: STK-030
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: Next.jsのAPIルートで、POSTリクエストが本番だけ405 Method Not Allowedになります。Stripe Checkoutのセッション作成のところです。デプロイ先はVercelです。ローカルだと普通にPOSTできます。
+note: 本番のみ405エラー。技術的には明確で情報も適度。短めの良質ケース
+
+----
+
+case_id: STK-040
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: ちょっと変な相談かもしれないのですが、Next.jsのサイトでStripe Checkoutを使って商品を販売しています。最近、テスト環境で動作確認した後に本番にデプロイしたんですが、テスト環境のAPIキーのまま本番に上げてしまったかもしれません。お客さんの決済がテストモードで処理されている可能性があるんですが、確認と修正をお願いできますか？
+note: テスト/本番のAPIキー取り違え疑い。設定問題かコード問題かの境界。.env関連
+
+----
+
+case_id: STK-045
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 見積りの件、検討中です。1つ聞き忘れたんですが、修正してもらったファイルは自分でVercelにデプロイする形ですよね？デプロイのやり方が分からないんですが、手順も教えてもらえますか？
+note: quote_sent＋デプロイ方法の質問。標準範囲外（本番デプロイ代行はしない）だが、手順説明は可能
+
+----
+
+case_id: STK-048
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: すみません、依頼した件とは別かもしれないんですが、今日新たにお客さんから「返金してほしい」と連絡が来ました。決済の不具合のせいで二重に引き落とされたみたいで。これも今回の依頼内容に含まれますか？返金処理の操作も教えてもらえますか？
+note: 購入中に発生した関連問題。二重引き落とし＋返金操作の質問。返金操作はStripeダッシュボードの範囲
+
+----
+
+case_id: STK-050
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: ファイルを送るのにリポジトリのURLを貼った方が早いと思うんですが、GitHubのプライベートリポジトリを共有することはできますか？あと、.envファイルも中身ごと送った方が調査早いですよね？一応貼っておきます。STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxx NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
+note: 秘密情報を実際に貼ってしまうケース。即座にキー名のみで値は削除依頼する対応が必要
+
+----
+
+case_id: STK-052
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 急ぎで確認なんですが、修正って本番にも反映してもらえないんですか？自分だとどうやって反映していいか分からなくて。Vercelの画面は見れるんですが、コマンドとか打ったことないです。もし反映までやってもらえないなら、反映のやり方だけでも詳しく教えてもらえますか？
+note: 本番デプロイ代行の要求。範囲外だが不安への対応と手順説明は可能。anxiousケース
+
+----
+
+case_id: STK-055
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 引き継ぎの件なんですが、ちなみにZoomで画面共有しながら説明してもらうことはできますか？文字だけだと理解できるか不安で。30分くらいでいいんですが。
+note: 通話・ビデオ会議の要求。標準範囲外。テキストでの説明で対応する旨の案内
+
+----
+
+case_id: STK-059
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 前回修正いただいた件でもう1つだけ。修正後のテストってどうやって確認すればいいですか？テスト環境がないんですが、いきなり本番で試すしかないですか？次にお願いするときに備えて知っておきたくて。
+note: closed後のフォローアップ質問。テスト環境がない状態での確認手順。次回利用への布石
+
+----
+
+case_id: STK-063
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 修正してもらったファイルを本番に反映したいのですが、反映じゃなくて、本番の管理画面のURLとログイン情報を渡すので直接やってもらうことはできませんか？手順書を見ても不安で。
+note: 本番環境の認証情報を渡そうとするケース。秘密情報＋直接操作の両方が範囲外
+
+----
+
+case_id: STK-072
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: お見積りありがとうございます。購入前に1つだけ確認させてください。依頼の進行中にZoomで状況を口頭で説明させてもらうことはできますか？文章で伝えるのが苦手で、画面を見せながらの方が早いと思うので。それが無理でも進めたいとは思っています。
+note: quote_sent後の通話要求。標準範囲外。「無理でも進めたい」の意向があるため、テキストでの代替案内
+
+----
+
+case_id: STK-083
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: Stripeのテスト環境では正常に動いているんですが、本番に切り替えたら動かなくなりました。切り替え時にやったことは、APIキーをliveに変えただけです。Webhookエンドポイントも本番用に変更しました。エラーメッセージは特に出ていないです。
+note: テスト→本番切り替え問題。設定だけの可能性もあるし、コード修正が必要な場合もある。boundary判断
+
+----
+
+case_id: STK-089
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 途中ですみません。引き継ぎメモに入れてほしいんですが、サードパーティのAPIキーを管理画面から設定できるようになってるんです。その管理画面のログイン情報を送った方がいいですか？ URL: https://admin.example.com ログイン: admin@example.com パスワード: xxxxxxxxx
+note: 管理画面のログイン情報を送ってしまうケース。秘密情報の即時削除依頼が必要

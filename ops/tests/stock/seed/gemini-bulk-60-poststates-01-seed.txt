@@ -1,0 +1,112 @@
+# generated from stock-bulk-100.txt
+# bucket: gemini-bulk-60-poststates-01-seed
+
+----
+
+case_id: GMN-001
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: はじめまして。決済エラーで困ってます。ログイン情報を渡すので本番環境で直接直してもらえませんか？Zoomで画面を見ながら説明したいです。
+note: 直接操作と通話を希望しているNG要望ケース
+
+----
+
+case_id: GMN-002
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: プレミアム会員にならない不具合があります。.envの秘密鍵は STRIPE_SECRET_KEY=sk_live_xxxxx です！あとでGitHubにも招待しますね！
+note: 生の秘密情報を送り、外部連絡しようとするケース
+
+----
+
+case_id: GMN-003
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 1) 本来: 決済でis_premiumがtrue 2) 現象: falseのまま 3) 環境: Vercel本番 4) 手順: 通常決済 5) エラー: evt_12345が500です。
+note: 事前質問に完璧に答えている優等生ケース
+
+----
+
+case_id: GMN-004
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: ローカルは動くのにプレビュー環境だとWebhookでエラーが出ます。対象のイベントIDはevt_999999、キー名はSTRIPE_WEBHOOK_SECRETです。
+note: 環境とevtとキー名を先出ししているスムーズなケース
+
+----
+
+case_id: GMN-005
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 決済が反映されないバグがあるんですが、ついでにApple Payのボタンが表示されない現象も直してもらえませんか？決済画面なので原因は一緒だと思うんで。
+note: 明らかに別原因の修正を「同じ原因」として混ぜてくるケース
+
+----
+
+case_id: GMN-006
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: AIで作ったアプリで、本番環境に切り替えたら誰の支払いも反映されなくなりました。エラー画面は出ていなくて、どうすればいいか分かりません…。
+note: 情報が少なく、漠然と助けを求めている標準的なバグケース
+
+----
+
+case_id: GMN-007
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 外注先と連絡が取れなくなりました。今のコードを見てほしいです。AWSのログインIDを送るので、中を見てレポートにしてもらえますでしょうか。
+note: 外部環境のログイン情報を初手で渡そうとする整理依頼ケース
+
+----
+
+case_id: GMN-008
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: 決済からサブスク更新のフローを整理したいです。本番はVercelで、ログだとWebhook受信までは来てます。来週入る人向けのメモをお願いします。
+note: 目的が明確で、フロー・環境・ログを先出ししている優良ケース
+
+----
+
+case_id: GMN-009
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: Cursorで作ったコードがぐちゃぐちゃでどこに何があるか分かりません。決済周りだけでも、どこから手をつければいいか教えてもらうことはできますか？
+note: AI生成コードへの不安を抱えた、典型的なhandoff対象ケース
+
+----
+
+case_id: GMN-010
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: handoff
+raw_message: リポジトリごとZIPで渡すので、全体の仕様をMarkdownで書き出してほしいです。バックエンドはNext.jsです。金額は25000円で足りますよね？
+note: リポジトリ全体の網羅仕様書化を求めている明確な範囲外ケース

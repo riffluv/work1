@@ -72,6 +72,62 @@ primary_sources:
       - estimate_initial renderer / lint の初期入力
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/stock/seed/stock-bulk-100-seed.txt
+    role: seed
+    purpose:
+      - 新規 stock batch の初回代表ケース確認
+      - 生成文の format / route / state のなじみ確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/stock/eval/stock-bulk-100-eval.txt
+    role: eval
+    purpose:
+      - 新規 stock batch の通常改善用ケース
+      - prequote / purchased / quote_sent の評価拡張
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/stock/holdout/stock-bulk-100-holdout.txt
+    role: holdout
+    purpose:
+      - 新規 stock batch の delivered / closed / boundary 検定
+      - 値引き / 継続依頼 / after-close 揺れの確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/stock/edge/stock-bulk-100-edge.txt
+    role: edge
+    purpose:
+      - 新規 stock batch の秘密情報 / 外部共有 / 緊急別件の確認
+      - purchased 中の危険ケース拡張
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/stock/seed/gemini-bulk-60-poststates-01-seed.txt
+    role: seed
+    purpose:
+      - Gemini batch の初回代表ケース確認
+      - 生成文の基本なじみ確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/stock/eval/gemini-bulk-60-poststates-01-eval.txt
+    role: eval
+    purpose:
+      - Gemini batch の purchased / quote_sent 評価拡張
+      - 他モデル由来の文体揺れ確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/stock/holdout/gemini-bulk-60-poststates-01-holdout.txt
+    role: holdout
+    purpose:
+      - Gemini batch の delivered / closed / boundary 検定
+      - post states の holdout 拡張
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/stock/edge/gemini-bulk-60-poststates-01-edge.txt
+    role: edge
+    purpose:
+      - Gemini batch の秘密情報 / 本番操作 / 外部共有の危険ケース
+      - post states の edge 拡張
+    status: active
+
 secondary_sources:
   - path: /home/hr-hm/Project/work/ops/tests/rehearsal/regression-pass-20260330.ja.md
     role: regression_notes

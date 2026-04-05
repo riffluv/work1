@@ -1,0 +1,449 @@
+case_id: QLT-001
+route: service
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 進めていただいている件なんですが、今どんな感じかだけ先に分かると助かります。急かしたいわけではないです。
+note: 「急かしたいわけではない」への返し方で距離感が出やすいケース
+----
+case_id: QLT-002
+route: talkroom
+state: prequote
+user_type: non_engineer
+emotional_tone: hesitant
+service_hint: boundary
+raw_message: すみません、自分でもうまく説明できないんですが、前に外注で作ってもらったサイトがあって、今動いてはいるんですけど中身が全然わからなくて。直してほしいところもあるし、まず何がどうなってるか知りたいという感じで…。どっちのサービスが合うんでしょうか。
+note: 本人が整理できていない boundary 典型。選ばせすぎると距離が出る
+----
+case_id: QLT-003
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: 15000円で1件ということなんですが、やってみたら実は2件だったみたいなことってありますか？追加費用が怖くて。
+note: 価格不安を正面から聞いているが、防御的に答えると冷たくなるケース
+----
+case_id: QLT-004
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: お忙しいところすみません。特に催促ではないのですが、ちょっと進捗だけ気になってしまって。大丈夫そうですか？
+note: 同じ進捗不安でも「大丈夫そうですか？」の聞き方が微妙に重い
+----
+case_id: QLT-005
+route: talkroom
+state: delivered
+user_type: semi_technical
+emotional_tone: mixed
+service_hint: boundary
+raw_message: 修正と整理を両方お願いしてた件、修正のほうは確認できました。整理資料のほうもいただいたんですが、修正前の構成で書かれてる部分がある気がして…。修正後の状態に合わせてもらうのって範囲内ですか？
+note: delivered 後の boundary。修正と整理が絡む場面で、対応範囲の線引きを冷たくなく伝える難しさ
+----
+case_id: QLT-006
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: handoff
+raw_message: AIで作ってもらったコードなんですけど、正直どこが何をやってるかわからなくて。自分で触れるようにしたいんですが、全部を教えてもらう感じではなくて、ここだけ読めば大丈夫っていうのがあれば…。
+note: 漠然とした期待の返し方で説明過多になりやすい
+----
+case_id: QLT-007
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 昨日お送りしたリポジトリなんですが、ちゃんと見れましたか？アクセスできないとかあったら教えてください。
+note: 不安の裏に「まだ着手してない？」がある。事務的に返すと冷たく見える
+----
+case_id: QLT-008
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 他のところでも見積もり取ってるんですが、ちょっと比較させてください。不具合修正と、どこが壊れてるかの調査って、両方やるとおいくらになりますか？
+note: 比較検討中で値段を聞いている。選ばせすぎず、押さず返すバランス
+----
+case_id: QLT-009
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: mildly_frustrated
+service_hint: bugfix
+raw_message: ありがとうございます。直していただいた箇所は動くようになったんですが、なんか別のところで前と違う動きをしてる気がして…。気のせいかもしれないんですけど。
+note: delivered 後の軽い不満。「気のせいかも」を拾いすぎると防御的になる
+----
+case_id: QLT-010
+route: talkroom
+state: purchased
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: 整理してもらう範囲なんですが、認証のフローだけでいいです。ただ、認証の中でStripe連携も呼んでるので、そこも含めてもらえると…。あ、でもそれだと範囲広がりますかね。
+note: 範囲の自己判断が揺れている。任意確認を入れたくなるが聞きすぎると距離が出る
+----
+case_id: QLT-011
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: boundary
+raw_message: 修正ありがとうございました。動くようにはなったんですが、次に自分で何か触るときにまた壊しそうで怖くて。こういう場合って整理のサービスのほうも受けたほうがいいんですかね。自分じゃ判断つかなくて。
+note: closed 後に boundary へ揺れている。整理サービスの案内が押し売りにならないように
+----
+case_id: QLT-012
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: handoff
+raw_message: 25000円のサービスって、修正は入らないんですよね？整理だけで25000円って、ちょっと高いかなと正直思ったんですが、具体的に何がもらえるんでしょうか。
+note: 価格への率直な疑問。防御的に価値を語ると押しつけになりやすい
+----
+case_id: QLT-013
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 何度もすみません、いつ頃までに完了しそうか、ざっくりでいいので教えてもらえますか。社内で聞かれてて。
+note: 社内事情を出しつつの進捗確認。形式的に返すと距離が出る
+----
+case_id: QLT-014
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: 先日はありがとうございました。一応動いてるんですが、また同じような事象が出たときって、また新規で頼む形になりますか？
+note: closed 後の継続依頼の聞き方。案内が押し売りっぽくなりやすい
+----
+case_id: QLT-015
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: boundary
+raw_message: 個人開発で作ったNext.jsのアプリなんですが、Cursor使って書いたので自分でも全体像がちょっと怪しくて。今は動いてるんですが、機能追加しようとするとどこを触っていいかわからなくなります。これって修正じゃなくて整理のほうですか？
+note: boundary で本人はある程度わかっている。答え方次第で bot 感が出る
+----
+case_id: QLT-016
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: mildly_frustrated
+service_hint: handoff
+raw_message: いただいた資料を見たんですが、正直なところ、自分にはちょっと難しくて…。もう少しかみ砕いた説明ってお願いできるものなんでしょうか。追加料金がかかるなら言ってください。
+note: delivered 後の不満。追加料金の話が出ており、冷たくなくかつ押し売りなく返す難しさ
+----
+case_id: QLT-017
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 無事に直りました、ありがとうございます。ちなみに今回の修正で触れなかった部分で、「ここは整理したほうがいい」みたいなところって気づかれましたか？もしあれば教えてもらえると、次に何を頼むか考えやすいので。
+note: closed 後に整理サービスへの自然な橋渡しを求めている。提案の仕方で営業感が出る
+----
+case_id: QLT-018
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: すみません、もう2日経ってるんですが、まだ何もご連絡いただいてなくて、ちょっと不安になってきました。
+note: 直接的な進捗不安。言い訳っぽくならず誠実に返すバランス
+----
+case_id: QLT-019
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: 1件15000円ですよね。うちのサイト、エラーが3つくらいあるんですけど、まとめてお願いしたら安くなったりしませんか？
+note: 値引き交渉。やわらかく返したいが根拠なく値引く判断はできない
+----
+case_id: QLT-020
+route: talkroom
+state: purchased
+user_type: semi_technical
+emotional_tone: normal
+service_hint: boundary
+raw_message: 補足なんですが、さっき送ったエラーログ、再現手順書くの忘れてました。「/api/checkout に POST → 500 が返る」だけです。あと、このあたりのフローの全体像もついでに整理してもらえたりしますか？購入したのは修正のほうなんですけど。
+note: purchased 中に整理も追加で求めている boundary。確認を増やすと距離が出る
+----
+case_id: QLT-021
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: boundary
+raw_message: 修正をお願いしたいんですけど、そもそも何が原因でおかしくなってるかもわかってなくて。調査だけお願いすることもできますか？調査の結果、修正が必要ならそのまま修正もしてほしいんですが。
+note: 調査→修正の流れを一括で想定。サービス境界の説明で長くなりやすい
+----
+case_id: QLT-022
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: こんにちは、以前お世話になった者です。別の箇所で似たようなエラーが出てまして。前と同じ原因かもしれないんですけど、相談だけお願いできますか？
+note: closed 後のリピート相談。継続案内が押し売りにならないようにする
+----
+case_id: QLT-023
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: hesitant
+service_hint: handoff
+raw_message: 知り合いのエンジニアに「これ引き継ぎ資料ないと誰も触れないよ」って言われて探してたらこちらを見つけました。ただ25000円でどこまでやってもらえるのか、いまいちイメージが湧かなくて。
+note: 第三者の意見がきっかけ。説明が長くなると sales っぽくなる
+----
+case_id: QLT-024
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: 整理していただくフローの件ですが、途中経過って何か共有してもらえたりしますか？完成してからだと、イメージと違ったとき困るかなと思って。
+note: 途中共有の要望。任意確認を入れたくなるが決めさせすぎると不自然
+----
+case_id: QLT-025
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: 見積もりありがとうございます。15000円なのは理解したんですが、直らなかった場合ってどうなりますか？ちょっとそこだけ確認させてください。
+note: quote_sent 後の価格不安。保証の話を堅くしすぎると距離が出る
+----
+case_id: QLT-026
+route: talkroom
+state: delivered
+user_type: semi_technical
+emotional_tone: mildly_frustrated
+service_hint: bugfix
+raw_message: 修正ファイルを反映してみたんですが、ビルドが通らなくなりました。手順通りにやったつもりなんですが、何か抜けてますかね？
+note: delivered 後のトラブル。防御せず協力姿勢で返すバランス
+----
+case_id: QLT-027
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: boundary
+raw_message: すみません初歩的な質問なんですが、うちのサイトがときどき表示崩れするのって、バグですか？コードの問題なのか設定の問題なのかもわからなくて。どちらのサービスで相談すればいいでしょうか。
+note: 初歩的な質問を自覚している。丁寧に答えつつ上から目線にならない返し方
+----
+case_id: QLT-028
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: あ、すみません今思い出したんですが、先月自分でコードちょっといじったのがあって、もしかしたらそこが原因かもしれないです。関係あるかわからないですけど一応。
+note: 後出し情報。受け止め方次第で責められてる感を与えてしまう
+----
+case_id: QLT-029
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: handoff
+raw_message: 整理してもらった資料、すごく助かりました。ただ、これを見て「やっぱりここも直したいな」って出てきちゃって。修正のほうも頼めますか？
+note: closed 後の追加依頼。サービス案内が押し売りにならないように
+----
+case_id: QLT-030
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: boundary
+raw_message: Supabase + Next.js で作ったSaaSなんですが、Stripeの定期課金まわりが怪しくて。修正してほしいのと、あと課金フローの全体像も整理してほしいです。両方頼むとおいくらになりますか？
+note: 両サービスを同時に聞いている boundary。見積もり提示で営業っぽくなりやすい
+----
+case_id: QLT-031
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 度々すみません。あの、他の方の対応で忙しいとかだったら全然大丈夫なんですが、大体のスケジュール感だけでも教えていただけると助かります。
+note: 過度に気を遣った進捗確認。同じく気を遣い返すと距離が開く
+----
+case_id: QLT-032
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: hesitant
+service_hint: boundary
+raw_message: こんにちは。購入前に聞きたいんですが、コードを送る時ってGitHub使わないとダメですか？あと、修正と整理のどっちが先にやるべきかとか、そのあたりも相談に乗ってもらえますか？
+note: 事務質問と boundary 相談が混在。テンプレ応対だと bot 感が出やすい
+----
+case_id: QLT-033
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: hesitant
+service_hint: handoff
+raw_message: お見積りありがとうございます。ちょっと社内で相談してから決めたいんですが、いつまでにお返事すればいいですか？
+note: quote_sent 後の保留。急かさず放置もしない返し方
+----
+case_id: QLT-034
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: そういえば、うちのサイトって本番と開発で環境分かれてなくて、直接本番のコードを触ってるんですけど、それでも大丈夫ですか？
+note: 本番環境の話題。直接 push しない制約を冷たくなく伝える場面
+----
+case_id: QLT-035
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: mildly_frustrated
+service_hint: bugfix
+raw_message: お世話になりました。直していただいた部分は動いてます。ただ正直、もう少し途中で状況を教えてもらえたら安心だったかなと思いました。次回があれば参考にしていただければ。
+note: closed 後の軽いフィードバック。受け止め方次第で防御的になりやすい
+----
+case_id: QLT-036
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 予算があまりなくて。15000円のほうで、修正ついでに簡単にどこが悪かったか教えてもらうことってできますか？25000円のほうは今ちょっと厳しくて。
+note: 価格制約から boundary を自分で寄せようとしている。任意確認が多いと距離が出る
+----
+case_id: QLT-037
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 資料受け取りました。ざっと見た感じ、わかりやすくまとめていただいてると思います。あとはこれを持って別のエンジニアさんに相談する形になりますが、その方から質問が出たら聞いてもいいですか？
+note: delivered 後の追加質問の予告。対応範囲を冷たくなく伝える
+----
+case_id: QLT-038
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 急ぎなんですが、今日中に見てもらうことって可能ですか？お客さんから決済できないって連絡来てて、もう半日以上この状態で。
+note: 緊急案件。できる/できないの返答で距離感が大きく変わる
+----
+case_id: QLT-039
+route: talkroom
+state: purchased
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: あ、ここまでの調査結果とかって途中で共有してもらうことできますか？自分でも並行して調べてて、手がかりがあれば参考にしたくて。
+note: 技術者寄りの中間共有要望。確認を増やすと距離が出る
+----
+case_id: QLT-040
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: hesitant
+service_hint: boundary
+raw_message: うちのサイト、半年くらい前にフリーランスの人に作ってもらったんですけど、その人ともう連絡取れなくて。今困ってるのは決済のエラーなんですけど、今後自分で管理できるようにもしたいです。何から始めたらいいですかね。
+note: boundary で切実な背景がある。整理を手伝うか、質問するか、判断の返し方
+----
+case_id: QLT-041
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: ありがとうございました！無事動くようになりました。また何かあったらお願いするかもしれないので、そのときはよろしくお願いします。
+note: 好意的な closed。返しが定型すぎると bot 感が出る
+----
+case_id: QLT-042
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: お見積りの件、ありがとうございます。15000円は了解なんですが、もし調べた結果「これは別の原因もある」ってなった場合って、追加でいくらかかりますか？先に知っておきたくて。
+note: quote_sent で追加費用への不安。答え方で営業感が出やすい
+----
+case_id: QLT-043
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: こちらから送った情報で足りてますか？足りないものがあったら言ってください。こっちが何か忘れてて作業止まってたら申し訳ないので。
+note: 自分を責める形の進捗不安。安心させつつ事務的にならない返し方
+----
+case_id: QLT-044
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: boundary
+raw_message: すみません、長くなります。うちのECサイトなんですが、お客さんが「カートに入れたのに消える」って言ってて、あと管理画面の在庫数が実際と合わないこともあって、たぶんどこかおかしいんだとは思うんですが、全部で1件なのか複数なのかも自分ではわからなくて。
+note: 長い相談で自分でも整理できていない。質問を返しすぎると負担になる
+----
+case_id: QLT-045
+route: talkroom
+state: closed
+user_type: semi_technical
+emotional_tone: mildly_frustrated
+service_hint: handoff
+raw_message: 整理ありがとうございました。結果的には思ったより簡単な構成だったみたいで、正直25000円は高かったかなというのが正直な感想です。でも自分じゃ判断できなかったので、しょうがないんですけど。
+note: closed 後の「高かった」感想。防御せず受け止めつつ押し売りしない返し方
+----
+case_id: QLT-046
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 整理のサービスのページを見たんですが、「主要1フロー」というのはどのくらいの範囲ですか？うちのサイトだと、会員登録→ログイン→Stripe決済→メール通知くらいまでが一連の流れなんですけど、これで1フローですか？
+note: サービスページの文言への率直な疑問。正確に答えつつ堅くならない返し方
+----
+case_id: QLT-047
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: 実は別のエンジニアさんにも相談したことがあって、そのときは「これはコードじゃなくてサーバー設定の問題だと思う」と言われたんですが、自分じゃよくわからなくて。もしサーバー設定の問題だったら対象外ですか？
+note: 他者の見解がある。対象外の伝え方で冷たさが出やすい
+----
+case_id: QLT-048
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: hesitant
+service_hint: boundary
+raw_message: 正直に言うと、コードがぐちゃぐちゃなのは自覚してて、整理してもらう前にまず動かないところを直したいんです。でも整理しないと修正もしにくいですよね？どっちが先ですか。
+note: 順序の相談だが、自分で決められない。提案が押しつけにならない返し方
+----
+case_id: QLT-049
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 無事解決しました、ありがとうございます。ひとつだけ気になったんですが、修正してもらったファイルの中にコメントが英語で入ってたんですけど、これって日本語にしてもらうことはできなかったんですか？
+note: closed 後の軽い引っかかり。小さな不満だが「今さら」感を出さずに返す
+----
+case_id: QLT-050
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: hesitant
+service_hint: boundary
+raw_message: 見積もりありがとうございます。実はもう少し考えたいんですが、修正のほうで進めてもらって、途中でやっぱり整理も必要ってなったら、そこから切り替えることってできますか？
+note: quote_sent 後の迷い。サービス間の切り替え説明で長くなりやすい

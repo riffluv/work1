@@ -1,0 +1,2586 @@
+bucket: stress
+case_count: 190
+role_counts:
+  edge: 9
+  eval: 73
+  holdout: 67
+  quality_cases: 32
+  renderer_seed: 1
+  seed: 8
+cases:
+- asset_id: prequote-test-cases:EST-002
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: EST-002
+  state: prequote
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、急ぎで相談したいのですが。うちのサービスでサブスク決済をStripeで使っていて、昨日から新規のお客さんがサブスク登録できなくなっています。チェックアウト画面までは行くのですが、決済ボタンを押すとエラーになるみたいで…。既存のお客さんは影響なさそうなのですが、新規が止まっているので売上に直結していて焦っています。見ていただけますか？
+  note: 緊急感あり。感情注意ではないが不安感が強い
+- asset_id: prequote-test-cases:MSG-002
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: MSG-002
+  state: prequote
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: こんにちは、メッセージですみません。いま運営しているサイトで、Stripeのwebhookがエラーになっているみたいで。といっても自分ではwebhookが何なのかもよくわかってないんですが、Stripeのダッシュボードに赤いマークが出ていて不安です。これって放置するとまずいですか？まず相談だけでもいいですか？
+  note: 技術理解が低い。「相談だけ」は保留で必要情報確認になりやすい
+- asset_id: prequote-test-cases:TRK-004
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: TRK-004
+  state: purchased
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: あの、このやり取りの途中で聞くのも変なんですが…完了までどのくらいかかりそうですか？実はお客さんから問い合わせが来ていて、「いつ直るのか」と聞かれてるんです。大まかな目安でいいので教えていただけると助かります。
+  note: 納期の不安。感情注意ではないが丁寧に扱うべき
+- asset_id: prequote-test-cases:DLV-002
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: DLV-002
+  state: delivered
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 確認しました。修正いただいた箇所は動いているんですが、修正前に動いていた別の機能が動かなくなっている気がします。具体的にはメール送信のところなんですが、これって今回の修正の影響ですかね…？
+  note: 副作用の指摘。差し戻し寄り。スコープ判定が必要
+- asset_id: prequote-test-cases:DLV-004
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: DLV-004
+  state: delivered
+  service_hint: null
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、差し戻しというか…。修正ファイルを適用したのですが、本番環境だとまだ同じエラーが出ます。ローカルでは直っているのですが、Vercelにデプロイすると500エラーのままです。環境変数は確認済みです。これって修正が足りていないのでしょうか。
+  note: 差し戻し。環境差の問題。感情注意までは行かないが不満あり
+- asset_id: prequote-test-cases:CLS-001
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CLS-001
+  state: closed
+  service_hint: null
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 以前Webhookの修正をお願いした者です。修正していただいた後しばらくは動いていたのですが、また同じエラーが出ています。まだ1週間しか経っていないのですが…。前回お金を払って直してもらったはずなのに、また同じ症状が出るのは正直困っています。
+  note: 感情注意フラグ案件。高信頼シグナル「お金を払ったのに」
+- asset_id: prequote-test-cases:CLS-003
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CLS-003
+  state: closed
+  service_hint: null
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: お世話になります。前回修正いただいた Webhook の件ですが、違うイベント（invoice.payment_failed）で同じようなエラーが出ています。前回は
+    checkout.session.completed で修正してもらったので、原因は別かもしれませんが、関連はありそうです。トークルームが閉じているようなのですが、どうすればいいですか？
+  note: 別イベントでの類似エラー。同一原因か別原因か判定が必要
+- asset_id: prequote-test-cases:CLS-004
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CLS-004
+  state: closed
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: こんにちは、以前お世話になった者です。前回直していただいた部分なんですが、昨日からまたおかしくなってしまいました。前回の修正が戻っちゃったのか、それとも別の問題なのか自分ではわかりません。どうしたらいいでしょうか。。
+  note: 不安寄り。苦情ではないが温度に配慮が必要
+- asset_id: prequote-test-cases:CHK-001
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CHK-001
+  state: prequote
+  service_hint: null
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: こんにちは。修正までは求めていないのですが、今のStripe連携が正しく動いているかどうかだけ確認してもらうことは可能でしょうか。AIで作ったコードなので、そもそもちゃんと動いているのか不安で。
+  note: 公開 bugfix では 15,000円 に確認範囲を含める典型。「修正までは求めていない」が明確
+- asset_id: prequote-test-cases:CHK-003
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CHK-003
+  state: prequote
+  service_hint: null
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: Stripeの本番環境への切り替えを自分でやったのですが、設定が正しいか不安です。テスト環境では問題なく動いていますが、本番に切り替えたあとにWebhookの設定とかAPIキーの設定が合っているか確認だけしてもらえませんか。
+  note: 設定確認のみ。公開 bugfix では 15,000円 に確認範囲を含める前提
+- asset_id: prequote-test-cases:PRC-001
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: PRC-001
+  state: prequote
+  service_hint: null
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: サービス内容を見て相談しています。Webhook の不具合を見てほしいのですが、15000円は正直予算的に厳しくて…。もう少し安くしていただくことは可能でしょうか？
+  note: 直球の値引き依頼。値下げせず 15,000円 の固定条件を説明する
+- asset_id: prequote-test-cases:PRC-002
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: PRC-002
+  state: prequote
+  service_hint: null
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: はじめまして。StripeのWebhookエラーで困っています。他の方にも見積りを出していただいたのですが、予算10000円くらいで考えています。対応可能でしょうか。
+  note: 他社比較を匂わせる値引き。価格は崩さない
+- asset_id: prequote-test-cases:PRC-004
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: PRC-004
+  state: quote_sent
+  service_hint: null
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 提案を拝見しました。内容は問題ないのですが、15000円で即決するのが少し不安です。もし結果的に修正がいらなかった場合は返金してもらえるのでしょうか？
+  note: 返金条件の確認。値引きではなくリスク確認に近い
+- asset_id: prequote-test-cases:MUL-003
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: MUL-003
+  state: prequote
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、いろいろ壊れていてパニックです。決済はできるんですが、①完了ページに何も表示されない②メールが飛ばない③管理画面にデータが入らない、の3つが同時に起きています。全部Stripeのせいなのか、うちのコードがおかしいのかもわかりません。。
+  note: パニック寄り。3症状だが同一WebhookのDB書き込み失敗が根本の可能性
+- asset_id: prequote-test-cases:EMO-002
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: EMO-002
+  state: closed
+  service_hint: null
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 前回15000円お支払いして修正していただいたのですが、また同じ問題が起きています。お金を払ったのに解決していないということでしょうか。今後どうなるのか教えてください。
+  note: 高信頼シグナル「お金を払ったのに」「解決していない」
+- asset_id: prequote-test-cases:EMO-003
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: EMO-003
+  state: purchased
+  service_hint: null
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 何度もやり取りしているのに、まだ原因が分からないんですか？もう1週間経っています。48時間以内と言われたのに、いつになったら結果が出るんでしょうか。
+  note: 進捗不満。中信頼シグナル「まだ + 否定」+ 時間経過への不満
+- asset_id: prequote-test-cases:CLO-003
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CLO-003
+  state: closed
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、前回の件の続きなのですが。。修正していただいた後にコードを少し触ったら、修正が戻ってしまったような気がします。自分のせいだと思うのですが、どうしたらいいですか？
+  note: 自責寄り。感情注意フラグは不要だが丁寧に扱うべき
+- asset_id: prequote-test-cases:PRC-004
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: PRC-004
+  state: closed
+  service_hint: null
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: また連絡してすみません。前回修正してもらった決済の件ですが、今日になってまたエラーが出ています。前回のときは修正後にちゃんと動いていたのですが、もう何がなんだかわかりません。正直、もう同じことでお金を払いたくないです。
+  note: 再発 + 金銭への不満。感情注意フラグ案件。CLS系と重複するが温度の微妙さを見るケース
+- asset_id: prequote-bulk-20:BLK-001
+  source_name: prequote-bulk-20.txt
+  source_role: eval
+  case_id: BLK-001
+  state: prequote
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: こんにちは。月額課金のサービスを運営しているのですが、昨晩から一部のお客さんが「有料プランなのに無料プランに戻っている」と連絡してきています。Stripeの管理画面ではサブスクリプションは有効のままなのですが、サイト側だけおかしいようです。お客さんからの問い合わせが増えていて困っています。Next.jsとVercelで運用しています。対応できるものか教えてください。
+  note: サブスク会員状態不整合。customer.subscription.updated の Webhook 受信漏れ候補。情報は十分
+- asset_id: prequote-bulk-20:BLK-005
+  source_name: prequote-bulk-20.txt
+  source_role: eval
+  case_id: BLK-005
+  state: prequote
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 急ぎで相談です。今朝からStripeの決済完了後にリダイレクトされるはずのページが404になっています。昨日まで普通に動いていました。デプロイは最近していないはずなんですが、突然壊れた形です。お客さんが決済しても完了画面に行けない状態なので至急見てほしいです。
+  note: 成功URL 404。Vercel のデプロイかルーティング変更の可能性。緊急感
+- asset_id: prequote-bulk-20:BLK-011
+  source_name: prequote-bulk-20.txt
+  source_role: eval
+  case_id: BLK-011
+  state: prequote
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、ちょっと焦っています。Stripeのダッシュボードを見たら、Webhookのところにオレンジ色の警告が出ていて「失敗」と表示されているイベントがたくさんあります。いつからこうなっていたのか分からないのですが、少なくとも1週間前からありそうです。放置してたのがまずかったのか不安です。これって影響ありますか？対応をお願いできますか。
+  note: Webhook 大量失敗の発見。non_engineer で状況理解が浅い。「影響ありますか」から入る
+- asset_id: prequote-bulk-20:BLK-015
+  source_name: prequote-bulk-20.txt
+  source_role: eval
+  case_id: BLK-015
+  state: prequote
+  service_hint: null
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: はじめまして。1つ確認してから依頼したいんですが。先月AIで作ったWebサイトがあって、一応Stripeで決済できるようになっています。ただ、自分では本当にちゃんと動いているのか判断がつきません。テスト決済は1回やって成功したのですが、本番で使い始めて問題が起きないか不安です。チェックだけしてもらうことは可能ですか。
+  note: AI生成コードの検証依頼。不具合未発生。5K 確認案件候補
+- asset_id: prequote-bulk-20:BLK-018
+  source_name: prequote-bulk-20.txt
+  source_role: eval
+  case_id: BLK-018
+  state: prequote
+  service_hint: null
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 今日お客さんから「カード引き落としがあったのに、サイトにログインしたらまだ無料会員と表示される」と連絡がありました。Stripeを確認したところ、決済は成功しているようです。これまで同じような指摘が2〜3件来ていたのですが、放置してしまっていました。何人に影響が出ているか分からないのが怖いです。至急見てもらうことは可能でしょうか。
+  note: 決済成功→会員状態未反映の複数報告。過去の放置あり。緊急＋不安
+- asset_id: prequote-bulk-30-v2:V2-001
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 至急です。お客さんが「2回引き落とされた」と連絡してきました。Stripeの管理画面を見ると確かに同じ人に2件の決済が入っています。1件は返金した方がいいと思うのですが、なぜ2回決済されたのか原因が分かりません。同じことがまた起きると困るので、原因を調べて直してほしいです。
+  note: 二重決済。Checkout Session の二重作成 or ボタン連打。返金は範囲外だが原因調査+修正は bugfix
+- asset_id: prequote-bulk-30-v2:V2-005
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-005
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: ここ3日くらい、決済後に自動で送っている領収書メールが届かない人が出てきています。全員じゃないんですが、お客さんから「領収書が届かない」と言われます。Stripeからの自動メールなのか、うちのシステムから送っているのか実は分かっていなくて…。何が原因か調べて修正してもらえますか。
+  note: 領収書メール不達。BLK-006（購入完了メール）と似ているが「領収書」で差別化。原因不明度が高い
+- asset_id: prequote-bulk-30-v2:V2-009
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-009
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: プロフィールを見て相談します。うちの会員サイトで、月初に一斉課金が走るタイミングでサイトが重くなって500エラーが出ることがあります。毎月じゃないんですが、先月と今月は出ました。お客さんがログインできなくなるので困っています。Next.jsです。Stripeの定期課金を使っています。対応できますか。
+  note: 月初一斉課金時の負荷起因500。Webhookの大量同時到達が原因候補
+- asset_id: prequote-bulk-30-v2:V2-015
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-015
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 相談です。Stripeで年額プランを売っているのですが、今日お客さんから「去年の購入なのにまた引き落としされた」とクレームが来ました。年額のはずなのになぜ2回目が来たのか分からなくて。サイト側の設定なのか、Stripe側の設定なのか分かりません。今後同じことが起きないようにしたいです。
+  note: 年額プランの意図しない自動更新。サブスクの自動更新設定の問題候補
+- asset_id: prequote-bulk-30-v2:V2-018
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-018
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: ChatGPTでWebサービスを作ったんですが、ファイルが大量にあって、どのファイルが何をしているのか自分でも分からなくなりました。Stripeでの決済は一応動いているんですが、触ると壊れそうで怖いです。まず「どこを触ると危ないか」だけでも教えてもらえると助かります。修正はまだ依頼しません。
+  note: AI生成コード。「触ると壊れそう」で整理が先。修正は依頼しないと明言
+- asset_id: prequote-bulk-30-v2:V2-021
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-021
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、少し焦っています。来月から新しい開発会社に保守を引き継ぐのですが、今のコードの説明ができません。前の外注先に聞こうにも連絡がつかなくなっています。全体は無理だと思うので、決済と会員登録のところだけでも整理してもらえませんか。引き継ぎ資料として渡せるものが欲しいです。
+  note: 保守引き継ぎの期限あり。anxious。1フロー指定で引き継ぎメモ希望
+- asset_id: prequote-bulk-30-v2:V2-024
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-024
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: プロフィールを見てご連絡しています。LP制作と決済部分を別々の人に外注して作ったサイトがあるんですが、両方の外注先が辞めてしまって、決済のところが完全にブラックボックスです。不具合は出ていませんが、いつ壊れるか分からないのが不安です。どこが危ないかだけでも把握したいです。
+  note: 複数外注→全員離脱。ブラックボックス。「どこが危ないか」系
+- asset_id: prequote-bulk-30-v2:V2-027
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-027
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: メッセージ失礼します。AIで作ったサイトで、お客さんから「決済したのに会員ページに入れない」と連絡がありました。とりあえず中を見てもらいたいんですが、コードの中身は全く分かりません。修正できるなら修正もしてほしいんですが、まず何が起きているか知りたいです。
+  note: 症状はbugfix的だが、AI生成コードで構造理解がゼロ。「まず何が起きているか知りたい」でhandoff寄り
+- asset_id: prequote-bulk-30-v2:V2-029
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-029
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: プロフィール拝見しました。サイトの決済まわりで不具合が出ているんですが、外注先が連絡取れなくなって、原因を調べようにもどのコードを見ればいいか分かりません。不具合修正と引き継ぎ整理、どちらのサービスを買った方がいいか相談させてもらえますか？
+  note: 「どちらを買えばいいか」を直接聞いている。判定案内が必要なケース
+- asset_id: prequote-bulk-30-v3:V3-002
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-002
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 先月から何回もお客さんに「決済できない」と言われて、もう対応しきれません。外注に聞いてもログ見てくださいとしか言わない。ログの見方すら分かりません。こっちは毎日お客さんに謝っている状態です。もうプロに頼みたいです。
+  note: frustrated + 外注不信。「毎日謝っている」圧がある。感情を受け止めつつ冷静に情報を回収する訓練
+- asset_id: prequote-bulk-30-v3:V3-003
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-003
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: サービスページ見ました。15,000円で1件とのことですが、うちの場合「決済後にメールが届かない」と「マイページに反映が遅い」の2つがあります。これは1件扱いになりますか？2件だと30,000円ですか？予算的にちょっと厳しいので、先に聞いておきたくて。
+  note: 2件分の料金不安。同一原因なら1件、別原因なら2件。予算制約ありの price_sensitive
+- asset_id: prequote-bulk-30-v3:V3-005
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-005
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、今日の朝から決済ページが真っ白になっています。昨日の夜まで普通に動いていました。お客さんが買えない状態が続いていて、売上が止まっています。とにかく早く直したいんですが、何時間くらいで見てもらえますか。
+  note: 緊急+納期質問。「何時間で直る？」に対して約束せずに進行感を出す訓練
+- asset_id: prequote-bulk-30-v3:V3-006
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-006
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 。料金についてはじめまして先に確認なんですが、15,000円は調査も含めた金額ですか？見てもらったけど原因不明でした、でも15,000円かかります、ということはないですよね？
+  note: 「原因不明でも課金されるのか」の不安。成果報酬的な期待。スコープの線引きを丁寧に説明する訓練
+- asset_id: prequote-bulk-30-v3:V3-008
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-008
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 他のところに一度依頼したんですが、直ったと言われた箇所がまた壊れました。もう同じところに頼みたくないので、プロフィール見て連絡しています。Stripeの決済後に会員情報が更新されない問題です。Next.jsです。
+  note: 他社リピート不信。前の修正が再発。「また壊れた」の原因が前回の修正品質か新規原因か不明
+- asset_id: prequote-bulk-30-v3:V3-012
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-012
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: コードを見てほしいんですが、何を見てほしいかがうまく説明できません。とりあえず全体的に不安というか。触ると壊れそうな気がして何もできない状態です。
+  note: 「何を見たいか自分でも分からない」ケース。フロー特定の質問設計が必要
+- asset_id: prequote-bulk-30-v3:V3-013
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-013
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:stress
+  raw_message: 引き継ぎメモのサービスを見たんですが、25,000円で整理だけで修正はしないんですよね。ちょっと高い気がするんですが、他にもっと安い方法はありますか？
+  note: 直球の「高い」。価値を説明しつつ押しつけない。代替提案が難しい
+- asset_id: prequote-bulk-30-v3:V3-016
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-016
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 前の担当者が辞めてから半年放置していたんですが、最近動きが怪しくなってきました。壊れる前に中身を見ておいてほしいんですが、間に合いますか。もし壊れたら修正もお願いしたいんですが。
+  note: 「壊れる前に見て」+ 「壊れたら修正も」。handoff→bugfixの段階提案。anxious+放置
+- asset_id: prequote-bulk-30-v3:V3-020
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-020
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 不具合を直してほしいんですが、コードが全く分からないので、整理も必要かもしれません。25,000円+15,000円で40,000円になると思うとちょっときつくて。整理なしでいきなり修正だけお願いすることはできますか？
+  note: 合計金額への抵抗 + 「整理スキップして修正だけ」の要望。段階の必要性を説明する訓練
+- asset_id: prequote-bulk-30-v3:V3-024
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-024
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 急ぎで相談です。今朝からお客さんが「ログインできない」と連絡してきていて。決済は関係あるか分かりません。外注のコードなので自分では何も分かりません。とにかく見てもらえますか。
+  note: 緊急 + 原因不明 + 外注コード。ログイン問題がStripe/API関連か不明。情報回収が最優先
+- asset_id: prequote-bulk-30-v3:V3-028
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-028
+  state: purchased
+  service_hint: after_purchase
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、依頼した件とは別なんですが、今日新しくお客さんから「二重に引き落とされた」と連絡が来ました。元の依頼とは別の話ですよね？これも見てもらえますか？焦ってます。
+  note: 購入中に別の緊急案件が発生。別件としての新規見積りか、既存依頼との関連確認
+- asset_id: prequote-bulk-30-v3:V3-030
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-030
+  state: closed
+  service_hint: after_close
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: 前回お世話になりました。別の箇所でも似たような不具合が出てきたんですが、前回の結果を活かして安くしてもらうことはできますか？割引とか。
+  note: closed後の別件依頼 + 割引要求。前回の知見が使えるか + 値引き対応
+- asset_id: prequote-bulk-20-v6:V6-001
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、3つ聞いてもいいですか？①これStripeの問題ですか、うちのコードの問題ですか？②15,000円は税込みですか？③今週中に直りますか？決済のとこが動いてなくて、お客さんにはとりあえず銀行振込で対応してます。
+  note: 3つの質問を番号付きで並べてきた。全部答えると質問票の回答リスト化する。どれを先に答え、どれを保留するか
+- asset_id: prequote-bulk-20-v6:V6-002
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-002
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 決済のところなんですが、動いてはいます。ただ、たまにお客さんから「2回引き落とされた」と言われます。頻度は月1〜2回くらいです。急ぎではないんですが、放置するわけにもいかなくて。
+  note: 一見シンプルだが、月1〜2回の間欠エラーは再現が難しく、調査範囲が読めない。「急ぎではない」が納期約束を引き出す罠
+- asset_id: prequote-bulk-20-v6:V6-003
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-003
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 今Stripeのダッシュボードを見たら知らない決済が何件か入ってるんですけど、これって不正アクセスですか？自分のサイト経由じゃないかもしれないんですけど、怖くて触れないです。これも見てもらえますか？
+  note: 不正アクセスの可能性。bugfixではなくセキュリティ調査寄り。サービス範囲を超える可能性があるが、不安が強い
+- asset_id: prequote-bulk-20-v6:V6-005
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-005
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: もういいです。自分でやります。…と言いたいところですが無理でした。すみません、やっぱりお願いしたいです。Webhookのエラーが出てます。.envの中身って送った方がいいですか？あとStripeの管理画面のスクショも撮った方がいいですか？
+  note: 感情の揺れ（諦め→依頼）+ .env共有の質問 + 何を送ればいいかの質問。感情に引っ張られすぎると要件を見失う
+- asset_id: prequote-bulk-20-v6:V6-006
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-006
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:stress
+  raw_message: 外注で作ってもらったコード、引き継ぎメモ作ってもらいたいんですが、ぶっちゃけ25,000円の価値があるか分かりません。メモもらった後に「これ分かんない」ってなったらお金もったいないなと。返金とかはないですよね？
+  note: サービス価値への不信 + 返金質問が同時。価値を説明しすぎると押しつけ、説明しなすぎると不安が残る
+- asset_id: prequote-bulk-20-v6:V6-007
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-007
+  state: prequote
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: コードの中身が全然分からないんですが、お願いする前に1つだけ。このサービスで整理してもらった後、そのまま修正までやってもらえますか？別料金になるのは分かってるので、合計でいくらくらいになるか先に知りたいです。
+  note: handoff→bugfixの合計見積りを求めている。セットで約束するとスコープ拡大リスク。でも合計感を出さないと依頼しにくい
+- asset_id: prequote-bulk-20-v6:V6-009
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-009
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 25,000円でメモ作ってもらうの分かったんですが、前に別の人に5,000円で同じようなことやってもらったことがあって。その人はもういなくなっちゃったんですけど。内容に差があるなら教えてほしいです。
+  note: 他社の5K実績と比較。「内容に差があるなら」は合理的な質問だが、他社サービスの内容が分からないので比較困難
+- asset_id: prequote-bulk-20-v6:V6-011
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-011
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 急ぎなんですが、不具合が出てるのと、コードも分からないのと、両方です。どっちのサービスがいいか分からないし、この状態で15,000円だけ払って解決しなかったら怖い。25,000円の方が安全ですか？でも修正含まないんですよね？もう何を選んでいいか分かりません。
+  note: 感情的に崩れかけている。bugfix/handoffの選択不能+恐怖+価格不安の複合。どう安心させるかが試される
+- asset_id: prequote-bulk-20-v6:V6-013
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-013
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 個人開発でSaaS作ってるんですが、Stripe BillingのCustomer Portalで解約はできるのにプラン変更ができない状態です。Stripeの設定だと思うんですけど、自分でやるとまた壊しそうで。設定変更だけなら15,000円じゃなくてもっと安くなりますか？
+  note: V5-019の発展形。「設定変更だけ」の値引き期待+「壊しそう」の不安。設定かコードか未確定なのに値段を聞いてくる
+- asset_id: prequote-bulk-20-v6:V6-017
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-017
+  state: purchased
+  service_hint: after_purchase
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: なんか今やってもらってる間に別のところも壊れた気がします。管理画面のユーザー一覧が表示されなくなりました。あと、さっきお客さんから「パスワードリセットのメールが届かない」って連絡来ました。これ全部つながってますか？
+  note: 作業中に新たな障害2件発生。3つの問題（元依頼+管理画面+メール）の関連性判定が必要
+- asset_id: prequote-bulk-20-v6:V6-020
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-020
+  state: closed
+  service_hint: after_close
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、前回クローズしたあとずっと迷ってたんですが、やっぱり不安なのでもう1フロー整理してもらいたいです。ただ、また25,000円かかるのは正直きつくて。前回の経験があるから少し安くなったりしませんか？あと、前回のメモで1箇所だけ気になるところがあるので、そこだけ確認してもらえますか？
+  note: 新規依頼(2フロー目)+値引き期待+前回メモの部分修正の3要素。全部に答えると散漫、線を引く位置が難しい
+- asset_id: prequote-bulk-30-v5:V5-001
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません急ぎで。Stripeの決済がおかしくて、昨日からお客さんに謝ってます。15,000円で対応してもらえますか？あと何日くらいかかりますか？今日中は無理ですか？
+  note: 感情+価格+納期+対応可否が1メッセージに全部入っている。全部答えると長くなりすぎる
+- asset_id: prequote-bulk-30-v5:V5-003
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-003
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: もう意味わかんないです。チェックアウトの画面で止まるんですけど、たまに通るんですよ。通ったり通らなかったりで、お客さんにも説明できないし、Stripeのダッシュボードの見方も分かりません。こういうの直せます？15,000円で済みますか？
+  note: 感情の吐き出し+間欠エラー+知識不足告白+価格質問。論点が散っている
+- asset_id: prequote-bulk-30-v5:V5-005
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-005
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 正直怖いんですけど、決済データが二重に入ってるみたいで。自分で触って壊すのも怖いし、放置するのも怖い。見てもらいたいんですが、15,000円と書いてあったのでそれでお願いしたいです。あ、これ↓の値送った方が早いですか？
+    sk_live_xxxxxx
+  note: 恐怖+二重処理+即購入意思+秘密情報を貼ろうとしている。複数の対応が同時に必要
+- asset_id: prequote-bulk-30-v5:V5-007
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-007
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、今Vercelからメール来て、ファンクションがタイムアウトしてるって書いてあるんですけど、これってStripeのWebhookに関係ありますか？お客さんの決済に影響出てるかもしれないです。すぐ見てもらえますか？あと、GitHub連携してるんで、リポジトリURL送った方が早いですか？
+  note: Vercelの通知をそのまま転送+影響不明の不安+「すぐ」圧+GitHub URL提案
+- asset_id: prequote-bulk-30-v5:V5-008
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-008
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 個人開発で月の売上5万くらいなんで、正直15,000円はきついです。でもStripe Checkoutのsuccess_urlに飛ばなくて困ってます。自分でも色々やったんですが、session.payment_statusは"paid"になってるのにリダイレクトされない。5,000円とか10,000円でできるケースってないですか？
+  note: 個人開発の収入事情+具体的な症状+値引き交渉。同情を引く要素あり
+- asset_id: prequote-bulk-30-v5:V5-010
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-010
+  state: prequote
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: お金のことを先に聞いてすみません。25,000円で整理してもらって、そのあと不具合修正も頼むと合計40,000円ですよね？正直40,000円は出しにくいです。でもコードの中身も分からないし不具合も出てるし、どっちから手をつけていいか分からなくて。
+  note: 価格不安+判定不明+自己判断できない。V4-017に近いが「お金のことを先に」の自責が入る
+- asset_id: prequote-bulk-30-v5:V5-012
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-012
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 前の外注さんに払った分も含めるともう相当使ってて、整理に25,000円は正直出せるか微妙です。でもこのままだと次の人にも引き継げなくて詰んでます。分割で払えたりしますか？あとメモだけもらって修正は自分でやるっていうのもありですか？
+  note: 予算限界+分割払い質問+「修正は自分で」確認。ココナラの支払い方法は出品者が決められない
+- asset_id: prequote-bulk-30-v5:V5-014
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-014
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 外注先が急に廃業してしまって、コードだけ残ってる状態です。一応動いてますが触るのが怖い。引き継ぎメモ作ってもらいたいんですが、万が一作業中に壊れたりしませんか？本番のコードは触りませんよね？
+  note: 廃業不安+「壊れないか」の不安+本番コード操作の確認。保証と作業方法の質問が混在
+- asset_id: prequote-bulk-30-v5:V5-016
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-016
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 不具合が出てるんですけど、コードの中身も分からないし、これが15,000円の方なのか25,000円の方なのか、ページ見ても正直分かりません。急いでるのであんまり悩んでいる時間もなくて。とりあえずどっちがいいか教えてもらえますか？
+  note: 判定を丸投げ + 急ぎ + 価格不安。全部に答えると長くなる
+- asset_id: prequote-bulk-30-v5:V5-020
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-020
+  state: prequote
+  service_hint: boundary
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: もう3回目の相談です。前に別の人に2回頼んだんですが、2回とも「直した」って言われて結局直ってなくて。今回こそちゃんと直したいんですけど、そもそもこれ不具合なのか仕様なのかも分からないです。15,000円で見てもらって、もし仕様だったらお金返してもらえますか？
+  note: 他社2回失敗+仕様/不具合不明+返金条件の質問。V4-002の発展形
+- asset_id: prequote-bulk-30-v5:V5-022
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-022
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 急ぎなんですけど、たぶん不具合が2つあって。1つはStripeの決済後にメールが送られないやつ。もう1つは管理画面の注文一覧が空になるやつ。2件分の料金かかりますか？急ぎなんで早めに教えてもらえると助かります。
+  note: 2件の症状+料金質問+急ぎ×2。同一原因か別件かの判定+急ぎの受け止め+料金説明の3つが必要
+- asset_id: prequote-bulk-30-v5:V5-024
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-024
+  state: purchased
+  service_hint: after_purchase
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、今やってもらってる件の進捗聞きたいのと、あともう1個別件なんですが、お客さんから「退会できない」って問い合わせ来てて。これ今のやつと関係ありますか？急ぎで見てもらえますか？Slackに招待した方が早いですかね？
+  note: 進捗確認+別件追加+Slack誘導が1メッセージ。3つの話題を処理する優先順位が試される
+- asset_id: prequote-bulk-30-v5:V5-028
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-028
+  state: closed
+  service_hint: after_close
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: また同じところが壊れたんですけど、正直もう嫌になってきました。前回も15,000円払ってるし、また同じ金額かかるんですか？前回直してもらったんだからそこに関しては無料で見てもらえませんか？
+  note: 再発疲弊+2回の15K負担+無償期待が明確。感情と価格が強く混ざる
+- asset_id: prequote-bulk-30-v4:V4-002
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-002
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、もう3社目なんです。1社目は見積り出してそのまま音信不通、2社目は直ったと言われたけどまた壊れた。正直もう騙されたくないので、本当に直るなら頼みたいです。Stripeの決済後に会員ステータスが変わらない問題です。
+  note: 3社目の不信感。「本当に直るなら」に対して保証を求められているが、100%は約束できない
+- asset_id: prequote-bulk-30-v4:V4-003
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-003
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: ココナラで他の方にも見積り出してもらっているんですが、そちらだと10,000円でやれるという方もいます。15,000円にした理由があれば教えてもらえますか。
+  note: 他社との相見積りで価格比較される。値下げ圧力への返し方
+- asset_id: prequote-bulk-30-v4:V4-004
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-004
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: 本当にすみません、.envの中身そのまま貼った方が早いですか？whsec_から始まるやつと、sk_liveから始まるやつがあるんですが。あと、GitHubのリポジトリURLも送りましょうか？
+  note: 秘密情報を貼ろうとしている + GitHub URL共有提案。止める必要あり。ココナラ規約上も外部誘導はNG
+- asset_id: prequote-bulk-30-v4:V4-005
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-005
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 今日中になんとかなりますか。月末の締めが今日で、決済が止まってるとお客さんに請求できない状態です。15,000円は大丈夫なのですぐ始めてほしいです。
+  note: 「今日中」圧 + 即購入宣言。納期約束せずに受け入れる必要がある
+- asset_id: prequote-bulk-30-v4:V4-008
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-008
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: さっきお客さんから電話きて、「同じ商品が2個届いた」って言われました。決済も2回入ってるみたいです。Webhookの重複？っていうのかよく分かりませんが、とにかく二重になったみたいで。返金もしないといけないかもしれないし、どうしたらいいですか。
+  note: 二重処理 + 返金不安 + 「どうしたらいいですか」の丸投げ。返金自体はサービス範囲外だが助言は必要
+- asset_id: prequote-bulk-30-v4:V4-009
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-009
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 整理してもらったあと、結局どうなるんですか？メモだけもらっても、自分でどうしていいか分からないと思うんですが。
+  note: 「整理後に何が残るか不安」。サービスの価値を理解していない。V3-017より踏み込んだ懐疑
+- asset_id: prequote-bulk-30-v4:V4-010
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-010
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 整理だけで25,000円は正直ちょっと出しにくいです。修正もセットで30,000円くらいにまとめてもらえませんか？そのほうがこっちとしては頼みやすいので。
+  note: 独自の値段設定を提案してくる。handoff+bugfixのバンドル値引き要求。受けられない
+- asset_id: prequote-bulk-30-v4:V4-014
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-014
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 前の外注さんが急に連絡取れなくなって、コードだけ残ってる状態です。本番は一応動いてるんですが、いつ壊れるか分からない。正直この先どうしたらいいか分からなくて。引き継ぎも修正も全部まとめてお願いしたいんですが。
+  note: 引き継ぎ + 修正 + 保守を全部まとめて。handoff → bugfix の段階提案が必要だが「全部」の圧がある
+- asset_id: prequote-bulk-30-v4:V4-017
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-017
+  state: prequote
+  service_hint: boundary
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: もう疲れました。3ヶ月くらいずっとこの決済の問題を抱えてて、自分で調べてもChatGPTに聞いても解決しない。何が悪いのかすら分からない。とにかく誰かに全部見てもらって、壊れてるところを直してほしい。予算は3万以内で収まりますか。
+  note: 疲弊 + 「全部見て全部直して」+ 予算上限。handoff+bugfixを予算内に収める提案が必要
+- asset_id: prequote-bulk-30-v4:V4-021
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-021
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 正直に聞くと、最初にお試しで5,000円くらいで軽く見てもらうことってできますか？それでいけそうなら正式にお願いしたいと思ってます。
+  note: お試し価格の要求。サービス設計にないプランを求められている
+- asset_id: prequote-bulk-30-v4:V4-024
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-024
+  state: purchased
+  service_hint: after_purchase
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、今やってもらってる件とは別なんですが、さっきお客さんから「個人情報が見えてる」と連絡ありました。決済履歴のページで別のお客さんの名前が出てるみたいです。これ至急見てもらえますか？
+  note: 個人情報漏洩の可能性。既存依頼とは別の超緊急案件。セキュリティ事案の対応判断
+- asset_id: prequote-bulk-30-v4:V4-028
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-028
+  state: closed
+  service_hint: after_close
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: また別の箇所で同じような問題が出てきてるんですが、毎回15,000円だとちょっと厳しいです。2回目以降は少し安くなったりしませんか？リピーター割引みたいなのがあると嬉しいのですが。
+  note: リピーター割引要求。制度がない場合の断り方
+- asset_id: prequote-contract-v2-top5:BLK-005
+  source_name: prequote-contract-v2-top5.yaml
+  source_role: renderer_seed
+  case_id: BLK-005
+  state: prequote
+  service_hint: null
+  emotional_tone: null
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 急ぎで相談です。今朝からStripeの決済完了後にリダイレクトされるはずのページが404になっています。昨日まで普通に動いていました。デプロイは最近していないはずなんですが、突然壊れた形です。お客さんが決済しても完了画面に行けない状態なので至急見てほしいです。
+  note: ''
+- asset_id: stock-bulk-100-seed:STK-001
+  source_name: stock-bulk-100-seed.txt
+  source_role: seed
+  case_id: STK-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: はじめまして。ECサイトを運営しているのですが、昨晩からStripeで決済したお客さんの注文がダッシュボードに表示されません。Stripeの管理画面では「成功」になっているのに、こちらのサイト側に何も反映がなくて。お客さんから「注文できてますか？」と連絡が3件きています。すぐ対応してもらえますか？
+  note: 典型的な決済→反映不具合だが「すぐ対応」の緊急圧がある。納期の約束をせずに進行感を出す訓練
+- asset_id: stock-bulk-100-seed:STK-003
+  source_name: stock-bulk-100-seed.txt
+  source_role: seed
+  case_id: STK-003
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: サービスページ拝見しました。質問なんですが、15,000円は「直せた場合」の金額ですか？調べてもらったけど原因が分かりませんでした、でも15,000円です、ということもありえますか？あと、調査だけで15,000円を使い切ってしまって修正は別料金、みたいなことはないですよね？先に確認しておきたいです。
+  note: 成果報酬的期待＋調査と修正の切り分け不安。2つの質問が混在。料金体系の丁寧な説明が必要
+- asset_id: stock-bulk-100-seed:STK-005
+  source_name: stock-bulk-100-seed.txt
+  source_role: seed
+  case_id: STK-005
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: もう2週間この問題で止まっています。有料プランを購入してもらっても、ユーザーのアカウントがFreeのままで。Stripeのサポートに聞いたら「アプリ側の問題です」と言われました。外注先にも聞いたんですが「Webhook周りだと思います」としか言われず、結局直ってません。毎日お客さんに手動で対応していて限界です。
+  note: frustrated＋外注不信＋Stripeサポート不信。感情圧が高いが、技術的には典型的なWebhook反映問題
+- asset_id: stock-bulk-100-seed:STK-007
+  source_name: stock-bulk-100-seed.txt
+  source_role: seed
+  case_id: STK-007
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、急ぎでご相談です。外注の方が来月で契約終了になるんですが、引き継ぎ資料が何もありません。Next.jsで作ってもらったサイトで、決済まわりはStripeを使っているらしいんですが、自分では全くコードが読めません。契約終了前に中身を整理しておきたくて。間に合いますか？
+  note: 外注契約終了の期限圧＋handoff典型。「間に合いますか？」の納期不安。anxiousだが実務判断は明確
+- asset_id: stock-bulk-100-seed:STK-009
+  source_name: stock-bulk-100-seed.txt
+  source_role: seed
+  case_id: STK-009
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 料金について確認です。コードの中身が分からないのでまず整理が必要かもしれないんですが、そうなると25,000円の整理＋15,000円の修正で合計40,000円ですよね。できれば整理をスキップして修正だけお願いしたいんですが、それは可能ですか？あと、整理した結果「修正は不要でした」となった場合でも25,000円かかりますか？
+  note: 合計金額への抵抗＋整理スキップ希望＋「修正不要でも払うのか」。3つの質問が混在する boundary典型
+- asset_id: stock-bulk-100-eval:STK-001
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: はじめまして。ECサイトを運営しているのですが、昨晩からStripeで決済したお客さんの注文がダッシュボードに表示されません。Stripeの管理画面では「成功」になっているのに、こちらのサイト側に何も反映がなくて。お客さんから「注文できてますか？」と連絡が3件きています。すぐ対応してもらえますか？
+  note: 典型的な決済→反映不具合だが「すぐ対応」の緊急圧がある。納期の約束をせずに進行感を出す訓練
+- asset_id: stock-bulk-100-eval:STK-003
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-003
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: サービスページ拝見しました。質問なんですが、15,000円は「直せた場合」の金額ですか？調べてもらったけど原因が分かりませんでした、でも15,000円です、ということもありえますか？あと、調査だけで15,000円を使い切ってしまって修正は別料金、みたいなことはないですよね？先に確認しておきたいです。
+  note: 成果報酬的期待＋調査と修正の切り分け不安。2つの質問が混在。料金体系の丁寧な説明が必要
+- asset_id: stock-bulk-100-eval:STK-005
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-005
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: もう2週間この問題で止まっています。有料プランを購入してもらっても、ユーザーのアカウントがFreeのままで。Stripeのサポートに聞いたら「アプリ側の問題です」と言われました。外注先にも聞いたんですが「Webhook周りだと思います」としか言われず、結局直ってません。毎日お客さんに手動で対応していて限界です。
+  note: frustrated＋外注不信＋Stripeサポート不信。感情圧が高いが、技術的には典型的なWebhook反映問題
+- asset_id: stock-bulk-100-eval:STK-007
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-007
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、急ぎでご相談です。外注の方が来月で契約終了になるんですが、引き継ぎ資料が何もありません。Next.jsで作ってもらったサイトで、決済まわりはStripeを使っているらしいんですが、自分では全くコードが読めません。契約終了前に中身を整理しておきたくて。間に合いますか？
+  note: 外注契約終了の期限圧＋handoff典型。「間に合いますか？」の納期不安。anxiousだが実務判断は明確
+- asset_id: stock-bulk-100-eval:STK-011
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-011
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: こんにちは。実は前に別の出品者さんに同じ症状の修正をお願いしたんですが、「直しました」と言われた翌週に再発しました。もう一度同じ方にお願いする気になれなくて、こちらのサービスを見つけました。症状としては、Stripeの決済完了後にデータベースの更新が走らないことがあるというものです。「ことがある」というのが厄介で、毎回ではないです。
+  note: 他社不信＋間欠再発。感情はmixedだが技術的には明確。前回の修正品質への不信感への共感が必要
+- asset_id: stock-bulk-100-eval:STK-012
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-012
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 前の担当者が急に辞めたので整理をお願いしたいです。ただ、一番気になっているのは決済のところなんですが、正直なところ会員登録の処理もよく分からないし、メール送信のところも不安です。全部見てもらうことはできますか？
+  note: 3フロー希望。handoffの1フロー制約とどう折り合うか。スコープ説明の訓練
+- asset_id: stock-bulk-100-eval:STK-014
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-014
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、今朝お客さんから「カード引き落としされたのに商品ページに入れない」と連絡がきました。確認したらStripeには入金があります。でもこちらのシステムでは購入履歴がありません。これ、お客さんにはどう対応すればいいんでしょうか。あと、この不具合を直してもらうにはどうすればいいですか。
+  note: 顧客対応の質問と不具合修正の質問が混在。技術的質問と業務対応質問を分ける訓練
+- asset_id: stock-bulk-100-eval:STK-027
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-027
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 引き継ぎメモのサービスについて質問です。納品物は.mdファイルとのことですが、エンジニアじゃない自分が読んでも分かるような書き方になっていますか？技術用語ばかりだと結局分からないので、そこが不安です。あと、次の外注先に渡す前提で使えるものですか？
+  note: 非エンジニア向けの可読性への不安＋用途の質問。2つの明確な質問がある
+- asset_id: stock-bulk-100-eval:STK-031
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-031
+  state: prequote
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 去年クラウドワークスで作ってもらったサイトなんですが、納品後に一度もメンテされてなくて、最近動きが怪しいです。壊れてから慌てたくないので、壊れる前に中身を把握しておきたいと思って。ただ、もしすでに壊れかけてたら、その場で修正もしてもらいたいんですが、そういう流れは可能ですか？
+  note: handoff→bugfixの段階希望。「壊れてたら修正も」は追加対応の流れ説明が必要
+- asset_id: stock-bulk-100-eval:STK-033
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-033
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、至急お願いしたいです。今日の昼からStripeの決済ができなくなっています。昨日まで普通に動いていました。何も変更していないのに急に動かなくなりました。お客さんが買い物できない状態で、売上が止まっています。何時間くらいで復旧できますか？
+  note: 緊急＋「何も変更していない」＋納期質問。何時間で直るかは約束できないが、進行感を出す必要がある
+- asset_id: stock-bulk-100-eval:STK-035
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-035
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: ご相談です。社内でWebアプリを使ってるんですが、作った人が退職してしまって。管理画面の使い方は分かるんですが、裏側のコードが全く分かりません。壊れたときに誰にも頼めない状態で不安です。中身を一回整理してもらって、社内の別の人間に共有できる形にしたいです。
+  note: 退職引き継ぎ＋社内共有目的。handoff典型。「誰が使うか」が明確
+- asset_id: stock-bulk-100-eval:STK-037
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-037
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 15,000円のサービスですが、もし見てもらって5分で原因が分かるような簡単な問題だった場合でも15,000円ですか？難易度によって値段が変わったりはしないんでしょうか。あと、他のサービスと比較検討中なんですが、この価格帯では安い方ですか？
+  note: 難易度別料金の期待＋他社比較。固定価格の説明と、比較には応じない姿勢の両立
+- asset_id: stock-bulk-100-eval:STK-039
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-039
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 来月、外注先との契約が切れます。引き継ぎをお願いしたいのですが、外注先からは「コードにコメント入れてあるから大丈夫」と言われています。でも見てもちんぷんかんぷんで。残り3週間で間に合いますか？あと、外注先に何か聞いておくべきことはありますか？
+  note: 契約終了の期限圧＋「外注先に何を聞くべきか」の追加質問。handoff典型のanxious
+- asset_id: stock-bulk-100-eval:STK-049
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-049
+  state: purchased
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 依頼した引き継ぎメモの件ですが、途中経過は共有してもらえますか？進捗が見えないと少し不安で。あと、引き継ぎメモを見た上で、やっぱり修正もお願いしたくなった場合、そのまま追加でお願いできますか？
+  note: purchased中の進捗確認＋修正追加の可能性確認。2つの質問
+- asset_id: stock-bulk-100-eval:STK-054
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-054
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、ちょっと混乱してるんですが、修正してもらった箇所をZIPで受け取って自分でデプロイするんですよね？でもうち、デプロイの方法が分からないんです。前の外注先が全部やってくれてたので。これじゃ修正してもらっても意味がないんですが…。なんか他に方法ないですか？
+  note: デプロイできない不安からのfrustrated。サービス範囲の壁に直面。手順説明で対応するか、状況に応じた提案
+- asset_id: stock-bulk-100-eval:STK-058
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-058
+  state: purchased
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、緊急なんですが、引き継ぎメモをお願いしている最中に、サイトの決済が止まりました。引き継ぎの方は一旦止めてもらって、先に決済を直してもらうことはできますか？追加料金はかかりますか？
+  note: handoff購入中にbugfixが緊急発生。サービス切り替えの判断と追加料金の案内
+- asset_id: stock-bulk-100-eval:STK-061
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-061
+  state: purchased
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 送ったコードの中に、.envの中身をそのままハードコードしてる箇所があったかもしれません。もしあったら教えてください。自分でも気になっていて。
+  note: ハードコードされた秘密値への不安。セキュリティ意識がある。handoff中の追加確認
+- asset_id: stock-bulk-100-eval:STK-076
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-076
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 助けてください。StripeのWebhookの設定をいじったら、それ以降まったく決済が動かなくなりました。元に戻そうとしたんですが、元の設定が分からなくなってしまって。お客さんに商品が届かない状態です。今日中になんとかなりますか？
+  note: 自分でWebhook設定を変更して壊した。設定問題だが「元の設定が分からない」のでコード調査も必要。緊急圧あり
+- asset_id: stock-bulk-100-eval:STK-077
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-077
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 外注で作ってもらったNext.jsのサイトがあるんですが、外注先が急に連絡つかなくなりました。別の外注先に引き継ぎたいのですが、コードの状態が分からないまま渡すのは不安です。整理してもらってから渡したいです。ちなみに、整理の結果って次の外注先にそのまま共有していいですか？
+  note: 引き継ぎメモの二次利用可否の質問。著作権的な不安は杞憂だが、回答は必要
+- asset_id: stock-bulk-100-eval:STK-078
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-078
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 15,000円のサービスですが、お試しで5,000円くらいで1時間だけ見てもらう、みたいなことはできませんか？まず相性を確認したくて。
+  note: お試し・時間課金の要求。固定価格制の説明。「相性確認」への誠実な対応
+- asset_id: stock-bulk-100-eval:STK-080
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-080
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: Claudeで作ったNext.jsアプリがあるんですが、途中から自分でも修正を入れていて、何がAIの書いたコードで何が自分の修正か分からなくなりました。このままだと怖いので、主要な処理1つだけでいいので現状を整理してほしいです。ちなみに、Stripe
+    Connectを使ってます。
+  note: AI＋自分の修正の混在。Stripe Connect案件はやや特殊。1フロー希望は明確
+- asset_id: stock-bulk-100-holdout:STK-009
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-009
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 料金について確認です。コードの中身が分からないのでまず整理が必要かもしれないんですが、そうなると25,000円の整理＋15,000円の修正で合計40,000円ですよね。できれば整理をスキップして修正だけお願いしたいんですが、それは可能ですか？あと、整理した結果「修正は不要でした」となった場合でも25,000円かかりますか？
+  note: 合計金額への抵抗＋整理スキップ希望＋「修正不要でも払うのか」。3つの質問が混在する boundary典型
+- asset_id: stock-bulk-100-holdout:STK-016
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-016
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 引き継ぎメモの作成が25,000円とのことですが、正直なところ「メモを作るだけで25,000円は高い」という印象です。自分でChatGPTにコードを貼って聞くのと、何が違うんでしょうか？
+  note: 直球の「高い」＋ChatGPT比較。価値を具体的に示す必要がある。防衛的にならずに差分を説明する訓練
+- asset_id: stock-bulk-100-holdout:STK-021
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-021
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 緊急でお願いしたいです。うちのサイトの決済がおかしくなっていて、お客さんから「二重に決済された」と連絡が来ています。外注のコードなので中身が分かりません。まず二重決済が起きないように直してほしいのと、あと根本的にコードの構造がおかしいのかどうかも教えてほしいです。
+  note: 緊急＋二重決済＋「直して」と「教えて」の混在。bugfixとhandoffの両方が必要な可能性
+- asset_id: stock-bulk-100-holdout:STK-026
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-026
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 先週からお客さんに「クレジットカード決済できない」と言われていて、調べたらStripeのAPIキーが期限切れ？になっている可能性があるんですが、これってコードの問題ですか？設定の問題ですか？もし設定だけなら自分で直したいんですが、やり方が分からなくて。
+  note: 設定問題かコード問題かの境界。自分で直したい意向。bugfixの範囲に入るかの判断が必要
+- asset_id: stock-bulk-100-holdout:STK-028
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-028
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 予算があまりなくて。不具合修正の15,000円と引き継ぎの25,000円、両方のサービスがあるのは分かったのですが、15,000円の方でまず見てもらって、その中で「ここはこうなってます」みたいな整理も軽く教えてもらうことはできませんか？
+  note: 安い方で整理も兼ねたい。bugfixのスコープにhandoff的要素を含めたい価格圧。境界の説明が重要
+- asset_id: stock-bulk-100-holdout:STK-042
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-042
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: Next.jsのサイトで2つ問題があります。1つ目は、ページの読み込みが異常に遅いこと。2つ目は、Stripe決済後にWebhookが受け取れていないことです。両方一緒にお願いできますか？予算は30,000円くらいまでなら出せます。
+  note: パフォーマンス（範囲外寄り）＋Webhook（bugfix対象）の混合。予算提示付き
+- asset_id: stock-bulk-100-holdout:STK-044
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-044
+  state: quote_sent
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: お見積りありがとうございます。25,000円で1フローの整理で、追加フローが15,000円ということですね。ちなみに、もし整理してもらった結果すぐに修正が必要とは限らないとしたら、まず整理だけで様子を見ることもできますか？追加で修正を頼むかどうかは、メモを見てから判断したいです。
+  note: quote_sent＋段階対応の確認。「整理だけで止められるか」の質問は合理的
+- asset_id: stock-bulk-100-holdout:STK-066
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-066
+  state: delivered
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:stress
+  raw_message: 結果報告ありがとうございます。直してもらった箇所は確認しました。ただ、正直なところ思っていたより軽微な問題だったのかなという印象で。15,000円分の価値があったのかどうか、ちょっとモヤモヤしています。次回もお願いするかは少し考えさせてください。
+  note: delivered後の軽い不満。「高かったかも」の感情。次回利用への揺れ
+- asset_id: stock-bulk-100-holdout:STK-070
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-070
+  state: closed
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: 前回ありがとうございました。また別の箇所で不具合が見つかったんですが、前回の結果を踏まえて割引してもらうことはできますか？リピーターなので少し安くなるとありがたいんですが。
+  note: closed後のリピート＋値引き要求。前回の知見を理由に割引を期待
+- asset_id: stock-bulk-100-holdout:STK-081
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-081
+  state: prequote
+  service_hint: boundary
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: もうイライラしてます。3ヶ月前にフリーランスの方にサイトを作ってもらったんですが、決済周りがまともに動いたことがないです。直してもらおうにも、コードが何やってるか全く分かりません。とにかく決済が動くようにしたいんですが、整理が先なのか修正が先なのか、こちらは分からないのでプロに判断してほしいです。
+  note: frustrated＋「判断はプロに任せたい」の丸投げ。感情圧が高いが実務判断は明確にすべきboundary
+- asset_id: stock-bulk-100-holdout:STK-082
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-082
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:stress
+  raw_message: 引き継ぎメモの件で相談です。知り合いのエンジニアに聞いたら「25,000円はちょっと高い。自分ならもっと安くやる」と言われたんですが、でもその人は忙しくて実際にはやってくれません。他と比べて高いのか安いのか判断できなくて。この価格の妥当性を説明してもらえますか？
+  note: 第三者の「高い」発言を引用したprice_sensitive。価格の妥当性を押しつけずに説明する訓練
+- asset_id: stock-bulk-100-holdout:STK-085
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-085
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: ちょっと漠然とした相談なんですが。Next.jsとStripeで作ったECサイトがあって、全体的に「よく分からないけど動いてる」状態です。不具合はたぶんないんですが、なんとなく不安です。不具合がないのにサービスをお願いするのは変ですか？
+  note: 不具合なし＋漠然とした不安。bugfixは不要、handoffが適切だが自分では判断できない
+- asset_id: stock-bulk-100-holdout:STK-092
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-092
+  state: closed
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: 前回の引き継ぎメモありがとうございました。それを元に別のエンジニアさんに修正をお願いしたんですが、「このメモだけだと情報が足りない」と言われてしまいました。追加でもう少し詳しいメモを作ってもらうことはできますか？別料金ならいくらになりますか？
+  note: closed後＋「情報が足りない」フィードバック。納品物の品質への間接的な不満と追加依頼
+- asset_id: stock-bulk-100-holdout:STK-095
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-095
+  state: closed
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 先日の修正の件ですが、修正自体は問題なかったのですが、報告書がちょっと専門的すぎて、自分には半分くらい理解できませんでした。次回もしお願いすることがあれば、もう少し噛み砕いた説明があるとありがたいです。不満というわけではないですが、一応お伝えしておきます。
+  note: closed後の改善フィードバック。不満ではないが次回への期待。報告書の可読性への指摘
+- asset_id: stock-bulk-100-edge:STK-019
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-019
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: もう3回目の相談先です。1つ目の方は途中で連絡が途絶えて、2つ目の方は「環境設定の問題だと思います」と言ったきり具体的な修正がなかったです。症状は単純で、Stripe
+    Checkoutで決済後にリダイレクトされるはずのページが404になります。本番環境だけです。もし対応できるなら、具体的にどう進めるか先に教えてください。
+  note: 3社目への不信の蓄積。「具体的にどう進めるか先に教えて」は信頼構築の要求。感情は強いが症状は明確
+- asset_id: stock-bulk-100-edge:STK-048
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-048
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、依頼した件とは別かもしれないんですが、今日新たにお客さんから「返金してほしい」と連絡が来ました。決済の不具合のせいで二重に引き落とされたみたいで。これも今回の依頼内容に含まれますか？返金処理の操作も教えてもらえますか？
+  note: 購入中に発生した関連問題。二重引き落とし＋返金操作の質問。返金操作はStripeダッシュボードの範囲
+- asset_id: stock-bulk-100-edge:STK-052
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-052
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 急ぎで確認なんですが、修正って本番にも反映してもらえないんですか？自分だとどうやって反映していいか分からなくて。Vercelの画面は見れるんですが、コマンドとか打ったことないです。もし反映までやってもらえないなら、反映のやり方だけでも詳しく教えてもらえますか？
+  note: 本番デプロイ代行の要求。範囲外だが不安への対応と手順説明は可能。anxiousケース
+- asset_id: stock-bulk-100-edge:STK-055
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-055
+  state: purchased
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 引き継ぎの件なんですが、ちなみにZoomで画面共有しながら説明してもらうことはできますか？文字だけだと理解できるか不安で。30分くらいでいいんですが。
+  note: 通話・ビデオ会議の要求。標準範囲外。テキストでの説明で対応する旨の案内
+- asset_id: stock-bulk-100-edge:STK-063
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-063
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 修正してもらったファイルを本番に反映したいのですが、反映じゃなくて、本番の管理画面のURLとログイン情報を渡すので直接やってもらうことはできませんか？手順書を見ても不安で。
+  note: 本番環境の認証情報を渡そうとするケース。秘密情報＋直接操作の両方が範囲外
+- asset_id: gemini-bulk-60-poststates-01-seed:GMN-001
+  source_name: gemini-bulk-60-poststates-01-seed.txt
+  source_role: seed
+  case_id: GMN-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: はじめまして。決済エラーで困ってます。ログイン情報を渡すので本番環境で直接直してもらえませんか？Zoomで画面を見ながら説明したいです。
+  note: 直接操作と通話を希望しているNG要望ケース
+- asset_id: gemini-bulk-60-poststates-01-seed:GMN-006
+  source_name: gemini-bulk-60-poststates-01-seed.txt
+  source_role: seed
+  case_id: GMN-006
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: AIで作ったアプリで、本番環境に切り替えたら誰の支払いも反映されなくなりました。エラー画面は出ていなくて、どうすればいいか分かりません…。
+  note: 情報が少なく、漠然と助けを求めている標準的なバグケース
+- asset_id: gemini-bulk-60-poststates-01-seed:GMN-009
+  source_name: gemini-bulk-60-poststates-01-seed.txt
+  source_role: seed
+  case_id: GMN-009
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: Cursorで作ったコードがぐちゃぐちゃでどこに何があるか分かりません。決済周りだけでも、どこから手をつければいいか教えてもらうことはできますか？
+  note: AI生成コードへの不安を抱えた、典型的なhandoff対象ケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-009
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-009
+  state: prequote
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: Cursorで作ったコードがぐちゃぐちゃでどこに何があるか分かりません。決済周りだけでも、どこから手をつければいいか教えてもらうことはできますか？
+  note: AI生成コードへの不安を抱えた、典型的なhandoff対象ケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-019
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-019
+  state: quote_sent
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 見積もりありがとうございます。これ調査して別原因が２つ以上だったらキャンセルとかできますか？支払いボタン押すの迷ってます。金額が増えるのが怖くて。
+  note: 見積もり提示後の追加料金の恐怖から購入を躊躇しているケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-020
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-020
+  state: quote_sent
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: ご提案ありがとうございます。追加原因の場合は事前相談とのことですが、納品された修正コードを自分で反映して動かなかった場合のサポートってどこまで入ってます？
+  note: 購入直前に自身での反映作業のサポート範囲を気にして質問するケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-022
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-022
+  state: quote_sent
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 対象フローの件、承知しました。でも、これで整理してもらったあとに結局誰も直せなかったらどうしようと思っています。この後そちらで直すとなるといくらですか？
+  note: 整理後にそのまま修正依頼できるかの確約と見積もりを欲しがっているケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-027
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-027
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: ZIP送りました。トップページの表示崩れも実は昨日からあって、絶対同じ原因だと思うんでそこまで確認お願いしますね。同じ原因だったら直るはずですよね？
+  note: 勝手に「同一原因」だと決めつけ、広範囲の修正を一方的に要求するケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-033
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-033
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 依頼してから半日経ちましたが、今どんな感じですか？原因わかりました？？早く直さないとお客さんからクレームが来そうで焦ってます。。
+  note: 規定時間内なのに、不安から進捗を過剰に急かしてくるケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-034
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-034
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: ZIPでお送りしようとしたんですが容量が大きすぎてエラーになります。Google Driveのリンク共有するのでここからダウンロードしてください。編集権限も付けておきました。
+  note: 容量の問題からGoogle Driveなどの外部共有を持ち出してくるケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-043
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-043
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 別のエラー画面が出るようになりました！！さっきの修正を試したら壊れたんじゃないですか！？至急これも直してください、同じ料金内で！！
+  note: 未確認の別エラー発覚時にこちらの修正を疑い、無理やり対応させようとするケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-011
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-011
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 決済が通らないので直したいですが、原因不明なら25000円の整理を買えばいいんですか？15000円で安く済ませたいんですが、どっちを買えば直してくれますか？
+  note: 直したいが整理サービスと迷い、金額ベースで悩んでいるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-012
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-012
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: checkout.tsで500エラーが取れません。これ、引き継ぎメモ作成の方で「どう直すか」だけ手順書にしてもらえますか？そしたら自分で直すので。
+  note: コード整理の枠で修正コンサルを安価に引き出そうとするケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-014
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-014
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: ユーザーが「購入履歴」を見ても何も表示されません。これって1万5千円で直りますか？それともコードを見直す2万5千円の方ですか？
+  note: 不具合かどうかの切り分けとサービス選択自体を丸投げしてくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-015
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-015
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: もし15000円の方で依頼して、修正範囲が広くて直せなかった場合は返金になりますか？原因も分からないので無駄にならないか心配です。
+  note: 成果が不安で料金面のリスク（返金可否）を気にして事前相談するケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-017
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-017
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 決済が落ちるバグと画像がアップロードできないバグとログインが外れるバグがあります！全部まとめて15000円で見てもらえませんか？全部原因同じだと思います！
+  note: 別原因の複数案件を「原因は同じはず」と強弁して安く依頼しようとするケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-018
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-018
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: リファクタリングってお願いできますか？Stripeのサブスク更新Webhookの処理が長すぎてメンテ不能です。動いてはいるんですが綺麗にしてほしいです。
+  note: 不具合修正でも整理でもない、リファクタリングそのものを依頼しているケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-024
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-024
+  state: quote_sent
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 案内もらったのですが、クレジットカード払い以外、たとえば銀行振込で直接お支払いして少しお値引きいただくことはできませんか？ココナラ手数料が高いので...。
+  note: 外部決済に誘導して値引きを要求する完全な規約違反ケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-040
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-040
+  state: purchased
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: いま調査してもらってるところすみません。もし1文字直すだけで終わる原因だったら、この15000円から少しキャッシュバックとかないですかね...？
+  note: 作業途中で成果の軽さを理由に値引きや一部返金を話し出すケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-041
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-041
+  state: purchased
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 原因が決済じゃなくてフロント側だったんですか？じゃあ別原因ってことで追加料金になっちゃうってことですか...？なんか話が違う気がして不安です。
+  note: 「同一原因」の定義と技術的起因の違いに驚き、追加料金の不安を抱くケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-042
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-042
+  state: purchased
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: お送りいただいた見立て拝見しました。でもそれ、整理のメモだけだとどうにもならないので、やっぱり今から差額払うんでバグ修正の方に切り替えることってできますか？
+  note: 整理の調査後にサービス自体を乗り換えられないか相談してくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-046
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-046
+  state: delivered
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 決済通るようになりました！ただ、これ await が一つ抜けてただけなんですね。1箇所の修正で15000円は高い気がしちゃいました...
+    まあ直ったからいいんですけど。
+  note: 納品後に「修正量が少ない」ことでうっすら不満を持っているケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-048
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-048
+  state: delivered
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: メモ受領しました。分かりやすかったです。でも、やっぱり自分じゃ直せなさそうってことが分かりました。このまま修正依頼として別件への移行はできますか？
+  note: handoff納品直後に、そのまま同一文脈で修正へ移行したいという期待ケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-050
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-050
+  state: delivered
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 手順どおりやったんですが、まだ私の手元で確認できてません...。明日知人に聞きながらやってみるので、正式な承諾はもう少し待ってもらっていいですか？
+  note: クライアント側のスキル不足で最終確認が完了せず、ステータスが保留されそうなケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-052
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-052
+  state: closed
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 昨日直してもらったところのすぐ下の行でまたエラーがあって...昨日まとめて言えばよかったんですが、これって今回の15000円の範囲内でサクッと直してもらえたりしませんか？
+  note: クローズ済みなのに「前回のおまけ」として無償修正を要求してくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-054
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-054
+  state: closed
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 一応動いてはいるんですが、まだ時々決済が通らないって言われてまして...。前回の修正内容で本当に全部カバーできてたんですかね？少し不安でもう一度見てほしいんですが。
+  note: クローズ後しばらくして再発を疑い、保証としての再調査を要求しているケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-056
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-056
+  state: closed
+  service_hint: handoff
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: メモをもらった後、別のエンジニアに「全体見ないとわからない」と言われてしまいました。もう少し深い階層のDBへの書き込み部分まで追加で追記してもらうことってできないですかね？
+  note: クローズ後に納品物への不足を主張し、無償で追記・調査させようとする不満ケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-059
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-059
+  state: closed
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 数行の修正だと毎回15000円払うのは少し厳しくて...。次からは少し内容を見て、簡単なら5000円くらいにしてもらうみたいな相談ってできませんか？
+  note: 成果物の修正量を見て、次回以降の価格交渉（低単価化）を仕掛けてくるケース
+- asset_id: gemini-bulk-60-poststates-01-edge:GMN-001
+  source_name: gemini-bulk-60-poststates-01-edge.txt
+  source_role: edge
+  case_id: GMN-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: はじめまして。決済エラーで困ってます。ログイン情報を渡すので本番環境で直接直してもらえませんか？Zoomで画面を見ながら説明したいです。
+  note: 直接操作と通話を希望しているNG要望ケース
+- asset_id: gemini-bulk-60-poststates-01-edge:GMN-006
+  source_name: gemini-bulk-60-poststates-01-edge.txt
+  source_role: edge
+  case_id: GMN-006
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: AIで作ったアプリで、本番環境に切り替えたら誰の支払いも反映されなくなりました。エラー画面は出ていなくて、どうすればいいか分かりません…。
+  note: 情報が少なく、漠然と助けを求めている標準的なバグケース
+- asset_id: gemini-bulk-60-poststates-01-edge:GMN-025
+  source_name: gemini-bulk-60-poststates-01-edge.txt
+  source_role: edge
+  case_id: GMN-025
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: コードは添付のZIPです。あ、ちなみにさっき気づいたんですが、パスワードリセットのメールも届かなくなってました！これもついでに見ておいてもらえますでしょうか？
+  note: 購入直後に「ついでに」という軽いノリでまったくの別件を混ぜ込んでくるケース
+- asset_id: gemini-bulk-60-poststates-01-edge:GMN-029
+  source_name: gemini-bulk-60-poststates-01-edge.txt
+  source_role: edge
+  case_id: GMN-029
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 修正方法なんとなくわかりました。でも私が本番環境触るの怖すぎるので、TeamViewerで入って代わりにやってもらえませんか...？追加でハンバーガー代払います（笑）
+  note: 直接操作や遠隔操作を要求し、外部決済的なチップを提案してくるケース
+- asset_id: claude-quality-cases-50-v1:QLT-001
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-001
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: 進めていただいている件なんですが、今どんな感じかだけ先に分かると助かります。急かしたいわけではないです。
+  note: 「急かしたいわけではない」への返し方で距離感が出やすいケース
+- asset_id: claude-quality-cases-50-v1:QLT-003
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-003
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 15000円で1件ということなんですが、やってみたら実は2件だったみたいなことってありますか？追加費用が怖くて。
+  note: 価格不安を正面から聞いているが、防御的に答えると冷たくなるケース
+- asset_id: claude-quality-cases-50-v1:QLT-004
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-004
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: お忙しいところすみません。特に催促ではないのですが、ちょっと進捗だけ気になってしまって。大丈夫そうですか？
+  note: 同じ進捗不安でも「大丈夫そうですか？」の聞き方が微妙に重い
+- asset_id: claude-quality-cases-50-v1:QLT-005
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-005
+  state: delivered
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 修正と整理を両方お願いしてた件、修正のほうは確認できました。整理資料のほうもいただいたんですが、修正前の構成で書かれてる部分がある気がして…。修正後の状態に合わせてもらうのって範囲内ですか？
+  note: delivered 後の boundary。修正と整理が絡む場面で、対応範囲の線引きを冷たくなく伝える難しさ
+- asset_id: claude-quality-cases-50-v1:QLT-006
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-006
+  state: prequote
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: AIで作ってもらったコードなんですけど、正直どこが何をやってるかわからなくて。自分で触れるようにしたいんですが、全部を教えてもらう感じではなくて、ここだけ読めば大丈夫っていうのがあれば…。
+  note: 漠然とした期待の返し方で説明過多になりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-007
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-007
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: 昨日お送りしたリポジトリなんですが、ちゃんと見れましたか？アクセスできないとかあったら教えてください。
+  note: 不安の裏に「まだ着手してない？」がある。事務的に返すと冷たく見える
+- asset_id: claude-quality-cases-50-v1:QLT-008
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-008
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: 他のところでも見積もり取ってるんですが、ちょっと比較させてください。不具合修正と、どこが壊れてるかの調査って、両方やるとおいくらになりますか？
+  note: 比較検討中で値段を聞いている。選ばせすぎず、押さず返すバランス
+- asset_id: claude-quality-cases-50-v1:QLT-009
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-009
+  state: delivered
+  service_hint: bugfix
+  emotional_tone: mildly_frustrated
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: ありがとうございます。直していただいた箇所は動くようになったんですが、なんか別のところで前と違う動きをしてる気がして…。気のせいかもしれないんですけど。
+  note: delivered 後の軽い不満。「気のせいかも」を拾いすぎると防御的になる
+- asset_id: claude-quality-cases-50-v1:QLT-011
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-011
+  state: closed
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: 修正ありがとうございました。動くようにはなったんですが、次に自分で何か触るときにまた壊しそうで怖くて。こういう場合って整理のサービスのほうも受けたほうがいいんですかね。自分じゃ判断つかなくて。
+  note: closed 後に boundary へ揺れている。整理サービスの案内が押し売りにならないように
+- asset_id: claude-quality-cases-50-v1:QLT-012
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-012
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:stress
+  raw_message: 25000円のサービスって、修正は入らないんですよね？整理だけで25000円って、ちょっと高いかなと正直思ったんですが、具体的に何がもらえるんでしょうか。
+  note: 価格への率直な疑問。防御的に価値を語ると押しつけになりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-013
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-013
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: 何度もすみません、いつ頃までに完了しそうか、ざっくりでいいので教えてもらえますか。社内で聞かれてて。
+  note: 社内事情を出しつつの進捗確認。形式的に返すと距離が出る
+- asset_id: claude-quality-cases-50-v1:QLT-014
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-014
+  state: closed
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: 先日はありがとうございました。一応動いてるんですが、また同じような事象が出たときって、また新規で頼む形になりますか？
+  note: closed 後の継続依頼の聞き方。案内が押し売りっぽくなりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-016
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-016
+  state: delivered
+  service_hint: handoff
+  emotional_tone: mildly_frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: いただいた資料を見たんですが、正直なところ、自分にはちょっと難しくて…。もう少しかみ砕いた説明ってお願いできるものなんでしょうか。追加料金がかかるなら言ってください。
+  note: delivered 後の不満。追加料金の話が出ており、冷たくなくかつ押し売りなく返す難しさ
+- asset_id: claude-quality-cases-50-v1:QLT-018
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-018
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、もう2日経ってるんですが、まだ何もご連絡いただいてなくて、ちょっと不安になってきました。
+  note: 直接的な進捗不安。言い訳っぽくならず誠実に返すバランス
+- asset_id: claude-quality-cases-50-v1:QLT-019
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-019
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 1件15000円ですよね。うちのサイト、エラーが3つくらいあるんですけど、まとめてお願いしたら安くなったりしませんか？
+  note: 値引き交渉。やわらかく返したいが根拠なく値引く判断はできない
+- asset_id: claude-quality-cases-50-v1:QLT-021
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-021
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 修正をお願いしたいんですけど、そもそも何が原因でおかしくなってるかもわかってなくて。調査だけお願いすることもできますか？調査の結果、修正が必要ならそのまま修正もしてほしいんですが。
+  note: 調査→修正の流れを一括で想定。サービス境界の説明で長くなりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-024
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-024
+  state: purchased
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 整理していただくフローの件ですが、途中経過って何か共有してもらえたりしますか？完成してからだと、イメージと違ったとき困るかなと思って。
+  note: 途中共有の要望。任意確認を入れたくなるが決めさせすぎると不自然
+- asset_id: claude-quality-cases-50-v1:QLT-025
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-025
+  state: quote_sent
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 見積もりありがとうございます。15000円なのは理解したんですが、直らなかった場合ってどうなりますか？ちょっとそこだけ確認させてください。
+  note: quote_sent 後の価格不安。保証の話を堅くしすぎると距離が出る
+- asset_id: claude-quality-cases-50-v1:QLT-026
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-026
+  state: delivered
+  service_hint: bugfix
+  emotional_tone: mildly_frustrated
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 修正ファイルを反映してみたんですが、ビルドが通らなくなりました。手順通りにやったつもりなんですが、何か抜けてますかね？
+  note: delivered 後のトラブル。防御せず協力姿勢で返すバランス
+- asset_id: claude-quality-cases-50-v1:QLT-027
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-027
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません初歩的な質問なんですが、うちのサイトがときどき表示崩れするのって、バグですか？コードの問題なのか設定の問題なのかもわからなくて。どちらのサービスで相談すればいいでしょうか。
+  note: 初歩的な質問を自覚している。丁寧に答えつつ上から目線にならない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-029
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-029
+  state: closed
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 整理してもらった資料、すごく助かりました。ただ、これを見て「やっぱりここも直したいな」って出てきちゃって。修正のほうも頼めますか？
+  note: closed 後の追加依頼。サービス案内が押し売りにならないように
+- asset_id: claude-quality-cases-50-v1:QLT-031
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-031
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - signal:stress
+  raw_message: 度々すみません。あの、他の方の対応で忙しいとかだったら全然大丈夫なんですが、大体のスケジュール感だけでも教えていただけると助かります。
+  note: 過度に気を遣った進捗確認。同じく気を遣い返すと距離が開く
+- asset_id: claude-quality-cases-50-v1:QLT-034
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-034
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: そういえば、うちのサイトって本番と開発で環境分かれてなくて、直接本番のコードを触ってるんですけど、それでも大丈夫ですか？
+  note: 本番環境の話題。直接 push しない制約を冷たくなく伝える場面
+- asset_id: claude-quality-cases-50-v1:QLT-035
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-035
+  state: closed
+  service_hint: bugfix
+  emotional_tone: mildly_frustrated
+  signals:
+  - stress
+  - negative_feedback
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: お世話になりました。直していただいた部分は動いてます。ただ正直、もう少し途中で状況を教えてもらえたら安心だったかなと思いました。次回があれば参考にしていただければ。
+  note: closed 後の軽いフィードバック。受け止め方次第で防御的になりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-036
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-036
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 予算があまりなくて。15000円のほうで、修正ついでに簡単にどこが悪かったか教えてもらうことってできますか？25000円のほうは今ちょっと厳しくて。
+  note: 価格制約から boundary を自分で寄せようとしている。任意確認が多いと距離が出る
+- asset_id: claude-quality-cases-50-v1:QLT-038
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-038
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: 急ぎなんですが、今日中に見てもらうことって可能ですか？お客さんから決済できないって連絡来てて、もう半日以上この状態で。
+  note: 緊急案件。できる/できないの返答で距離感が大きく変わる
+- asset_id: claude-quality-cases-50-v1:QLT-040
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-040
+  state: prequote
+  service_hint: boundary
+  emotional_tone: hesitant
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: うちのサイト、半年くらい前にフリーランスの人に作ってもらったんですけど、その人ともう連絡取れなくて。今困ってるのは決済のエラーなんですけど、今後自分で管理できるようにもしたいです。何から始めたらいいですかね。
+  note: boundary で切実な背景がある。整理を手伝うか、質問するか、判断の返し方
+- asset_id: claude-quality-cases-50-v1:QLT-042
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-042
+  state: quote_sent
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:stress
+  raw_message: お見積りの件、ありがとうございます。15000円は了解なんですが、もし調べた結果「これは別の原因もある」ってなった場合って、追加でいくらかかりますか？先に知っておきたくて。
+  note: quote_sent で追加費用への不安。答え方で営業感が出やすい
+- asset_id: claude-quality-cases-50-v1:QLT-043
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-043
+  state: purchased
+  service_hint: handoff
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - signal:stress
+  raw_message: こちらから送った情報で足りてますか？足りないものがあったら言ってください。こっちが何か忘れてて作業止まってたら申し訳ないので。
+  note: 自分を責める形の進捗不安。安心させつつ事務的にならない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-044
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-044
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: すみません、長くなります。うちのECサイトなんですが、お客さんが「カートに入れたのに消える」って言ってて、あと管理画面の在庫数が実際と合わないこともあって、たぶんどこかおかしいんだとは思うんですが、全部で1件なのか複数なのかも自分ではわからなくて。
+  note: 長い相談で自分でも整理できていない。質問を返しすぎると負担になる
+- asset_id: claude-quality-cases-50-v1:QLT-045
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-045
+  state: closed
+  service_hint: handoff
+  emotional_tone: mildly_frustrated
+  signals:
+  - stress
+  - negative_feedback
+  - relationship
+  bucket_reasons:
+  - signal:stress
+  raw_message: 整理ありがとうございました。結果的には思ったより簡単な構成だったみたいで、正直25000円は高かったかなというのが正直な感想です。でも自分じゃ判断できなかったので、しょうがないんですけど。
+  note: closed 後の「高かった」感想。防御せず受け止めつつ押し売りしない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-047
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-047
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - signal:stress
+  raw_message: 実は別のエンジニアさんにも相談したことがあって、そのときは「これはコードじゃなくてサーバー設定の問題だと思う」と言われたんですが、自分じゃよくわからなくて。もしサーバー設定の問題だったら対象外ですか？
+  note: 他者の見解がある。対象外の伝え方で冷たさが出やすい

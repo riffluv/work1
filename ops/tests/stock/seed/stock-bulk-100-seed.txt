@@ -1,0 +1,112 @@
+# generated from stock-bulk-100.txt
+# bucket: stock-bulk-100-seed
+
+----
+
+case_id: STK-001
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: はじめまして。ECサイトを運営しているのですが、昨晩からStripeで決済したお客さんの注文がダッシュボードに表示されません。Stripeの管理画面では「成功」になっているのに、こちらのサイト側に何も反映がなくて。お客さんから「注文できてますか？」と連絡が3件きています。すぐ対応してもらえますか？
+note: 典型的な決済→反映不具合だが「すぐ対応」の緊急圧がある。納期の約束をせずに進行感を出す訓練
+
+----
+
+case_id: STK-002
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 決済のエラーが出ます。見てもらえますか？
+note: 情報が極端に少ない超短文。何のエラーかも不明。hold対応で情報回収する訓練
+
+----
+
+case_id: STK-003
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: サービスページ拝見しました。質問なんですが、15,000円は「直せた場合」の金額ですか？調べてもらったけど原因が分かりませんでした、でも15,000円です、ということもありえますか？あと、調査だけで15,000円を使い切ってしまって修正は別料金、みたいなことはないですよね？先に確認しておきたいです。
+note: 成果報酬的期待＋調査と修正の切り分け不安。2つの質問が混在。料金体系の丁寧な説明が必要
+
+----
+
+case_id: STK-004
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: Vercelにデプロイしてるんですが、checkout.session.completedのWebhookが本番だけ404返してます。ローカルはstripe listenで問題ないです。route.tsのパスが間違ってるのか、Vercelの設定なのか切り分けできてないです。
+note: semi_technicalで情報が明確。短文だが技術的に具体的。質問形式でないが「切り分けてほしい」意図は明確
+
+----
+
+case_id: STK-005
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: もう2週間この問題で止まっています。有料プランを購入してもらっても、ユーザーのアカウントがFreeのままで。Stripeのサポートに聞いたら「アプリ側の問題です」と言われました。外注先にも聞いたんですが「Webhook周りだと思います」としか言われず、結局直ってません。毎日お客さんに手動で対応していて限界です。
+note: frustrated＋外注不信＋Stripeサポート不信。感情圧が高いが、技術的には典型的なWebhook反映問題
+
+----
+
+case_id: STK-006
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: お世話になります。Stripe決済後にサンクスメールが飛ぶ仕組みなんですが、最近になって一部のお客さんにだけ届いていないみたいです。全員に届かないわけじゃなくて、3割くらいが届いてない感じです。エラーは画面上は出ていません。
+note: 間欠的な不具合。「一部だけ」は再現条件の特定が必要。100%再現しない系への対応訓練
+
+----
+
+case_id: STK-007
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: すみません、急ぎでご相談です。外注の方が来月で契約終了になるんですが、引き継ぎ資料が何もありません。Next.jsで作ってもらったサイトで、決済まわりはStripeを使っているらしいんですが、自分では全くコードが読めません。契約終了前に中身を整理しておきたくて。間に合いますか？
+note: 外注契約終了の期限圧＋handoff典型。「間に合いますか？」の納期不安。anxiousだが実務判断は明確
+
+----
+
+case_id: STK-008
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: ChatGPTとCursorで作ったWebアプリがあるんですが、動いてはいるものの自分でも何がどうなっているか把握できていません。いろいろ継ぎ足してきたので、どのファイルが何をしてるか分からない状態です。一度整理してもらいたいのですが、サービスの「主要1フロー」というのは具体的にどう決めるんですか？
+note: AI生成コード＋「1フローとは何か」の質問。サービス説明の具体化が求められる
+
+----
+
+case_id: STK-009
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 料金について確認です。コードの中身が分からないのでまず整理が必要かもしれないんですが、そうなると25,000円の整理＋15,000円の修正で合計40,000円ですよね。できれば整理をスキップして修正だけお願いしたいんですが、それは可能ですか？あと、整理した結果「修正は不要でした」となった場合でも25,000円かかりますか？
+note: 合計金額への抵抗＋整理スキップ希望＋「修正不要でも払うのか」。3つの質問が混在する boundary典型
+
+----
+
+case_id: STK-010
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: はじめまして。Next.jsのApp Routerで作ったサイトで、APIルートが本番だけ500を返します。ローカルとプレビューでは問題なく動いています。Stripe関連のAPIです。Vercelのログを見ると「FUNCTION_INVOCATION_TIMEOUT」と出ていますが、ローカルでは数秒で返ってきます。
+note: 本番のみタイムアウト。パフォーマンス問題かコード問題かの境界判断。bugfixで受けるかhandoff的な構造確認が先かを判定

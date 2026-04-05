@@ -1,0 +1,167 @@
+# generated from stock-bulk-100.txt
+# bucket: gemini-bulk-60-poststates-01-edge
+
+----
+
+case_id: GMN-001
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: はじめまして。決済エラーで困ってます。ログイン情報を渡すので本番環境で直接直してもらえませんか？Zoomで画面を見ながら説明したいです。
+note: 直接操作と通話を希望しているNG要望ケース
+
+----
+
+case_id: GMN-002
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: プレミアム会員にならない不具合があります。.envの秘密鍵は STRIPE_SECRET_KEY=sk_live_xxxxx です！あとでGitHubにも招待しますね！
+note: 生の秘密情報を送り、外部連絡しようとするケース
+
+----
+
+case_id: GMN-003
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 1) 本来: 決済でis_premiumがtrue 2) 現象: falseのまま 3) 環境: Vercel本番 4) 手順: 通常決済 5) エラー: evt_12345が500です。
+note: 事前質問に完璧に答えている優等生ケース
+
+----
+
+case_id: GMN-006
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: AIで作ったアプリで、本番環境に切り替えたら誰の支払いも反映されなくなりました。エラー画面は出ていなくて、どうすればいいか分かりません…。
+note: 情報が少なく、漠然と助けを求めている標準的なバグケース
+
+----
+
+case_id: GMN-007
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 外注先と連絡が取れなくなりました。今のコードを見てほしいです。AWSのログインIDを送るので、中を見てレポートにしてもらえますでしょうか。
+note: 外部環境のログイン情報を初手で渡そうとする整理依頼ケース
+
+----
+
+case_id: GMN-008
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: 決済からサブスク更新のフローを整理したいです。本番はVercelで、ログだとWebhook受信までは来てます。来週入る人向けのメモをお願いします。
+note: 目的が明確で、フロー・環境・ログを先出ししている優良ケース
+
+----
+
+case_id: GMN-021
+route: talkroom
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 見積もり確認しました！現象としてはダッシュボードの evt_12345 から先が動いてません。ただ本番のURLとか見せなくても本当に大丈夫なんですか？
+note: evtを先出ししつつ「情報共有なし」での解決に半信半疑になっているケース
+
+----
+
+case_id: GMN-025
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: コードは添付のZIPです。あ、ちなみにさっき気づいたんですが、パスワードリセットのメールも届かなくなってました！これもついでに見ておいてもらえますでしょうか？
+note: 購入直後に「ついでに」という軽いノリでまったくの別件を混ぜ込んでくるケース
+
+----
+
+case_id: GMN-028
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: コード送ります！あと、本番環境のStripeのシークレットキーは sk_live_123456789 です！！必要ならサーバーのログインパスワードも全部送りますよ！
+note: トークルーム内で本番用の生シークレットキーなどの機密情報を無防備に送るケース
+
+----
+
+case_id: GMN-029
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 修正方法なんとなくわかりました。でも私が本番環境触るの怖すぎるので、TeamViewerで入って代わりにやってもらえませんか...？追加でハンバーガー代払います（笑）
+note: 直接操作や遠隔操作を要求し、外部決済的なチップを提案してくるケース
+
+----
+
+case_id: GMN-036
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 対象フローの件、それで大丈夫です！ところで来週から入るエンジニアと3人で一回オンラインMTGできませんか？15分くらいでいいので。
+note: 基本範囲外である通話（ビデオ会議）を軽々しく要求してくるケース
+
+----
+
+case_id: GMN-037
+route: talkroom
+state: purchased
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: 環境変数ですが、 .env.local ごとお送りします。DBのパスワード等も入ってますがよしなに！AWSのコンソールへは直接入ってみてもらえますか？
+note: handoffでも機密情報をばら撒き、本番環境へのアクセスを促すケース
+
+----
+
+case_id: GMN-044
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: ログイン情報送るためにLINE教えましょうか？ココナラのチャットだと画像送りづらくて。あとそこで電話しながらの方が早い気がします！
+note: 情報共有に困り、外部ツール（LINE）や通話に誘導しようとするケース
+
+----
+
+case_id: GMN-045
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 納品手順の1と2はできました！でも私の環境だとVercelへの上げ方がわかりません...！そっちで本番に反映作業までやってもらえませんか...？
+note: 納品された差分の適用方法が分からず、本番反映の代行を求めているケース
+
+----
+
+case_id: GMN-055
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: メモのおかげで無事に新しい人が作業に入れました！今回は別の「パスワード再発行フロー」についても同じように整理をお願いしたくて連絡しました。そのまま購入でよいですか？
+note: handoffサービスの良いリピート利用・別フロー追加依頼のケース

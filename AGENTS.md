@@ -72,6 +72,13 @@
 - `#GE` は、直近の相手文（`latest-source.txt`）と送信用返信文（`latest.txt`）を対象に、Gemini向け監査プロンプトを作るショートカットとして扱う
 - `#GE` の補足行や後続条件は、監査観点としてプロンプトへ反映する
 
+## stock 運用
+- 新しい文章 stock は `/home/hr-hm/Project/work/ops/tests/stock/inbox` に置く
+- Codex へ stock 処理を依頼する時は、「返信文を書いて」ではなく「inbox の stock を取り込んで、seed / eval / holdout / edge に仕分けし、eval-sources に接続して、contract / renderer / lint / regression を回す」と伝える
+- stock 処理の標準は、`inbox` 取り込み -> `seed / eval / holdout / edge` 仕分け -> `eval-sources.yaml` 接続 -> `check-coconala-reply-role-suites.py --save-report` 実行
+- stock から見つかった再発パターンは、返信文の単発修正で終わらせず、`rule / renderer / lint` のどこに戻すかを判断して正本へ反映する
+- 実ストックを最優先し、Claude / Gemini 生成文は不足領域の補完として扱う
+
 ## mode の使い分け
 - `coconala`: 見積り相談、購入前後の返信、公開中サービスの案内
 - `implementation`: 購入後のコード分析・修正・実装

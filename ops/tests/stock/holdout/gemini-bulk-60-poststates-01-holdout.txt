@@ -1,0 +1,299 @@
+# generated from stock-bulk-100.txt
+# bucket: gemini-bulk-60-poststates-01-holdout
+
+----
+
+case_id: GMN-011
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 決済が通らないので直したいですが、原因不明なら25000円の整理を買えばいいんですか？15000円で安く済ませたいんですが、どっちを買えば直してくれますか？
+note: 直したいが整理サービスと迷い、金額ベースで悩んでいるケース
+
+----
+
+case_id: GMN-012
+route: message
+state: prequote
+user_type: semi_technical
+emotional_tone: mixed
+service_hint: boundary
+raw_message: checkout.tsで500エラーが取れません。これ、引き継ぎメモ作成の方で「どう直すか」だけ手順書にしてもらえますか？そしたら自分で直すので。
+note: コード整理の枠で修正コンサルを安価に引き出そうとするケース
+
+----
+
+case_id: GMN-013
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 作ってもらったシステムがおかしいです。環境はVercelです。環境変数はNEXT_PUBLIC_STRIPE_KEYなどです。直し方は分からないので調べるだけでも大丈夫ですか？
+note: 環境変数の指示には従っているが、具体的な症状や依頼内容が曖昧なケース
+
+----
+
+case_id: GMN-014
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: boundary
+raw_message: ユーザーが「購入履歴」を見ても何も表示されません。これって1万5千円で直りますか？それともコードを見直す2万5千円の方ですか？
+note: 不具合かどうかの切り分けとサービス選択自体を丸投げしてくるケース
+
+----
+
+case_id: GMN-015
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: もし15000円の方で依頼して、修正範囲が広くて直せなかった場合は返金になりますか？原因も分からないので無駄にならないか心配です。
+note: 成果が不安で料金面のリスク（返金可否）を気にして事前相談するケース
+
+----
+
+case_id: GMN-016
+route: message
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: boundary
+raw_message: Webhookのフローがスパゲティになってて。まずは25000円で整理してもらって、もし数行で直せるバグが見つかったら、ついでにバグも直してくれます？
+note: 整理のついでに軽微な修正の無料包含を期待している境界越えケース
+
+----
+
+case_id: GMN-017
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: 決済が落ちるバグと画像がアップロードできないバグとログインが外れるバグがあります！全部まとめて15000円で見てもらえませんか？全部原因同じだと思います！
+note: 別原因の複数案件を「原因は同じはず」と強弁して安く依頼しようとするケース
+
+----
+
+case_id: GMN-018
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: mixed
+service_hint: boundary
+raw_message: リファクタリングってお願いできますか？Stripeのサブスク更新Webhookの処理が長すぎてメンテ不能です。動いてはいるんですが綺麗にしてほしいです。
+note: 不具合修正でも整理でもない、リファクタリングそのものを依頼しているケース
+
+----
+
+case_id: GMN-023
+route: talkroom
+state: quote_sent
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: boundary
+raw_message: 見立ての案内ありがとうございました。いったん整理で進めますが、安くならないですかね？もしくは15000の方で買って、直しじゃなく整理だけしてもらう事は可能ですか？
+note: 金額を少しでも抑えるためにサービスを勝手に読み替えようとするケース
+
+----
+
+case_id: GMN-024
+route: message
+state: quote_sent
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 案内もらったのですが、クレジットカード払い以外、たとえば銀行振込で直接お支払いして少しお値引きいただくことはできませんか？ココナラ手数料が高いので...。
+note: 外部決済に誘導して値引きを要求する完全な規約違反ケース
+
+----
+
+case_id: GMN-040
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: いま調査してもらってるところすみません。もし1文字直すだけで終わる原因だったら、この15000円から少しキャッシュバックとかないですかね...？
+note: 作業途中で成果の軽さを理由に値引きや一部返金を話し出すケース
+
+----
+
+case_id: GMN-041
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: boundary
+raw_message: 原因が決済じゃなくてフロント側だったんですか？じゃあ別原因ってことで追加料金になっちゃうってことですか...？なんか話が違う気がして不安です。
+note: 「同一原因」の定義と技術的起因の違いに驚き、追加料金の不安を抱くケース
+
+----
+
+case_id: GMN-042
+route: talkroom
+state: purchased
+user_type: indie_hacker
+emotional_tone: mixed
+service_hint: boundary
+raw_message: お送りいただいた見立て拝見しました。でもそれ、整理のメモだけだとどうにもならないので、やっぱり今から差額払うんでバグ修正の方に切り替えることってできますか？
+note: 整理の調査後にサービス自体を乗り換えられないか相談してくるケース
+
+----
+
+case_id: GMN-046
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: 決済通るようになりました！ただ、これ await が一つ抜けてただけなんですね。1箇所の修正で15000円は高い気がしちゃいました... まあ直ったからいいんですけど。
+note: 納品後に「修正量が少ない」ことでうっすら不満を持っているケース
+
+----
+
+case_id: GMN-047
+route: talkroom
+state: delivered
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: ローカルでは直りました。ただこれデプロイしたらまた違うエラーが出ちゃって...。これって直してもらった箇所のせいじゃないですかね？確認したいです。
+note: 納品直後に別エラーが発生し、修正による再発・再不具合を疑っているケース
+
+----
+
+case_id: GMN-048
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: handoff
+raw_message: メモ受領しました。分かりやすかったです。でも、やっぱり自分じゃ直せなさそうってことが分かりました。このまま修正依頼として別件への移行はできますか？
+note: handoff納品直後に、そのまま同一文脈で修正へ移行したいという期待ケース
+
+----
+
+case_id: GMN-049
+route: talkroom
+state: delivered
+user_type: semi_technical
+emotional_tone: normal
+service_hint: boundary
+raw_message: 無事に動きました！一つ聞きたいんですが、今回のやつって結局全体が悪かったってことですよね？次回、全体の構成見直しとか依頼するとしたらおいくらくらいになります？
+note: 納品確認と当時に、全体改修（リファクタなどサービス外）の相談をしてくるケース
+
+----
+
+case_id: GMN-050
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: boundary
+raw_message: 手順どおりやったんですが、まだ私の手元で確認できてません...。明日知人に聞きながらやってみるので、正式な承諾はもう少し待ってもらっていいですか？
+note: クライアント側のスキル不足で最終確認が完了せず、ステータスが保留されそうなケース
+
+----
+
+case_id: GMN-051
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 先日はありがとうございました。実はまた別のAPI連携でエラーが出るようになっちゃってまた依頼したいのですが、リピーター割引みたいなのってあったりしますか？
+note: クローズ後に別件依頼をしつつ、リピート割引を打診してくるケース
+
+----
+
+case_id: GMN-052
+route: message
+state: closed
+user_type: indie_hacker
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: 昨日直してもらったところのすぐ下の行でまたエラーがあって...昨日まとめて言えばよかったんですが、これって今回の15000円の範囲内でサクッと直してもらえたりしませんか？
+note: クローズ済みなのに「前回のおまけ」として無償修正を要求してくるケース
+
+----
+
+case_id: GMN-053
+route: message
+state: closed
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 先日はありがとうございました。1点だけ質問なんですが、直していただいたファイルの useEffect のところ、依存配列に userId を入れなくて本当によかったんでしたっけ？
+note: クローズ後に仕様やコードの細かい部分について技術的な追加質問をしてくるケース
+
+----
+
+case_id: GMN-054
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: 一応動いてはいるんですが、まだ時々決済が通らないって言われてまして...。前回の修正内容で本当に全部カバーできてたんですかね？少し不安でもう一度見てほしいんですが。
+note: クローズ後しばらくして再発を疑い、保証としての再調査を要求しているケース
+
+----
+
+case_id: GMN-056
+route: message
+state: closed
+user_type: indie_hacker
+emotional_tone: frustrated
+service_hint: handoff
+raw_message: メモをもらった後、別のエンジニアに「全体見ないとわからない」と言われてしまいました。もう少し深い階層のDBへの書き込み部分まで追加で追記してもらうことってできないですかね？
+note: クローズ後に納品物への不足を主張し、無償で追記・調査させようとする不満ケース
+
+----
+
+case_id: GMN-057
+route: message
+state: closed
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: 次回はバグ修正のときにも、今回のメモみたいに手順だけじゃなくてコードの歴史的背景みたいなのも解説として付けてもらうことってできますか？
+note: 納品物の品質が高かったせいで、別サービスの時にも過剰なドキュメントを期待してしまうケース
+
+----
+
+case_id: GMN-058
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 実はこれからサイトのデザインを大幅に変えようと思ってるんですが、CSSの変更とかも受け付けてますか？月額3万円くらいで保守に入ってほしくて。
+note: 修正から信頼を得て、保守や新機能というスコープ外の長期契約を持ちかけてくるケース
+
+----
+
+case_id: GMN-059
+route: message
+state: closed
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 数行の修正だと毎回15000円払うのは少し厳しくて...。次からは少し内容を見て、簡単なら5000円くらいにしてもらうみたいな相談ってできませんか？
+note: 成果物の修正量を見て、次回以降の価格交渉（低単価化）を仕掛けてくるケース
+
+----
+
+case_id: GMN-060
+route: message
+state: closed
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: boundary
+raw_message: 前回のStripeの件、今度は別プロジェクトで全く同じバグ踏みました！これ、原因分かってると思うんでチャチャッと1万円くらいで修正だけコピペしてもらえませんか？
+note: 全く別のリポジトリに対して「原因は同じだから」と勝手に割引を持ちかけて依頼するケース

@@ -1,0 +1,188 @@
+bucket: negative_feedback
+case_count: 13
+role_counts:
+  eval: 2
+  holdout: 4
+  quality_cases: 7
+cases:
+- asset_id: prequote-bulk-30-v3:V3-013
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-013
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 引き継ぎメモのサービスを見たんですが、25,000円で整理だけで修正はしないんですよね。ちょっと高い気がするんですが、他にもっと安い方法はありますか？
+  note: 直球の「高い」。価値を説明しつつ押しつけない。代替提案が難しい
+- asset_id: prequote-bulk-20-v6:V6-006
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-006
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 外注で作ってもらったコード、引き継ぎメモ作ってもらいたいんですが、ぶっちゃけ25,000円の価値があるか分かりません。メモもらった後に「これ分かんない」ってなったらお金もったいないなと。返金とかはないですよね？
+  note: サービス価値への不信 + 返金質問が同時。価値を説明しすぎると押しつけ、説明しなすぎると不安が残る
+- asset_id: stock-bulk-100-eval:STK-088
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-088
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: normal
+  signals:
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: あの、1つ気になったんですが、修正してもらったファイルにunittestとかは含まれてますか？修正後に自分で継続的にチェックできるようにしたいんですが。
+  note: テスト付き修正の期待。標準納品にテストが含まれるかの確認
+- asset_id: stock-bulk-100-holdout:STK-066
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-066
+  state: delivered
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  - state:delivered
+  raw_message: 結果報告ありがとうございます。直してもらった箇所は確認しました。ただ、正直なところ思っていたより軽微な問題だったのかなという印象で。15,000円分の価値があったのかどうか、ちょっとモヤモヤしています。次回もお願いするかは少し考えさせてください。
+  note: delivered後の軽い不満。「高かったかも」の感情。次回利用への揺れ
+- asset_id: stock-bulk-100-holdout:STK-082
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-082
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 引き継ぎメモの件で相談です。知り合いのエンジニアに聞いたら「25,000円はちょっと高い。自分ならもっと安くやる」と言われたんですが、でもその人は忙しくて実際にはやってくれません。他と比べて高いのか安いのか判断できなくて。この価格の妥当性を説明してもらえますか？
+  note: 第三者の「高い」発言を引用したprice_sensitive。価格の妥当性を押しつけずに説明する訓練
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-057
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-057
+  state: closed
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 次回はバグ修正のときにも、今回のメモみたいに手順だけじゃなくてコードの歴史的背景みたいなのも解説として付けてもらうことってできますか？
+  note: 納品物の品質が高かったせいで、別サービスの時にも過剰なドキュメントを期待してしまうケース
+- asset_id: claude-quality-cases-50-v1:QLT-012
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-012
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 25000円のサービスって、修正は入らないんですよね？整理だけで25000円って、ちょっと高いかなと正直思ったんですが、具体的に何がもらえるんでしょうか。
+  note: 価格への率直な疑問。防御的に価値を語ると押しつけになりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-017
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-017
+  state: closed
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 無事に直りました、ありがとうございます。ちなみに今回の修正で触れなかった部分で、「ここは整理したほうがいい」みたいなところって気づかれましたか？もしあれば教えてもらえると、次に何を頼むか考えやすいので。
+  note: closed 後に整理サービスへの自然な橋渡しを求めている。提案の仕方で営業感が出る
+- asset_id: claude-quality-cases-50-v1:QLT-035
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-035
+  state: closed
+  service_hint: bugfix
+  emotional_tone: mildly_frustrated
+  signals:
+  - stress
+  - negative_feedback
+  - relationship
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: お世話になりました。直していただいた部分は動いてます。ただ正直、もう少し途中で状況を教えてもらえたら安心だったかなと思いました。次回があれば参考にしていただければ。
+  note: closed 後の軽いフィードバック。受け止め方次第で防御的になりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-042
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-042
+  state: quote_sent
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: お見積りの件、ありがとうございます。15000円は了解なんですが、もし調べた結果「これは別の原因もある」ってなった場合って、追加でいくらかかりますか？先に知っておきたくて。
+  note: quote_sent で追加費用への不安。答え方で営業感が出やすい
+- asset_id: claude-quality-cases-50-v1:QLT-045
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-045
+  state: closed
+  service_hint: handoff
+  emotional_tone: mildly_frustrated
+  signals:
+  - stress
+  - negative_feedback
+  - relationship
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 整理ありがとうございました。結果的には思ったより簡単な構成だったみたいで、正直25000円は高かったかなというのが正直な感想です。でも自分じゃ判断できなかったので、しょうがないんですけど。
+  note: closed 後の「高かった」感想。防御せず受け止めつつ押し売りしない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-048
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-048
+  state: prequote
+  service_hint: boundary
+  emotional_tone: hesitant
+  signals:
+  - negative_feedback
+  - confusion
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 正直に言うと、コードがぐちゃぐちゃなのは自覚してて、整理してもらう前にまず動かないところを直したいんです。でも整理しないと修正もしにくいですよね？どっちが先ですか。
+  note: 順序の相談だが、自分で決められない。提案が押しつけにならない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-049
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-049
+  state: closed
+  service_hint: bugfix
+  emotional_tone: normal
+  signals:
+  - negative_feedback
+  bucket_reasons:
+  - signal:negative_feedback
+  raw_message: 無事解決しました、ありがとうございます。ひとつだけ気になったんですが、修正してもらったファイルの中にコメントが英語で入ってたんですけど、これって日本語にしてもらうことはできなかったんですか？
+  note: closed 後の軽い引っかかり。小さな不満だが「今さら」感を出さずに返す

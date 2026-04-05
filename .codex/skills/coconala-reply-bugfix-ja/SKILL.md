@@ -59,23 +59,29 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
    - 文末タグ（`#R` / `#A` / `#D` / `#P`）があるか
    - `#R 受領返信` などのショート指示があるか
 3. `reply_contract.primary_question_id`、`explicit_questions`、`answer_map`、`ask_map` を先に読む。
-4. `reply_contract.issue_plan` は互換要約として扱い、実行契約の正本は `answer_map` と `ask_map` に置く。
-5. `reply_skeleton` に沿って section renderer を使い、section order と ask 数を先に固定する。
-6. 先頭1〜2行で受領 + 要点復唱、または短い反応を入れる。相手が書いた情報を一度拾ってから進める。
-7. `required_moves` を落とさず、`forbidden_moves` を踏まない範囲で本文を埋める。
-8. `primary_question_id` に対応する `answer_map` を、最初の answer-bearing section で扱う。
-9. `ask_map` にない質問は増やさず、不足情報だけを最大2〜3点で依頼する。
-10. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
-11. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
-12. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
-13. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
-14. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
-15. 自然化後も section order と `required_moves / forbidden_moves` を崩していないか再lintする。
-16. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
+4. `temperature_plan` があれば、`reply_contract` の sibling として扱う。`reply_contract` は「何を答えるか」、`temperature_plan` は「どう受け止めるか」の正本にする。
+5. `reply_contract.issue_plan` は互換要約として扱い、実行契約の正本は `answer_map` と `ask_map` に置く。
+6. `reply_skeleton` に沿って section の大枠だけを決める。ただし writer を slot-filling に閉じ込めず、先に `response_decision_plan` を作る。
+7. `response_decision_plan` には最低でも `primary_concern / facts_known / blocking_missing_facts / direct_answer_line / response_order` を持たせる。
+8. `reply_contract` は「何を言ってよいか」、`response_decision_plan` は「何を先にどう言うか」の正本にする。
+9. 文面は renderer が template-first で埋めるのではなく、Codex が freeform に近い形で下書きし、renderer / validator は guardrail として使う。
+10. `primary_question_id` に対応する答えは、`response_decision_plan.direct_answer_line` として最初の answer-bearing section に置く。
+11. `ask_map` にない質問は増やさず、`blocking_missing_facts` が空なら原則 ask を出さない。
+12. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
+13. 相手がすでに書いた情報は `facts_known` として保持し、再要求しない。
+14. `required_moves` を落とさず、`forbidden_moves` を踏まない範囲で文面を下書きする。skill は writer の代わりではなく、writer を壊さないガードレールとして使う。
+15. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
+16. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
+17. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
+18. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
+19. ただし `japanese-chat-natural-ja` には全文の意味変更権限を与えず、語順・接続・語感の自然化に限定する。
+20. 自然化後も `direct_answer_line`、価格、禁止事項、ask 数、次アクション、`required_moves / forbidden_moves` を崩していないか再lintする。
+21. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
 
 ## `reply_contract` の使い方
 - `reply_contract` はヒントではなく、下流が守る実行契約として扱う。
 - `primary_question_id / explicit_questions / answer_map / ask_map` を renderer と lint の正本にする。
+- `temperature_plan` は interaction の実行契約として扱う。`opening_move` と `tone_constraints` は renderer / naturalize / lint の共通入力にする。
 - `issue_plan` は、明示質問や実質別論点をどう処理するかの互換要約として使う。
 - `answer_now` の論点だけを即答し、`answer_after_check` の論点は理由つきで保留する。
 - `ask_client` は、`ask_map` にある最小証跡だけを依頼する。
@@ -94,13 +100,22 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 
 ## renderer の固定
 - 最初に renderer 化するのは `estimate_initial` と `post_purchase_quick` の2つだけに絞る。
-- renderer は section の有無、順序、ask 上限、主質問を扱う位置を固定する。
-- writer は各 section の1〜2文を埋めるだけで、section 構造や ask 数を勝手に変えない。
+- renderer は section の有無、順序、ask 上限、主質問を扱う位置を固定する guardrail として使う。
+- writer を slot 埋めに閉じ込めない。文章生成は Codex の reasoning を残した freeform draft を優先し、renderer は過剰な template-first を避ける。
 - `estimate_initial` では、最初の answer-bearing section で `primary_question_id` に対する結論を出す。
 - `post_purchase_quick` では、`answer_now` を先に、`answer_after_check` は理由つき保留として後段に置く。
 - `answer_after_check` を出す時は、`hold_reason` と `revisit_trigger` を落とさない。
 - `ask_map` が空なら、質問 section を作らない。
-- テンプレ文を renderer 側に固定しすぎず、固定するのは section order と cardinality までに留める。
+- `ask_map` が任意確認だけなら、相手に判断を丸投げせず、答えがなくても進める既定方針を同じ段落で添える。
+- テンプレ文を renderer 側に固定しすぎず、固定するのは section order・question coverage・ask gating までに留める。
+
+## 恒久反映ルール（reply-only）
+- `answer_after_check` でも、保留だけで終わらせず `いま見ている範囲` を1文で可視化する。
+- 購入後の途中共有は、できるだけ `何を見たか / まだ未確定な点 / 次に何を見るか / 次回時刻` の4点へ寄せる。
+- 進捗不安・継続可否・追加料金・返金不安のような敏感話題は、説明前に短い直接回答を先に置く。
+- 相手がすでに書いた文脈や観察情報をもう一度言わせない。追加で聞くのは未共有の最小情報だけにする。
+- 1点で足りる場面では、長い番号案内や選択肢メニューへ広げない。
+- `該当番号を選ぶ` 型の長い案内や、受付窓口に戻すような受け答えを避ける。
 
 ## 条件付きで読む references
 - UI進行タグや `#R` / `#P` ショート指示を使うとき:
@@ -124,13 +139,15 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - `prequote` で `#R / #A` を作る時は、先に `coconala-prequote-ops-ja` を使う。金額分岐をこのskillで抱え込まない。
 - `scope_judgement: undecidable` のまま、追加料金や無料対応を断定しない。
 - Webhookの複数イベント失敗でも、同一原因なら `bugfix-15000` の守備範囲に残す。
-- 複数症状が並ぶ時は、こちらで勝手に「1件目」を決めない。優先順位を確認する。
+- 複数症状が並ぶ時は、こちらで勝手に「1件目」を断定しない。ただし、こちらで仮に優先を置ける場面では、相手へ優先順位の判断を丸投げせず既定方針を添える。
 - `closed` 後の再相談では、最初の返信で `新規依頼` や `規約上は` を前面に出さない。
 - `handoff-25000` で修正依頼が出た場合は吸収せず、`bugfix-15000` または別見積りへ切り分ける。
 - Stripe確認は `/home/hr-hm/Project/work/stripe日本語UI案内` を最優先参照し、`sk_...` や `whsec_...` の値は求めない。
 - 購入後の継続会話では、初回ヒアリングや受付窓口の文面に戻らない。相手の追加報告へ一度反応してから、不足分だけを軽く頼む。
 - 購入後の追加報告に対して、`次の2点だけお願いします` の番号リストを機械適用しない。2点程度なら文中にさらっと混ぜる形を優先する。
 - 購入後の継続会話では、`同一原因` `別原因` の内部寄りの言い方を避け、`同じ原因` `別の話` `別の原因かもしれない` など会話の言い方を優先する。
+- 購入後の途中共有で、`確認中です` だけで終わらない。いま見ている範囲と次の確認点を短く出す。
+- 進捗不安への返答で、防御的に理由説明から入らない。まず見えにくかった点を受けて、次回から何を見える形で返すかを書く。
 
 ## 出力ルール
 - 行頭に不要な空白を入れない。
@@ -146,6 +163,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 送信用文面は、保存前に毎回 `japanese-chat-natural-ja` を通す。
 - 最終自然化では、結論・質問項目数・価格・禁止事項・次アクション・section order・required_moves を増減させない。
 - naturalize は semantic freeze 後に行い、壊れやすい項目は自然化前後で再lintする。
+- naturalize は全文の rewrite ではなく、`ack / bridge / closing` の editable slot を対象にした typed slot rewriter として扱う。
 - 壊れやすい項目は `can / cannot` の極性、`answer_now / answer_after_check` の極性、価格、ask 数、hold reason、次アクション、forbidden claim。
 - `〜する形が安全です` のような提案書寄りの言い方は避け、`〜するのがよさそうです` を優先する。
 - 条件がそろうと判断しやすくなる場面では、`出しやすいです` より `出しやすくなります` を優先する。
@@ -155,6 +173,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 購入後の継続会話では、情報依頼を文中に混ぜる形を優先する。番号リストは3点以上、または取りこぼしが起きやすい時だけ使う。
 - 購入後の継続会話では、`いただければ、共有します` のSLA文より `もらえると助かります` `本日[時刻]までに共有しますね` のようなチャット口調を優先する。
 - purchased で `issue_plan` が混在する時は、即答できるものだけ答え、残りは `確認してから返す` と分けて書く。
+- 購入後の `確認してから返す` では、`いまは〜を先に見ています` の現在地を1文入れて不透明さを減らす。
 
 ## 仕上げ前チェック
 - 相手の質問に直接答えているか
@@ -165,6 +184,13 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - `reply_skeleton` と最終文面の骨格が一致しているか
 - `required_moves` が落ちていないか / `forbidden_moves` を踏んでいないか
 - 既出情報を聞き直していないか
+- 任意確認を、必須質問や選択強制の形で押し出していないか
+- 答えがなくてもこちらで進められる場面では、既定方針を本文に書いたか
+- `burden_owner: us` なのに、優先順位づけや分岐判断を相手へ丸投げしていないか
+- `answer_after_check` でも、いま見ている範囲を1文で可視化できているか
+- 進捗不安への返答で、理由説明だけで終わらず `今後は何を見える形で返すか` まで書いているか
+- 購入後の途中共有で、`何を見たか / 何が未確定か / 次に何を見るか / 次回時刻` のうち最低3点が入っているか
+- 長い番号案内や選択メニューに逃げず、1問で済む確認に圧縮できているか
 - 固定条件（価格 / 範囲）を崩していないか
 - 外部誘導や秘密情報要求がないか
 - 追加質問の前に、受領確認か見立ての1文を入れたか

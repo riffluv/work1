@@ -40,6 +40,10 @@
   - 実ストックの置き場。
   - `inbox / seed / eval / holdout / edge` に分けて運用する。
   - 詳細は `/home/hr-hm/Project/work/ops/tests/stock/README.ja.md` を見る。
+- `temperature-assets/`
+  - 温度感改善用の派生資産置き場。
+  - 原本は動かさず、`stress / boundary / negative_feedback` の bucket manifest と preferred rewrite をここへ生成する。
+  - 詳細は `/home/hr-hm/Project/work/ops/tests/temperature-assets/README.ja.md` を見る。
 
 補足:
 - `expected_template` の参照先は 1 ファイルに固定しない。`short:§21` のような表記は `docs/coconala-message-templates-short.ja.md`、`golden:§53` のような表記は `docs/coconala-golden-replies.ja.md` を見る。

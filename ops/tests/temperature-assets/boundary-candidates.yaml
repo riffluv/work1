@@ -1,0 +1,1865 @@
+bucket: boundary
+case_count: 137
+role_counts:
+  edge: 13
+  eval: 27
+  holdout: 71
+  quality_cases: 22
+  seed: 4
+cases:
+- asset_id: edge-cases:EC-007
+  source_name: edge-cases.yaml
+  source_role: edge
+  case_id: EC-007
+  state: prequote
+  service_hint: null
+  emotional_tone: null
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:返金
+  raw_message: 同じ商品が2個届いたと言われて、決済も2回入っているみたいです。返金もしないといけないかもしれません。どうしたらいいですか？
+  note: ''
+- asset_id: edge-cases:EC-008
+  source_name: edge-cases.yaml
+  source_role: edge
+  case_id: EC-008
+  state: prequote
+  service_hint: null
+  emotional_tone: null
+  signals:
+  - confusion
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: 不具合も出ているし、コードの中身も分かりません。15,000円の方か25,000円の方かどっちがいいですか？
+  note: ''
+- asset_id: prequote-test-cases:CLS-003
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CLS-003
+  state: closed
+  service_hint: null
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - state:closed
+  raw_message: お世話になります。前回修正いただいた Webhook の件ですが、違うイベント（invoice.payment_failed）で同じようなエラーが出ています。前回は
+    checkout.session.completed で修正してもらったので、原因は別かもしれませんが、関連はありそうです。トークルームが閉じているようなのですが、どうすればいいですか？
+  note: 別イベントでの類似エラー。同一原因か別原因か判定が必要
+- asset_id: prequote-test-cases:PRC-004
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: PRC-004
+  state: quote_sent
+  service_hint: null
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:返金
+  raw_message: 提案を拝見しました。内容は問題ないのですが、15000円で即決するのが少し不安です。もし結果的に修正がいらなかった場合は返金してもらえるのでしょうか？
+  note: 返金条件の確認。値引きではなくリスク確認に近い
+- asset_id: prequote-test-cases:CMP-001
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CMP-001
+  state: closed
+  service_hint: null
+  emotional_tone: complaint_like
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:返金
+  raw_message: 前回お願いした件ですが、はっきり言って直っていません。15000円払ったのに状況が変わっていません。返金してもらえませんか。
+  note: 返金要求。感情注意フラグ確実。金銭事故リスク最大
+- asset_id: prequote-test-cases:CMP-002
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: CMP-002
+  state: purchased
+  service_hint: null
+  emotional_tone: complaint_like
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:返金
+  raw_message: 購入してから3日経ちますが、まだ何も進んでいませんよね？最初のメッセージで「2時間以内に」とおっしゃっていたのに、何も連絡がないのですが。このまま放置されるなら返金してほしいです。
+  note: 進捗不満 + 返金希望。感情注意フラグ。対応遅延ケース
+- asset_id: prequote-test-cases:EMO-004
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: EMO-004
+  state: closed
+  service_hint: null
+  emotional_tone: complaint_like
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:返金
+  raw_message: 返金を希望します。前回の修正後にテストした時は動いていましたが、1週間で再発しました。これでは修正してもらった意味がありません。
+  note: 高信頼シグナル「返金」。明確な返金要求
+- asset_id: prequote-test-cases:QST-004
+  source_name: prequote-test-cases.txt
+  source_role: eval
+  case_id: QST-004
+  state: quote_sent
+  service_hint: null
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:返金
+  raw_message: 提案いただいた15000円は了解なのですが、もし修正がうまくいかなかった場合はどうなりますか？最悪、直らなかった場合でも15000円はかかるのでしょうか？
+  note: リスク確認。保証/返金ルールの説明が必要
+- asset_id: prequote-bulk-30-v2:V2-001
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - marker:返金
+  raw_message: 至急です。お客さんが「2回引き落とされた」と連絡してきました。Stripeの管理画面を見ると確かに同じ人に2件の決済が入っています。1件は返金した方がいいと思うのですが、なぜ2回決済されたのか原因が分かりません。同じことがまた起きると困るので、原因を調べて直してほしいです。
+  note: 二重決済。Checkout Session の二重作成 or ボタン連打。返金は範囲外だが原因調査+修正は bugfix
+- asset_id: prequote-bulk-30-v2:V2-026
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-026
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 相談です。外注で作ってもらったサイトなんですが、最近Stripeの決済後にメールが届かないことがあります。まず修正してもらいたいんですが、正直コードの中身が全然分からないので、どこが問題かも分かりません。直す前にまずどうなっているか見てもらった方がいいですかね？
+  note: 本人は「直してほしい」が、整理不足が先。bugfix か handoff か判定が必要。自分で「先に見た方がいいですかね？」と聞いている
+- asset_id: prequote-bulk-30-v2:V2-027
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-027
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: メッセージ失礼します。AIで作ったサイトで、お客さんから「決済したのに会員ページに入れない」と連絡がありました。とりあえず中を見てもらいたいんですが、コードの中身は全く分かりません。修正できるなら修正もしてほしいんですが、まず何が起きているか知りたいです。
+  note: 症状はbugfix的だが、AI生成コードで構造理解がゼロ。「まず何が起きているか知りたい」でhandoff寄り
+- asset_id: prequote-bulk-30-v2:V2-028
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-028
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Webhook受信後のDB更新とメール送信の両方で問題が出ていて、複数の処理フローにまたがってる気がします。まずは決済→DB更新の流れと、決済→メール送信の流れの2つを整理してもらって、その上で修正に入ってほしいんですが、全部まとめてお願いできますか？
+  note: 複数フロー+修正。handoff 2フロー+bugfix が混在。スコープ整理が必要
+- asset_id: prequote-bulk-30-v2:V2-029
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-029
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: プロフィール拝見しました。サイトの決済まわりで不具合が出ているんですが、外注先が連絡取れなくなって、原因を調べようにもどのコードを見ればいいか分かりません。不具合修正と引き継ぎ整理、どちらのサービスを買った方がいいか相談させてもらえますか？
+  note: 「どちらを買えばいいか」を直接聞いている。判定案内が必要なケース
+- asset_id: prequote-bulk-30-v2:V2-030
+  source_name: prequote-bulk-30-v2.txt
+  source_role: eval
+  case_id: V2-030
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 個人開発のサービスで、前に書いたWebhookまわりが最近エラー吐くようになったんですが、正直1年くらい前のコードで自分でも構造を忘れてます。エラーを直したいんですが、まず構造を把握し直してから修正に入った方がいいですかね？どう進めるのがいいか教えてもらえると助かります。
+  note: 本人がbugfix希望だが構造忘却を自覚。「まず把握してから修正」で段階的案内が必要
+- asset_id: prequote-bulk-30-v3:V3-011
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-011
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:主要1フロー
+  raw_message: 見てもらいたいのは、決済のところと、あと会員登録と、あとメール送信の部分です。まとめてお願いできますか。
+  note: 「主要1フロー」のはずが3フロー。スコープ整理が必要。やんわり1フローに絞る案内
+- asset_id: prequote-bulk-30-v3:V3-013
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-013
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: 引き継ぎメモのサービスを見たんですが、25,000円で整理だけで修正はしないんですよね。ちょっと高い気がするんですが、他にもっと安い方法はありますか？
+  note: 直球の「高い」。価値を説明しつつ押しつけない。代替提案が難しい
+- asset_id: prequote-bulk-30-v3:V3-019
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-019
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Stripeで決済したあとの画面遷移が変なんですが、これってバグですか？それとも最初からこういう仕様だったのか、外注先に聞けないので分かりません。直すにしても、まず仕様なのかバグなのかを教えてほしいです。
+  note: 「仕様かバグか分からない」。整理（handoff）→判定→必要なら修正（bugfix）の段階案内
+- asset_id: prequote-bulk-30-v3:V3-020
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-020
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:25,000円
+  raw_message: 不具合を直してほしいんですが、コードが全く分からないので、整理も必要かもしれません。25,000円+15,000円で40,000円になると思うとちょっときつくて。整理なしでいきなり修正だけお願いすることはできますか？
+  note: 合計金額への抵抗 + 「整理スキップして修正だけ」の要望。段階の必要性を説明する訓練
+- asset_id: prequote-bulk-30-v3:V3-021
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-021
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Next.jsのビルドが本番だけ落ちます。Stripe関係のコードが原因かもしれないし、そうでないかもしれない。Webhook受信後の処理で
+    import エラーが出ているログがあるんですが、それが原因かどうかも分からないです。切り分けてほしいです。
+  note: 原因がStripeかNext.jsか不明。bugfixとして切り分けから入れるが、構造把握が先かも
+- asset_id: prequote-bulk-30-v3:V3-022
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-022
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: サイトの表示速度が遅いのがまず気になっていて、あとStripeの決済後のメールが飛ばないこともあります。両方一緒にお願いできますか？
+  note: パフォーマンス（範囲外）+ メール不達（bugfix）の混在。範囲分けの説明が必要
+- asset_id: prequote-bulk-30-v3:V3-023
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-023
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: サブスク解約→Webhookでステータス更新→メール送信、この一連の流れがたまにコケるんですが、どこが悪いか分からないです。整理が先か修正が先か、おまかせでいい感じに進めてもらえますか？
+  note: 「おまかせで」の丸投げ。判断をこちらに委ねている。段階提案の自然さが問われる
+- asset_id: prequote-bulk-30-v3:V3-024
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-024
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 急ぎで相談です。今朝からお客さんが「ログインできない」と連絡してきていて。決済は関係あるか分かりません。外注のコードなので自分では何も分かりません。とにかく見てもらえますか。
+  note: 緊急 + 原因不明 + 外注コード。ログイン問題がStripe/API関連か不明。情報回収が最優先
+- asset_id: prequote-bulk-30-v3:V3-025
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-025
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: プロフィール見ました。不具合修正と引き継ぎ整理の2つサービスがあるみたいですが、まず安い方で試してみて、必要なら追加でお願いする流れはできますか？
+  note: 「安い方でまず試す」。bugfix(15K)が安いので先に試したいが、コード不明なら handoff が先かも
+- asset_id: prequote-bulk-30-v3:V3-029
+  source_name: prequote-bulk-30-v3.txt
+  source_role: eval
+  case_id: V3-029
+  state: closed
+  service_hint: after_close
+  emotional_tone: normal
+  signals:
+  - relationship
+  bucket_reasons:
+  - state:closed
+  - marker:範囲内
+  raw_message: 先日はありがとうございました。1つだけ確認したいんですが、前回修正してもらった箇所と同じところで、また同じような症状が出ました。これって前回の修正の範囲内で見てもらえますか？それとも新しい依頼になりますか？
+  note: closed後の再発連絡。同一原因の再発か新規かの判定。無償対応範囲の説明
+- asset_id: prequote-bulk-20-v6:V6-006
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-006
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - marker:25,000円
+  - marker:返金
+  raw_message: 外注で作ってもらったコード、引き継ぎメモ作ってもらいたいんですが、ぶっちゃけ25,000円の価値があるか分かりません。メモもらった後に「これ分かんない」ってなったらお金もったいないなと。返金とかはないですよね？
+  note: サービス価値への不信 + 返金質問が同時。価値を説明しすぎると押しつけ、説明しなすぎると不安が残る
+- asset_id: prequote-bulk-20-v6:V6-008
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-008
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - hesitation
+  bucket_reasons:
+  - marker:Zoom
+  - marker:直接会
+  raw_message: 引き継ぎメモは要るんですが、すみません、ココナラって直接会って説明とかしてもらうことってできますか？コードの説明、テキストだけだと自分には厳しいかもしれなくて。Zoomとかでもいいんですが。
+  note: 対面/Zoom提案。ココナラ規約で外部連絡は禁止。かつ「テキストだけだと厳しい」への代替提案も必要
+- asset_id: prequote-bulk-20-v6:V6-009
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-009
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: 25,000円でメモ作ってもらうの分かったんですが、前に別の人に5,000円で同じようなことやってもらったことがあって。その人はもういなくなっちゃったんですけど。内容に差があるなら教えてほしいです。
+  note: 他社の5K実績と比較。「内容に差があるなら」は合理的な質問だが、他社サービスの内容が分からないので比較困難
+- asset_id: prequote-bulk-20-v6:V6-010
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-010
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Stripe Checkoutの画面はちゃんと出るんですが、そこに表示される商品名が間違ってます。「プレミアムプラン」って出てほしいのに「テストプラン」って出る。これって不具合ですか？直してもらえますか？
+  note: Stripeダッシュボードの商品設定の問題か、コード側の問題か。設定だけなら自分でできるが、不具合かどうかの判定自体が難しい
+- asset_id: prequote-bulk-20-v6:V6-011
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-011
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:どっちのサービス
+  - marker:25,000円
+  - marker:修正含まない
+  - marker:何を選んでいいか
+  raw_message: 急ぎなんですが、不具合が出てるのと、コードも分からないのと、両方です。どっちのサービスがいいか分からないし、この状態で15,000円だけ払って解決しなかったら怖い。25,000円の方が安全ですか？でも修正含まないんですよね？もう何を選んでいいか分かりません。
+  note: 感情的に崩れかけている。bugfix/handoffの選択不能+恐怖+価格不安の複合。どう安心させるかが試される
+- asset_id: prequote-bulk-20-v6:V6-012
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-012
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: うちのサイト、Stripeの年額プランと月額プランがあるんですが、年額から月額に切り替えたときだけ請求額がおかしくなるみたいです。月額から年額は正常です。これ1件ですか？
+  note: 片方だけおかしい。1件判定だが、プラン切替のロジック自体がStripe側か、コード側か、両方か
+- asset_id: prequote-bulk-20-v6:V6-013
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-013
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 個人開発でSaaS作ってるんですが、Stripe BillingのCustomer Portalで解約はできるのにプラン変更ができない状態です。Stripeの設定だと思うんですけど、自分でやるとまた壊しそうで。設定変更だけなら15,000円じゃなくてもっと安くなりますか？
+  note: V5-019の発展形。「設定変更だけ」の値引き期待+「壊しそう」の不安。設定かコードか未確定なのに値段を聞いてくる
+- asset_id: prequote-bulk-20-v6:V6-014
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-014
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 質問なんですが、Stripe使ってるサイトの「表示速度が遅い」のも見てもらえますか？決済自体は動いてます。ただサイト全体が重くて、お客さんが離脱してるのがアナリティクスで分かるので。
+  note: V4-019より広い。「サイト全体が重い」はStripeに関係ない可能性が高い。パフォーマンス最適化とbugfixの境界
+- asset_id: prequote-bulk-20-v6:V6-020
+  source_name: prequote-bulk-20-v6.txt
+  source_role: holdout
+  case_id: V6-020
+  state: closed
+  service_hint: after_close
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - state:closed
+  - marker:25,000円
+  raw_message: すみません、前回クローズしたあとずっと迷ってたんですが、やっぱり不安なのでもう1フロー整理してもらいたいです。ただ、また25,000円かかるのは正直きつくて。前回の経験があるから少し安くなったりしませんか？あと、前回のメモで1箇所だけ気になるところがあるので、そこだけ確認してもらえますか？
+  note: 新規依頼(2フロー目)+値引き期待+前回メモの部分修正の3要素。全部に答えると散漫、線を引く位置が難しい
+- asset_id: prequote-bulk-30-v5:V5-010
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-010
+  state: prequote
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: お金のことを先に聞いてすみません。25,000円で整理してもらって、そのあと不具合修正も頼むと合計40,000円ですよね？正直40,000円は出しにくいです。でもコードの中身も分からないし不具合も出てるし、どっちから手をつけていいか分からなくて。
+  note: 価格不安+判定不明+自己判断できない。V4-017に近いが「お金のことを先に」の自責が入る
+- asset_id: prequote-bulk-30-v5:V5-012
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-012
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: 前の外注さんに払った分も含めるともう相当使ってて、整理に25,000円は正直出せるか微妙です。でもこのままだと次の人にも引き継げなくて詰んでます。分割で払えたりしますか？あとメモだけもらって修正は自分でやるっていうのもありですか？
+  note: 予算限界+分割払い質問+「修正は自分で」確認。ココナラの支払い方法は出品者が決められない
+- asset_id: prequote-bulk-30-v5:V5-015
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-015
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - hesitation
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: すみません、まだ買うか決めてないんですが質問です。25,000円のサービスは、何がもらえるんですか？引き継ぎメモっていうのは、Wordみたいなファイルですか？何ページくらいですか？
+  note: 購入前の商品説明要求。「何がもらえるか」「形式」「分量」の3質問同時
+- asset_id: prequote-bulk-30-v5:V5-016
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-016
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:25,000円
+  raw_message: 不具合が出てるんですけど、コードの中身も分からないし、これが15,000円の方なのか25,000円の方なのか、ページ見ても正直分かりません。急いでるのであんまり悩んでいる時間もなくて。とりあえずどっちがいいか教えてもらえますか？
+  note: 判定を丸投げ + 急ぎ + 価格不安。全部に答えると長くなる
+- asset_id: prequote-bulk-30-v5:V5-017
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-017
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 決済はStripeなんですが、メール送信はSendGridで、認証はNextAuthです。全部つながってる1つの処理なんですけど、Webhookのあとの処理が壊れてて、メールも届かないし認証トークンも更新されない。これ全部で1件ですか？
+  note: Stripe+SendGrid+NextAuth。外部サービス3つが絡む1フロー。1件判定が難しい
+- asset_id: prequote-bulk-30-v5:V5-018
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-018
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 本番環境はないです。VercelのPreviewデプロイだけで開発してて、Stripeもテストモードです。Checkout Sessionを作るところまではできたんですけど、その後のWebhookの受け方が分からなくて。
+  note: V4-022の発展形。「壊れた」ではなく「作り方が分からない」。実装支援とbugfixの境界
+- asset_id: prequote-bulk-30-v5:V5-019
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-019
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Billing Portalでサブスクのアップグレードができるんですけどダウングレードができない状態です。Stripe側の設定だけの問題なのか、コード側で制御してるのかが分からなくて。設定だけならStripeのダッシュボードでやれそうなんですが、もしコード側の問題なら見てもらいたいです。
+  note: Stripe設定かコードか。出品者が判断する前に条件分岐がある。「設定だけなら自分でやる」
+- asset_id: prequote-bulk-30-v5:V5-020
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-020
+  state: prequote
+  service_hint: boundary
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:返金
+  raw_message: もう3回目の相談です。前に別の人に2回頼んだんですが、2回とも「直した」って言われて結局直ってなくて。今回こそちゃんと直したいんですけど、そもそもこれ不具合なのか仕様なのかも分からないです。15,000円で見てもらって、もし仕様だったらお金返してもらえますか？
+  note: 他社2回失敗+仕様/不具合不明+返金条件の質問。V4-002の発展形
+- asset_id: prequote-bulk-30-v5:V5-021
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-021
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: うちのサイト、StripeじゃなくてPAY.JPを使ってるんですが、Next.jsのAPI Routeで決済後処理を書いてます。症状としてはStripeのときと同じような感じだと思うんですが、対応可能ですか？料金は変わりますか？
+  note: PAY.JP案件。V3-009(PayPal)/V4-018(Square)の次。「料金は変わるか」も同時質問
+- asset_id: prequote-bulk-30-v5:V5-022
+  source_name: prequote-bulk-30-v5.txt
+  source_role: holdout
+  case_id: V5-022
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 急ぎなんですけど、たぶん不具合が2つあって。1つはStripeの決済後にメールが送られないやつ。もう1つは管理画面の注文一覧が空になるやつ。2件分の料金かかりますか？急ぎなんで早めに教えてもらえると助かります。
+  note: 2件の症状+料金質問+急ぎ×2。同一原因か別件かの判定+急ぎの受け止め+料金説明の3つが必要
+- asset_id: prequote-bulk-30-v4:V4-008
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-008
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:返金
+  raw_message: さっきお客さんから電話きて、「同じ商品が2個届いた」って言われました。決済も2回入ってるみたいです。Webhookの重複？っていうのかよく分かりませんが、とにかく二重になったみたいで。返金もしないといけないかもしれないし、どうしたらいいですか。
+  note: 二重処理 + 返金不安 + 「どうしたらいいですか」の丸投げ。返金自体はサービス範囲外だが助言は必要
+- asset_id: prequote-bulk-30-v4:V4-010
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-010
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: 整理だけで25,000円は正直ちょっと出しにくいです。修正もセットで30,000円くらいにまとめてもらえませんか？そのほうがこっちとしては頼みやすいので。
+  note: 独自の値段設定を提案してくる。handoff+bugfixのバンドル値引き要求。受けられない
+- asset_id: prequote-bulk-30-v4:V4-015
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-015
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:どこまで
+  raw_message: あの、整理してもらったメモって、別の開発者に渡せるレベルのものですか？次の人がそのまま見て続きからやれるような。もしそうでないなら、そこまでやってほしいんですが。
+  note: 納品物の品質期待が高い。「別の開発者がそのまま引き継げる」がどこまで保証できるか
+- asset_id: prequote-bulk-30-v4:V4-016
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-016
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:25,000円
+  raw_message: 不具合があるのは分かってるんですが、それがStripeのせいなのかうちのコードのせいなのか分かりません。診断と修正で15,000円ですか？それとも整理の方で25,000円になりますか？
+  note: 「15Kか25Kかどっち？」の直球質問。判定基準を出す必要がある
+- asset_id: prequote-bulk-30-v4:V4-017
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-017
+  state: prequote
+  service_hint: boundary
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: もう疲れました。3ヶ月くらいずっとこの決済の問題を抱えてて、自分で調べてもChatGPTに聞いても解決しない。何が悪いのかすら分からない。とにかく誰かに全部見てもらって、壊れてるところを直してほしい。予算は3万以内で収まりますか。
+  note: 疲弊 + 「全部見て全部直して」+ 予算上限。handoff+bugfixを予算内に収める提案が必要
+- asset_id: prequote-bulk-30-v4:V4-018
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-018
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: うちのサイト、StripeじゃなくてSquareの決済使ってるんですが、Next.jsです。Square → Webhook → DB更新の流れで不具合が出てます。対応可能ですか？
+  note: Square案件。V3-009のPayPalと同類だがWebhookが絡む分さらに境界が近い
+- asset_id: prequote-bulk-30-v4:V4-019
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-019
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 不具合っていうか、動くんですけど遅いんです。決済完了後のリダイレクトがめちゃくちゃ遅くて、お客さんが途中で離脱してるっぽい。これって不具合扱いになりますか？
+  note: パフォーマンス問題を不具合として依頼。bugfixの範囲に入るか微妙
+- asset_id: prequote-bulk-30-v4:V4-020
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-020
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Route Handlerで作ったAPIが3本あるんですが、1本だけたまにレスポンスが返らなくなります。他の2本は関係ないと思うんですが、念のため3本とも見てもらえると助かります。1件15,000円×3ですか？
+  note: 3つのAPIを見てほしいが1本だけ問題あり。「念のため」で範囲が広がる。料金計算の質問
+- asset_id: prequote-bulk-30-v4:V4-021
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-021
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 正直に聞くと、最初にお試しで5,000円くらいで軽く見てもらうことってできますか？それでいけそうなら正式にお願いしたいと思ってます。
+  note: お試し価格の要求。サービス設計にないプランを求められている
+- asset_id: prequote-bulk-30-v4:V4-022
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-022
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: あの、相談なんですが、今まだ開発中のサイトなんです。本番には出してないです。Stripeのテストモードで決済周りを作ってるんですが、うまく動かなくて。これも見てもらえますか？
+  note: テスト環境のみ・開発中。「不具合」ではなく「まだ作れていない」=実装支援の可能性
+- asset_id: prequote-bulk-30-v4:V4-028
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-028
+  state: closed
+  service_hint: after_close
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - state:closed
+  raw_message: また別の箇所で同じような問題が出てきてるんですが、毎回15,000円だとちょっと厳しいです。2回目以降は少し安くなったりしませんか？リピーター割引みたいなのがあると嬉しいのですが。
+  note: リピーター割引要求。制度がない場合の断り方
+- asset_id: prequote-bulk-30-v4:V4-030
+  source_name: prequote-bulk-30-v4.txt
+  source_role: holdout
+  case_id: V4-030
+  state: closed
+  service_hint: after_close
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - state:closed
+  - marker:範囲内
+  raw_message: 先日の件ですが、知り合いのエンジニアに見てもらったら「ここもおかしい」と言われました。前回の修正範囲に含まれていた部分だと思うんですが、元のお値段の中で直してもらえますか？
+  note: 第三者の見解を根拠に前回の修正範囲に含めようとする。本当に範囲内だったかは確認が必要
+- asset_id: stock-bulk-100-seed:STK-008
+  source_name: stock-bulk-100-seed.txt
+  source_role: seed
+  case_id: STK-008
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - marker:主要1フロー
+  raw_message: ChatGPTとCursorで作ったWebアプリがあるんですが、動いてはいるものの自分でも何がどうなっているか把握できていません。いろいろ継ぎ足してきたので、どのファイルが何をしてるか分からない状態です。一度整理してもらいたいのですが、サービスの「主要1フロー」というのは具体的にどう決めるんですか？
+  note: AI生成コード＋「1フローとは何か」の質問。サービス説明の具体化が求められる
+- asset_id: stock-bulk-100-seed:STK-009
+  source_name: stock-bulk-100-seed.txt
+  source_role: seed
+  case_id: STK-009
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:25,000円
+  raw_message: 料金について確認です。コードの中身が分からないのでまず整理が必要かもしれないんですが、そうなると25,000円の整理＋15,000円の修正で合計40,000円ですよね。できれば整理をスキップして修正だけお願いしたいんですが、それは可能ですか？あと、整理した結果「修正は不要でした」となった場合でも25,000円かかりますか？
+  note: 合計金額への抵抗＋整理スキップ希望＋「修正不要でも払うのか」。3つの質問が混在する boundary典型
+- asset_id: stock-bulk-100-seed:STK-010
+  source_name: stock-bulk-100-seed.txt
+  source_role: seed
+  case_id: STK-010
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: はじめまして。Next.jsのApp Routerで作ったサイトで、APIルートが本番だけ500を返します。ローカルとプレビューでは問題なく動いています。Stripe関連のAPIです。Vercelのログを見ると「FUNCTION_INVOCATION_TIMEOUT」と出ていますが、ローカルでは数秒で返ってきます。
+  note: 本番のみタイムアウト。パフォーマンス問題かコード問題かの境界判断。bugfixで受けるかhandoff的な構造確認が先かを判定
+- asset_id: stock-bulk-100-eval:STK-008
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-008
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - marker:主要1フロー
+  raw_message: ChatGPTとCursorで作ったWebアプリがあるんですが、動いてはいるものの自分でも何がどうなっているか把握できていません。いろいろ継ぎ足してきたので、どのファイルが何をしてるか分からない状態です。一度整理してもらいたいのですが、サービスの「主要1フロー」というのは具体的にどう決めるんですか？
+  note: AI生成コード＋「1フローとは何か」の質問。サービス説明の具体化が求められる
+- asset_id: stock-bulk-100-eval:STK-084
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-084
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - marker:返金
+  raw_message: こんにちは。サービスページのFAQを読んで概要は理解しました。1点だけ、「原因不明のまま正式納品へ進めることはありません」とありましたが、その場合は料金はどうなるんですか？結局原因が分からなかったら全額返金ですか？
+  note: FAQ読了後のフォローアップ質問。返金ポリシーの確認。FAQで触れきれていない部分を突くケース
+- asset_id: stock-bulk-100-eval:STK-087
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-087
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:対象外
+  raw_message: 引き継ぎメモのサービスについてですが、うちのアプリはNext.jsじゃなくてNuxt.jsなんですが対象外ですか？Stripeは使ってます。
+  note: Nuxt.js案件。Next.js以外のフレームワーク。対象範囲の判断
+- asset_id: stock-bulk-100-eval:STK-097
+  source_name: stock-bulk-100-eval.txt
+  source_role: eval
+  case_id: STK-097
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:返金
+  raw_message: これは見積り前の確認なんですが、もし依頼して修正してもらった結果、気に入らなかった場合は返金してもらえますか？ココナラのキャンセルルールがよく分かっていなくて。あと、途中でキャンセルした場合はどうなりますか？
+  note: 返金・キャンセルルールの質問。ココナラのプラットフォーム規約と自独自のポリシーの区別
+- asset_id: stock-bulk-100-holdout:STK-009
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-009
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:25,000円
+  raw_message: 料金について確認です。コードの中身が分からないのでまず整理が必要かもしれないんですが、そうなると25,000円の整理＋15,000円の修正で合計40,000円ですよね。できれば整理をスキップして修正だけお願いしたいんですが、それは可能ですか？あと、整理した結果「修正は不要でした」となった場合でも25,000円かかりますか？
+  note: 合計金額への抵抗＋整理スキップ希望＋「修正不要でも払うのか」。3つの質問が混在する boundary典型
+- asset_id: stock-bulk-100-holdout:STK-013
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-013
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 個人開発でStripe Billingを使ったサブスクサービスを運営してます。最近customer.subscription.deletedのイベント処理がたまに失敗するんですが、そもそもWebhook周りのコードが自分でも「なんでこう書いたっけ」状態なので、修正の前にまず整理した方がいいかもしれません。修正と整理、どっちを先に頼むべきですか？
+  note: indie_hacker自身がbugfix/handoffの判定を聞いている。段階提案の自然さが問われる
+- asset_id: stock-bulk-100-holdout:STK-016
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-016
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: 引き継ぎメモの作成が25,000円とのことですが、正直なところ「メモを作るだけで25,000円は高い」という印象です。自分でChatGPTにコードを貼って聞くのと、何が違うんでしょうか？
+  note: 直球の「高い」＋ChatGPT比較。価値を具体的に示す必要がある。防衛的にならずに差分を説明する訓練
+- asset_id: stock-bulk-100-holdout:STK-017
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-017
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 2つのサービスがあるみたいですが、自分の場合どちらに当てはまるか分かりません。状況としては、外注で作ってもらったNextのアプリで、決済後にメールが飛ばないことがあります。ただ、正直コード全体が何やってるか分からない状態でもあります。不具合修正で頼むべきですか？それとも先に整理してもらった方がいいですか？
+  note: どちらのサービスか自分で判断できない典型的なboundaryケース
+- asset_id: stock-bulk-100-holdout:STK-021
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-021
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 緊急でお願いしたいです。うちのサイトの決済がおかしくなっていて、お客さんから「二重に決済された」と連絡が来ています。外注のコードなので中身が分かりません。まず二重決済が起きないように直してほしいのと、あと根本的にコードの構造がおかしいのかどうかも教えてほしいです。
+  note: 緊急＋二重決済＋「直して」と「教えて」の混在。bugfixとhandoffの両方が必要な可能性
+- asset_id: stock-bulk-100-holdout:STK-026
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-026
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 先週からお客さんに「クレジットカード決済できない」と言われていて、調べたらStripeのAPIキーが期限切れ？になっている可能性があるんですが、これってコードの問題ですか？設定の問題ですか？もし設定だけなら自分で直したいんですが、やり方が分からなくて。
+  note: 設定問題かコード問題かの境界。自分で直したい意向。bugfixの範囲に入るかの判断が必要
+- asset_id: stock-bulk-100-holdout:STK-028
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-028
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:25,000円
+  raw_message: 予算があまりなくて。不具合修正の15,000円と引き継ぎの25,000円、両方のサービスがあるのは分かったのですが、15,000円の方でまず見てもらって、その中で「ここはこうなってます」みたいな整理も軽く教えてもらうことはできませんか？
+  note: 安い方で整理も兼ねたい。bugfixのスコープにhandoff的要素を含めたい価格圧。境界の説明が重要
+- asset_id: stock-bulk-100-holdout:STK-034
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-034
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:対象外
+  raw_message: こんにちは、サービスページ見ました。うちのは厳密にはStripeじゃなくてGMOペイメントなんですけど、Next.jsでWebhookで決済完了を受けてDB更新してる構成は同じです。対象外ですか？
+  note: GMOペイメント案件。Stripe以外の決済サービス。対象範囲の境界判断
+- asset_id: stock-bulk-100-holdout:STK-036
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-036
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 不具合修正サービスと引き継ぎサービス、どちらにも当てはまる気がしています。状況は、外注で作ってもらったStripe決済のあるサイトで、最近Webhookが失敗していることに気づきました。ただ、コード全体の構造もぜんぜん把握できてなくて。不具合を直すのが先か、全体を理解するのが先か、アドバイスいただけますか？
+  note: 「どっちが先か」を明確に聞いている。段階提案の自然さが問われるboundaryケース
+- asset_id: stock-bulk-100-holdout:STK-038
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-038
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 問い合わせさせてください。Stripeの決済後にお客さんにメールを送る処理があるのですが、本文の中にある「プラン名」の部分がundefinedと表示されてしまいます。決済自体は問題なく通っていて、DB更新も正常です。メール本文のテンプレだけの問題だと思うんですが、こういうのも対象ですか？
+  note: 表示不具合だが原因がStripe連携か表示テンプレか不明。bugfix対象かフロント修正か境界が曖昧
+- asset_id: stock-bulk-100-holdout:STK-042
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-042
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Next.jsのサイトで2つ問題があります。1つ目は、ページの読み込みが異常に遅いこと。2つ目は、Stripe決済後にWebhookが受け取れていないことです。両方一緒にお願いできますか？予算は30,000円くらいまでなら出せます。
+  note: パフォーマンス（範囲外寄り）＋Webhook（bugfix対象）の混合。予算提示付き
+- asset_id: stock-bulk-100-holdout:STK-044
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-044
+  state: quote_sent
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: お見積りありがとうございます。25,000円で1フローの整理で、追加フローが15,000円ということですね。ちなみに、もし整理してもらった結果すぐに修正が必要とは限らないとしたら、まず整理だけで様子を見ることもできますか？追加で修正を頼むかどうかは、メモを見てから判断したいです。
+  note: quote_sent＋段階対応の確認。「整理だけで止められるか」の質問は合理的
+- asset_id: stock-bulk-100-holdout:STK-060
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-060
+  state: quote_sent
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: お見積りありがとうございます。購入を検討中なんですが、追加で聞いてもいいですか。コードの中身を見たら、Stripe以外にもSendGridでメール送信してる処理があるみたいなんですが、Stripe以外の部分も含めて1件で見てもらえますか？あと、送り忘れてたファイルがあって、そっちにStripe関連のユーティリティが書いてあるみたいです。
+  note: quote_sent後の追加質問。Stripe以外の部分の範囲確認＋追加ファイル申告。boundaryケース
+- asset_id: stock-bulk-100-holdout:STK-074
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-074
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - hesitation
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: すみません、そもそもの質問なんですが、うちのサイトが「不具合」なのか「仕様」なのか分かりません。外注先に聞いたら「仕様です」と言われたんですが、お客さんからは不便だと言われていて。Stripe決済後にメールが30分くらい遅れて届くのですが、これは不具合ですよね？
+  note: 仕様かバグかの境界。外注先が「仕様」と言っている。客観的判断が必要なboundaryケース
+- asset_id: stock-bulk-100-holdout:STK-079
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-079
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 2つのサイトで同じような不具合が起きています。片方はStripeで、もう片方はSquareを使っています。両方ともNext.jsです。2サイト分をまとめてお願いしたら、いくらくらいになりますか？
+  note: 2サイト＋異なる決済サービスの同時依頼。件数計算と対象範囲の整理が必要
+- asset_id: stock-bulk-100-holdout:STK-081
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-081
+  state: prequote
+  service_hint: boundary
+  emotional_tone: frustrated
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: もうイライラしてます。3ヶ月前にフリーランスの方にサイトを作ってもらったんですが、決済周りがまともに動いたことがないです。直してもらおうにも、コードが何やってるか全く分かりません。とにかく決済が動くようにしたいんですが、整理が先なのか修正が先なのか、こちらは分からないのでプロに判断してほしいです。
+  note: frustrated＋「判断はプロに任せたい」の丸投げ。感情圧が高いが実務判断は明確にすべきboundary
+- asset_id: stock-bulk-100-holdout:STK-082
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-082
+  state: prequote
+  service_hint: handoff
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - negative_feedback
+  bucket_reasons:
+  - marker:25,000円
+  raw_message: 引き継ぎメモの件で相談です。知り合いのエンジニアに聞いたら「25,000円はちょっと高い。自分ならもっと安くやる」と言われたんですが、でもその人は忙しくて実際にはやってくれません。他と比べて高いのか安いのか判断できなくて。この価格の妥当性を説明してもらえますか？
+  note: 第三者の「高い」発言を引用したprice_sensitive。価格の妥当性を押しつけずに説明する訓練
+- asset_id: stock-bulk-100-holdout:STK-085
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-085
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: ちょっと漠然とした相談なんですが。Next.jsとStripeで作ったECサイトがあって、全体的に「よく分からないけど動いてる」状態です。不具合はたぶんないんですが、なんとなく不安です。不具合がないのにサービスをお願いするのは変ですか？
+  note: 不具合なし＋漠然とした不安。bugfixは不要、handoffが適切だが自分では判断できない
+- asset_id: stock-bulk-100-holdout:STK-086
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-086
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Next.jsのサイトなんですが、特定のユーザーだけ決済後にエラーが出るみたいです。他のお客さんは問題なく使えています。エラーが出た方に確認したら「iPhoneのSafariで使ってる」とのことで、ブラウザの問題かもしれません。こういうのも対応してもらえますか？
+  note: ブラウザ依存の可能性。Stripe/API連携のbugfixかフロントエンド環境問題かの境界判断
+- asset_id: stock-bulk-100-holdout:STK-091
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-091
+  state: closed
+  service_hint: bugfix
+  emotional_tone: normal
+  signals:
+  - relationship
+  bucket_reasons:
+  - state:closed
+  raw_message: こんにちは、前回お世話になった者です。実は前回直していただいた決済の件は問題ないんですが、今度はサブスクの更新処理で同じような症状が出ていて。前回のWebhookの修正とは別の箇所だと思うんですが、新規でお願いする場合また15,000円ですか？
+  note: closed後の新規依頼。前回とは別箇所の類似症状。リピーターへの自然な案内
+- asset_id: stock-bulk-100-holdout:STK-096
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-096
+  state: closed
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - state:closed
+  raw_message: 前回整理してもらった続きで、別のフローもお願いしたいんですが、前回のメモの内容を引き継いでもらえると助かります。また最初からやるとなるとちょっと。1フロー追加で15,000円ですか？
+  note: closed後の追加フロー依頼。前回の文脈を引き継ぎたい要望。リピーターの継続案内
+- asset_id: stock-bulk-100-holdout:STK-098
+  source_name: stock-bulk-100-holdout.txt
+  source_role: holdout
+  case_id: STK-098
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:25,000円
+  raw_message: こんにちは。今、別のフリーランスの方に相談しているんですが、「Webhookの問題だと思うけど、先にコード全体を見ないと修正に入れない」と言われました。その方は整理だけで50,000円と言っているのですが、こちらのサービスだとどういう流れになりますか？比較して決めたいです。
+  note: 他社見積りとの比較。「50,000円の整理vs25,000円のhandoff」。金額競争にならずにサービス内容で差分を示す
+- asset_id: stock-bulk-100-edge:STK-010
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-010
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: はじめまして。Next.jsのApp Routerで作ったサイトで、APIルートが本番だけ500を返します。ローカルとプレビューでは問題なく動いています。Stripe関連のAPIです。Vercelのログを見ると「FUNCTION_INVOCATION_TIMEOUT」と出ていますが、ローカルでは数秒で返ってきます。
+  note: 本番のみタイムアウト。パフォーマンス問題かコード問題かの境界判断。bugfixで受けるかhandoff的な構造確認が先かを判定
+- asset_id: stock-bulk-100-edge:STK-029
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-029
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 本番のStripe Webhookが失敗しているようなのですが、Stripeのダッシュボードの見方がよく分からなくて、どのイベントが失敗しているかも特定できていません。分かっているのは、お客さんが「決済したのに使えない」と言っていることだけです。ログの見方を教えてもらうことも含めてお願いできますか？
+  note: 情報不足＋教育的要求。bugfixとして受けるか、まず状況整理（handoff寄り）から入るかの判定
+- asset_id: stock-bulk-100-edge:STK-040
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-040
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: ちょっと変な相談かもしれないのですが、Next.jsのサイトでStripe Checkoutを使って商品を販売しています。最近、テスト環境で動作確認した後に本番にデプロイしたんですが、テスト環境のAPIキーのまま本番に上げてしまったかもしれません。お客さんの決済がテストモードで処理されている可能性があるんですが、確認と修正をお願いできますか？
+  note: テスト/本番のAPIキー取り違え疑い。設定問題かコード問題かの境界。.env関連
+- asset_id: stock-bulk-100-edge:STK-048
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-048
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - marker:返金
+  raw_message: すみません、依頼した件とは別かもしれないんですが、今日新たにお客さんから「返金してほしい」と連絡が来ました。決済の不具合のせいで二重に引き落とされたみたいで。これも今回の依頼内容に含まれますか？返金処理の操作も教えてもらえますか？
+  note: 購入中に発生した関連問題。二重引き落とし＋返金操作の質問。返金操作はStripeダッシュボードの範囲
+- asset_id: stock-bulk-100-edge:STK-055
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-055
+  state: purchased
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:Zoom
+  - marker:通話
+  raw_message: 引き継ぎの件なんですが、ちなみにZoomで画面共有しながら説明してもらうことはできますか？文字だけだと理解できるか不安で。30分くらいでいいんですが。
+  note: 通話・ビデオ会議の要求。標準範囲外。テキストでの説明で対応する旨の案内
+- asset_id: stock-bulk-100-edge:STK-072
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-072
+  state: quote_sent
+  service_hint: bugfix
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:Zoom
+  - marker:通話
+  raw_message: お見積りありがとうございます。購入前に1つだけ確認させてください。依頼の進行中にZoomで状況を口頭で説明させてもらうことはできますか？文章で伝えるのが苦手で、画面を見せながらの方が早いと思うので。それが無理でも進めたいとは思っています。
+  note: quote_sent後の通話要求。標準範囲外。「無理でも進めたい」の意向があるため、テキストでの代替案内
+- asset_id: stock-bulk-100-edge:STK-083
+  source_name: stock-bulk-100-edge.txt
+  source_role: edge
+  case_id: STK-083
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Stripeのテスト環境では正常に動いているんですが、本番に切り替えたら動かなくなりました。切り替え時にやったことは、APIキーをliveに変えただけです。Webhookエンドポイントも本番用に変更しました。エラーメッセージは特に出ていないです。
+  note: テスト→本番切り替え問題。設定だけの可能性もあるし、コード修正が必要な場合もある。boundary判断
+- asset_id: gemini-bulk-60-poststates-01-seed:GMN-001
+  source_name: gemini-bulk-60-poststates-01-seed.txt
+  source_role: seed
+  case_id: GMN-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:Zoom
+  - marker:通話
+  raw_message: はじめまして。決済エラーで困ってます。ログイン情報を渡すので本番環境で直接直してもらえませんか？Zoomで画面を見ながら説明したいです。
+  note: 直接操作と通話を希望しているNG要望ケース
+- asset_id: gemini-bulk-60-poststates-01-eval:GMN-020
+  source_name: gemini-bulk-60-poststates-01-eval.txt
+  source_role: eval
+  case_id: GMN-020
+  state: quote_sent
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:どこまで
+  raw_message: ご提案ありがとうございます。追加原因の場合は事前相談とのことですが、納品された修正コードを自分で反映して動かなかった場合のサポートってどこまで入ってます？
+  note: 購入直前に自身での反映作業のサポート範囲を気にして質問するケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-011
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-011
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 決済が通らないので直したいですが、原因不明なら25000円の整理を買えばいいんですか？15000円で安く済ませたいんですが、どっちを買えば直してくれますか？
+  note: 直したいが整理サービスと迷い、金額ベースで悩んでいるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-012
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-012
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: checkout.tsで500エラーが取れません。これ、引き継ぎメモ作成の方で「どう直すか」だけ手順書にしてもらえますか？そしたら自分で直すので。
+  note: コード整理の枠で修正コンサルを安価に引き出そうとするケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-013
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-013
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 作ってもらったシステムがおかしいです。環境はVercelです。環境変数はNEXT_PUBLIC_STRIPE_KEYなどです。直し方は分からないので調べるだけでも大丈夫ですか？
+  note: 環境変数の指示には従っているが、具体的な症状や依頼内容が曖昧なケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-014
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-014
+  state: prequote
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: ユーザーが「購入履歴」を見ても何も表示されません。これって1万5千円で直りますか？それともコードを見直す2万5千円の方ですか？
+  note: 不具合かどうかの切り分けとサービス選択自体を丸投げしてくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-015
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-015
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:返金
+  raw_message: もし15000円の方で依頼して、修正範囲が広くて直せなかった場合は返金になりますか？原因も分からないので無駄にならないか心配です。
+  note: 成果が不安で料金面のリスク（返金可否）を気にして事前相談するケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-016
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-016
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Webhookのフローがスパゲティになってて。まずは25000円で整理してもらって、もし数行で直せるバグが見つかったら、ついでにバグも直してくれます？
+  note: 整理のついでに軽微な修正の無料包含を期待している境界越えケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-018
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-018
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: リファクタリングってお願いできますか？Stripeのサブスク更新Webhookの処理が長すぎてメンテ不能です。動いてはいるんですが綺麗にしてほしいです。
+  note: 不具合修正でも整理でもない、リファクタリングそのものを依頼しているケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-023
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-023
+  state: quote_sent
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - relationship
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 見立ての案内ありがとうございました。いったん整理で進めますが、安くならないですかね？もしくは15000の方で買って、直しじゃなく整理だけしてもらう事は可能ですか？
+  note: 金額を少しでも抑えるためにサービスを勝手に読み替えようとするケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-024
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-024
+  state: quote_sent
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 案内もらったのですが、クレジットカード払い以外、たとえば銀行振込で直接お支払いして少しお値引きいただくことはできませんか？ココナラ手数料が高いので...。
+  note: 外部決済に誘導して値引きを要求する完全な規約違反ケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-040
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-040
+  state: purchased
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:返金
+  raw_message: いま調査してもらってるところすみません。もし1文字直すだけで終わる原因だったら、この15000円から少しキャッシュバックとかないですかね...？
+  note: 作業途中で成果の軽さを理由に値引きや一部返金を話し出すケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-041
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-041
+  state: purchased
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 原因が決済じゃなくてフロント側だったんですか？じゃあ別原因ってことで追加料金になっちゃうってことですか...？なんか話が違う気がして不安です。
+  note: 「同一原因」の定義と技術的起因の違いに驚き、追加料金の不安を抱くケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-042
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-042
+  state: purchased
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:切り替える
+  raw_message: お送りいただいた見立て拝見しました。でもそれ、整理のメモだけだとどうにもならないので、やっぱり今から差額払うんでバグ修正の方に切り替えることってできますか？
+  note: 整理の調査後にサービス自体を乗り換えられないか相談してくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-049
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-049
+  state: delivered
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 無事に動きました！一つ聞きたいんですが、今回のやつって結局全体が悪かったってことですよね？次回、全体の構成見直しとか依頼するとしたらおいくらくらいになります？
+  note: 納品確認と当時に、全体改修（リファクタなどサービス外）の相談をしてくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-050
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-050
+  state: delivered
+  service_hint: boundary
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 手順どおりやったんですが、まだ私の手元で確認できてません...。明日知人に聞きながらやってみるので、正式な承諾はもう少し待ってもらっていいですか？
+  note: クライアント側のスキル不足で最終確認が完了せず、ステータスが保留されそうなケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-052
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-052
+  state: closed
+  service_hint: bugfix
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - state:closed
+  - marker:範囲内
+  raw_message: 昨日直してもらったところのすぐ下の行でまたエラーがあって...昨日まとめて言えばよかったんですが、これって今回の15000円の範囲内でサクッと直してもらえたりしませんか？
+  note: クローズ済みなのに「前回のおまけ」として無償修正を要求してくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-058
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-058
+  state: closed
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 実はこれからサイトのデザインを大幅に変えようと思ってるんですが、CSSの変更とかも受け付けてますか？月額3万円くらいで保守に入ってほしくて。
+  note: 修正から信頼を得て、保守や新機能というスコープ外の長期契約を持ちかけてくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-059
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-059
+  state: closed
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 数行の修正だと毎回15000円払うのは少し厳しくて...。次からは少し内容を見て、簡単なら5000円くらいにしてもらうみたいな相談ってできませんか？
+  note: 成果物の修正量を見て、次回以降の価格交渉（低単価化）を仕掛けてくるケース
+- asset_id: gemini-bulk-60-poststates-01-holdout:GMN-060
+  source_name: gemini-bulk-60-poststates-01-holdout.txt
+  source_role: holdout
+  case_id: GMN-060
+  state: closed
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 前回のStripeの件、今度は別プロジェクトで全く同じバグ踏みました！これ、原因分かってると思うんでチャチャッと1万円くらいで修正だけコピペしてもらえませんか？
+  note: 全く別のリポジトリに対して「原因は同じだから」と勝手に割引を持ちかけて依頼するケース
+- asset_id: gemini-bulk-60-poststates-01-edge:GMN-001
+  source_name: gemini-bulk-60-poststates-01-edge.txt
+  source_role: edge
+  case_id: GMN-001
+  state: prequote
+  service_hint: bugfix
+  emotional_tone: anxious
+  signals:
+  - stress
+  bucket_reasons:
+  - marker:Zoom
+  - marker:通話
+  raw_message: はじめまして。決済エラーで困ってます。ログイン情報を渡すので本番環境で直接直してもらえませんか？Zoomで画面を見ながら説明したいです。
+  note: 直接操作と通話を希望しているNG要望ケース
+- asset_id: gemini-bulk-60-poststates-01-edge:GMN-036
+  source_name: gemini-bulk-60-poststates-01-edge.txt
+  source_role: edge
+  case_id: GMN-036
+  state: purchased
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:通話
+  raw_message: 対象フローの件、それで大丈夫です！ところで来週から入るエンジニアと3人で一回オンラインMTGできませんか？15分くらいでいいので。
+  note: 基本範囲外である通話（ビデオ会議）を軽々しく要求してくるケース
+- asset_id: gemini-bulk-60-poststates-01-edge:GMN-044
+  source_name: gemini-bulk-60-poststates-01-edge.txt
+  source_role: edge
+  case_id: GMN-044
+  state: purchased
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:通話
+  raw_message: ログイン情報送るためにLINE教えましょうか？ココナラのチャットだと画像送りづらくて。あとそこで電話しながらの方が早い気がします！
+  note: 情報共有に困り、外部ツール（LINE）や通話に誘導しようとするケース
+- asset_id: gemini-bulk-60-poststates-01-edge:GMN-055
+  source_name: gemini-bulk-60-poststates-01-edge.txt
+  source_role: edge
+  case_id: GMN-055
+  state: closed
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - state:closed
+  raw_message: メモのおかげで無事に新しい人が作業に入れました！今回は別の「パスワード再発行フロー」についても同じように整理をお願いしたくて連絡しました。そのまま購入でよいですか？
+  note: handoffサービスの良いリピート利用・別フロー追加依頼のケース
+- asset_id: claude-quality-cases-50-v1:QLT-002
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-002
+  state: prequote
+  service_hint: boundary
+  emotional_tone: hesitant
+  signals:
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:どっちのサービス
+  raw_message: すみません、自分でもうまく説明できないんですが、前に外注で作ってもらったサイトがあって、今動いてはいるんですけど中身が全然わからなくて。直してほしいところもあるし、まず何がどうなってるか知りたいという感じで…。どっちのサービスが合うんでしょうか。
+  note: 本人が整理できていない boundary 典型。選ばせすぎると距離が出る
+- asset_id: claude-quality-cases-50-v1:QLT-005
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-005
+  state: delivered
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  - state:delivered
+  - marker:範囲内
+  raw_message: 修正と整理を両方お願いしてた件、修正のほうは確認できました。整理資料のほうもいただいたんですが、修正前の構成で書かれてる部分がある気がして…。修正後の状態に合わせてもらうのって範囲内ですか？
+  note: delivered 後の boundary。修正と整理が絡む場面で、対応範囲の線引きを冷たくなく伝える難しさ
+- asset_id: claude-quality-cases-50-v1:QLT-008
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-008
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  - hesitation
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 他のところでも見積もり取ってるんですが、ちょっと比較させてください。不具合修正と、どこが壊れてるかの調査って、両方やるとおいくらになりますか？
+  note: 比較検討中で値段を聞いている。選ばせすぎず、押さず返すバランス
+- asset_id: claude-quality-cases-50-v1:QLT-011
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-011
+  state: closed
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  - relationship
+  bucket_reasons:
+  - service_hint:boundary
+  - state:closed
+  raw_message: 修正ありがとうございました。動くようにはなったんですが、次に自分で何か触るときにまた壊しそうで怖くて。こういう場合って整理のサービスのほうも受けたほうがいいんですかね。自分じゃ判断つかなくて。
+  note: closed 後に boundary へ揺れている。整理サービスの案内が押し売りにならないように
+- asset_id: claude-quality-cases-50-v1:QLT-014
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-014
+  state: closed
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  - relationship
+  bucket_reasons:
+  - state:closed
+  - marker:また新規
+  raw_message: 先日はありがとうございました。一応動いてるんですが、また同じような事象が出たときって、また新規で頼む形になりますか？
+  note: closed 後の継続依頼の聞き方。案内が押し売りっぽくなりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-015
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-015
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:整理のほう
+  - marker:修正じゃなくて整理
+  raw_message: 個人開発で作ったNext.jsのアプリなんですが、Cursor使って書いたので自分でも全体像がちょっと怪しくて。今は動いてるんですが、機能追加しようとするとどこを触っていいかわからなくなります。これって修正じゃなくて整理のほうですか？
+  note: boundary で本人はある程度わかっている。答え方次第で bot 感が出る
+- asset_id: claude-quality-cases-50-v1:QLT-017
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-017
+  state: closed
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - negative_feedback
+  bucket_reasons:
+  - service_hint:boundary
+  - state:closed
+  raw_message: 無事に直りました、ありがとうございます。ちなみに今回の修正で触れなかった部分で、「ここは整理したほうがいい」みたいなところって気づかれましたか？もしあれば教えてもらえると、次に何を頼むか考えやすいので。
+  note: closed 後に整理サービスへの自然な橋渡しを求めている。提案の仕方で営業感が出る
+- asset_id: claude-quality-cases-50-v1:QLT-020
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-020
+  state: purchased
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 補足なんですが、さっき送ったエラーログ、再現手順書くの忘れてました。「/api/checkout に POST → 500 が返る」だけです。あと、このあたりのフローの全体像もついでに整理してもらえたりしますか？購入したのは修正のほうなんですけど。
+  note: purchased 中に整理も追加で求めている boundary。確認を増やすと距離が出る
+- asset_id: claude-quality-cases-50-v1:QLT-021
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-021
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 修正をお願いしたいんですけど、そもそも何が原因でおかしくなってるかもわかってなくて。調査だけお願いすることもできますか？調査の結果、修正が必要ならそのまま修正もしてほしいんですが。
+  note: 調査→修正の流れを一括で想定。サービス境界の説明で長くなりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-023
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-023
+  state: prequote
+  service_hint: handoff
+  emotional_tone: hesitant
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:どこまで
+  raw_message: 知り合いのエンジニアに「これ引き継ぎ資料ないと誰も触れないよ」って言われて探してたらこちらを見つけました。ただ25000円でどこまでやってもらえるのか、いまいちイメージが湧かなくて。
+  note: 第三者の意見がきっかけ。説明が長くなると sales っぽくなる
+- asset_id: claude-quality-cases-50-v1:QLT-027
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-027
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: すみません初歩的な質問なんですが、うちのサイトがときどき表示崩れするのって、バグですか？コードの問題なのか設定の問題なのかもわからなくて。どちらのサービスで相談すればいいでしょうか。
+  note: 初歩的な質問を自覚している。丁寧に答えつつ上から目線にならない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-029
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-029
+  state: closed
+  service_hint: handoff
+  emotional_tone: mixed
+  signals:
+  - stress
+  bucket_reasons:
+  - state:closed
+  raw_message: 整理してもらった資料、すごく助かりました。ただ、これを見て「やっぱりここも直したいな」って出てきちゃって。修正のほうも頼めますか？
+  note: closed 後の追加依頼。サービス案内が押し売りにならないように
+- asset_id: claude-quality-cases-50-v1:QLT-030
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-030
+  state: prequote
+  service_hint: boundary
+  emotional_tone: normal
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: Supabase + Next.js で作ったSaaSなんですが、Stripeの定期課金まわりが怪しくて。修正してほしいのと、あと課金フローの全体像も整理してほしいです。両方頼むとおいくらになりますか？
+  note: 両サービスを同時に聞いている boundary。見積もり提示で営業っぽくなりやすい
+- asset_id: claude-quality-cases-50-v1:QLT-032
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-032
+  state: prequote
+  service_hint: boundary
+  emotional_tone: hesitant
+  signals:
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: こんにちは。購入前に聞きたいんですが、コードを送る時ってGitHub使わないとダメですか？あと、修正と整理のどっちが先にやるべきかとか、そのあたりも相談に乗ってもらえますか？
+  note: 事務質問と boundary 相談が混在。テンプレ応対だと bot 感が出やすい
+- asset_id: claude-quality-cases-50-v1:QLT-036
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-036
+  state: prequote
+  service_hint: boundary
+  emotional_tone: price_sensitive
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 予算があまりなくて。15000円のほうで、修正ついでに簡単にどこが悪かったか教えてもらうことってできますか？25000円のほうは今ちょっと厳しくて。
+  note: 価格制約から boundary を自分で寄せようとしている。任意確認が多いと距離が出る
+- asset_id: claude-quality-cases-50-v1:QLT-040
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-040
+  state: prequote
+  service_hint: boundary
+  emotional_tone: hesitant
+  signals:
+  - stress
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: うちのサイト、半年くらい前にフリーランスの人に作ってもらったんですけど、その人ともう連絡取れなくて。今困ってるのは決済のエラーなんですけど、今後自分で管理できるようにもしたいです。何から始めたらいいですかね。
+  note: boundary で切実な背景がある。整理を手伝うか、質問するか、判断の返し方
+- asset_id: claude-quality-cases-50-v1:QLT-044
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-044
+  state: prequote
+  service_hint: boundary
+  emotional_tone: mixed
+  signals:
+  - stress
+  - hesitation
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: すみません、長くなります。うちのECサイトなんですが、お客さんが「カートに入れたのに消える」って言ってて、あと管理画面の在庫数が実際と合わないこともあって、たぶんどこかおかしいんだとは思うんですが、全部で1件なのか複数なのかも自分ではわからなくて。
+  note: 長い相談で自分でも整理できていない。質問を返しすぎると負担になる
+- asset_id: claude-quality-cases-50-v1:QLT-045
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-045
+  state: closed
+  service_hint: handoff
+  emotional_tone: mildly_frustrated
+  signals:
+  - stress
+  - negative_feedback
+  - relationship
+  bucket_reasons:
+  - state:closed
+  raw_message: 整理ありがとうございました。結果的には思ったより簡単な構成だったみたいで、正直25000円は高かったかなというのが正直な感想です。でも自分じゃ判断できなかったので、しょうがないんですけど。
+  note: closed 後の「高かった」感想。防御せず受け止めつつ押し売りしない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-046
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-046
+  state: prequote
+  service_hint: handoff
+  emotional_tone: normal
+  signals:
+  - neutral
+  bucket_reasons:
+  - marker:主要1フロー
+  raw_message: 整理のサービスのページを見たんですが、「主要1フロー」というのはどのくらいの範囲ですか？うちのサイトだと、会員登録→ログイン→Stripe決済→メール通知くらいまでが一連の流れなんですけど、これで1フローですか？
+  note: サービスページの文言への率直な疑問。正確に答えつつ堅くならない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-047
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-047
+  state: purchased
+  service_hint: bugfix
+  emotional_tone: mixed
+  signals:
+  - stress
+  - confusion
+  bucket_reasons:
+  - marker:対象外
+  raw_message: 実は別のエンジニアさんにも相談したことがあって、そのときは「これはコードじゃなくてサーバー設定の問題だと思う」と言われたんですが、自分じゃよくわからなくて。もしサーバー設定の問題だったら対象外ですか？
+  note: 他者の見解がある。対象外の伝え方で冷たさが出やすい
+- asset_id: claude-quality-cases-50-v1:QLT-048
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-048
+  state: prequote
+  service_hint: boundary
+  emotional_tone: hesitant
+  signals:
+  - negative_feedback
+  - confusion
+  bucket_reasons:
+  - service_hint:boundary
+  raw_message: 正直に言うと、コードがぐちゃぐちゃなのは自覚してて、整理してもらう前にまず動かないところを直したいんです。でも整理しないと修正もしにくいですよね？どっちが先ですか。
+  note: 順序の相談だが、自分で決められない。提案が押しつけにならない返し方
+- asset_id: claude-quality-cases-50-v1:QLT-050
+  source_name: claude-quality-cases-50-v1.txt
+  source_role: quality_cases
+  case_id: QLT-050
+  state: quote_sent
+  service_hint: boundary
+  emotional_tone: hesitant
+  signals:
+  - neutral
+  bucket_reasons:
+  - service_hint:boundary
+  - marker:切り替える
+  raw_message: 見積もりありがとうございます。実はもう少し考えたいんですが、修正のほうで進めてもらって、途中でやっぱり整理も必要ってなったら、そこから切り替えることってできますか？
+  note: quote_sent 後の迷い。サービス間の切り替え説明で長くなりやすい

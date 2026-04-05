@@ -7,6 +7,7 @@ import re
 import sys
 from pathlib import Path
 
+from reply_quality_lint_common import collect_quality_style_errors
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 RENDERER_PATH = ROOT_DIR / "scripts/render-prequote-estimate-initial.py"
@@ -25,25 +26,57 @@ def has_any(text: str, needles: list[str]) -> bool:
     return any(needle in text for needle in needles)
 
 
+def needs_screenshot_guidance(question_text: str) -> bool:
+    return "スクショ" in question_text or ("画面" in question_text and any(marker in question_text for marker in ["送", "見せ", "撮"]))
+
+
 def lint_case(module, case: dict) -> list[str]:
     normalized = case if case.get("reply_contract") else module.build_case_from_source(case)
     rendered = module.render_case(normalized)
     contract = normalized["reply_contract"]
+    temperature_plan = normalized.get("temperature_plan") or {}
     primary_id = contract["primary_question_id"]
     primary = next(item for item in contract["answer_map"] if item["question_id"] == primary_id)
     question_map = {item["id"]: item["text"] for item in contract["explicit_questions"]}
     errors: list[str] = []
 
+    if not temperature_plan:
+        errors.append("temperature_plan is missing")
+    if not normalized.get("render_payload"):
+        errors.append("render_payload is missing")
+    if normalized.get("render_payload_violations"):
+        for violation in normalized["render_payload_violations"]:
+            errors.append(f"render payload validator violation: {violation}")
+
     if primary["disposition"] == "answer_now":
         if not has_any(rendered, ["15,000円", "対応できます"]):
             errors.append("primary answer_now case is missing direct acceptance language")
     if primary["disposition"] == "answer_after_check":
-        if not has_any(rendered, ["断定しにくい", "断定しません", "確認できます"]):
+        if not has_any(
+            rendered,
+            [
+                "断定しにくい",
+                "断定しません",
+                "確認できます",
+                "見てから判断",
+                "言い切るより",
+                "見てから案内",
+                "言い切りにくい",
+                "判断できます",
+                "まず何が起きているかを確認する",
+                "まず必要な情報を見てから判断",
+                "まず困っている点から見ていく",
+                "この入口から見ていけます",
+            ],
+        ):
             errors.append("primary answer_after_check case is missing defer language")
         if not contract.get("ask_map"):
             errors.append("primary answer_after_check case has no ask_map")
     if contract.get("ask_map") and not has_any(rendered, ["教えてください", "送ってください", "ください"]):
         errors.append("ask_map exists but rendered text has no ask request")
+    if any(ask.get("default_path_text") for ask in contract.get("ask_map") or []):
+        if not has_any(rendered, ["なければ", "難しければ", "決まっていなければ", "すぐ出せなければ", "まだ絞れていなければ"]):
+            errors.append("optional ask exists but rendered text has no default-path language")
 
     forbidden_terms = [
         "GitHubに招待",
@@ -63,7 +96,7 @@ def lint_case(module, case: dict) -> list[str]:
         if ".env" in qtext or "APIキー" in qtext:
             if not has_any(rendered, [".env", "キー名だけ"]):
                 errors.append("secret sharing question exists but rendered text does not block raw secret sharing")
-        if "スクショ" in qtext or "画面" in qtext:
+        if needs_screenshot_guidance(qtext):
             if not has_any(rendered, ["スクショ", "画面"]):
                 errors.append("screenshot question exists but rendered text does not mention screenshot guidance")
         if "税込" in qtext:
@@ -94,6 +127,7 @@ def lint_case(module, case: dict) -> list[str]:
         if not has_any(rendered, ["今の公開サービス", "断定しにくい", "案内できる範囲"]):
             errors.append("value comparison case exists but rendered text does not keep service-boundary framing")
 
+    errors.extend(collect_quality_style_errors(rendered))
     return errors
 
 

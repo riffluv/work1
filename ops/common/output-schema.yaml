@@ -70,10 +70,15 @@ field_rules:
 optional_fields:
   - service_id
   - summary
+  - scenario
+  - known_facts
+  - routing_meta
+  - response_decision_plan
   - evidence_found
   - ask_count
   - reply_notes
   - emotional_caution
+  - temperature_plan
 
 nested_field_rules:
   reply_stance:
@@ -190,3 +195,64 @@ nested_field_rules:
       - issue_plan remains as a compatibility summary and must be derived from answer_map and ask_map, not treated as a separate source of truth
       - every answer_after_check item in answer_map must include hold_reason and revisit_trigger
       - ask_map must stay minimal and link each ask to one or more explicit_questions via question_ids
+  temperature_plan:
+    required:
+      - user_signal
+      - support_goal
+      - opening_move
+      - tone_constraints
+    user_signal:
+      allowed:
+        - stress
+        - hesitation
+        - confusion
+        - negative_feedback
+        - neutral
+    support_goal:
+      allowed:
+        - reduce_burden
+        - normalize
+        - receive_feedback
+        - set_boundary_calmly
+        - move_forward
+    opening_move:
+      allowed:
+        - action_first
+        - pressure_release
+        - normalize_then_clarify
+        - receive_and_own
+        - yes_no_first
+        - neutral_ack
+  response_decision_plan:
+    required:
+      - primary_concern
+      - facts_known
+      - blocking_missing_facts
+      - direct_answer_line
+      - response_order
+    optional_fields:
+      - explicit_questions
+      - primary_question
+      - ask_policy
+      - known_facts_used
+      - risk_flags
+    derived_rules:
+      - response_decision_plan is a pre-render decision object and must not replace reply_contract
+      - reply_contract remains the source of truth for what may be said
+      - response_decision_plan decides concern focus, answer-first line, missing-fact gating, and section order
+      - direct_answer_line must be renderable as an early answer-bearing line when the primary question is answerable
+      - blocking_missing_facts must gate ask generation; when empty, the renderer should not re-ask known context
+      - validator should check that rendered text preserves direct_answer_line intent and does not duplicate its meaning across nearby sections
+        - normalize_then_clarify
+        - receive_and_own
+        - yes_no_first
+        - neutral_ack
+    tone_constraints:
+      allowed:
+        - no_defense
+        - no_internal_terms
+        - no_burden_shift
+        - no_negative_lead
+    derived_rules:
+      - temperature_plan is an interaction truth source and must not change reply_contract.answer_map or ask_map
+      - boundary handling stays in reply_contract.case_type and reply skeleton; temperature_plan only chooses the interaction move for that case

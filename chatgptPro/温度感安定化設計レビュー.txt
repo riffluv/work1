@@ -1,0 +1,288 @@
+1. 総評
+
+問題の本質は、返信の意味内容はかなり contract 化できているのに、相手の状態シグナルに対してどう受け止めるかが executable な field になっていないことです。いま再発しているのは、stress / scope boundary / negative_feedback の場面で、相手の状態シグナルを拾う、負担を増やさない、弁明しない、行動を先に置く、内部語彙を漏らさない、という要件が prose 側で毎回再生成されている点です。資料1/2は「上流判断が下流で再解釈されること」と「reply_stance が強い実行契約ではなくヒントに留まること」を主因としており、資料3はそれに加えてこの受け止め方の決定が NG 語彙・self-check・自然化・外部監査に散っていると整理しています。
+
+したがって、今回入れるべきものは「もっと自然に書く prompt」ではありません。入れるべきものは、reply_contract が担う「何を答えるか」とは別に、observable proxy を制御する最小の temperature_plan を first-class field として持ち、しかもそれを renderer 前で決めて、naturalize では slot 単位にしか触らせない ことです。Structured Outputs は OpenAI / Anthropic / Gemini の公式 docs でも一貫して schema 準拠のための第一選択として推されており、EMNLP 2023 でも content 生成と empathy style transfer の分離は semantic 類似性を保ちやすいと示されています。
+
+2. 根本原因の切り分け
+main cause
+相手の状態シグナルを拾う / 負担を減らす / 弁明しない / 行動を先に置く を、semantic contract とは別の executable plan として持っていないことです。いまはこの部分が prose と self-check に散っているため、stress・negative feedback・boundary の場面で renderer と naturalize が毎回再推論しています。
+secondary cause
+renderer と naturalize の可変域が広すぎます。資料1/2が指摘する通り、reply_stance や reply_contract があっても、下流が section order・ask framing・lead sentence を再解釈できる限り、負担転嫁 や 弁明 や 内部語彙漏れ が再発します。
+今の仮説で正しい点
+first-class field が必要、2) pairwise eval が必要、3) slot-preserving style transfer が必要、4) accepted/rejected bank は将来の preference optimization に使える、という4点は正しいです。OpenAI は eval を pairwise / classification / criteria-based に寄せることを勧め、Anthropic も tone/style には rubric を明確化した LLM grading を勧めています。
+今の仮説で不足している点
+scope boundary は user signal ではなく reply_contract 側の case_type 由来です。ここを temperature_plan の signal taxonomy に混ぜると責務が崩れます。
+temperature_plan だけでは止まりません。semantic freeze と slot 制限 がないまま入れると、温かいが意味が壊れる system になります。
+50件ログは価値がありますが、現時点では SFT より contrastive use の方が適しています。EmoHarbor は generic empathy と context-aware support の差を示し、Journal of Business Research は time pressure 下で過剰な empathic style が逆効果になりうると示しています。つまり必要なのは「暖かさを上げる」ことではなく、場面依存で opening move を切り替えることです。
+3. 設計判断
+temperature_plan を入れるべきか: yes
+どこに置くべきか: reply_contract の sibling
+実行順は reply_contract の直後、renderer の直前に置く。
+理由
+reply_contract は「何に答えるか / 何を保留するか / 何を聞くか」を持つ semantic truth source のままにするべきです。
+temperature_plan は「どの opening move で入るか / 負担をどう下げるか / 何を禁止するか」を持つ interaction truth source にするべきです。
+child にすると、semantic retry と interaction retry が一体化し、tone の調整で answer_map まで巻き戻ります。
+後段の別層だけにすると、action_first、receive_and_own、yes_no_first のような冒頭配置の制約を renderer に反映できません。
+sibling にしておくと、semantic contract を固定したまま、interaction layer だけ rerank / judge / DPO の対象にできます。これは公式 docs が推す「明示的な output contract」と「workflow-level eval」にも一致します。
+4. 最小 schema 提案
+
+最小 schema はこれで十分です。case_type や answer_map は reply_contract 側に残し、ここには重複保持しません。
+
+{
+  "temperature_plan": {
+    "user_signal": "stress | hesitation | confusion | negative_feedback | neutral",
+    "support_goal": "reduce_burden | normalize | receive_feedback | set_boundary_calmly | move_forward",
+    "opening_move": "action_first | pressure_release | normalize_then_clarify | receive_and_own | yes_no_first | neutral_ack",
+    "tone_constraints": [
+      "no_defense",
+      "no_internal_terms",
+      "no_burden_shift",
+      "no_negative_lead"
+    ]
+  }
+}
+user_signal
+直近入力から観測した相手側の状態シグナル。semantic ではなく受け止め方の分岐に使う。
+support_goal
+今回の返信で優先すべき interaction goal。answer_map は変えずに、どう負担を下げるかを決める。
+opening_move
+先頭1〜2文の入り方を固定する field。stress なら action_first、negative_feedback なら receive_and_own、boundary case なら yes_no_first を選ぶ。
+tone_constraints
+editable slot に対する hard negative rules。ここにあるものは renderer / naturalize / validator 全部で共有する。
+
+補足: signal_evidence_spans は audit には有用ですが、1週間実装の最小 schema には不要です。これは推測ではなく、最小実装の切り方としての判断です。
+
+5. パイプライン設計
+
+前提: semantic freeze は reply_contract で完了、interaction adjustment は temperature_plan 以降で slot 限定にする。資料1/2の「reply_contract を executable にする」という論点は維持し、その上に資料3の temperature layer を重ねる構成にします。
+
+stage 1. routing / classification
+何を決めるか
+state, case_type, reply_skeleton, risk_flags, user_signal
+何を変更してはいけないか
+価格、scope、回答可否、保留理由
+次段へ何を渡すか
+route_state
+stage 2. reply_contract
+何を決めるか
+primary_question_id, explicit_questions[], answer_map[], ask_map[], immutable facts
+何を変更してはいけないか
+user_signal, wording, opening style
+次段へ何を渡すか
+reply_contract
+stage 3. temperature layer
+何を決めるか
+temperature_plan.user_signal, support_goal, opening_move, tone_constraints
+ここでは route_state.user_signal と reply_contract.case_type / answer_map を参照して決める。
+何を変更してはいけないか
+answer_map, ask_map, 価格、scope、次アクション
+次段へ何を渡すか
+temperature_plan
+stage 4. renderer
+何を決めるか
+section order、slot manifest、fixed_slots と editable_slots
+何を変更してはいけないか
+primary question coverage、answer/hold disposition、ask 数、immutable facts
+次段へ何を渡すか
+render_payload = { fixed_slots, editable_slots, slot_manifest }
+stage 5. naturalize
+何を決めるか
+editable_slots の表現だけ
+何を変更してはいけないか
+fixed_slots, section order, ask 数, answer polarity, hold reason, next action
+次段へ何を渡すか
+naturalized_editable_slots
+stage 6. validator
+何を決めるか
+pass / fail / fallback
+fail したら renderer の fixed output をそのまま使う
+何を変更してはいけないか
+semantic contract
+次段へ何を渡すか
+final_reply, violations
+stage 7. eval
+何を決めるか
+bucket別 score、pairwise winner、regression 判定
+何を変更してはいけないか
+runtime output
+次段へ何を渡すか
+eval_dataset, bucket_report, reranker_training_pairs
+
+この切り方だと、reply_contract は意味の truth source、temperature_plan は相手への出し方の truth source、renderer は section assembly、naturalize は表現変形、validator は fail-closed という責務境界が明確です。Structured outputs と explicit completion criteria を強く効かせたいなら、この分離が最小です。
+
+6. naturalize の制約設計
+
+資料3の「two-stage + slot-preserving rewrite」は採用すべきです。ただし入力をさらに絞ります。EMNLP 2023 は dialog-act-conditioned prompting が semantics と dialog act を保ちながら empathy style を改善しうることを示しています。したがって naturalize には意味素材を与えすぎないことが重要です。
+
+入力してよいもの
+editable_slots
+slot_manifest
+reply_skeleton
+temperature_plan
+bucket ごとの good example 2〜3本（同じ signal / opening_move のみ）
+入力してはいけないもの
+raw user message
+full service facts
+full reply_contract
+full draft text
+fixed slot の本文
+可変にする slot
+ack
+bridge_to_hold
+bridge_to_ask
+closing
+固定する slot
+answer_core
+hold_reason
+hold_trigger
+ask_core
+next_action
+quoted_facts（価格、scope、日付、条件）
+boundary_core（yes/no・範囲可否の核）
+japanese-chat-natural-ja 相当の役割変更
+現状: 全文自然化器
+変更後: slot-local style transfer service
+入力は {editable_slots, temperature_plan, slot_manifest}、出力は同じ key のみ。新規 key の追加、slot の削除、順序変更は禁止。
+実装上は名前を変えなくてもよいですが、契約は別物にするべきです。中身は「paraphraser」ではなく「typed slot rewriter」です。
+
+これで naturalize は「日本語を整える」だけになり、answer_map や ask_map を壊す権限を失います。
+
+7. eval / grader 設計
+
+OpenAI は eval を pairwise / classification / criteria-based に寄せる方が信頼しやすいとしており、Anthropic は task-specific・automated-first・detailed rubric を勧めています。workflow-level の崩れは trace grading で見るのが適切です。
+
+deterministic lint で見るべき項目
+skeleton ごとの section order 一致
+primary_question_id が最初の answer section で扱われている
+answer_map と hold の極性不一致がない
+answer_after_check に hold_reason と hold_trigger がある
+ask_map にない質問が追加されていない
+ask 数が増えていない
+quoted_facts が不変
+tone_constraints 違反がない
+no_defense
+no_internal_terms
+no_burden_shift
+no_negative_lead
+boundary case で yes_no_first slot が先頭にある
+LLM judge で見るべき項目
+相手の状態シグナルを拾えているか
+不要な負担を増やしていないか
+弁明・自己正当化に流れていないか
+stress で行動先行になっているか
+negative feedback で receive_and_own になっているか
+boundary case で冷たさなく yes/no を先に置けているか
+renderer の semantic core を壊していないか
+pairwise 比較をどこで使うか
+第一用途: offline eval
+baseline vs candidate を同一 reply_contract・同一 fixed_slots で比較する
+第二用途: reranker
+同一 fixed_slots に対する 2〜3 個の editable_slots variant の選択にだけ使う
+使ってはいけない場所
+semantic が違う draft 同士の比較
+holdout の分け方
+aggregate holdout を 1 本で持たない
+3 bucket を固定 holdout にする
+stress
+boundary
+negative_feedback
+推測: 50件の内訳が不明なので、最低でも各 bucket 3件は固定 holdout に残す。可能なら 4〜5件ずつに増やす。
+stress / boundary / negative_feedback の監視方法
+stress
+action_first_pass
+burden_leak_rate
+opening_overlength_rate
+boundary
+yes_no_first_pass
+calm_boundary_pass
+internal_term_leak_rate
+negative_feedback
+receive_and_own_pass
+defense_rate
+burden_leak_rate
+
+ここでは「優しいか」の総合点は不要です。必要なのは、再発する failure mode を bucket ごとに止める canary です。
+
+8. 50件監査ログの使い方
+今すぐ使う先を1つに絞る
+reranker に使う。
+具体的には、editable_slots の候補 A/B を比較する pairwise reranker / pairwise judge の学習・評価データにする。
+優先順位
+reranker
+DPO
+prompt改善
+SFT
+理由
+reranker が最優先
+accepted / rejected の contrast をそのまま使える。semantic を変えずに slot variant だけ選べるので blast radius が小さい。
+DPO は次点
+主観的な tone/style 最適化には向いている。ただし DPO をかける前に、reply_contract と temperature_plan と slot 制約を固定しないと、好みと意味が混ざる。OpenAI の DPO docs も subjective preference 用の手法として位置づけている。
+prompt改善は三番手
+ログを prompt 例に溶かすと contrast signal が薄まる。ログはまず pair データとして使うべき。
+SFT は今はやらない
+50件は少ないうえ、全文 SFT は semantic と interaction を一緒に焼き込みやすい。推測: 本番用途の SFT としてはデータ量も多様性も不足しやすい。
+今はやらないもの
+full-reply SFT
+full-reply DPO
+ログを master prompt の形容詞追加にだけ使うこと
+9. 1週間で入れる最小実装
+P1. temperature_plan を追加
+実装順: 1
+内容: user_signal / support_goal / opening_move / tone_constraints の4 field を planner 出力に追加
+期待効果: 受け止め方の決定が prose から schema に移る
+想定リスク: signal 誤分類
+備考: bucket は最初は stress / hesitation / confusion / negative_feedback / neutral の5つで十分
+P2. renderer を fixed_slots / editable_slots 出力に変更
+実装順: 2
+内容: section order をコード固定し、answer_core などの semantic 部分と ack/bridge/closing を分離
+期待効果: 弁明, 負担転嫁, 内部語彙漏れ の侵入場所が限定される
+想定リスク: 出力が少し硬く見える
+備考: 適用はまず stress / boundary / negative_feedback が出る skeleton だけでよい
+P3. naturalize を slot-local に縮小し validator を fail-closed にする
+実装順: 3
+内容: naturalize は editable_slots だけ入力・出力。validator fail 時は renderer 版を採用
+期待効果: semantic drift を止める
+想定リスク: validator の false positive
+P4. 50件ログで pairwise reranker を作る
+実装順: 4
+内容: 監査ログから accepted/rejected pair を作り、A/B 比較で editable slot 候補を選ぶ
+期待効果: stress / boundary / negative_feedback の bucket 改善が最短で見える
+想定リスク: 50件への過適合
+備考: まず offline eval。runtime rerank はその後でよい
+
+この4つで十分です。これ以上を1週間に詰めると、schema ではなく prompt tuning 作業に戻ります。
+
+10. やらない方がいいこと
+master prompt に「もっと自然に」「もっと共感的に」を足し続ける
+temperature_plan を free-text memo として writer prompt に埋め込むだけで終える
+temperature_plan を reply_contract の child にして、semantic retry と一緒に巻き戻す
+naturalize に raw user message・full service facts・full draft を渡す
+naturalize に全文の意味変更権限を与える
+相手の状態シグナル拾い, 負担低減, 弁明なし, 行動先行, 内部語彙漏れなし を総合点1本で採点する
+stress / boundary / negative_feedback を aggregate score に埋める
+50件ログを最初に SFT へ流す
+schema を固める前に full-reply DPO を始める
+pairwise judge に semantic の違う候補同士を比較させる
+validator fail 時に全文 regenerate させる
+boundary を user signal taxonomy に入れて case_type と二重管理する
+11. 最終提案
+
+第一推奨案は、temperature_plan を reply_contract の sibling として導入し、renderer の後段では ack / bridge / closing だけを slot-preserving に書き換える構成にすることです。
+reply_contract は「何を答えるか」を固定し、temperature_plan は「どう受け止めるか」を固定する。japanese-chat-natural-ja 相当は全文自然化器ではなく typed slot rewriter に降格させる。50件監査ログはまず reranker 用の pair データとして使い、DPO / SFT は今はやりません。これが最小で強い理由は、既に安定している semantic 側を壊さず、再発源になっている prose 側の再解釈権だけを狭められるからです。資料群の主張と、structured outputs・pairwise eval・style-transfer 分離の公式/論文知見もこの切り方を支持します。
+
+今やるべきこと
+
+temperature_plan の最小 schema 追加
+fixed_slots / editable_slots 分離
+slot-local naturalize
+deterministic validator + pairwise reranker
+
+今やらないこと
+
+full-reply DPO
+full-reply SFT
+prompt に形容詞を足す調整
+全文 naturalize の強化
+
+これを入れるべきです。この順で実装すべき。

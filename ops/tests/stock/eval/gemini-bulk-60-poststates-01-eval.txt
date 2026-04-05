@@ -1,0 +1,200 @@
+# generated from stock-bulk-100.txt
+# bucket: gemini-bulk-60-poststates-01-eval
+
+----
+
+case_id: GMN-004
+route: service
+state: prequote
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: ローカルは動くのにプレビュー環境だとWebhookでエラーが出ます。対象のイベントIDはevt_999999、キー名はSTRIPE_WEBHOOK_SECRETです。
+note: 環境とevtとキー名を先出ししているスムーズなケース
+
+----
+
+case_id: GMN-005
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 決済が反映されないバグがあるんですが、ついでにApple Payのボタンが表示されない現象も直してもらえませんか？決済画面なので原因は一緒だと思うんで。
+note: 明らかに別原因の修正を「同じ原因」として混ぜてくるケース
+
+----
+
+case_id: GMN-009
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: Cursorで作ったコードがぐちゃぐちゃでどこに何があるか分かりません。決済周りだけでも、どこから手をつければいいか教えてもらうことはできますか？
+note: AI生成コードへの不安を抱えた、典型的なhandoff対象ケース
+
+----
+
+case_id: GMN-010
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: handoff
+raw_message: リポジトリごとZIPで渡すので、全体の仕様をMarkdownで書き出してほしいです。バックエンドはNext.jsです。金額は25000円で足りますよね？
+note: リポジトリ全体の網羅仕様書化を求めている明確な範囲外ケース
+
+----
+
+case_id: GMN-019
+route: message
+state: quote_sent
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: 見積もりありがとうございます。これ調査して別原因が２つ以上だったらキャンセルとかできますか？支払いボタン押すの迷ってます。金額が増えるのが怖くて。
+note: 見積もり提示後の追加料金の恐怖から購入を躊躇しているケース
+
+----
+
+case_id: GMN-020
+route: message
+state: quote_sent
+user_type: semi_technical
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: ご提案ありがとうございます。追加原因の場合は事前相談とのことですが、納品された修正コードを自分で反映して動かなかった場合のサポートってどこまで入ってます？
+note: 購入直前に自身での反映作業のサポート範囲を気にして質問するケース
+
+----
+
+case_id: GMN-022
+route: talkroom
+state: quote_sent
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: handoff
+raw_message: 対象フローの件、承知しました。でも、これで整理してもらったあとに結局誰も直せなかったらどうしようと思っています。この後そちらで直すとなるといくらですか？
+note: 整理後にそのまま修正依頼できるかの確約と見積もりを欲しがっているケース
+
+----
+
+case_id: GMN-026
+route: talkroom
+state: purchased
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: Stripeのevtタグは evt_8888 です。どうせコード見るならついでに Stripe の Customer ID をDBに残すように数行足しといてもらえませんか？
+note: 不具合修正のついでに、数行で終わる新機能の追加を要求するケース
+
+----
+
+case_id: GMN-027
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: ZIP送りました。トップページの表示崩れも実は昨日からあって、絶対同じ原因だと思うんでそこまで確認お願いしますね。同じ原因だったら直るはずですよね？
+note: 勝手に「同一原因」だと決めつけ、広範囲の修正を一方的に要求するケース
+
+----
+
+case_id: GMN-030
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: GitHubの招待メール送りました！ソースコードはそこから全部見れるはずです！修正終わったら直接 master ブランチに push しておいてください！！
+note: 事前同意を超えてリポジトリへの直接pushを勝手に手配してくるケース
+
+----
+
+case_id: GMN-031
+route: talkroom
+state: purchased
+user_type: semi_technical
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 1) 毎回エラーです。2) evt_xxx は失敗してます。（スクショ添付）。3) 環境はVercelです。これってWebhookのURLパスが間違ってるだけな気がしてきたんですが、どう思いますか？
+note: 質問リストにしっかり回答しつつ、自己解決の仮説も提示してくれている良いケース
+
+----
+
+case_id: GMN-032
+route: talkroom
+state: purchased
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 実はあの後いじってたら、エラーが出なくなりました！でも今度は重複決済が起きるようになっちゃって。とりあえず今のコード送るのでこっちを直してもらっていいですか？
+note: 作業中にユーザー側が勝手にソースをいじり、不具合の症状が途中で変わるケース
+
+----
+
+case_id: GMN-033
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: bugfix
+raw_message: 依頼してから半日経ちましたが、今どんな感じですか？原因わかりました？？早く直さないとお客さんからクレームが来そうで焦ってます。。
+note: 規定時間内なのに、不安から進捗を過剰に急かしてくるケース
+
+----
+
+case_id: GMN-034
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: ZIPでお送りしようとしたんですが容量が大きすぎてエラーになります。Google Driveのリンク共有するのでここからダウンロードしてください。編集権限も付けておきました。
+note: 容量の問題からGoogle Driveなどの外部共有を持ち出してくるケース
+
+----
+
+case_id: GMN-035
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: コード送ります。これ整理してるときに「あ、ここ直せばすぐ動くじゃん」って気づくことあると思うんですけど、その場合はパパッと直しておいてくれると助かります！
+note: 整理サービス中の「簡単な修正の勝手な実施」を期待しているケース
+
+----
+
+case_id: GMN-038
+route: talkroom
+state: purchased
+user_type: semi_technical
+emotional_tone: normal
+service_hint: handoff
+raw_message: フローは「ユーザー登録〜初回決済完了〜DB登録」でお願いします。現状、登録は通ってます。AWS環境でコード添付しました。メモは新しく入った外注さんとで読みます。
+note: まだ聞かれていない対象フローや利用者などを先出ししてくれているケース
+
+----
+
+case_id: GMN-039
+route: talkroom
+state: purchased
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: handoff
+raw_message: 送ったコードなんですが、さっきちょっとリファクタリングして構造変えちゃいました！新しいZIP送り直すんで、こっちベースでメモ作ってください。前のは破棄で！
+note: 作業手戻りが発生する、提供コードの差し替えを行ってくるケース
+
+----
+
+case_id: GMN-043
+route: talkroom
+state: purchased
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: bugfix
+raw_message: 別のエラー画面が出るようになりました！！さっきの修正を試したら壊れたんじゃないですか！？至急これも直してください、同じ料金内で！！
+note: 未確認の別エラー発覚時にこちらの修正を疑い、無理やり対応させようとするケース

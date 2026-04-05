@@ -9,6 +9,8 @@ from pathlib import Path
 
 import yaml
 
+from reply_quality_lint_common import collect_temperature_constraint_errors
+
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_FIXTURE = ROOT_DIR / "ops/tests/prequote-contract-v2-top5.yaml"
@@ -82,10 +84,30 @@ def detect_prequote_scenario(source: dict) -> str:
     combined = f"{raw}\n{note}"
     service_hint = source.get("service_hint")
 
+    repair_primary_markers = [
+        "直してほしい",
+        "修正してほしい",
+        "まず直したい",
+        "不具合を直したい",
+        "動かしたい",
+    ]
+    structure_unknown_markers = [
+        "中身が全然わから",
+        "何がどうなってるか知りたい",
+        "どっちのサービスが合う",
+        "自分でもうまく説明できない",
+        "外注で作ってもらった",
+        "AIで作ってもらった",
+    ]
+
     if "不正アクセス" in combined:
         return "security_fear"
     if is_multi_symptom_case(source):
         return "multi_symptom"
+    if any(marker in combined for marker in repair_primary_markers) and any(
+        marker in combined for marker in structure_unknown_markers
+    ):
+        return "boundary_bugfix_first"
     if is_scope_confusion_case(source):
         if "直接会って" in combined or "Zoom" in combined:
             return "no_meeting_request"
@@ -150,6 +172,52 @@ def derive_summary(source: dict) -> str:
     return raw
 
 
+def detect_provided_context(source: dict) -> list[str]:
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+    tags: list[str] = []
+
+    if any(marker in combined for marker in ["エラー", "500", "決済", "購入履歴", "通らない", "表示されません", "画面", "Webhook", "checkout", "パスワード再発行"]):
+        tags.append("symptom_detail")
+    if any(marker in combined for marker in ["そのまま購入", "購入でよい", "購入でいい", "ご購入いただいて", "購入したい"]):
+        tags.append("purchase_path_question")
+    if any(marker in combined for marker in ["承諾はもう少し", "正式な承諾", "待ってもら", "承諾に進んで", "承諾は", "承諾を"]):
+        tags.append("approval_status")
+    if any(marker in combined for marker in ["返金", "追加料金", "15,000円", "15000円", "25,000円", "25000円", "5,000円", "5000円", "安く", "割引", "高い", "キャッシュバック"]):
+        tags.append("price_or_refund")
+    if any(marker in combined for marker in ["追記", "書き直し", "手順書", "メモ", "DB", "書き込み部分", "追加で"]):
+        tags.append("doc_followup")
+    if any(marker in combined for marker in ["次回", "またお願い", "また依頼", "リピーター", "お気に入り"]):
+        tags.append("repeat_or_future")
+    if any(marker in combined for marker in ["CSS", "保守", "月額", "デザイン"]):
+        tags.append("out_of_scope_service")
+    if any(marker in combined for marker in ["不安", "怖い", "放置", "話が違う", "納得いかない", "高かった"]):
+        tags.append("anxiety_or_complaint")
+
+    return list(dict.fromkeys(tags))
+
+
+def extract_known_facts(source: dict) -> list[str]:
+    facts: list[str] = []
+    summary = derive_summary(source)
+    if summary:
+        facts.append(f"summary:{summary}")
+    for tag in detect_provided_context(source):
+        facts.append(f"context:{tag}")
+    return facts[:8]
+
+
+def build_routing_meta(source: dict, scenario: str) -> dict:
+    is_generic = scenario.startswith("generic_")
+    return {
+        "scenario": scenario,
+        "scenario_confidence": "low" if is_generic else "high",
+        "is_generic_fallback": is_generic,
+        "provided_context": detect_provided_context(source),
+    }
+
+
 def derive_primary_question(raw: str) -> str:
     if "15,000円" in raw and ("対応" in raw or "済みます" in raw or "見てもら" in raw):
         return "15,000円で対応できるか"
@@ -158,6 +226,116 @@ def derive_primary_question(raw: str) -> str:
     if "直せ" in raw or "対応" in raw or "見ていただけ" in raw or "見てもらえ" in raw or "可能でしょうか" in raw:
         return "対応できるか"
     return "この内容を見てもらえるか"
+
+
+def infer_user_signal(source: dict) -> str:
+    emotional_tone = source.get("emotional_tone")
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+
+    if any(marker in combined for marker in ["高かった", "説明が足りなかった", "途中で状況を教えてもらえたら", "安心だったかな"]):
+        return "negative_feedback"
+    if any(
+        marker in combined
+        for marker in [
+            "急ぎ",
+            "至急",
+            "お客さんから",
+            "半日以上",
+            "売上",
+            "止まって",
+            "前任",
+            "連絡取れない",
+            "連絡取れなく",
+            "予算があまりなくて",
+            "予算",
+            "不安",
+            "怖",
+            "追加費用が怖",
+            "辞めた",
+            "辞めてしまって",
+            "ブラックボックス",
+            "壊れそう",
+            "何も分からない",
+        ]
+    ):
+        return "stress"
+    if any(marker in combined for marker in ["すみません", "恐縮", "相談だけ", "初歩的な質問", "自分でもうまく説明できない", "気を遣って"]):
+        return "hesitation"
+    if any(
+        marker in combined
+        for marker in [
+            "わからなくて",
+            "判断つか",
+            "どっちが",
+            "全然わから",
+            "正直どこが何をやってるかわから",
+            "どのファイル",
+            "どこを触ると",
+            "技術用語ばかり",
+            "全部見てもらうことはできますか",
+            "どのコードを見ればいいか",
+        ]
+    ):
+        return "confusion"
+    if emotional_tone in {"anxious", "frustrated", "mixed", "price_sensitive", "hesitant"}:
+        return "stress"
+    return "neutral"
+
+
+def build_temperature_plan(source: dict, *, case_type: str | None = None) -> dict:
+    user_signal = infer_user_signal(source)
+    resolved_case_type = case_type or source.get("case_type") or classify_case_type(source)
+    scenario = source.get("scenario") or detect_prequote_scenario(source)
+    boundary_like_scenarios = {
+        "boundary_bugfix_first",
+        "service_selection_confusion",
+        "service_value_uncertain",
+        "followon_fix_question",
+        "no_meeting_request",
+        "possible_setting_issue",
+        "performance_boundary",
+    }
+
+    if resolved_case_type == "boundary" or scenario in boundary_like_scenarios:
+        support_goal = "set_boundary_calmly"
+        opening_move = "yes_no_first"
+    elif user_signal == "stress":
+        support_goal = "reduce_burden"
+        opening_move = "action_first"
+    elif user_signal == "hesitation":
+        support_goal = "reduce_burden"
+        opening_move = "pressure_release"
+    elif user_signal == "confusion":
+        support_goal = "normalize"
+        opening_move = "normalize_then_clarify"
+    elif user_signal == "negative_feedback":
+        support_goal = "receive_feedback"
+        opening_move = "receive_and_own"
+    else:
+        support_goal = "move_forward"
+        opening_move = "neutral_ack"
+
+    return {
+        "user_signal": user_signal,
+        "support_goal": support_goal,
+        "opening_move": opening_move,
+        "tone_constraints": [
+            "no_defense",
+            "no_internal_terms",
+            "no_burden_shift",
+            "no_negative_lead",
+        ],
+    }
+
+
+def ensure_temperature_plan(case: dict) -> dict:
+    existing = case.get("temperature_plan")
+    if existing:
+        return existing
+    case["temperature_plan"] = build_temperature_plan(case, case_type=case.get("case_type"))
+    return case["temperature_plan"]
 
 
 def is_scope_confusion_case(source: dict) -> bool:
@@ -229,6 +407,10 @@ def classify_question_type(question_text: str) -> str:
         return "secret_sharing"
     if "スクショ" in text or ("画面" in text and any(marker in text for marker in ["送", "見せ", "撮"])):
         return "evidence_screenshot"
+    if "手順書" in text or "どう直すか" in text or "自分で直す" in text:
+        return "procedure_only"
+    if "調べるだけ" in text:
+        return "investigation_only"
     if "相談だけでも" in text or "まず相談だけ" in text:
         return "consultation_ok"
     if "返金" in text:
@@ -249,9 +431,19 @@ def classify_question_type(question_text: str) -> str:
         return "value_compare"
     if "税込" in text:
         return "price_tax"
-    if "25,000円" in text or "どっちのサービス" in text or "修正含まない" in text or "返金" in text:
+    if (
+        "25,000円" in text
+        or "25000円" in text
+        or "2万5千円" in text
+        or "どっちのサービス" in text
+        or "どっちを買" in text
+        or "どっちを依頼" in text
+        or "どっちですか" in text
+        or "修正含まない" in text
+        or "返金" in text
+    ):
         return "service_selection"
-    if "15,000円" in text and ("対応" in text or "済み" in text):
+    if ("15,000円" in text or "15000円" in text or "1万5千円" in text) and ("対応" in text or "済み" in text or "直り" in text):
         return "price_acceptance"
     if "料金感" in text or "いくら" in text or "見積り" in text:
         return "price_general"
@@ -326,6 +518,10 @@ def answer_brief_for_question(question_type: str, primary_now: bool) -> str:
         return ".envやAPIキーの値は不要です。キー名だけで大丈夫です。"
     if question_type == "evidence_screenshot":
         return "エラー内容が分かる画面なら、スクショが1枚あると助かります。"
+    if question_type == "procedure_only":
+        return "手順書だけを別で作る形ではなく、15,000円で原因調査から修正まで対応しています。"
+    if question_type == "investigation_only":
+        return "はい、原因の調査からで大丈夫です。"
     if question_type == "consultation_ok":
         return "はい、まずは状況整理からで大丈夫です。"
     if question_type == "meeting_request":
@@ -333,15 +529,17 @@ def answer_brief_for_question(question_type: str, primary_now: bool) -> str:
     if question_type == "price_tax":
         return "金額はココナラ画面に表示される金額のままです。"
     if question_type == "price_discount":
-        return "現在の公開サービスは15,000円で固定です。"
+        return "このケースでも15,000円です。"
     if question_type == "price_general":
         return "この内容なら15,000円の範囲で進められる見込みです。"
     if question_type == "can_handle":
-        return "この内容なら対応できます。"
+        return "この不具合なら15,000円で進められます。"
     if question_type == "price_acceptance":
-        return "この内容なら15,000円で進められます。"
+        return "この不具合なら15,000円で進められます。"
+    if question_type == "service_selection":
+        return "この不具合なら15,000円で進められます。"
     if primary_now:
-        return "この内容なら15,000円で進められる。"
+        return "この不具合なら15,000円で進められます。"
     return "確認対象ではあるが、今の情報ではまだ断定しない。"
 
 
@@ -368,8 +566,8 @@ def secondary_after_check_reason(question_type: str) -> tuple[str, str]:
         )
     if question_type == "service_selection":
         return (
-            "いまの段階で進め方まではまだ断定しません。",
-            "必要情報を受領したあとに、今の公開サービスで進められる範囲をお返しします。",
+            "いまの段階で、どちらから入るかまではまだ断定しません。",
+            "必要情報を受領したあとに、今の内容で案内できる範囲をお返しします。",
         )
     if question_type == "value_compare":
         return (
@@ -378,8 +576,8 @@ def secondary_after_check_reason(question_type: str) -> tuple[str, str]:
         )
     if question_type == "refund_policy":
         return (
-            "返金前提の案内はここではまだ断定しません。",
-            "まず進め方が合うかを確認したあとに、案内できる範囲をお返しします。",
+            "返金だけを先に断定するより、まず原因の切り分けと修正できるかの確認から進めます。",
+            "確認できたところまでと、次にどう進めるかをお返しします。",
         )
     return (
         "この点は、今の情報だけではまだ断定しません。",
@@ -389,8 +587,10 @@ def secondary_after_check_reason(question_type: str) -> tuple[str, str]:
 
 def primary_hold_brief_for(source: dict) -> str:
     scenario = detect_prequote_scenario(source)
+    if scenario == "boundary_bugfix_first":
+        return "まず直したいところを起点に見るのが近いですが、今の情報だけでどちらから入るかまではまだ断定しません。"
     if scenario in {"service_selection_confusion", "service_value_uncertain", "followon_fix_question", "no_meeting_request"}:
-        return "確認対象ではありますが、今の公開サービスでそのまま進められるかはまだ断定しません。"
+        return "確認対象ではありますが、今の内容でそのまま進められるかはまだ断定しません。"
     if scenario == "possible_setting_issue":
         return "設定側で切り分けられる可能性もあるため、いまは15,000円で進める前に確認したいです。"
     if scenario == "performance_boundary":
@@ -435,6 +635,7 @@ def derive_disposition(source: dict) -> str:
     ]
 
     if scenario in {
+        "boundary_bugfix_first",
         "service_selection_confusion",
         "service_value_uncertain",
         "followon_fix_question",
@@ -459,7 +660,7 @@ def derive_disposition(source: dict) -> str:
     return "answer_now"
 
 
-def derive_ask(source: dict) -> tuple[str, str, str | None]:
+def derive_ask(source: dict) -> tuple[str, str, str | None, str | None]:
     raw = source.get("raw_message", "")
     note = source.get("note", "")
     combined = f"{raw}\n{note}"
@@ -467,56 +668,79 @@ def derive_ask(source: dict) -> tuple[str, str, str | None]:
 
     if scenario == "multi_symptom":
         return (
-            "いま一番先に止めたい症状を1つだけ教えてください。",
-            "最初に切る対象を1件に絞って、進め方を判断するため",
+            "もし優先して止めたい画面か症状があれば、そこを教えてください。",
+            "最初に切る対象を1件に絞って、どこから入るかを判断するため",
             None,
+            "優先がなければ、決済や反映に近い症状から先に見立てます。",
+        )
+    if scenario == "boundary_bugfix_first":
+        return (
+            "もし一番直したいところが決まっていれば、そこを教えてください。",
+            "修正を起点に見ながら、先に整理が必要な範囲もこちらで切るため",
+            None,
+            "まだ絞れていなければ、いま一番困っている動きからで大丈夫です。",
         )
     if scenario in {"service_selection_confusion", "service_value_uncertain", "followon_fix_question"}:
+        if scenario == "service_value_uncertain":
+            return (
+                "もし具体的な症状が決まっていれば、教えてください。",
+                "まず何が起きているかを確認するため",
+                None,
+                "まだ整理できていなければ、分かる範囲で大丈夫です。",
+            )
         return (
-            "いま一番困っている点を1つだけ教えてください。",
-            "今の公開サービスで案内できる範囲を先に切るため",
+            "もし一番困っている点が決まっていれば、そこを教えてください。",
+            "今の内容で案内できる範囲を先に切るため",
             None,
+            "決まっていなければ、影響が大きそうなところから先に見立てます。",
         )
     if scenario == "no_meeting_request":
         return (
-            "テキストベースでも進められそうかだけ教えてください。",
+            "テキストでのやり取りで問題なさそうかだけ、分かる範囲で教えてください。",
             "通話なしで進められるかを先に確認するため",
             None,
+            "問題なければ、このままテキスト前提で見立てを進めます。",
         )
     if scenario == "possible_setting_issue":
         return (
-            "その表示が出ている画面のスクショを1枚送ってください。",
+            "その表示が出ている画面のスクショがあれば、1枚送ってください。",
             "コード側か設定側かを先に切り分けるため",
             "screenshot",
+            "スクショが難しければ、表示されている文言だけでも大丈夫です。",
         )
     if scenario == "performance_boundary":
         return (
-            "特に遅い画面を1つだけ教えてください。",
-            "今回の公開サービスで見られる範囲かを先に切るため",
+            "もし特に遅い画面が決まっていれば、そこを教えてください。",
+            "今回の内容で見られる範囲かを先に切るため",
             None,
+            "決まっていなければ、決済に近い画面から先に見立てます。",
         )
     if "スクショ" in combined or "画面が真っ白" in combined or "画面" in raw:
         return (
-            "いま困っている画面のスクショを1枚送ってください。",
+            "いま困っている画面のスクショがあれば、1枚送ってください。",
             "どの画面で止まっているかを切り分けるため",
             "screenshot",
+            "スクショが難しければ、画面名だけでも大丈夫です。",
         )
     if "Stripeは使っていない" in combined:
         return (
-            "いちばん困っている症状と、それが本番かテストかだけ教えてください。",
-            "今の公開サービスで見られる範囲かを先に切るため",
+            "いちばん困っている症状と、それが本番かテストかが分かれば教えてください。",
+            "今の内容で見られる範囲かを先に切るため",
             None,
+            "まだ決まっていなければ、いま困り方が大きい症状から見立てます。",
         )
     if "Webhook" in raw or "webhook" in raw:
         return (
-            "エラーが見えている画面かメッセージを1つ送ってください。",
+            "エラーが見えている画面かメッセージがあれば、1つ送ってください。",
             "Webhookの受信前後のどこで止まっているかを切り分けるため",
             "screenshot_or_text",
+            "すぐ出せなければ、まずはWebhookまわりから見立てます。",
         )
     return (
-        "いま起きている症状と、それが本番かテストかだけ教えてください。",
+        "いま起きている症状と、それが本番かテストかが分かれば教えてください。",
         "15,000円の範囲で進められるかを先に切るため",
         None,
+        "まだ絞れていなければ、いちばん影響が大きそうな症状から見立てます。",
     )
 
 
@@ -550,6 +774,8 @@ def build_case_from_source(source: dict) -> dict:
         "risk_flags": [],
         "scope_judgement": "undecidable" if disposition == "answer_after_check" else "same_cause_likely",
         "summary": summary,
+        "known_facts": extract_known_facts(source),
+        "routing_meta": build_routing_meta(source, scenario),
         "emotional_caution": source.get("emotional_tone") in {"anxious", "mixed", "frustrated"},
         "ask_count": 0,
         "missing_info": [],
@@ -563,6 +789,7 @@ def build_case_from_source(source: dict) -> dict:
             "reply_skeleton": "estimate_initial",
             "answer_timing": "after_check" if disposition == "answer_after_check" else "now",
         },
+        "temperature_plan": build_temperature_plan(source, case_type=classify_case_type(source)),
     }
 
     answer_map = []
@@ -579,19 +806,21 @@ def build_case_from_source(source: dict) -> dict:
     primary_answer_item = {
         "question_id": primary_question["id"],
         "disposition": disposition,
-        "answer_brief": "この内容なら15,000円で進められる。"
-        if disposition == "answer_now"
-        else primary_hold_brief_for(source),
+        "answer_brief": (
+            answer_brief_for_question(primary_question["question_type"], primary_now=True)
+            if disposition == "answer_now"
+            else primary_hold_brief_for(source)
+        ),
         "evidence_refs": ["raw_message", "note"],
         "question_type": primary_question["question_type"],
     }
     answer_map.append(primary_answer_item)
 
     if disposition == "answer_after_check":
-        ask_text, why_needed, evidence_kind = derive_ask(source)
+        ask_text, why_needed, evidence_kind, default_path_text = derive_ask(source)
         primary_answer_item["hold_reason"] = "情報がまだ足りず、いま案内してよい範囲を断定しにくい。"
-        if scenario in {"service_selection_confusion", "service_value_uncertain", "followon_fix_question", "no_meeting_request"}:
-            primary_answer_item["revisit_trigger"] = "追加情報を受領したあとに、今の公開サービスで案内できる範囲をお返しします。"
+        if scenario in {"boundary_bugfix_first", "service_selection_confusion", "service_value_uncertain", "followon_fix_question", "no_meeting_request"}:
+            primary_answer_item["revisit_trigger"] = "追加情報を受領したあとに、今の内容で案内できる範囲をお返しします。"
         else:
             primary_answer_item["revisit_trigger"] = "追加情報を受領したあとに、進められるかをお返しします。"
         ask_entry = {
@@ -602,6 +831,8 @@ def build_case_from_source(source: dict) -> dict:
         }
         if evidence_kind:
             ask_entry["evidence_kind"] = evidence_kind
+        if default_path_text:
+            ask_entry["default_path_text"] = default_path_text
         ask_map.append(ask_entry)
         case["ask_count"] = 1
         case["missing_info"] = [why_needed]
@@ -618,7 +849,16 @@ def build_case_from_source(source: dict) -> dict:
         if question["id"] == primary_question["id"]:
             continue
         qtype = question["question_type"]
-        if qtype in {"secret_sharing", "evidence_screenshot", "consultation_ok", "meeting_request", "price_tax", "price_discount"}:
+        if qtype in {
+            "secret_sharing",
+            "evidence_screenshot",
+            "consultation_ok",
+            "meeting_request",
+            "price_tax",
+            "price_discount",
+            "procedure_only",
+            "investigation_only",
+        }:
             secondary_disposition = "answer_now"
             brief = answer_brief_for_question(qtype, primary_now=(disposition == "answer_now"))
             answer_map.append(
@@ -635,6 +875,27 @@ def build_case_from_source(source: dict) -> dict:
                     "issue": question["text"],
                     "disposition": secondary_disposition,
                     "reason": "明示質問に即答できる項目のため",
+                }
+            )
+            continue
+
+        if qtype == "service_selection" and disposition == "answer_now":
+            secondary_disposition = "answer_now"
+            brief = answer_brief_for_question(qtype, primary_now=True)
+            answer_map.append(
+                {
+                    "question_id": question["id"],
+                    "disposition": secondary_disposition,
+                    "answer_brief": brief,
+                    "evidence_refs": ["raw_message"],
+                    "question_type": qtype,
+                }
+            )
+            issue_plan.append(
+                {
+                    "issue": question["text"],
+                    "disposition": secondary_disposition,
+                    "reason": "公開中の bugfix で案内できる入口が明確なため",
                 }
             )
             continue
@@ -724,10 +985,34 @@ def opener_for(case: dict) -> str:
 
 
 def acknowledge_for(case: dict) -> str:
+    temperature_plan = ensure_temperature_plan(case)
     summary = case.get("summary")
+    user_signal = temperature_plan.get("user_signal")
+    opening_move = temperature_plan.get("opening_move")
+
+    if opening_move == "action_first":
+        return "まず必要なところから確認します。"
+    if opening_move == "pressure_release":
+        return "相談だけでも大丈夫です。"
+    if opening_move == "normalize_then_clarify":
+        return "いまの段階で迷うのは自然です。まず状況を確認します。"
+    if opening_move == "receive_and_own":
+        return "率直に書いていただいてありがとうございます。"
+    if opening_move == "yes_no_first":
+        if user_signal == "negative_feedback":
+            return "率直に書いていただいてありがとうございます。"
+        if user_signal == "stress":
+            return "まず状況を確認します。"
+        if user_signal == "confusion":
+            return "いまの段階で迷うのは自然です。まず状況を確認します。"
+        if user_signal == "hesitation":
+            return "先に結論からお返しします。"
+        return ""
     if not summary:
-        return "内容を確認しました。"
-    return f"{strip_period(summary)}とのこと、確認しました。"
+        return "内容ありがとうございます。"
+    if "進め方" in summary:
+        return "ご相談の内容、分かりました。"
+    return f"{strip_period(summary)}とのことでした。"
 
 
 def primary_question(case: dict) -> tuple[dict, dict]:
@@ -753,19 +1038,40 @@ def secondary_answer_items(case: dict) -> list[tuple[dict, dict]]:
     return items
 
 
+def promoted_answer_now_lines(case: dict) -> list[str] | None:
+    for question, answer in secondary_answer_items(case):
+        qtype = answer.get("question_type") or question.get("question_type")
+        if qtype == "procedure_only":
+            return [
+                "手順書だけを別で作る形ではなく、15,000円で原因調査から修正まで対応しています。",
+                "調査で分かった原因と修正内容は、分かる形でお渡しできます。",
+            ]
+        if qtype == "investigation_only":
+            return [
+                "調べるだけでも大丈夫です。",
+                "原因の調査から対応するので、直し方が分からない状態でも問題ありません。",
+            ]
+        if qtype in {"service_selection", "price_acceptance"}:
+            return ["この不具合なら15,000円で進められます。"]
+    return None
+
+
 def answer_now_lines(case: dict, question: dict, answer: dict) -> list[str]:
     question_text = question.get("text", "")
+    question_type = answer.get("question_type") or question.get("question_type")
     brief = answer.get("answer_brief", "")
     lines: list[str] = []
 
     if "切り分け" in question_text or "切り分け" in brief:
-        lines.append("この内容なら対応できます。")
-        lines.append("切り分けと修正可否の確認を含めて、15,000円の範囲で進められます。")
+        lines.append("切り分けと修正可否の確認を含めて、15,000円で進められます。")
+        return lines
+
+    if question_type in {"can_handle", "price_acceptance", "service_selection"}:
+        lines.append("この不具合なら15,000円で進められます。")
         return lines
 
     if "15,000円" in brief:
-        lines.append("この内容なら対応できます。")
-        lines.append("15,000円で進められます。")
+        lines.append(brief)
         return lines
 
     if brief:
@@ -788,13 +1094,13 @@ def scope_reason_for(case: dict) -> str:
         return "まずは解約イベントを受けたあとのメール送信まわりを、1件の不具合として確認します。"
     if "404" in summary or "完了ページ" in summary:
         return "まずは決済完了後の遷移先まわりを、1件の不具合として確認します。"
-    return "まずはこの不具合を、同じ原因の1件として確認します。"
+    return "まずはこの不具合がどこで止まっているかを確認します。"
 
 
 def next_action_now_for(case: dict) -> str:
     src = case.get("src")
     if src == "service":
-        return "そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。"
+        return "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。"
     if src in {"profile", "message"}:
         return "進める場合は、この内容でご提案します。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。"
     return "必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。"
@@ -805,17 +1111,30 @@ def secondary_lines(case: dict) -> list[str]:
     for question, answer in secondary_answer_items(case):
         disposition = answer.get("disposition")
         qtext = question.get("text", "")
+        qtype = answer.get("question_type") or question.get("question_type")
         brief = answer.get("answer_brief", "")
         if disposition == "answer_now":
-            lines.append(brief)
+            if qtype == "procedure_only":
+                lines.append("手順書だけを別で作る形ではなく、15,000円で原因調査から修正まで対応しています。")
+                lines.append("調査で分かった原因と修正内容は、分かる形でお渡しできます。")
+            elif qtype == "investigation_only":
+                lines.append("調べるだけでも大丈夫です。")
+                lines.append("原因の調査から対応するので、直し方が分からない状態でも問題ありません。")
+            elif qtype == "service_selection":
+                lines.append("この不具合なら15,000円で進められます。")
+            else:
+                lines.append(brief)
         elif disposition == "answer_after_check":
+            if qtype == "refund_policy":
+                lines.append("原因の切り分けと、修正できるかの確認は基本料金の中で進めます。")
+                lines.append("修正できない状態のまま正式納品へ進めることはありません。")
             if "cause_owner" in qtext or "Stripeの問題" in qtext or "コードの問題" in qtext:
                 lines.append("Stripe側かコード側かは、今の時点ではまだ断定しません。")
             elif "今週中" in qtext or "今日中" in qtext or "何日" in qtext or "いつ" in qtext:
                 lines.append("納期はコードとエラー内容を見てからの方が正確です。")
             elif "不正アクセス" in qtext:
                 lines.append("不正アクセスかどうかは、今の時点ではまだ断定しません。")
-            elif brief:
+            elif brief and qtype != "refund_policy":
                 lines.append(brief)
     deduped: list[str] = []
     seen: set[str] = set()
@@ -834,12 +1153,15 @@ def answer_after_check_lines(case: dict, answer: dict) -> list[str]:
     scenario = case.get("scenario")
 
     hold_reason = answer.get("hold_reason", "")
+    if scenario == "boundary_bugfix_first":
+        lines.append("この場合は、まず直したいところを起点に見ていくのが合っています。")
+        lines.append("その中で、修正に入る前にどこを整理した方がよいかはこちらで見ながら進めます。")
     if scenario in {"service_selection_confusion", "service_value_uncertain", "followon_fix_question", "no_meeting_request"}:
-        lines.append("この内容も確認できますが、いまの情報だけで進め方まではまだ断定しにくいです。")
+        lines.append("この内容も確認できますが、いまの情報だけでどちらから入るかまではまだ断定しにくいです。")
     elif scenario == "possible_setting_issue":
         lines.append("この内容も確認できますが、いまはコード側の不具合か設定側かを先に切り分けたいです。")
     elif scenario == "performance_boundary":
-        lines.append("この内容も確認できますが、いまは今回の公開サービスで見る範囲かを先に確認したいです。")
+        lines.append("この内容も確認できますが、いまは今回の内容で見られる範囲かを先に確認したいです。")
     elif hold_reason:
         lines.append("この内容も確認できますが、いまの情報だとまだ15,000円の範囲で切れるかを断定しにくいです。")
     else:
@@ -847,6 +1169,8 @@ def answer_after_check_lines(case: dict, answer: dict) -> list[str]:
 
     if ask.get("ask_text"):
         lines.append(ask["ask_text"])
+    if ask.get("default_path_text"):
+        lines.append(ask["default_path_text"])
     if ask.get("why_needed"):
         why_needed = strip_period(ask["why_needed"])
         if why_needed.endswith("ため"):
@@ -871,9 +1195,155 @@ def next_action_after_check(case: dict, answer: dict) -> str:
                 revisit_text = revisit_text[: -len(old)] + new
                 break
         return f"{revisit_text}。"
-    if scenario in {"service_selection_confusion", "service_value_uncertain", "followon_fix_question", "no_meeting_request"}:
-        return "確認できしだい、今の公開サービスで案内できる範囲をお返しします。"
+    if scenario in {"boundary_bugfix_first", "service_selection_confusion", "service_value_uncertain", "followon_fix_question", "no_meeting_request"}:
+        return "確認できしだい、今の相談に合う案内をお返しします。"
     return "確認できしだい、この内容で進められるかをお返しします。"
+
+
+def answer_after_check_slot_parts(case: dict, answer: dict) -> tuple[list[str], str, list[str]]:
+    ask_map = case["reply_contract"].get("ask_map") or []
+    ask = ask_map[0] if ask_map else {}
+    bridge_to_hold: list[str] = []
+    bridge_to_ask: list[str] = []
+    scenario = case.get("scenario")
+
+    if scenario == "boundary_bugfix_first":
+        bridge_to_hold.append("この場合は、まず直したいところを起点に見ていくのが合っています。")
+        bridge_to_hold.append("その中で、修正に入る前にどこを整理した方がよいかはこちらで見ながら進めます。")
+    if scenario == "service_selection_confusion":
+        bridge_to_hold.append("いまの情報だけで入口を決め切るより、まず困っている点から見た方がずれにくいです。")
+    elif scenario == "service_value_uncertain":
+        bridge_to_hold.append("原因が分からない状態で相談いただいて大丈夫です。")
+    elif scenario == "followon_fix_question":
+        bridge_to_hold.append("いまの情報だけで合計の進め方まで決めるより、先に困っている点から見た方がずれにくいです。")
+    elif scenario == "no_meeting_request":
+        bridge_to_hold.append("通話なしで進められるかは、先に必要な情報だけそろえば判断できます。")
+    elif scenario == "possible_setting_issue":
+        bridge_to_hold.append("いまはコード側の不具合か設定側かを先に見分けたいです。")
+    elif scenario == "performance_boundary":
+        bridge_to_hold.append("いまは今回の内容で見られる範囲かを先に確認したいです。")
+    elif answer.get("hold_reason"):
+        bridge_to_hold.append("いまの情報だと、まだ15,000円の範囲で見られるかを言い切りにくいです。")
+    else:
+        bridge_to_hold.append("いまの情報だと、まだ範囲を断定しにくいです。")
+
+    ask_core = ask.get("ask_text", "")
+    if ask.get("default_path_text"):
+        bridge_to_ask.append(ask["default_path_text"])
+    if ask.get("why_needed"):
+        why_needed = strip_period(ask["why_needed"])
+        bridge_to_ask.append(f"{why_needed}です。" if why_needed.endswith("ため") else f"{why_needed}ためです。")
+    return bridge_to_hold, ask_core, bridge_to_ask
+
+
+def compose_render_payload(payload: dict, *, use_fallback_editable: bool = False) -> str:
+    editable_key = "fallback_editable_slots" if use_fallback_editable else "editable_slots"
+    editable_slots = payload.get(editable_key) or {}
+    fixed_slots = payload.get("fixed_slots") or {}
+    sections: list[str] = []
+    for slot_name in payload.get("slot_manifest") or []:
+        text = editable_slots.get(slot_name) or fixed_slots.get(slot_name) or ""
+        cleaned = compact_text(text) if "\n" not in text else "\n".join(line.rstrip() for line in text.splitlines() if line.strip())
+        if cleaned:
+            sections.append(cleaned)
+    return "\n\n".join(sections)
+
+
+def validate_render_payload(case: dict, payload: dict, rendered: str) -> list[str]:
+    temperature_plan = ensure_temperature_plan(case)
+    editable_slots = payload.get("editable_slots") or {}
+    errors = collect_temperature_constraint_errors(rendered, temperature_plan, editable_slots)
+
+    answer_core = (payload.get("fixed_slots") or {}).get("answer_core", "")
+    if temperature_plan.get("opening_move") == "yes_no_first":
+        if not any(
+            answer_core.startswith(prefix)
+            for prefix in (
+                "この内容なら",
+                "この不具合なら",
+                "この時点では",
+                "この場合は",
+                "今の内容なら",
+                "今の段階では",
+                "原因が分からない状態でも",
+                "調べるだけでも",
+                "手順書だけを別で作る形ではなく",
+                "はい",
+                "いいえ",
+            )
+        ):
+            errors.append("yes_no_first opening has no direct yes/no-or-judgment core")
+
+    if case["reply_contract"].get("ask_map") and not (payload.get("fixed_slots") or {}).get("ask_core"):
+        errors.append("ask_map exists but ask_core is empty")
+    return list(dict.fromkeys(errors))
+
+
+def build_estimate_render_payload(case: dict) -> dict:
+    question, answer = primary_question(case)
+    disposition = answer.get("disposition")
+    ensure_temperature_plan(case)
+
+    fixed_slots: dict[str, str] = {}
+    editable_slots: dict[str, str] = {
+        "ack": "\n".join([opener_for(case), acknowledge_for(case)]),
+        "bridge_to_hold": "",
+        "bridge_to_ask": "",
+        "closing": "",
+    }
+
+    if disposition == "answer_now":
+        promoted_lines = promoted_answer_now_lines(case)
+        fixed_slots["answer_core"] = "\n".join(promoted_lines or answer_now_lines(case, question, answer))
+        secondary = secondary_lines(case)
+        if secondary:
+            answer_core_lines = {compact_text(line) for line in fixed_slots["answer_core"].splitlines() if compact_text(line)}
+            secondary = [line for line in secondary if compact_text(line) not in answer_core_lines]
+        if secondary:
+            fixed_slots["secondary_core"] = "\n".join(secondary)
+        fixed_slots["scope_core"] = scope_reason_for(case)
+        fixed_slots["next_action"] = next_action_now_for(case)
+        slot_manifest = ["ack", "answer_core", "secondary_core", "scope_core", "next_action"]
+    elif disposition == "answer_after_check":
+        bridge_to_hold, ask_core, bridge_to_ask = answer_after_check_slot_parts(case, answer)
+        if bridge_to_hold:
+            editable_slots["bridge_to_hold"] = "\n".join(bridge_to_hold)
+        scenario = case.get("scenario")
+        if (ensure_temperature_plan(case).get("opening_move") or "") == "yes_no_first":
+            if scenario == "boundary_bugfix_first":
+                fixed_slots["answer_core"] = "今の内容なら、まず直したいところから見るのが近いです。"
+            elif scenario in {"service_selection_confusion", "followon_fix_question"}:
+                fixed_slots["answer_core"] = "今の内容なら、まず困っている点から見ていくのが近いです。"
+            elif scenario == "service_value_uncertain":
+                fixed_slots["answer_core"] = "原因が分からない状態でも、この入口から見ていけます。"
+            elif scenario == "no_meeting_request":
+                fixed_slots["answer_core"] = "この場合は、通話なしでもまずはテキストだけで見立てできます。"
+            elif scenario == "possible_setting_issue":
+                fixed_slots["answer_core"] = "この時点では、まずコード側か設定側かを見てから判断します。"
+            elif scenario == "performance_boundary":
+                fixed_slots["answer_core"] = "この時点では、まず遅くなっている画面を見てから判断します。"
+            else:
+                fixed_slots["answer_core"] = "この時点では、まず必要な情報を見てから判断します。"
+        else:
+            fixed_slots["answer_core"] = answer.get("hold_reason", "")
+        if ask_core:
+            fixed_slots["ask_core"] = ask_core
+        if bridge_to_ask:
+            editable_slots["bridge_to_ask"] = "\n".join(bridge_to_ask)
+        secondary = secondary_lines(case)
+        if secondary:
+            fixed_slots["secondary_core"] = "\n".join(secondary)
+        fixed_slots["next_action"] = next_action_after_check(case, answer)
+        slot_manifest = ["ack", "bridge_to_hold", "answer_core", "ask_core", "bridge_to_ask", "secondary_core", "next_action"]
+    else:
+        raise ValueError(f"{case.get('id')}: unsupported primary disposition {disposition}")
+
+    return {
+        "fixed_slots": fixed_slots,
+        "editable_slots": editable_slots,
+        "fallback_editable_slots": dict(editable_slots),
+        "slot_manifest": slot_manifest,
+    }
 
 
 def render_case(case: dict) -> str:
@@ -883,28 +1353,17 @@ def render_case(case: dict) -> str:
     if reply_stance.get("reply_skeleton") != "estimate_initial":
         raise ValueError(f"{case.get('id')}: only estimate_initial is supported")
 
-    question, answer = primary_question(case)
-    sections: list[str] = []
-    sections.append("\n".join([opener_for(case), acknowledge_for(case)]))
-
-    disposition = answer.get("disposition")
-    if disposition == "answer_now":
-        sections.append("\n".join(answer_now_lines(case, question, answer)))
-        secondary = secondary_lines(case)
-        if secondary:
-            sections.append("\n".join(secondary))
-        sections.append(scope_reason_for(case))
-        sections.append(next_action_now_for(case))
-    elif disposition == "answer_after_check":
-        sections.append("\n".join(answer_after_check_lines(case, answer)))
-        secondary = secondary_lines(case)
-        if secondary:
-            sections.append("\n".join(secondary))
-        sections.append(next_action_after_check(case, answer))
-    else:
-        raise ValueError(f"{case.get('id')}: unsupported primary disposition {disposition}")
-
-    return "\n\n".join(section for section in sections if section.strip())
+    payload = build_estimate_render_payload(case)
+    case["render_payload"] = payload
+    rendered = compose_render_payload(payload)
+    violations = validate_render_payload(case, payload, rendered)
+    if violations:
+        case["render_payload_violations"] = violations
+        fallback = compose_render_payload(payload, use_fallback_editable=True)
+        case["rendered_reply_validator_mode"] = "fallback_fixed"
+        return fallback
+    case["rendered_reply_validator_mode"] = "pass"
+    return rendered
 
 
 def load_cases(path: Path) -> list[dict]:

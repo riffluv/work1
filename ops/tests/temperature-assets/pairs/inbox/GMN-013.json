@@ -1,0 +1,13 @@
+{
+  "case_id": "GMN-013",
+  "user_message": "作ってもらったシステムがおかしいです。環境はVercelです。環境変数はNEXT_PUBLIC_STRIPE_KEYなどです。直し方は分からないので調べるだけでも大丈夫ですか？",
+  "draft_reply": "ご相談ありがとうございます。\nまず今の内容からお返しします。\n\nこの内容なら対応できます。\n15,000円で進められます。\n\nこの内容なら15,000円で進められる。\n\nまずはこの不具合を、同じ原因の1件として確認します。\n\nそのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+  "signals": [
+    "confusion"
+  ],
+  "buckets": [
+    "boundary"
+  ],
+  "source_name": "gemini-bulk-60-poststates-01-holdout.txt",
+  "source_role": "holdout"
+}

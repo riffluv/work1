@@ -3,8 +3,14 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import re
 from pathlib import Path
 
+from reply_quality_lint_common import (
+    collect_quality_style_errors,
+    collect_reasoning_preservation_errors,
+    collect_temperature_constraint_errors,
+)
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 RENDERER_PATH = ROOT_DIR / "scripts/render-closed-followup.py"
@@ -23,34 +29,120 @@ def has_any(text: str, needles: list[str]) -> bool:
     return any(needle in text for needle in needles)
 
 
+def normalized(text: str) -> str:
+    return re.sub(r"[\s。、，,.！？?「」『』（）()・:：/／\\-]+", "", text)
+
+
+def split_sections(rendered: str) -> list[str]:
+    sections: list[str] = []
+    current: list[str] = []
+    for raw_line in rendered.splitlines():
+        line = raw_line.strip()
+        if not line:
+            if current:
+                sections.append("\n".join(current))
+                current = []
+            continue
+        current.append(line)
+    if current:
+        sections.append("\n".join(current))
+    return sections
+
+
+def has_near_echo(rendered: str) -> bool:
+    sections = split_sections(rendered)
+    for left, right in zip(sections, sections[1:]):
+        nl = normalized(left)
+        nr = normalized(right)
+        if not nl or not nr:
+            continue
+        if len(nl) >= 10 and (nl in nr or nr in nl):
+            return True
+    return False
+
+
 def lint_case(module, source: dict) -> list[str]:
     case = module.build_case_from_source(source)
     rendered = module.render_case(case)
     contract = case["reply_contract"]
+    temperature_plan = case.get("temperature_plan") or {}
+    decision_plan = case.get("response_decision_plan") or {}
+    service_grounding = case.get("service_grounding") or {}
+    hard_constraints = case.get("hard_constraints") or {}
     primary_id = contract["primary_question_id"]
     primary = next(item for item in contract["answer_map"] if item["question_id"] == primary_id)
     raw = source.get("raw_message", "")
     scenario = case.get("scenario")
     errors: list[str] = []
 
+    if not temperature_plan:
+        errors.append("temperature_plan is missing")
+    if not decision_plan:
+        errors.append("response_decision_plan is missing")
+    else:
+        for field in ["primary_concern", "facts_known", "blocking_missing_facts", "direct_answer_line", "response_order"]:
+            if field not in decision_plan:
+                errors.append(f"response_decision_plan missing required field: {field}")
+        if decision_plan.get("primary_concern") == scenario:
+            errors.append("primary_concern is still just the scenario label")
+    if not service_grounding:
+        errors.append("service_grounding is missing")
+    else:
+        if service_grounding.get("service_id") != "bugfix-15000":
+            errors.append("service_grounding does not point to the public bugfix service")
+        if not service_grounding.get("public_service"):
+            errors.append("service_grounding is not marked public")
+    if not hard_constraints:
+        errors.append("hard_constraints is missing")
+    else:
+        if not hard_constraints.get("answer_before_procedure"):
+            errors.append("hard_constraints lost answer_before_procedure")
+        if not hard_constraints.get("ask_only_if_blocking"):
+            errors.append("hard_constraints lost ask_only_if_blocking")
+
     if not has_any(rendered, ["ありがとうございます", "確認しました", "承知しました"]):
         errors.append("missing brief reaction at the top")
-    if "本日" not in rendered or "までに" not in rendered:
+    if has_near_echo(rendered):
+        errors.append("near_echo_check failed: adjacent sections still overlap too much")
+    if (primary["disposition"] == "answer_after_check" or (contract.get("ask_map") and decision_plan.get("blocking_missing_facts"))) and ("本日" not in rendered or "までに" not in rendered):
         errors.append("missing time commitment")
-    if has_any(rendered, ["15,000円", "25000円", "25,000円"]):
+    if scenario not in {"price_complaint", "price_discount_request", "repeat_bugfix_price_check", "refund_request"} and has_any(rendered, ["15,000円", "25000円", "25,000円"]):
         errors.append("closed follow-up should not front-load price")
 
+    direct_answer_line = decision_plan.get("direct_answer_line", "")
+    if direct_answer_line and direct_answer_line not in rendered:
+        errors.append("direct answer line is missing from rendered text")
+    if direct_answer_line:
+        direct_index = rendered.find(direct_answer_line)
+        if "トークルーム" in rendered and rendered.find("トークルーム") < direct_index:
+            errors.append("direct answer appears after procedure text")
+        hold_reason = primary.get("hold_reason", "")
+        if hold_reason and hold_reason in rendered and rendered.find(hold_reason) < direct_index:
+            errors.append("direct answer appears after hold reason")
+        for ask in contract.get("ask_map") or []:
+            ask_text = ask.get("ask_text", "")
+            if ask_text and ask_text in rendered and rendered.find(ask_text) < direct_index:
+                errors.append("direct answer appears after ask")
+
     if primary["disposition"] == "answer_after_check":
-        if not has_any(rendered, ["確認します", "断定", "状況確認", "見て"]):
+        if not has_any(rendered, ["確認します", "確認して", "断定", "状況確認", "見て", "見たい"]):
             errors.append("answer_after_check exists but defer language is weak")
         if not has_any(rendered, ["トークルーム", "閉じて"]):
             errors.append("closed defer case does not mention closed-room boundary")
-        if contract.get("ask_map") and not has_any(rendered, ["送ってください", "教えてください"]):
+        if contract.get("ask_map") and decision_plan.get("blocking_missing_facts") and not has_any(rendered, ["送ってください", "教えてください"]):
             errors.append("answer_after_check case has ask_map but no ask request")
 
     if primary["disposition"] in {"answer_now", "decline"}:
         if not primary.get("answer_brief", "") or primary["answer_brief"] not in rendered:
             errors.append("direct primary answer is missing from rendered text")
+
+    if not decision_plan.get("blocking_missing_facts"):
+        for ask in contract.get("ask_map") or []:
+            ask_text = ask.get("ask_text", "")
+            if ask_text and ask_text in rendered:
+                errors.append("rendered text re-asks despite no blocking missing facts")
+        if "symptom_surface_described" in decision_plan.get("facts_known", []) and has_any(rendered, ["送ってください", "教えてください"]):
+            errors.append("rendered text asks for symptom details already present in the buyer message")
 
     if "返金" in raw:
         if has_any(rendered, ["返金します", "返金できます"]):
@@ -63,16 +155,50 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("new feature request is not declined clearly")
 
     if scenario == "new_issue_repeat_client":
-        if not has_any(rendered, ["確認できます"]):
+        if not has_any(rendered, ["確認できます", "見積りできます"]):
             errors.append("repeat client new issue is not answered positively")
+        if "見積" in raw and "見積" not in rendered:
+            errors.append("repeat client new issue does not answer the estimate request directly")
         if not has_any(rendered, ["送ってください"]):
             errors.append("repeat client new issue is missing minimal ask")
+    if scenario == "price_complaint" and "納得いかない" in raw and not has_any(rendered, ["納得いかない", "ごもっとも"]):
+        errors.append("closed price complaint did not receive the buyer's `納得いかない` feeling")
+    if scenario == "feedback_for_next_time" and "問題なかった" in raw and not has_any(rendered, ["問題なかった", "ありがとうございます"]):
+        errors.append("closed feedback case dropped the buyer's positive result acknowledgment")
+    if scenario == "generic_closed" and has_any(
+        raw,
+        [
+            "購入",
+            "追記",
+            "次回",
+            "CSS",
+            "保守",
+            "5000",
+            "5,000",
+            "1万円",
+            "10,000",
+            "安く",
+            "またエラー",
+            "買い直す必要",
+            "新規依頼",
+            "手数料",
+            "テスト環境がない",
+            "どうやって確認",
+            "前と同じ原因かも",
+            "高かったかな",
+            "お金を払いたくない",
+        ],
+    ):
+        errors.append("generic_closed fallback survived a concrete closed follow-up request")
 
     forbidden_terms = ["GitHubに招待", "Driveに置いて", "Dropbox", "Zoom", "外部決済", "このトークルームでそのまま"]
     for term in forbidden_terms:
         if term in rendered:
             errors.append(f"forbidden term leaked into rendered text: {term}")
 
+    errors.extend(collect_quality_style_errors(rendered))
+    errors.extend(collect_temperature_constraint_errors(rendered, temperature_plan))
+    errors.extend(collect_reasoning_preservation_errors(rendered, raw, decision_plan, scenario))
     return errors
 
 

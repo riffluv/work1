@@ -73,6 +73,9 @@ certainty: high | low
 - 具体的な症状・不具合調査・修正が主なら `bugfix`
 - 主要1フローの整理や引き継ぎが主なら `handoff`
 - bugfix / handoff / 実装支援の境界で即断しにくいなら `boundary`
+- `boundary` でも、相手の主目的が明確に修正なら handoff を前面に出さず、bugfix 起点で進める前提を優先する
+- `コードが分からない` `外注コード` `AIで作った` は単独では handoff 判定理由にしない。購入者の状態として扱う
+- 修正主目的だが症状がまだ絞れていない時は、handoff 推奨へ倒さず `boundary / low certainty` として購入前の絞り込みへ進める
 - `state: purchased / predelivery / delivered` で進行中や購入後対応が主なら `after_purchase`
 - `state: closed` の再相談や再発なら `after_close`
 
@@ -166,6 +169,8 @@ reply_contract:
 - `ask_map` は、相手に依頼する最小限の確認だけを置く。
 - 各 ask は、何の質問を解くためかを `question_ids` と `why_needed` で明示する。
 - `ask_map` にない質問を、下流で善意追加しない。
+- その ask が任意確認で済むなら、下流で必須質問として押し出さない前提にする。
+- `burden_owner: us` かつ、答えがなくてもこちらで仮に進められる場面では、`ask_map` は「任意確認 + 既定方針あり」の扱いにする。
 
 ### issue_plan
 - `issue_plan` は互換用の要約として残す。
@@ -177,6 +182,7 @@ reply_contract:
 - `burden_owner: us` なら `decide_for_user` を原則入れる。
 - `empathy_first: true` や purchased の軽い追加報告では `react_briefly_first` を優先する。
 - purchased で証跡が必要なら `request_minimum_evidence`、進行中なら `commit_next_update_time` を入れる。
+- 任意確認で進められる場面では、`state` を問わず `state_default_path_if_no_answer` を優先候補に入れる。
 
 ### forbidden_moves
 - `burden_owner: us` なら `ask_client_to_prioritize_when_burden_owner_us` を避ける。
@@ -184,6 +190,7 @@ reply_contract:
 - purchased では `reopen_estimate_intake` を避ける。
 - 保留だけで終わる `vague_hold_without_reason`、内部語露出の `internal_term_exposure` を避ける。
 - purchased の軽い追加報告では `overexplain_branching` を避ける。
+- 任意確認しかないのに `choose_one_before_we_can_start` の形へ落とすのを避ける。
 
 ## Gotchas
 - 相手文が貼られただけなら分析のみで止める。自動で返信文を作らない。
@@ -191,6 +198,9 @@ reply_contract:
 - `undecidable` の場面で、こちらの都合で無理に `same` / `different` を決めない。
 - 価格や無料対応は、この段階で断定しない。
 - 既出情報を質問として再パッケージしない。
+- `整理が技術的に必要` と `整理サービスを買わせる` を混同しない。前者は売り手の工程、後者は購入者の購入判断
+- 修正主目的の相談を、`コードが複雑そう` という理由だけで handoff へ送らない
+- `bugfix で購入後に handoff へ振り直す` 前提で購入判断を曖昧にしない。境界判定は購入前にできるだけ終わらせる
 - `reply_stance` は文体の好みではなく、返信姿勢の固定として使う。`now / after_check` `us / client / shared` を曖昧にしない。
 - `reply_contract` は強めのヒントではなく、下流が守る実行契約として扱う。特に `primary_question_id / answer_map / ask_map` を本文側で再解釈しない。
 - `answer_timing` を reply-global の正本として扱わない。主質問の要約に留める。
@@ -209,6 +219,7 @@ reply_contract:
 - 主力サービスに素直には乗らないが、技術的には現実的で実績目的なら検討余地があるときは `service_mismatch_but_feasible` を使う。
 - `service_mismatch_but_feasible` のときは、自動で断らず、人間判断へ上げる。
 - 主力サービスに乗るか不明なときは、無理に受けず `undecidable` または `medium fit` で止める。
+- 修正主目的かつ症状が1つに絞れていない境界案件では、購入前に `一番困っている症状` を1つだけ絞る next_action を優先する。
 
 ## 感情注意フラグの検知
 相手文に以下のシグナルがある場合、出力に `emotional_caution: true` を含める。
@@ -251,5 +262,7 @@ reply_contract:
 - `primary_question_id` が主質問を正しく指しているか
 - `answer_map` が `explicit_questions` を過不足なく覆っているか
 - `ask_map` にない質問を、下流で勝手に増やさない設計になっているか
+- `burden_owner: us` の場面で、任意確認を相手への判断丸投げに変えていないか
+- 答えがなくても進められる場面で、下流へ既定方針を渡せる設計になっているか
 - `required_moves` / `forbidden_moves` が、reply-bugfix 側へ渡す契約として具体的か
 - `service_mismatch_but_feasible` を、単なる売上欲しさではなく「技術的現実性 + 実績上の検討余地」で使っているか

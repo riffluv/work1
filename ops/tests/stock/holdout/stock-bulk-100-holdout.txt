@@ -1,0 +1,398 @@
+# generated from stock-bulk-100.txt
+# bucket: stock-bulk-100-holdout
+
+----
+
+case_id: STK-009
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 料金について確認です。コードの中身が分からないのでまず整理が必要かもしれないんですが、そうなると25,000円の整理＋15,000円の修正で合計40,000円ですよね。できれば整理をスキップして修正だけお願いしたいんですが、それは可能ですか？あと、整理した結果「修正は不要でした」となった場合でも25,000円かかりますか？
+note: 合計金額への抵抗＋整理スキップ希望＋「修正不要でも払うのか」。3つの質問が混在する boundary典型
+
+----
+
+case_id: STK-013
+route: service
+state: prequote
+user_type: indie_hacker
+emotional_tone: normal
+service_hint: boundary
+raw_message: 個人開発でStripe Billingを使ったサブスクサービスを運営してます。最近customer.subscription.deletedのイベント処理がたまに失敗するんですが、そもそもWebhook周りのコードが自分でも「なんでこう書いたっけ」状態なので、修正の前にまず整理した方がいいかもしれません。修正と整理、どっちを先に頼むべきですか？
+note: indie_hacker自身がbugfix/handoffの判定を聞いている。段階提案の自然さが問われる
+
+----
+
+case_id: STK-016
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: handoff
+raw_message: 引き継ぎメモの作成が25,000円とのことですが、正直なところ「メモを作るだけで25,000円は高い」という印象です。自分でChatGPTにコードを貼って聞くのと、何が違うんでしょうか？
+note: 直球の「高い」＋ChatGPT比較。価値を具体的に示す必要がある。防衛的にならずに差分を説明する訓練
+
+----
+
+case_id: STK-017
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 2つのサービスがあるみたいですが、自分の場合どちらに当てはまるか分かりません。状況としては、外注で作ってもらったNextのアプリで、決済後にメールが飛ばないことがあります。ただ、正直コード全体が何やってるか分からない状態でもあります。不具合修正で頼むべきですか？それとも先に整理してもらった方がいいですか？
+note: どちらのサービスか自分で判断できない典型的なboundaryケース
+
+----
+
+case_id: STK-021
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: boundary
+raw_message: 緊急でお願いしたいです。うちのサイトの決済がおかしくなっていて、お客さんから「二重に決済された」と連絡が来ています。外注のコードなので中身が分かりません。まず二重決済が起きないように直してほしいのと、あと根本的にコードの構造がおかしいのかどうかも教えてほしいです。
+note: 緊急＋二重決済＋「直して」と「教えて」の混在。bugfixとhandoffの両方が必要な可能性
+
+----
+
+case_id: STK-026
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: anxious
+service_hint: boundary
+raw_message: 先週からお客さんに「クレジットカード決済できない」と言われていて、調べたらStripeのAPIキーが期限切れ？になっている可能性があるんですが、これってコードの問題ですか？設定の問題ですか？もし設定だけなら自分で直したいんですが、やり方が分からなくて。
+note: 設定問題かコード問題かの境界。自分で直したい意向。bugfixの範囲に入るかの判断が必要
+
+----
+
+case_id: STK-028
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: boundary
+raw_message: 予算があまりなくて。不具合修正の15,000円と引き継ぎの25,000円、両方のサービスがあるのは分かったのですが、15,000円の方でまず見てもらって、その中で「ここはこうなってます」みたいな整理も軽く教えてもらうことはできませんか？
+note: 安い方で整理も兼ねたい。bugfixのスコープにhandoff的要素を含めたい価格圧。境界の説明が重要
+
+----
+
+case_id: STK-034
+route: message
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: こんにちは、サービスページ見ました。うちのは厳密にはStripeじゃなくてGMOペイメントなんですけど、Next.jsでWebhookで決済完了を受けてDB更新してる構成は同じです。対象外ですか？
+note: GMOペイメント案件。Stripe以外の決済サービス。対象範囲の境界判断
+
+----
+
+case_id: STK-036
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 不具合修正サービスと引き継ぎサービス、どちらにも当てはまる気がしています。状況は、外注で作ってもらったStripe決済のあるサイトで、最近Webhookが失敗していることに気づきました。ただ、コード全体の構造もぜんぜん把握できてなくて。不具合を直すのが先か、全体を理解するのが先か、アドバイスいただけますか？
+note: 「どっちが先か」を明確に聞いている。段階提案の自然さが問われるboundaryケース
+
+----
+
+case_id: STK-038
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 問い合わせさせてください。Stripeの決済後にお客さんにメールを送る処理があるのですが、本文の中にある「プラン名」の部分がundefinedと表示されてしまいます。決済自体は問題なく通っていて、DB更新も正常です。メール本文のテンプレだけの問題だと思うんですが、こういうのも対象ですか？
+note: 表示不具合だが原因がStripe連携か表示テンプレか不明。bugfix対象かフロント修正か境界が曖昧
+
+----
+
+case_id: STK-042
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: Next.jsのサイトで2つ問題があります。1つ目は、ページの読み込みが異常に遅いこと。2つ目は、Stripe決済後にWebhookが受け取れていないことです。両方一緒にお願いできますか？予算は30,000円くらいまでなら出せます。
+note: パフォーマンス（範囲外寄り）＋Webhook（bugfix対象）の混合。予算提示付き
+
+----
+
+case_id: STK-044
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: handoff
+raw_message: お見積りありがとうございます。25,000円で1フローの整理で、追加フローが15,000円ということですね。ちなみに、もし整理してもらった結果すぐに修正が必要とは限らないとしたら、まず整理だけで様子を見ることもできますか？追加で修正を頼むかどうかは、メモを見てから判断したいです。
+note: quote_sent＋段階対応の確認。「整理だけで止められるか」の質問は合理的
+
+----
+
+case_id: STK-056
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 先日はありがとうございました。前回とは別件なんですが、同じサイトでお問い合わせフォームの送信もたまに失敗するんです。Stripeとは関係ないかもしれませんが、見てもらえますか？
+note: closed後の別件追加。Stripeとは関係なさそうな問題。スコープ外の可能性と新規依頼の案内
+
+----
+
+case_id: STK-060
+route: service
+state: quote_sent
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: お見積りありがとうございます。購入を検討中なんですが、追加で聞いてもいいですか。コードの中身を見たら、Stripe以外にもSendGridでメール送信してる処理があるみたいなんですが、Stripe以外の部分も含めて1件で見てもらえますか？あと、送り忘れてたファイルがあって、そっちにStripe関連のユーティリティが書いてあるみたいです。
+note: quote_sent後の追加質問。Stripe以外の部分の範囲確認＋追加ファイル申告。boundaryケース
+
+----
+
+case_id: STK-064
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 納品ありがとうございます。確認手順の通りにやってみたら、指摘いただいた不具合は直ってました。ただ、1つだけ別の画面で気になるところがあって、決済完了後にリダイレクトされるサンクスページの表示が崩れてるんですが、これも同じ原因ですか？
+note: delivered後の追加質問。表示崩れが同一原因か別件かの判定。軽微な追加確認の範囲
+
+----
+
+case_id: STK-065
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 引き継ぎメモ拝見しました。分かりやすくまとめていただいてありがとうございます。1点だけ確認なんですが、「未確認」と書いてある箇所は、確認しようと思ったけどできなかったということですか？それとも今回のスコープ外ということですか？
+note: delivered後の納品物への質問。「未確認」の意味の確認は合理的で、基本料金内の軽微な質問
+
+----
+
+case_id: STK-066
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: 結果報告ありがとうございます。直してもらった箇所は確認しました。ただ、正直なところ思っていたより軽微な問題だったのかなという印象で。15,000円分の価値があったのかどうか、ちょっとモヤモヤしています。次回もお願いするかは少し考えさせてください。
+note: delivered後の軽い不満。「高かったかも」の感情。次回利用への揺れ
+
+----
+
+case_id: STK-067
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: メモ読みました。危険箇所のところはすごく参考になったんですが、ここの修正もそのまま追加でお願いできますか？引き継ぎメモに書いてある「着手順」の最初の1つだけでいいので。
+note: delivered後に修正を追加依頼。handoff→bugfix追加の案内が必要
+
+----
+
+case_id: STK-068
+route: talkroom
+state: delivered
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 納品ありがとうございます。修正ファイルを確認しました。あと、今回修正してもらった箇所以外で、「ここも危なそう」みたいな箇所があったら教えてもらえますか？予防的に知っておきたくて。
+note: bugfix delivered後にhandoff的な追加質問。スコープの線引き
+
+----
+
+case_id: STK-069
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 先日はお世話になりました。1つ確認なんですが、直してもらったWebhookの処理で、また同じエラーが出ました。前回と同じcheckout.session.completedのところです。これって前回の修正の範囲で見てもらえますか？
+note: closed後の再発報告。同一原因の再発か新規かの判定。取引クローズ後の対応範囲
+
+----
+
+case_id: STK-070
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: bugfix
+raw_message: 前回ありがとうございました。また別の箇所で不具合が見つかったんですが、前回の結果を踏まえて割引してもらうことはできますか？リピーターなので少し安くなるとありがたいんですが。
+note: closed後のリピート＋値引き要求。前回の知見を理由に割引を期待
+
+----
+
+case_id: STK-071
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 先日の引き継ぎメモの件ではお世話になりました。あの後、メモを見ながら自分でコードを触ってみたんですが、1箇所だけよく分からないところがあって。メモの中に「この関数はstripe.customers.createを呼んでいるが、エラーハンドリング未実装」と書いてあった部分なんですが、これって具体的にどうすればいいんでしょうか？
+note: closed後の追加質問。納品物への細かい確認。新規依頼か軽微な質問かの判断
+
+----
+
+case_id: STK-074
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: すみません、そもそもの質問なんですが、うちのサイトが「不具合」なのか「仕様」なのか分かりません。外注先に聞いたら「仕様です」と言われたんですが、お客さんからは不便だと言われていて。Stripe決済後にメールが30分くらい遅れて届くのですが、これは不具合ですよね？
+note: 仕様かバグかの境界。外注先が「仕様」と言っている。客観的判断が必要なboundaryケース
+
+----
+
+case_id: STK-079
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: 2つのサイトで同じような不具合が起きています。片方はStripeで、もう片方はSquareを使っています。両方ともNext.jsです。2サイト分をまとめてお願いしたら、いくらくらいになりますか？
+note: 2サイト＋異なる決済サービスの同時依頼。件数計算と対象範囲の整理が必要
+
+----
+
+case_id: STK-081
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: frustrated
+service_hint: boundary
+raw_message: もうイライラしてます。3ヶ月前にフリーランスの方にサイトを作ってもらったんですが、決済周りがまともに動いたことがないです。直してもらおうにも、コードが何やってるか全く分かりません。とにかく決済が動くようにしたいんですが、整理が先なのか修正が先なのか、こちらは分からないのでプロに判断してほしいです。
+note: frustrated＋「判断はプロに任せたい」の丸投げ。感情圧が高いが実務判断は明確にすべきboundary
+
+----
+
+case_id: STK-082
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: price_sensitive
+service_hint: handoff
+raw_message: 引き継ぎメモの件で相談です。知り合いのエンジニアに聞いたら「25,000円はちょっと高い。自分ならもっと安くやる」と言われたんですが、でもその人は忙しくて実際にはやってくれません。他と比べて高いのか安いのか判断できなくて。この価格の妥当性を説明してもらえますか？
+note: 第三者の「高い」発言を引用したprice_sensitive。価格の妥当性を押しつけずに説明する訓練
+
+----
+
+case_id: STK-085
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: ちょっと漠然とした相談なんですが。Next.jsとStripeで作ったECサイトがあって、全体的に「よく分からないけど動いてる」状態です。不具合はたぶんないんですが、なんとなく不安です。不具合がないのにサービスをお願いするのは変ですか？
+note: 不具合なし＋漠然とした不安。bugfixは不要、handoffが適切だが自分では判断できない
+
+----
+
+case_id: STK-086
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: Next.jsのサイトなんですが、特定のユーザーだけ決済後にエラーが出るみたいです。他のお客さんは問題なく使えています。エラーが出た方に確認したら「iPhoneのSafariで使ってる」とのことで、ブラウザの問題かもしれません。こういうのも対応してもらえますか？
+note: ブラウザ依存の可能性。Stripe/API連携のbugfixかフロントエンド環境問題かの境界判断
+
+----
+
+case_id: STK-091
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: こんにちは、前回お世話になった者です。実は前回直していただいた決済の件は問題ないんですが、今度はサブスクの更新処理で同じような症状が出ていて。前回のWebhookの修正とは別の箇所だと思うんですが、新規でお願いする場合また15,000円ですか？
+note: closed後の新規依頼。前回とは別箇所の類似症状。リピーターへの自然な案内
+
+----
+
+case_id: STK-092
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: handoff
+raw_message: 前回の引き継ぎメモありがとうございました。それを元に別のエンジニアさんに修正をお願いしたんですが、「このメモだけだと情報が足りない」と言われてしまいました。追加でもう少し詳しいメモを作ってもらうことはできますか？別料金ならいくらになりますか？
+note: closed後＋「情報が足りない」フィードバック。納品物の品質への間接的な不満と追加依頼
+
+----
+
+case_id: STK-093
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 先日はありがとうございました。修正後しばらく問題なかったんですが、先週Vercelのプランをアップグレードしたら、また500エラーが出るようになりました。Vercelの設定変更が原因かもしれませんが、前回と同じ箇所なので気になっています。新規依頼の方がいいですか？
+note: closed後の環境変更による再発疑い。前回の修正品質の問題ではなく新規の可能性
+
+----
+
+case_id: STK-094
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: お世話になりました。評価は★5つけさせていただきました。1つだけ聞きたいのですが、また何か起きたときのために、出品者プロフィールの「お気に入り」に入れておいてもいいですか？次回は同じ方に頼みたいので。あと、今後もし複数件まとめて頼む場合、パッケージ割引みたいなのはありますか？
+note: closed後の好意的なコメント＋パッケージ割引の問い合わせ。リピーター獲得への対応
+
+----
+
+case_id: STK-095
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: mixed
+service_hint: bugfix
+raw_message: 先日の修正の件ですが、修正自体は問題なかったのですが、報告書がちょっと専門的すぎて、自分には半分くらい理解できませんでした。次回もしお願いすることがあれば、もう少し噛み砕いた説明があるとありがたいです。不満というわけではないですが、一応お伝えしておきます。
+note: closed後の改善フィードバック。不満ではないが次回への期待。報告書の可読性への指摘
+
+----
+
+case_id: STK-096
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: handoff
+raw_message: 前回整理してもらった続きで、別のフローもお願いしたいんですが、前回のメモの内容を引き継いでもらえると助かります。また最初からやるとなるとちょっと。1フロー追加で15,000円ですか？
+note: closed後の追加フロー依頼。前回の文脈を引き継ぎたい要望。リピーターの継続案内
+
+----
+
+case_id: STK-098
+route: service
+state: prequote
+user_type: non_engineer
+emotional_tone: normal
+service_hint: boundary
+raw_message: こんにちは。今、別のフリーランスの方に相談しているんですが、「Webhookの問題だと思うけど、先にコード全体を見ないと修正に入れない」と言われました。その方は整理だけで50,000円と言っているのですが、こちらのサービスだとどういう流れになりますか？比較して決めたいです。
+note: 他社見積りとの比較。「50,000円の整理vs25,000円のhandoff」。金額競争にならずにサービス内容で差分を示す
+
+----
+
+case_id: STK-100
+route: talkroom
+state: closed
+user_type: non_engineer
+emotional_tone: normal
+service_hint: bugfix
+raw_message: 以前お世話になりました。おかげさまで決済のところは安定してます。今回は相談だけなんですが、Stripeの手数料を下げる方法ってありますか？直接は関係ない質問ですみません。
+note: closed後の雑談的質問。サービス範囲外の相談。親切に断りつつ関係維持する対応
