@@ -87,6 +87,29 @@ BURDEN_SHIFT_RULES: list[tuple[re.Pattern[str], str]] = [
 NEGATIVE_LEAD_RULE = re.compile(r"^(?:ただ|ですが)?[^。\n]*(?:しません|ありません|できません)")
 SYMPTOM_REQUEST_RULE = re.compile(r"(症状|箇所|画面|エラー文|操作手順).*(送って|教えて|ください)")
 MONEY_CONCERN_RULE = re.compile(r"(返金|追加料金|料金|金額|高い|高かった|15000|15,?000|5000|5,?000|払)")
+EMOTION_MARKER_MAP: dict[str, list[str]] = {
+    "urgency": ["急ぎ", "お急ぎ", "売上影響", "売上への影響", "機会損失", "契約に影響", "今日中"],
+    "frustration": ["お待たせしてすみません", "心配になりますよね", "気を遣わなくて大丈夫", "もっともです", "その点はもっとも", "お困り"],
+    "anxiety": ["大丈夫", "心配", "不安", "気になる", "もっともです", "その点はもっとも", "気を遣わなくて大丈夫"],
+    "distrust": ["前回", "経緯", "その点はもっとも", "大丈夫", "切り分け", "確認できます"],
+}
+EMPTY_PROMISE_MARKERS = [
+    "先にお伝えします",
+    "確認できているところから",
+    "見えているところから",
+]
+
+
+def infer_buyer_emotion(source_text: str) -> str:
+    if any(marker in source_text for marker in ["信用するのが怖い", "半信半疑", "対象外ですと言われ", "再現できませんでした", "音沙汰なし"]):
+        return "distrust"
+    if any(marker in source_text for marker in ["参ってます", "困ってます", "まだ何も返事", "どうなってるんですか", "催促", "心配になってき", "気を遣わせ", "変なこと聞いて"]):
+        return "frustration"
+    if any(marker in source_text for marker in ["急ぎ", "今日中", "3日後", "契約に影響", "売上", "機会損失", "取りこぼし"]):
+        return "urgency"
+    if any(marker in source_text for marker in ["不安", "心配", "怖い", "恐縮", "恥ずかしい話", "初歩的", "よく分からない"]):
+        return "anxiety"
+    return "none"
 
 
 def _normalized_text(text: str) -> str:
@@ -278,6 +301,9 @@ def collect_reasoning_preservation_errors(
     errors: list[str] = []
     decision_plan = decision_plan or {}
     direct_answer_line = (decision_plan.get("direct_answer_line") or "").strip()
+    primary_question_id = (decision_plan.get("primary_question_id") or "").strip()
+    buyer_emotion = (decision_plan.get("buyer_emotion") or "none").strip()
+    response_order = decision_plan.get("response_order") or []
     concern = scenario or decision_plan.get("primary_concern") or ""
     dedupe_sensitive_concerns = {
         "risk_refund_question",
@@ -312,7 +338,18 @@ def collect_reasoning_preservation_errors(
         if direct_answer_line and _is_procedural_direct_answer(direct_answer_line) and not _contains_money_anchor(direct_answer_line):
             errors.append("direct answer line is still procedural for a money-related question")
 
-    if "先にお伝えします" in rendered:
+    if primary_question_id and direct_answer_line and len(response_order) >= 2 and response_order[1] == "direct_answer":
+        answer_window = _answer_window_text(rendered)
+        if direct_answer_line not in answer_window and not _rendered_has_direct_answer(answer_window):
+            errors.append("plan says the main question should be answered early, but the opening block does not do so")
+
+    if buyer_emotion in {"frustration", "distrust"}:
+        opening_window = _answer_window_text(rendered)
+        emotion_markers = EMOTION_MARKER_MAP.get(buyer_emotion) or []
+        if emotion_markers and not any(marker in opening_window for marker in emotion_markers):
+            errors.append("buyer emotion in plan is not reflected in the opening block")
+
+    if any(marker in rendered for marker in EMPTY_PROMISE_MARKERS):
         concrete_markers = [
             "いまは、",
             "現時点では",
@@ -321,9 +358,23 @@ def collect_reasoning_preservation_errors(
             "切り分け中",
             "見えている候補",
             "次に見る点",
+            "環境変数",
+            "Vercel",
+            "Webhook",
+            "signing secret",
+            "payment_intent",
+            "handleCardAction",
+            "商品ID",
+            "特定の商品",
         ]
         if not any(marker in rendered for marker in concrete_markers):
-            errors.append("rendered text promises `先にお伝えします` without concrete status detail")
+            errors.append("rendered text makes a progress promise without concrete status detail")
+
+    if "目安をお返しします" in rendered and not any(marker in rendered for marker in ["原因の方向性", "次の見通し", "おおよその目安"]):
+        errors.append("rendered text promises a timeline update without saying what concrete update will be sent")
+
+    if "中間報告としてお返しできます" in rendered:
+        errors.append("rendered text promises a progress summary without concretely framing the deliverable")
 
     return list(dict.fromkeys(errors))
 

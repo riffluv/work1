@@ -80,7 +80,7 @@ def lint_case(module, source: dict) -> list[str]:
     if not decision_plan:
         errors.append("response_decision_plan is missing")
     else:
-        for field in ["primary_concern", "facts_known", "blocking_missing_facts", "direct_answer_line", "response_order"]:
+        for field in ["primary_question_id", "primary_concern", "buyer_emotion", "facts_known", "blocking_missing_facts", "direct_answer_line", "response_order"]:
             if field not in decision_plan:
                 errors.append(f"response_decision_plan missing required field: {field}")
         if decision_plan.get("primary_concern") == scenario:

@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import yaml
 
 from reply_quality_lint_common import collect_temperature_constraint_errors
+from reply_quality_lint_common import infer_buyer_emotion
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -127,6 +128,8 @@ def extra_scope_subject(raw: str) -> str:
 
 
 def quote_progress_line(raw: str) -> str:
+    if any(marker in raw for marker in ["あとどれくらい", "目安だけでも教えて", "いつまでこう言い続ければ"]):
+        return "見えてきたところから、目安としてお伝えします。"
     if any(marker in raw for marker in ["クライアント", "進捗を聞かれて", "目安だけでも"]):
         return "確認自体は進めていますので、見えてきたところから順にお伝えします。"
     return "確認は進めていますので、見えてきたところから順にお伝えします。"
@@ -170,10 +173,12 @@ def next_action_line(case: dict, hours: int = 2) -> str:
     if case.get("scenario") == "late_info_share":
         tomorrow = datetime.now(JST) + timedelta(days=1)
         return f"明日{tomorrow:%H:%M}までに、確認結果をお返しします。"
+    if case.get("scenario") == "timeline_anxiety" and any(marker in case.get("raw_message", "") for marker in ["あとどれくらい", "目安だけでも", "いつまでこう言い続ければ"]):
+        return f"本日{target:%H:%M}までに、原因の方向性と次の見通しをお送りします。"
     if case.get("scenario") == "progress_anxiety":
         return f"本日{target:%H:%M}までに、状況を整理してお送りします。"
     if case.get("scenario") == "progress_summary_request":
-        return f"本日{target:%H:%M}までに、整理した内容をお送りします。"
+        return f"本日{target:%H:%M}までに、現時点で見えている点を箇条書きでお送りします。"
     return f"本日{target:%H:%M}までに、現時点の確認結果をお返しします。"
 
 
@@ -365,7 +370,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
             direct_answer_line = "いまは原因の切り分け中で、まだ断定には至っていません。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "progress_summary_request":
-        direct_answer_line = "はい、現時点で分かっていることは中間報告として整理してお返しできます。"
+        direct_answer_line = "現時点で見えている点は、中間報告としてまとめます。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "mixed_status_timeline_fee":
         direct_answer_line = "はい、送っていただいたコードのフォルダ構成は見えています。"
@@ -374,7 +379,10 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "まず進み具合を整理してお返しします。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "timeline_anxiety":
-        direct_answer_line = "完了時期は、現時点ではまだ言い切れず、今の確認結果を見てからの方が正確です。"
+        if any(marker in raw for marker in ["あとどれくらい", "目安だけでも", "いつまでこう言い続ければ"]):
+            direct_answer_line = "現時点ではあとどれくらいかはまだ言い切れません。"
+        else:
+            direct_answer_line = "完了時期は、現時点ではまだ言い切れず、今の確認結果を見てからの方が正確です。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "private_repo_access_question":
         direct_answer_line = "privateリポジトリなら、URLだけではこちらから中身は見えません。"
@@ -457,7 +465,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = primary["answer_brief"]
 
     return {
+        "primary_question_id": contract["primary_question_id"],
         "primary_concern": build_primary_concern(source, scenario, facts_known),
+        "buyer_emotion": infer_buyer_emotion(raw),
         "facts_known": facts_known,
         "blocking_missing_facts": blocking_missing_facts,
         "direct_answer_line": direct_answer_line,
@@ -473,6 +483,12 @@ def detect_scenario(source: dict) -> str:
 
     if "キャンセル" in combined:
         return "cancel_request"
+    if any(marker in combined for marker in ["週明けに社内で報告", "箇条書きレベル", "何か分かっていることがあれば"]) and any(
+        marker in combined for marker in ["共有いただけると助かります", "社内で報告", "中間報告"]
+    ):
+        return "progress_summary_request"
+    if any(marker in combined for marker in ["あとどれくらいかかりそう", "あとどれくらい", "いつまでこう言い続ければ", "目安だけでも教えてもらえませんか"]):
+        return "timeline_anxiety"
     if "キャッシュバック" in combined or "少し返" in combined or "少しお返し" in combined:
         return "price_pushback"
     if "引き継ぎメモ" in combined and "修正" in combined:
@@ -836,14 +852,12 @@ def build_case_from_source(source: dict) -> dict:
             "answer_map": [
                 {
                     "question_id": "q1",
-                    "disposition": "answer_after_check",
-                    "answer_brief": "はい、現時点で分かっていることは中間報告として整理してお返しできます。",
-                    "hold_reason": "いま見えている候補と次に見る点をまとめた方が、社内共有にはずれません。",
-                    "revisit_trigger": "現時点での見立てと次の確認点を整理してお返しします。",
+                    "disposition": "answer_now",
+                    "answer_brief": "現時点で分かっている点は、中間報告としてお返しできます。",
                 }
             ],
             "ask_map": [],
-            "required_moves": ["react_briefly_first", "defer_with_reason", "commit_next_update_time"],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
         }
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
@@ -1892,11 +1906,15 @@ def reaction_line(case: dict) -> str:
             return "お待たせしてすみません。心配になりますよね。"
         return "連絡が足りず不安にさせてしまいすみません。まず今見えているところから整理します。"
     if scenario == "progress_summary_request":
-        return "ありがとうございます。社内共有用に、いま見えている内容をまとめます。"
+        if any(marker in case.get("raw_message", "") for marker in ["週明けに社内で報告", "社内で報告する必要"]):
+            return "ありがとうございます。週明けの社内報告に使える形でまとめます。"
+        return "ありがとうございます。社内共有に使える形でまとめます。"
     if scenario == "mixed_status_timeline_fee":
         return "3点の確認、ありがとうございます。"
     if opening_move == "action_first":
         if scenario == "timeline_anxiety":
+            if any(marker in case.get("raw_message", "") for marker in ["焦ってます", "問い合わせが6件", "メンテナンス中"]):
+                return "焦る状況ですよね。まず見通しが出せるところから確認します。"
             return "まず見通しが出せるところから確認します。"
         if scenario == "multiple_new_issues":
             return "まず今回の件とつながっているかを先に見ます。"
@@ -2120,7 +2138,9 @@ def draft_opening_anchor(case: dict) -> str:
             lines.append(deadline_phrase)
         return "\n".join(lines)
     if scenario == "timeline_anxiety":
-        return "まず進み具合が伝わるところからお返しします。"
+        if any(marker in raw for marker in ["焦ってます", "問い合わせが6件", "メンテナンス中"]):
+            return "焦る状況ですよね。まず見通しが出せるところから確認します。"
+        return "まず見通しが出せるところから確認します。"
     if scenario == "suspected_cause_found":
         if any(marker in raw for marker in ["1ミリも意味が分かりません", "プログラミング歴3日目", "許してください"]):
             return "ログありがとうございます。分からなくても大丈夫なので、そのまま見ていきます。"
@@ -2233,7 +2253,6 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 [
                     direct_answer,
                     focus_line or "",
-                    "社内共有に使いやすい形で、現時点の見立てと次に見る点をまとめてお送りします。",
                 ]
             ),
         )
@@ -2253,7 +2272,10 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         return paragraphs
 
     if scenario == "timeline_anxiety":
-        _append_unique(paragraphs, _paragraph_from_lines([direct_answer, quote_progress_line(case.get("raw_message", "")), focus_line]))
+        if any(marker in raw for marker in ["あとどれくらい", "目安だけでも", "いつまでこう言い続ければ"]):
+            _append_unique(paragraphs, _paragraph_from_lines([direct_answer, focus_line]))
+        else:
+            _append_unique(paragraphs, _paragraph_from_lines([direct_answer, quote_progress_line(case.get("raw_message", "")), focus_line]))
         return paragraphs
 
     if scenario == "diagnosis_pushback_followup":

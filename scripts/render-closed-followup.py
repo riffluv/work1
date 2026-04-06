@@ -9,6 +9,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import yaml
+from reply_quality_lint_common import infer_buyer_emotion
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -393,7 +394,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
 
     return {
+        "primary_question_id": contract["primary_question_id"],
         "primary_concern": build_primary_concern(source, scenario, facts_known),
+        "buyer_emotion": infer_buyer_emotion(raw),
         "facts_known": facts_known,
         "blocking_missing_facts": blocking_missing_facts,
         "direct_answer_line": direct_answer_line,

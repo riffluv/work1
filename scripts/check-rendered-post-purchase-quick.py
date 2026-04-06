@@ -198,7 +198,7 @@ def lint_case(module, source: dict) -> list[str]:
     if not decision_plan:
         errors.append("response_decision_plan is missing")
     else:
-        for field in ["primary_concern", "facts_known", "blocking_missing_facts", "direct_answer_line", "response_order"]:
+        for field in ["primary_question_id", "primary_concern", "buyer_emotion", "facts_known", "blocking_missing_facts", "direct_answer_line", "response_order"]:
             if field not in decision_plan:
                 errors.append(f"response_decision_plan missing required field: {field}")
         if decision_plan.get("primary_concern") == scenario:
@@ -235,6 +235,16 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("closing_present is missing")
     if not has_concrete_deadline:
         errors.append("missing time commitment")
+    if scenario == "timeline_anxiety" and has_any(raw, ["あとどれくらい", "目安だけでも", "いつまでこう言い続ければ"]):
+        if "目安をお返しします" in rendered:
+            errors.append("timeline_anxiety still promises a vague estimate instead of a concrete next update")
+        if not has_any(rendered, ["原因の方向性", "次の見通し", "見通しをお送りします"]):
+            errors.append("timeline_anxiety does not say what concrete update will be sent next")
+    if scenario == "progress_summary_request":
+        if "中間報告としてお返しできます" in rendered:
+            errors.append("progress_summary_request still promises a summary without framing the deliverable concretely")
+        if not has_any(rendered, ["箇条書き", "見えている点", "整理した内容"]):
+            errors.append("progress_summary_request does not frame the summary in a concrete shareable form")
     if has_near_echo(rendered):
         errors.append("near_echo_check failed: adjacent sections still overlap too much")
     if not buyer_word_pickup_ok(rendered, raw, scenario):

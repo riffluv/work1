@@ -45,7 +45,7 @@ def lint_case(module, source: dict) -> list[str]:
     if not decision_plan:
         errors.append("response_decision_plan is missing")
     else:
-        for field in ["primary_concern", "facts_known", "blocking_missing_facts", "direct_answer_line", "response_order"]:
+        for field in ["primary_question_id", "primary_concern", "buyer_emotion", "facts_known", "blocking_missing_facts", "direct_answer_line", "response_order"]:
             if field not in decision_plan:
                 errors.append(f"response_decision_plan missing required field: {field}")
         if decision_plan.get("primary_concern") == scenario:
@@ -215,6 +215,8 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("subscription bug scope case dropped the buyer's Laravel/Cashier/SDK context")
         if has_any(raw, ["ドキュメント通り", "やったつもり"]) and not has_any(rendered, ["ドキュメント", "その前提"]):
             errors.append("subscription bug scope case dropped the buyer's implementation-confidence context")
+        if has_any(raw, ["15,000円", "15000円", "15,000", "15000"]) and not has_any(rendered, ["15,000", "15000"]):
+            errors.append("subscription bug scope case does not anchor the quoted fee explicitly")
         if has_any(raw, ["1件分の料金", "収まりますか", "料金で収まりますか"]) and not has_any(rendered, ["1件分", "別原因", "事前"]):
             errors.append("subscription bug scope case does not answer the one-fee concern directly")
 
@@ -302,6 +304,11 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("provider-unknown case does not mention identifying whether the payment flow is Stripe")
         if not has_any(rendered, ["Stripe ではない", "Stripeではない", "切り分けてご案内"]):
             errors.append("provider-unknown case does not provide a natural non-Stripe exit")
+    if scenario == "ultra_short_fixability_question":
+        if not has_any(rendered, ["直せる可能性", "確認できます", "見ます"]):
+            errors.append("ultra-short fixability case does not answer the fixability question directly")
+        if not has_any(rendered, ["どこで止まる", "止まるか", "エラー"]):
+            errors.append("ultra-short fixability case does not ask for one minimum symptom detail")
     if scenario == "browser_vs_code_question":
         if not has_any(rendered, ["どちらの可能性も", "切り分け", "ブラウザ差"]):
             errors.append("browser-vs-code case does not answer the two-way cause question safely")
@@ -409,6 +416,7 @@ def lint_case(module, source: dict) -> list[str]:
             "price_not_found",
             "3日後",
             "契約に影響",
+            "Stripe。Webhook。動かない",
         ],
     ):
         errors.append("generic_quote_sent fallback survived a concrete quote_sent question")

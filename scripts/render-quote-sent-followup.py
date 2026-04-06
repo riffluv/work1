@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 import yaml
+from reply_quality_lint_common import infer_buyer_emotion
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -239,6 +240,8 @@ def purchase_closing(scenario: str, raw: str) -> str:
         return "切り分けの進め方で問題なければ、そのままご購入へ進めてください。"
     if scenario == "provider_unknown_scope_question":
         return ""
+    if scenario == "ultra_short_fixability_question":
+        return ""
     if scenario == "ai_fix_failure_reassurance_question":
         return "問題なければ、そのままご購入へ進めてください。"
     if scenario == "price_not_found_self_fix_question":
@@ -257,18 +260,20 @@ def subscription_scope_detail_line(raw: str) -> str:
         and any(marker in raw for marker in ["プラン変更", "アップグレード", "旧プラン", "新プラン"])
     ):
         detail = "購入後に、Laravel で SDK を直接使っている前提も含めて、アップグレード時の請求の重なりを優先して確認します。"
-        return f"{detail}\n{priority}".strip()
+        return detail
+    if "proration" in raw and any(marker in raw for marker in ["プラン変更", "途中で変更", "アップグレード", "旧プラン", "新プラン"]):
+        return "購入後に、proration 設定も候補として、プラン変更時だけ二重請求が出る条件を優先して確認します。"
     if any(marker in raw for marker in ["プラン変更", "アップグレード", "旧プラン", "新プラン"]):
-        detail = "購入後に、プラン変更時だけ起きる請求の重なりかどうかを優先して確認して進めます。"
-        return f"{detail}\n{priority}".strip()
+        return "購入後に、プラン変更時だけ二重請求が出る条件を優先して確認します。"
     if "解約" in raw and "請求" in raw:
-        detail = "購入後に、解約後も請求が走るような症状かどうかを優先して確認して進めます。"
-        return f"{detail}\n{priority}".strip()
+        return "購入後に、解約後も請求が走る条件を優先して確認します。"
     detail = "購入後に、影響が大きい症状でも優先して状況を確認して進めます。"
     return f"{detail}\n{priority}".strip()
 
 
 def subscription_scope_support_line(raw: str) -> str:
+    if any(marker in raw for marker in ["コードでは対処できない", "コードで対処できない", "その判断だけでも"]):
+        return ""
     if any(marker in raw for marker in ["1件分の料金", "収まりますか", "料金で収まりますか", "15,000円", "15000円", "もっとかかりますか", "済みますか"]):
         if any(marker in raw for marker in ["音沙汰なし", "信用するのが怖い", "何も解決しませんでした"]):
             return "別原因まで広がる場合だけ、その時点で事前にご相談します。確認できたところは止めずに順にお返しします。"
@@ -305,6 +310,10 @@ def general_bugfix_direct_answer_line(raw: str) -> str:
         marker in raw for marker in ["可能ですか", "可能でしょうか", "可能ですか？", "可能でしょうか？"]
     ):
         return f"今回の不具合1件の範囲なら {SERVICE_GROUNDING['fee_text']} でまず確認できます。"
+    if any(marker in raw for marker in ["ぐるぐる", "先に進めない"]) and any(
+        marker in raw for marker in ["カード", "クレジットカード", "Stripe"]
+    ):
+        return f"カード入力後に止まる症状でも、{can_start}。"
     if any(marker in raw for marker in ["見てもらうことって可能でしょうか", "見てもらえる感じですか", "見てもらえたりしますか"]) and "Stripe" in raw:
         return "Stripe の決済まわりで困っている段階でも、まず相談できます。"
     if ("http://" in raw or "https://" in raw) and any(marker in raw for marker in ["直せますか", "動かないです"]):
@@ -342,6 +351,11 @@ def general_bugfix_direct_answer_line(raw: str) -> str:
 
 def general_bugfix_scope_detail_line(raw: str) -> str:
     priority = diagnostic_priority_line(raw)
+    if any(marker in raw for marker in ["ぐるぐる", "先に進めない"]) and any(
+        marker in raw for marker in ["カード", "クレジットカード", "Stripe"]
+    ):
+        detail = "購入後に、カード入力後の処理がどこで止まっているかを確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["Webフック", "ウェブソケット", "APIキーが合わない", "認証トークン"]) and "Stripe" in raw:
         return "購入後に、Webhook の署名設定や検証まわりでどこがずれているかを確認します。"
     if any(marker in raw for marker in ["thanks ページ", "success URL", "success ページ"]) and any(
@@ -813,6 +827,13 @@ def detect_scenario(source: dict) -> str:
     ):
         return "subscription_bug_scope_question"
     if (
+        any(marker in combined for marker in ["Stripe。", "Stripe ", "Stripeの"])
+        and any(marker in combined for marker in ["Webhook", "動かない"])
+        and any(marker in combined for marker in ["直せる？", "直せる?"])
+        and len(re.sub(r"\s+", "", combined)) <= 40
+    ):
+        return "ultra_short_fixability_question"
+    if (
         any(marker in combined for marker in ["購入ボタン", "チェックアウト画面", "飛ばなくなりました", "飛ばなくなった"])
         and any(marker in combined for marker in ["対応いただける", "お願いしたい", "お願いしたいです", "対応可能", "見ていただけ", "見てもらえ"])
     ):
@@ -1030,13 +1051,19 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "subscription_bug_scope_question":
         fit_level, _ = classify_capability_fit(raw)
         can_start = "まず確認できます" if fit_level == "cautious_fit" else "確認できます"
-        if any(marker in raw for marker in ["1件分の料金", "収まりますか", "料金で収まりますか", "15,000円", "15000円", "もっとかかりますか", "済みますか"]):
-            direct_answer_line = "同じ原因の定期課金不具合として整理できる範囲なら、1件分の料金で進める形になります。"
+        if any(marker in raw for marker in ["コードでは対処できない", "コードで対処できない", "その判断だけでも"]):
+            direct_answer_line = f"コードで対処できない結論になった場合でも、調査と切り分けを含めて {fee_text} です。"
+        elif any(marker in raw for marker in ["1件分の料金", "収まりますか", "料金で収まりますか", "15,000円", "15000円", "もっとかかりますか", "済みますか"]):
+            direct_answer_line = f"同じ原因の定期課金不具合として整理できる範囲なら、{fee_text} で進める形です。"
         elif any(marker in raw for marker in ["Laravel", "Cashier", "SDK"]):
             direct_answer_line = f"Laravel のサブスクリプション処理でも、{can_start}。"
         else:
             direct_answer_line = f"Stripeの定期課金まわりの不具合であれば、このサービスで{can_start}。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "ultra_short_fixability_question":
+        direct_answer_line = "直せる可能性はあります。"
+        blocking_missing_facts = ["symptom_surface"]
+        response_order = ["reaction", "direct_answer", "ask"]
     elif scenario == "general_bugfix_scope_question":
         direct_answer_line = general_bugfix_direct_answer_line(raw)
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
@@ -1113,7 +1140,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
             response_order = ["reaction", "direct_answer", "ask", "next_action"]
 
     return {
+        "primary_question_id": contract["primary_question_id"],
         "primary_concern": build_primary_concern(source, scenario, facts_known),
+        "buyer_emotion": infer_buyer_emotion(raw),
         "facts_known": facts_known,
         "blocking_missing_facts": blocking_missing_facts,
         "direct_answer_line": direct_answer_line,
@@ -1903,6 +1932,30 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "ultra_short_fixability_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "直せるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "直せる可能性はあります。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "どこで止まるかだけ教えてもらえますか。",
+                    "why_needed": "切り分けの入口をそろえるため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "request_minimum_evidence"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     case["reply_contract"] = {
         "primary_question_id": "q1",
         "explicit_questions": [{"id": "q1", "text": "今回どう進めるか", "priority": "primary"}],
@@ -1992,6 +2045,8 @@ def draft_opening_anchor(case: dict) -> str:
             return "解約後も請求が走っている件ですね。"
         return "定期課金の請求まわりでお困りとのことですね。"
     if scenario == "general_bugfix_scope_question":
+        if any(marker in raw for marker in ["ぐるぐる", "先に進めない"]) and any(marker in raw for marker in ["買えない", "困って", "おきゃくさん"]):
+            return "カード入力後に先へ進めずお困りとのことですね。"
         if any(marker in raw for marker in ["Stripe は対象外", "Stripeは対象外"]) and any(
             marker in raw for marker in ["見てもらえるんですよね", "見てもらえますか", "見てもらえる"]
         ):
@@ -2069,6 +2124,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "認証側か決済側か切り分けたい件ですね。"
     if scenario == "provider_unknown_scope_question":
         return "カード決済ができなくなっている状況ですね。"
+    if scenario == "ultra_short_fixability_question":
+        return "Stripe と Webhook の件ですね。"
     if scenario == "cause_and_prevention_scope_question":
         return "原因確認に加えて再発対策まで含めたい件ですね。"
     if scenario == "ai_fix_failure_reassurance_question":
@@ -2282,6 +2339,12 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             direct_answer,
             "まず現在のカード決済が Stripe かどうかも含めて確認します。",
             "Stripe ではない場合は、その時点で切り分けてご案内します。",
+        ]
+
+    if scenario == "ultra_short_fixability_question":
+        return [
+            direct_answer,
+            "どこで止まるかだけ教えてもらえますか。",
         ]
 
     if scenario == "checkout_not_opening_scope_question":
