@@ -22,6 +22,203 @@ out_of_scope:
   - 仕様追加
   - データ移行
 
+capability:
+  strong_fit:
+    - id: nextjs_core_bugfix
+      markers:
+        - Next.js
+        - Vercel
+        - Checkout
+        - Webhook
+        - Payment Intent
+        - Billing Portal
+        - Subscriptions
+        - 環境変数
+        - 署名検証
+    - id: prod_only_stripe_runtime
+      markers:
+        - 本番だけ
+        - テスト環境
+        - テストキー
+        - evt_
+        - 本番に出した途端
+
+  cautious_fit:
+    - id: auth_boundary_login_flow
+      markers:
+        - NextAuth
+        - ログインしたのに
+        - 認証
+        - 決済ページに行けない
+    - id: nuxt_or_custom_infra
+      markers:
+        - Nuxt
+        - Nginx
+        - VPS
+        - タイムアウト
+    - id: persistence_after_webhook
+      markers:
+        - Prisma
+        - PlanetScale
+        - データベース
+        - 注文テーブル
+        - 書き込み
+    - id: react_native_mobile_sdk
+      markers:
+        - React Native
+        - stripe-react-native
+        - コールバック
+        - 実機
+        - エミュレータ
+        - Android
+    - id: shopify_custom_checkout
+      markers:
+        - Shopify
+        - Liquid
+        - カスタムJS
+        - カート情報
+        - 0円
+    - id: bubble_plugin
+      markers:
+        - Bubble
+        - プラグイン
+        - Safari
+        - iOS
+    - id: laravel_custom_subscription
+      markers:
+        - Laravel
+        - Cashier
+        - SDK
+        - アップグレード
+        - 旧プラン
+        - 新プラン
+    - id: stripe_connect_transfer
+      markers:
+        - Connect
+        - Destination Charge
+        - 送金
+        - connected account
+
+  out_of_scope_or_review:
+    - id: new_feature_addition
+      markers:
+        - 新機能
+        - 機能追加
+        - Invoice
+        - 請求書
+        - Subscription 新規
+        - Billing Portal
+        - カスタムUI
+        - ポータル画面
+        - プラン変更フォーム
+        - 新しく作りたい
+    - id: account_or_permission_issue
+      markers:
+        - ログインできない
+        - 権限
+        - 二段階認証
+        - アカウント
+
+diagnostic_patterns:
+  - id: prod_only_failure
+    markers:
+      - 本番だけ
+      - テスト環境
+      - テストキー
+      - 本番に出した途端
+      - 環境変数
+      - 400エラー
+    evidence_priority:
+      - 環境差
+      - 環境変数
+      - デプロイ設定
+
+  - id: partial_or_branch_failure
+    markers:
+      - 特定の商品
+      - 特定のプラン
+      - 他の商品
+      - 一部
+      - 0円
+      - カート情報
+      - 条件
+    evidence_priority:
+      - 商品ごとの設定差
+      - 条件分岐
+      - 金額やイベントの受け渡し
+
+  - id: intermittent_or_time_window
+    markers:
+      - 時間帯だけ
+      - 深夜
+      - タイムアウト
+      - 5回に1回
+      - 再現条件
+      - 毎回ではなく
+    evidence_priority:
+      - 発生条件
+      - 時間帯の偏り
+      - タイムアウトや競合
+
+  - id: browser_specific_failure
+    markers:
+      - Safari
+      - iOS
+      - Android
+      - ブラウザ
+    evidence_priority:
+      - 端末差
+      - ブラウザ差
+      - プラグインやフロント側の差
+
+  - id: database_persistence_gap
+    markers:
+      - Prisma
+      - PlanetScale
+      - データベース
+      - 注文テーブル
+      - 書き込み
+    evidence_priority:
+      - 保存処理
+      - DB書き込み経路
+      - 非同期処理
+
+  - id: mobile_sdk_platform_gap
+    markers:
+      - React Native
+      - stripe-react-native
+      - Android
+      - 実機
+      - エミュレータ
+      - コールバック
+    evidence_priority:
+      - モバイルSDK差
+      - 端末差
+      - コールバック処理
+
+  - id: subscription_change_overlap
+    markers:
+      - プラン変更
+      - アップグレード
+      - 旧プラン
+      - 新プラン
+      - 解約
+    evidence_priority:
+      - プラン変更時の請求処理
+      - 現在の契約状態
+      - 料金反映の順序
+
+  - id: connect_transfer_path
+    markers:
+      - Connect
+      - Destination Charge
+      - 送金
+      - 入金
+    evidence_priority:
+      - 入金から送金までの経路
+      - 接続先アカウント設定
+      - Charge と transfer の紐づき
+
 prequote_minimum:
   - expected_behavior
   - actual_behavior

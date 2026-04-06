@@ -111,6 +111,8 @@ def count_shared_key_names(raw: str) -> int:
 
 
 def extra_scope_subject(raw: str) -> str:
+    if "お問い合わせフォーム" in raw or "Resend" in raw:
+        return "お問い合わせフォーム"
     if "リダイレクト" in raw:
         return "フォーム送信後のリダイレクト"
     if "読み込み" in raw and any(marker in raw for marker in ["遅い", "重い", "遅く"]):
@@ -130,7 +132,24 @@ def quote_progress_line(raw: str) -> str:
     return "確認は進めていますので、見えてきたところから順にお伝えします。"
 
 
+def has_explicit_hypothesis(raw: str) -> bool:
+    return any(
+        marker in raw
+        for marker in [
+            "だと思",
+            "気がします",
+            "候補",
+            "原因だと思",
+            "違ったら",
+            "多分",
+            "仮説",
+        ]
+    )
+
+
 def extra_scope_request_target(raw: str) -> str:
+    if "お問い合わせフォーム" in raw or "Resend" in raw:
+        return "お問い合わせフォームがどう止まるか"
     if "リダイレクト" in raw:
         return "フォーム送信後にどう止まるか"
     if "読み込み" in raw and any(marker in raw for marker in ["遅い", "重い", "遅く"]):
@@ -148,13 +167,24 @@ def next_action_line(case: dict, hours: int = 2) -> str:
     target = datetime.now(JST) + timedelta(hours=hours)
     if is_complaint_like(case):
         return f"本日{target:%H:%M}までに、確認結果をお送りします。"
+    if case.get("scenario") == "late_info_share":
+        tomorrow = datetime.now(JST) + timedelta(days=1)
+        return f"明日{tomorrow:%H:%M}までに、確認結果をお返しします。"
     if case.get("scenario") == "progress_anxiety":
         return f"本日{target:%H:%M}までに、状況を整理してお送りします。"
+    if case.get("scenario") == "progress_summary_request":
+        return f"本日{target:%H:%M}までに、整理した内容をお送りします。"
     return f"本日{target:%H:%M}までに、現時点の確認結果をお返しします。"
 
 
 def opener_for(source: dict) -> str:
     if is_complaint_like(source):
+        return ""
+    if source.get("scenario") == "progress_summary_request":
+        return ""
+    if source.get("scenario") == "env_fix_recheck":
+        return ""
+    if source.get("scenario") in {"external_share_request", "late_info_share"}:
         return ""
     route = source.get("route", source.get("src", "talkroom"))
     if route == "message":
@@ -222,6 +252,10 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "Stripeと直接関係ないビルドエラーも今回の件として見てもらえるのか知りたい"
     if scenario == "fix_file_delivery_question":
         return "今回の対応で修正ファイルも受け取れるのか不安"
+    if scenario == "external_share_request":
+        return "容量の都合で外部共有を使いたいが、トークルーム内で安全に進める方法を知りたい"
+    if scenario == "late_info_share":
+        return "明日でよい前提で、特定商品だけ通らない情報を先に共有しておきたい"
     if scenario == "missing_file_followup":
         return "抜けていた重要ファイルを追加で送りたいので、その前提で見直してほしい"
     if scenario == "which_log_and_screenshot_question":
@@ -232,6 +266,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "キャンセルや返金の前に、いまどこまで進んでいるかを知りたい"
     if scenario == "progress_anxiety":
         return "いま何が進んでいて、次の連絡がいつ来るのか不安"
+    if scenario == "progress_summary_request":
+        return "社内共有に使える中間報告として、現時点で分かっていることをまとめてほしい"
     if scenario == "mixed_status_timeline_fee":
         return "送ったコードの構成が見えているか、今日中に返事があるか、追加費用が出るなら先に知りたい"
     if scenario == "repo_access_confirm":
@@ -240,8 +276,12 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "今ある情報で足りているか確認したい"
     if scenario == "received_materials_flow_check":
         return "送ったログやスクショが届いているかと、この後の進め方、追加準備の有無を知りたい"
+    if scenario == "screenshot_followup":
+        return "送ったスクショの画面を手がかりに見てもらえるか知りたい"
     if scenario == "runtime_context_followup":
         return "追加で共有した実行環境の前提が調査に影響するか知りたい"
+    if scenario == "advanced_investigation_followup":
+        return "ここまで確認した内容を前提に、その続きから見てもらえるか知りたい"
     if scenario == "evidence_offer_question":
         return "スクショで足りるか、何を送ればよいか知りたい"
     if scenario == "suspected_cause_found":
@@ -279,6 +319,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
     if scenario == "extra_scope_question":
         if "loading_issue_mentioned" in facts_known:
             return "読み込みが遅い件も今回の続きとして見てもらえるかと追加料金の有無を知りたい"
+        if "お問い合わせフォーム" in raw or "Resend" in raw:
+            return "お問い合わせフォームの件もついでに見てもらいたいが、別相談になるか知りたい"
         return "別の箇所も今回の件の続きとして見てもらえるか知りたい"
     if scenario == "keys_shared":
         return "キー名だけ共有したので、このまま確認を進めてよいか知りたい"
@@ -322,6 +364,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         else:
             direct_answer_line = "いまは原因の切り分け中で、まだ断定には至っていません。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "progress_summary_request":
+        direct_answer_line = "はい、現時点で分かっていることは中間報告として整理してお返しできます。"
+        response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "mixed_status_timeline_fee":
         direct_answer_line = "はい、送っていただいたコードのフォルダ構成は見えています。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
@@ -330,6 +375,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "timeline_anxiety":
         direct_answer_line = "完了時期は、現時点ではまだ言い切れず、今の確認結果を見てからの方が正確です。"
+        response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "private_repo_access_question":
+        direct_answer_line = "privateリポジトリなら、URLだけではこちらから中身は見えません。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "price_pushback":
         direct_answer_line = "料金は今回の調査と修正を1件として進める固定料金で、キャッシュバックの仕組みはありません。"
@@ -376,11 +424,17 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "received_materials_flow_check":
         direct_answer_line = "はい、昨日のログとスクショは確認できています。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "screenshot_followup":
+        direct_answer_line = "スクショありがとうございます。その画面を手がかりに見ます。"
+        response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "runtime_context_followup":
         direct_answer_line = "はい、その情報は調査に影響します。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "advanced_investigation_followup":
+        direct_answer_line = "はい、ここまで確認いただいている前提で、その続きから見ます。"
+        response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "suspected_cause_found":
-        if "Webhook secret" in raw or "No signatures found matching the expected signature for payload" in raw:
+        if any(marker in raw for marker in ["Webhook secret", "No signatures found matching the expected signature for payload", "signing secret is incorrect", "signing secret"]):
             direct_answer_line = "手がかりとしてかなり助かります。Webhook secret のずれも候補として見ています。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "external_api_shift":
@@ -438,9 +492,16 @@ def detect_scenario(source: dict) -> str:
             "進捗確認",
             "どうなってるんですか",
             "対応するかしないか",
+            "今どのあたりまで進んでますか",
+            "今どのあたりまで",
+            "確認って進んでますか",
+            "状況だけでも教えて",
+            "心配になってきまして",
         ]
     ):
         return "progress_anxiety"
+    if any(marker in combined for marker in ["中間報告", "社内のミーティング", "プロに依頼してます", "現時点で分かっていることだけでもまとめて"]):
+        return "progress_summary_request"
     if (
         "3点あります" in combined
         and any(marker in combined for marker in ["フォルダ構成", "見えてますか"])
@@ -450,6 +511,12 @@ def detect_scenario(source: dict) -> str:
         return "mixed_status_timeline_fee"
     if any(marker in combined for marker in ["大丈夫そうですか", "ちゃんと見れましたか", "見れてますか", "アクセスできないとかあったら"]):
         return "repo_access_confirm"
+    if (
+        "GitHub" in combined
+        and "private" in combined.lower()
+        and any(marker in combined for marker in ["見えてますか", "見えてますでしょうか", "招待", "必要ですか"])
+    ):
+        return "private_repo_access_question"
     if (
         "GitHub" in combined
         and "招待" in combined
@@ -464,6 +531,11 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["追加で用意", "準備しておきます", "ログ", "スクショ"])
     ):
         return "received_materials_flow_check"
+    if (
+        any(marker in combined for marker in ["スクショ", "スクリーンショット"])
+        and any(marker in combined for marker in ["[画像]", "エラーの画面", "同じ画面", "何回やっても"])
+    ):
+        return "screenshot_followup"
     if (
         any(marker in combined for marker in ["修正が終わったあと", "私の方でやること", "ファイルの差し替え", "デプロイ"])
         and any(marker in combined for marker in ["自分でやる前提", "慣れてなく", "デプロイ周り"])
@@ -493,6 +565,11 @@ def detect_scenario(source: dict) -> str:
     ):
         return "which_log_and_screenshot_question"
     if (
+        any(marker in combined for marker in ["requires_action", "payment_intent.requires_action", "3Dセキュア", "handleCardAction"])
+        and any(marker in combined for marker in ["ここまで分かっている前提", "続きを見てもら", "続きを見て", "前提で"])
+    ):
+        return "advanced_investigation_followup"
+    if (
         any(
             marker in combined
             for marker in [
@@ -519,6 +596,16 @@ def detect_scenario(source: dict) -> str:
         )
     ):
         return "runtime_context_followup"
+    if (
+        any(marker in combined for marker in ["腑に落ちない", "ちょっと腑に落ちない", "同じ設定で動いてた"])
+        and any(marker in combined for marker in ["環境変数", "Vercel側", "勝手に変わった", "ありえますかね", "ありえますか"])
+    ):
+        return "diagnosis_pushback_followup"
+    if (
+        any(marker in combined for marker in ["他のお客さん", "他のお客さま", "個人情報", "入ってたりしない", "入ってたりしないかな", "消してもらえる"])
+        and any(marker in combined for marker in ["ログ", "送ったログ", "さっき送った"])
+    ):
+        return "shared_log_privacy_concern"
     if any(marker in combined for marker in ["pages/api/webhook.ts", ".gitignoreに入れて", "ファイルが1個抜け", "追加で送ります"]) and any(
         marker in combined for marker in ["抜けてた", "抜けてたかも", "大事なファイル", "的外れな調査"]
     ):
@@ -538,17 +625,42 @@ def detect_scenario(source: dict) -> str:
     if "スクショを送れば" in combined or "スクショ送れば" in combined:
         return "evidence_offer_question"
     if (
+        any(marker in combined for marker in ["signing secret is incorrect", "signing secret"])
+        and any(marker in combined for marker in ["Webhook", "Stripe", "修正をお願い", "修正をお願いしたい", "お願いしたい"])
+    ):
+        return "suspected_cause_found"
+    if (
         any(marker in combined for marker in ["Cannot read properties", "priceId", "原因らしき", "これで原因分かりますか", "たぶん", "Webhook", "URLパス"])
         and any(marker in combined for marker in ["Vercel", "ログ", "undefined", "失敗してると思", "毎回エラー", "失敗してます", "どう思いますか", "気がしてきた"])
     ):
         return "suspected_cause_found"
+    if (
+        "STRIPE_SECRET_KEY" in combined
+        and "Vercel" in combined
+        and any(marker in combined for marker in ["セットしておきました", "設定されてなかった", "これで直るはず", "念のため確認", "念のため確認して"])
+    ):
+        return "env_fix_recheck"
     if any(marker in combined for marker in ["エラーが出なくなりました", "今度は重複決済", "症状が途中で変わる", "こっちを直してもらっていい"]):
         return "symptom_shift_after_user_edit"
     if "キー名だけ共有" in combined or "値は送らなくて大丈夫" in combined:
         return "keys_shared"
-    if any(marker in combined for marker in ["STRIPE_SECRET_KEY", "sk_live_", "whsec_", "DATABASE_URL=", "秘密情報"]):
+    if (
+        any(marker in raw for marker in ["sk_live_", "whsec_", "DATABASE_URL="])
+        or (
+            "STRIPE_SECRET_KEY" in raw
+            and any(marker in raw for marker in ["値が入って", "そのまま貼っ", "送っちゃ", "貼っちゃ", ".envの中身", "秘密情報"])
+        )
+        or (
+            any(marker in raw for marker in ["ログイン情報", "ログイン:", "ログイン："])
+            and any(marker in raw for marker in ["パスワード", "password", "パスワード:", "パスワード："])
+        )
+        or "秘密情報" in raw
+    ):
         return "live_secrets_pasted"
-    if ".env" in combined or "ハードコード" in combined:
+    if any(
+        marker in raw
+        for marker in [".env", "envファイル", "env ファイル", "ハードコード", "キーとか入ってる", "送っちゃっていい"]
+    ):
         return "secret_handling_question"
     if "外部API" in combined:
         return "external_api_shift"
@@ -556,8 +668,15 @@ def detect_scenario(source: dict) -> str:
         return "external_channel_request"
     if any(marker in combined for marker in ["push", "コラボレーター", "master ブランチ"]) or ("GitHub" in combined and "push" in combined):
         return "direct_push_request"
-    if "Googleドライブ" in combined or "Google Drive" in combined or "さくら" in combined:
+    if "Googleドライブ" in combined or "Google Drive" in combined:
+        return "external_share_request"
+    if "さくら" in combined:
         return "external_share_env_change"
+    if (
+        any(marker in combined for marker in ["夜遅く", "明日で全然大丈夫", "情報だけ先に送っておきます"])
+        and any(marker in combined for marker in ["特定の商品だけ", "他の商品は問題ない", "商品ID:", "prod_"])
+    ):
+        return "late_info_share"
     if "差額払う" in combined and "切り替える" in combined:
         return "handoff_fix_addon"
     if "購入したのは修正" in combined and ("全体像" in combined or "整理" in combined):
@@ -580,6 +699,7 @@ def detect_scenario(source: dict) -> str:
         or "とは別で" in combined
         or "別で、" in combined
         or "今回の範囲で見てもらえる" in combined
+        or "とは別なんですが" in combined
         or "範囲外なら別で相談" in combined
         or "一緒に見てもらうことは可能" in combined
         or "これも一緒に見てもら" in combined
@@ -589,7 +709,11 @@ def detect_scenario(source: dict) -> str:
         or "元の依頼とは別" in combined
         or ("追加料金" in combined and "一緒に" in combined)
         or "ついでに見てもら" in combined
+        or "お問い合わせフォーム" in combined
+        or "Resend" in combined
+        or "APIキーが期限切れ" in combined
         or ("ついでに" in combined and "数行足し" in combined)
+        or "5分もかからない" in combined
         or "もう1個だけ" in combined
         or "同じ原因だと思う" in combined
         or "別のエラー画面" in combined
@@ -649,6 +773,9 @@ def build_case_from_source(source: dict) -> dict:
         "scenario": scenario,
     }
 
+    if scenario in {"external_share_request", "late_info_share"}:
+        case["temperature_plan"]["opening_move"] = "react_briefly"
+
     if scenario == "cancel_request":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -659,7 +786,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "キャンセルしたいとのこと、まず受け取りました。まず今どこまで進んでいるかを確認します。",
+                    "answer_brief": "途中でも、進み具合によってはキャンセルできる場合があります。まず今どこまで進んでいるかを確認します。",
                     "hold_reason": "返金やキャンセルの扱いは、現在の進み具合を確認してから案内した方がずれません。",
                     "revisit_trigger": "確認できたところまでと、次の案内をお返しします。",
                 },
@@ -694,6 +821,27 @@ def build_case_from_source(source: dict) -> dict:
             "primary_question_id": "q1",
             "explicit_questions": explicit_questions,
             "answer_map": answers,
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "progress_summary_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "現時点で分かっていることを中間報告としてまとめてもらえるか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "はい、現時点で分かっていることは中間報告として整理してお返しできます。",
+                    "hold_reason": "いま見えている候補と次に見る点をまとめた方が、社内共有にはずれません。",
+                    "revisit_trigger": "現時点での見立てと次の確認点を整理してお返しします。",
+                }
+            ],
             "ask_map": [],
             "required_moves": ["react_briefly_first", "defer_with_reason", "commit_next_update_time"],
         }
@@ -985,6 +1133,31 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "private_repo_access_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "privateリポジトリのURLだけで見えるか", "priority": "primary"},
+                {"id": "q2", "text": "閲覧できる形や別の共有方法が必要か", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "privateリポジトリなら、URLだけではこちらから中身は見えません。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "GitHub側で閲覧できる形にしてもらうか、難しければ今回の不具合に関係する範囲をZIPで共有いただければ大丈夫です。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "received_materials_flow_check":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1016,6 +1189,25 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "screenshot_followup":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "送ったスクショを手がかりに見てもらえるか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "スクショありがとうございます。その画面を手がかりに見ます。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "runtime_context_followup":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1027,6 +1219,50 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q1",
                     "disposition": "answer_now",
                     "answer_brief": "はい、その情報は調査に影響します。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "diagnosis_pushback_followup":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "環境変数だけが原因と言い切れるのか", "priority": "primary"},
+                {"id": "q2", "text": "Vercel側で何か変わった可能性もあるか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "環境変数だけで言い切る段階ではなく、先月まで同じ設定で動いていた点も前提に見ています。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "Vercel側の環境差や参照先の変化も候補として見ています。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "advanced_investigation_followup":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "ここまで分かっている前提で続きから見てもらえるか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "はい、ここまで確認いただいている前提で、その続きから見ます。",
                 },
             ],
             "ask_map": [],
@@ -1060,7 +1296,35 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "shared_log_privacy_concern":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "送ったログに他の人の情報が入っていないか不安", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "共有いただいたログに他の方の情報が見えていた場合も、そのまま広げずに扱います。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "suspected_cause_found":
+        if any(marker in raw for marker in ["No signatures found matching the expected signature for payload", "Webhook secret", "signing secret is incorrect", "signing secret"]):
+            answer_brief = "手がかりとしてかなり助かります。まずその署名まわりから確認します。"
+            hold_reason = "表示だけで断定はせず、署名設定や検証まわりのずれかを先に見ます。"
+        elif has_explicit_hypothesis(raw):
+            answer_brief = "手がかりとしてかなり助かります。まずその見立てに近い箇所から確認します。"
+            hold_reason = "ログだけで断定はせず、共有いただいた見立てが原因に近いかを先に見ます。"
+        else:
+            answer_brief = "手がかりとしてかなり助かります。まずそのエラー周りから確認します。"
+            hold_reason = "ログだけで断定はせず、エラー内容が原因に近いかを先に見ます。"
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [
@@ -1070,8 +1334,28 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "手がかりとしてかなり助かります。まずその仮説から確認します。",
-                    "hold_reason": "ログだけで断定はせず、共有いただいた仮説が本当に原因かを先に見ます。",
+                    "answer_brief": answer_brief,
+                    "hold_reason": hold_reason,
+                    "revisit_trigger": "確認できたところまでを整理してお返しします。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "env_fix_recheck":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "環境変数を入れたのでこれで直るか確認してほしい", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "設定ありがとうございます。その変更で直る可能性はありますが、念のため他の要因が残っていないかも確認します。",
+                    "hold_reason": "いまは、設定反映後の挙動と他の要因が残っていないかを見ています。",
                     "revisit_trigger": "確認できたところまでを整理してお返しします。",
                 },
             ],
@@ -1257,16 +1541,19 @@ def build_case_from_source(source: dict) -> dict:
         return case
 
     if scenario == "live_secrets_pasted":
+        answer_brief = ".env やログイン情報などの値は広げず、このまま扱いません。以後はキー名やURLだけで大丈夫です。"
+        if any(marker in raw for marker in ["ログイン情報", "ログイン:", "ログイン："]) and any(marker in raw for marker in ["パスワード", "password", "パスワード:", "パスワード："]):
+            answer_brief = "ログイン情報やパスワードは広げず、このまま扱いません。以後はURLや項目名だけで大丈夫です。"
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [
-                {"id": "q1", "text": ".envの値を送ってしまった時にどうすればよいか", "priority": "primary"},
+                {"id": "q1", "text": "秘密値やログイン情報を送ってしまった時にどうすればよいか", "priority": "primary"},
             ],
             "answer_map": [
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": ".env や STRIPE_SECRET_KEY の値は広げず、このまま扱いません。以後はキー名だけで大丈夫です。",
+                    "answer_brief": answer_brief,
                 },
             ],
             "ask_map": [],
@@ -1326,6 +1613,24 @@ def build_case_from_source(source: dict) -> dict:
         }
         return case
 
+    if scenario == "external_share_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "Googleドライブのリンクで共有してよいか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "Googleドライブでの共有は使わず、今回の不具合に関係する範囲をこのトークルームで分けて送ってもらえれば大丈夫です。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
+        }
+        return case
+
     if scenario == "external_share_env_change":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1347,6 +1652,24 @@ def build_case_from_source(source: dict) -> dict:
             ],
             "ask_map": [],
             "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "late_info_share":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "特定商品だけ決済が通らない情報を先に共有しておいてよいか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "共有ありがとうございます。商品ID も受け取れています。明日、特定の商品だけ通らない条件差から確認します。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
         }
         return case
 
@@ -1565,7 +1888,11 @@ def reaction_line(case: dict) -> str:
             return "連絡が足りず不安にさせてしまいすみません。急ぎで確認したい状況とのこと、まず今見えているところから整理します。"
         if any(marker in case.get("raw_message", "") for marker in ["どうなってるんですか", "対応するかしないか", "まだ何も返事"]):
             return "お待たせしてすみません。連絡が止まってしまっていて、申し訳ありません。"
+        if any(marker in case.get("raw_message", "") for marker in ["心配になってきまして", "心配になってきた", "状況だけでも教えて", "安心します"]):
+            return "お待たせしてすみません。心配になりますよね。"
         return "連絡が足りず不安にさせてしまいすみません。まず今見えているところから整理します。"
+    if scenario == "progress_summary_request":
+        return "ありがとうございます。社内共有用に、いま見えている内容をまとめます。"
     if scenario == "mixed_status_timeline_fee":
         return "3点の確認、ありがとうございます。"
     if opening_move == "action_first":
@@ -1587,24 +1914,34 @@ def reaction_line(case: dict) -> str:
             return "率直に伝えていただいてありがとうございます。"
         return ""
     if scenario == "live_secrets_pasted":
-        return "秘密値を送ってしまった件、確認しました。"
+        return "共有いただいた秘密情報の件、承知しました。"
     if scenario == "cancel_request":
         return "キャンセルしたいとのこと、確認しました。"
     if scenario == "progress_anxiety":
         return "進みが見えにくくなっていてすみません。"
     if scenario == "repo_access_confirm":
         return "確認ありがとうございます。"
+    if scenario == "shared_log_privacy_concern":
+        return "気になる点として自然です。"
+    if scenario == "private_repo_access_question":
+        return "privateリポジトリの件、確認しました。"
     if scenario == "info_sufficiency_check":
         if "zip_already_sent" in (case.get("response_decision_plan") or {}).get("facts_known", []):
             return "コード一式の共有、確認しました。"
         return "気にかけていただいてありがとうございます。"
     if scenario == "received_materials_flow_check":
         return "進め方が見えにくい点、確認しました。"
+    if scenario == "screenshot_followup":
+        return None
     if scenario == "runtime_context_followup":
         return "補足ありがとうございます。"
+    if scenario == "advanced_investigation_followup":
+        return "ここまで調べていただいた件、確認しました。"
     if scenario == "evidence_offer_question":
         return "追加の手がかりありがとうございます。"
     if scenario == "suspected_cause_found":
+        if "signing secret is incorrect" in case.get("raw_message", "") or "signing secret" in case.get("raw_message", ""):
+            return "signing secret エラーの共有ありがとうございます。まずその署名まわりから確認します。"
         if "No signatures found matching the expected signature for payload" in case.get("raw_message", ""):
             return "signature エラーの共有ありがとうございます。"
         if "Webhook secret" in case.get("raw_message", ""):
@@ -1627,11 +1964,17 @@ def reaction_line(case: dict) -> str:
     if scenario == "test_support_question":
         return "確認ありがとうございます。"
     if scenario == "secret_handling_question":
-        return ".envや秘密値の扱いが気になっている件、確認しました。"
+        return "envファイルの件、大丈夫です。"
+    if scenario == "env_fix_recheck":
+        return "設定ありがとうございます。"
+    if scenario == "external_share_request":
+        return "容量の件、ありがとうございます。"
     if scenario == "external_api_shift":
         return "原因がStripe側ではなく、外部API側にありそうとのこと、確認しました。"
     if scenario == "external_share_env_change":
         return "Googleドライブ共有の件と、Vercelではなくさくらのレンタルサーバーとのこと、確認しました。"
+    if scenario == "late_info_share":
+        return "共有ありがとうございます。"
     if scenario == "multiple_new_issues":
         return "別のところも壊れた気がするとのこと、確認しました。"
     if scenario == "which_environment_screen":
@@ -1657,7 +2000,13 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "cancel_request":
         return "いまは、今回どこまで進んでいるかを先に確認しています。"
     if scenario == "progress_anxiety":
-        return None
+        if any(marker in raw for marker in ["売上が立ってない", "売上が立っていない", "クライアント", "決済エラーのせいで売上"]):
+            return "いまは、決済が止まっている箇所の切り分けを進めています。"
+        if any(marker in raw for marker in ["昨日お送りした件", "昨日送った件", "状況だけでも教えて", "心配になってきまして"]):
+            return "いまは、昨日いただいた内容をもとに原因の切り分けを進めています。"
+        return "いまは、原因の切り分けを進めています。"
+    if scenario == "progress_summary_request":
+        return "いまは、原因の切り分けを進めながら、見えている候補と次に見る点をまとめています。"
     if scenario == "repo_access_confirm":
         return None
     if scenario == "info_sufficiency_check":
@@ -1666,13 +2015,21 @@ def current_focus_line(case: dict) -> str | None:
         if "400エラー" in raw and "Webhook" in raw:
             return "いまは、本番だけで出ているWebhookの400エラーと環境変数まわりを優先して見ています。"
         return "いまは、ビルド時ではなく決済時だけ出る挙動を優先して見ています。"
+    if scenario == "env_fix_recheck":
+        return "いまは、設定反映後に挙動が安定しているかを見ています。"
+    if scenario == "diagnosis_pushback_followup":
+        return "いまは、環境変数だけに絞らず Vercel 側の環境差や参照先の変化も含めて見ています。"
+    if scenario == "advanced_investigation_followup":
+        return "いまは、requires_action の先で client-side 側の認証完了処理が止まっていないかを見ています。"
     if scenario == "missing_file_followup":
         return None
     if scenario == "suspected_cause_found":
         raw = case.get("raw_message", "")
-        if "No signatures found matching the expected signature for payload" in raw or "Webhook secret" in raw:
+        if any(marker in raw for marker in ["No signatures found matching the expected signature for payload", "Webhook secret", "signing secret is incorrect", "signing secret"]):
             return "いまは、その signature エラーと Webhook secret 周りから確認しています。"
-        return "いまは、共有いただいたログの仮説から確認しています。"
+        if has_explicit_hypothesis(raw):
+            return "いまは、共有いただいた見立てに近い箇所から確認しています。"
+        return "いまは、共有いただいたエラー周りから確認しています。"
     if scenario == "symptom_shift_after_user_edit":
         return "いまは、症状が変わった後のコードと現象を先に確認しています。"
     if scenario == "handoff_fix_addon":
@@ -1764,6 +2121,16 @@ def draft_opening_anchor(case: dict) -> str:
         return "\n".join(lines)
     if scenario == "timeline_anxiety":
         return "まず進み具合が伝わるところからお返しします。"
+    if scenario == "suspected_cause_found":
+        if any(marker in raw for marker in ["1ミリも意味が分かりません", "プログラミング歴3日目", "許してください"]):
+            return "ログありがとうございます。分からなくても大丈夫なので、そのまま見ていきます。"
+        if "signing secret is incorrect" in raw or "signing secret" in raw:
+            return "signing secret エラーの共有ありがとうございます。まずその署名まわりから確認します。"
+        if "No signatures found matching the expected signature for payload" in raw:
+            return "signature エラーの共有ありがとうございます。"
+        if "Webhook secret" in raw:
+            return "Webhook secret 周りの手がかり共有ありがとうございます。"
+        return "原因らしき手がかりを見つけていただいてありがとうございます。"
     if scenario == "extra_scope_question":
         return f"{extra_scope_subject(raw)}の件、確認しました。"
     if scenario == "extra_fee_anxiety":
@@ -1782,10 +2149,16 @@ def draft_opening_anchor(case: dict) -> str:
         if "Vercel" in raw and ("プラン変え" in raw or "プラン変更" in raw):
             return "Vercelのプラン変更も共有ありがとうございます。"
         return "Vercelのデプロイ自体は通っていて、決済時だけエラーが出るとのこと、確認しました。"
+    if scenario == "diagnosis_pushback_followup":
+        return "その点はもっともです。"
     if scenario == "missing_file_followup":
         return "抜けていたファイルの件、確認しました。"
     if scenario == "secret_handling_question":
-        return ".envや秘密値の扱いが気になっている件、確認しました。"
+        return "envファイルの件、大丈夫です。"
+    if scenario == "shared_log_privacy_concern":
+        return "気になる点として自然です。"
+    if scenario == "env_fix_recheck":
+        return "設定ありがとうございます。"
     if scenario == "external_api_shift":
         return "外部API側の件、確認しました。"
     if scenario == "repo_access_confirm":
@@ -1812,6 +2185,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "GitHub招待とスクショ共有の件、確認しました。"
     if scenario == "received_materials_flow_check":
         return "昨日のログとスクショの件、確認しました。"
+    if scenario == "screenshot_followup":
+        return "スクショありがとうございます。"
     if scenario == "keys_shared":
         return "キー名の共有、確認しました。"
     return reaction_line(case)
@@ -1848,7 +2223,20 @@ def draft_body_paragraphs(case: dict) -> list[str]:
 
     if scenario == "progress_anxiety":
         _append_unique(paragraphs, direct_answer)
-        _append_unique(paragraphs, "確認できているところから先にお伝えします。")
+        if focus_line:
+            _append_unique(paragraphs, focus_line)
+        return paragraphs
+    if scenario == "progress_summary_request":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    focus_line or "",
+                    "社内共有に使いやすい形で、現時点の見立てと次に見る点をまとめてお送りします。",
+                ]
+            ),
+        )
         return paragraphs
 
     if scenario == "mixed_status_timeline_fee":
@@ -1868,6 +2256,18 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         _append_unique(paragraphs, _paragraph_from_lines([direct_answer, quote_progress_line(case.get("raw_message", "")), focus_line]))
         return paragraphs
 
+    if scenario == "diagnosis_pushback_followup":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    focus_line,
+                ]
+            ),
+        )
+        return paragraphs
+
     if scenario == "delay_complaint_refund":
         _append_unique(
             paragraphs,
@@ -1882,6 +2282,8 @@ def draft_body_paragraphs(case: dict) -> list[str]:
 
     if scenario == "extra_scope_question":
         extra_scope_fee_line = next((item["answer_brief"] for item in secondary_after if item.get("answer_brief")), "")
+        if "お問い合わせフォーム" in raw or "Resend" in raw:
+            extra_scope_fee_line = "作業時間の長短にかかわらず、今回と別原因なら別の相談としてご案内します。"
         _append_unique(paragraphs, _paragraph_from_lines([direct_answer, extra_scope_fee_line]))
         if blocking_missing_facts:
             request_target = extra_scope_request_target(case.get("raw_message", ""))
@@ -1911,6 +2313,18 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         )
         return paragraphs
 
+    if scenario == "screenshot_followup":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "もし画面の文字を拾えそうなら、出ているエラーメッセージを1行だけそのまま送ってもらえると確認が早くなります。",
+                ]
+            ),
+        )
+        return paragraphs
+
     if scenario == "runtime_context_followup":
         lines = [direct_answer]
         if "環境変数" in raw and ("400エラー" in raw or "Webhook" in raw):
@@ -1918,6 +2332,19 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         if focus_line:
             lines.append(focus_line)
         _append_unique(paragraphs, _paragraph_from_lines(lines))
+        return paragraphs
+
+    if scenario == "advanced_investigation_followup":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "requires_action で止まっていて payment_intent.requires_action まで見えているなら、次は client-side の handleCardAction 周りを優先して確認します。",
+                    focus_line or "",
+                ]
+            ),
+        )
         return paragraphs
 
     if scenario == "info_sufficiency_check":
@@ -1934,6 +2361,18 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 [
                     direct_answer,
                     "その時点までの確認が無駄になる前提ではなく、追加で受け取った内容を含めて基準をそろえ直します。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "shared_log_privacy_concern":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "気になる場合は、該当箇所を伏せた形で送り直してもらっても大丈夫です。",
                 ]
             ),
         )
@@ -2038,6 +2477,18 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         )
         return paragraphs
 
+    if scenario == "private_repo_access_question":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "GitHub側で閲覧できる形にしてもらうか、難しければ今回の不具合に関係する範囲をZIPで共有いただければ大丈夫です。",
+                ]
+            ),
+        )
+        return paragraphs
+
     if scenario == "keys_shared":
         _append_unique(paragraphs, direct_answer)
         return paragraphs
@@ -2049,7 +2500,19 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 [
                     direct_answer,
                     "該当メッセージを編集や削除できる状態なら、先にそうしてください。",
-                    "あわせて、そのキーは後で再発行しておくのが安全です。",
+                    "必要なら、キーやパスワードは後で再設定しておくのが安全です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "env_fix_recheck":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    focus_line or "",
                 ]
             ),
         )

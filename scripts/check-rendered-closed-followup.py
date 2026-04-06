@@ -156,6 +156,8 @@ def lint_case(module, source: dict) -> list[str]:
     if "新しい機能" in raw or "クーポン機能" in raw or "Invoice" in raw or "請求書" in raw:
         if not has_any(rendered, ["範囲ではありません", "機能追加"]):
             errors.append("new feature request is not declined clearly")
+        if not has_any(rendered, ["別の相談として整理", "別の相談", "整理する形"]):
+            errors.append("new feature request is missing an alternative path after declining")
 
     if scenario == "new_issue_repeat_client":
         if not has_any(rendered, ["確認できます", "見積りできます"]):
@@ -177,6 +179,11 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("closed price complaint did not receive the buyer's `納得いかない` feeling")
     if scenario == "feedback_for_next_time" and "問題なかった" in raw and not has_any(rendered, ["問題なかった", "ありがとうございます"]):
         errors.append("closed feedback case dropped the buyer's positive result acknowledgment")
+    if scenario == "referral_and_soft_new_issue":
+        if not has_any(rendered, ["紹介", "ご相談いただいて大丈夫"]):
+            errors.append("referral follow-up did not acknowledge the introduction clearly")
+        if not has_any(rendered, ["見積りできます", "新しい相談"]):
+            errors.append("referral follow-up did not guide the soft new issue clearly")
     if scenario == "generic_closed" and has_any(
         raw,
         [
@@ -204,6 +211,8 @@ def lint_case(module, source: dict) -> list[str]:
             "API Route",
             "Invoice",
             "請求書",
+            "紹介してもいいですか",
+            "メルマガ",
         ],
     ):
         errors.append("generic_closed fallback survived a concrete closed follow-up request")

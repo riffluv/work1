@@ -100,7 +100,7 @@ def lint_case(module, source: dict) -> list[str]:
         if not hard_constraints.get("ask_only_if_blocking"):
             errors.append("hard_constraints lost ask_only_if_blocking")
 
-    if not has_any(rendered, ["ありがとうございます", "確認しました", "大丈夫です", "承知しました", "お待たせ", "すみません"]):
+    if not has_any(rendered, ["ありがとうございます", "確認しました", "大丈夫です", "承知しました", "お待たせ", "すみません", "よかったです"]):
         errors.append("missing brief reaction at the top")
     if has_near_echo(rendered):
         errors.append("near_echo_check failed: adjacent sections still overlap too much")
@@ -150,6 +150,21 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("approval test method case does not answer the safe pre-approval test method clearly")
         if has_any(rendered, ["本番で試してください", "購入して試して"]):
             errors.append("approval test method case pushes a real production test")
+    if scenario == "webhook_log_howto":
+        if not has_any(rendered, ["開発者", "Webhooks", "ダッシュボード"]):
+            errors.append("webhook log how-to case does not tell the buyer where to look in Stripe dashboard")
+        if not has_any(rendered, ["イベント", "送信結果", "レスポンス"]):
+            errors.append("webhook log how-to case does not explain what can be seen there")
+    if scenario == "review_content_question":
+        if not has_any(rendered, ["技術的な内容", "大丈夫"]):
+            errors.append("review content question does not answer the yes/no review scope directly")
+        if has_any(rendered, ["レビューお願いします", "書いてください"]):
+            errors.append("review content question turns into a review solicitation")
+    if scenario == "formal_thanks_only":
+        if not has_any(rendered, ["ご丁寧にありがとうございます", "何よりです"]):
+            errors.append("formal thanks case does not return the buyer's polite tone naturally")
+        if not has_any(rendered, ["また何かあれば", "ご相談ください"]):
+            errors.append("formal thanks case does not close politely after the thank-you")
     if scenario == "pending_webhook_events":
         if "保留中" not in rendered:
             errors.append("pending webhook events case does not mention 保留中 directly")
@@ -157,11 +172,20 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("pending webhook events case does not explain what is being checked")
     if scenario == "prevention_question" and not has_any(rendered, ["再発", "起きにくく", "可能性"]):
         errors.append("prevention case does not answer recurrence directly")
+    if scenario == "future_breakage_reassurance" and "今の時点で" in rendered and "今の動き" in rendered:
+        errors.append("future breakage reassurance still repeats the same `今の...` framing too closely")
     if scenario == "doc_caution_followup":
         if "環境変数" not in rendered:
             errors.append("doc caution follow-up does not mention environment variables directly")
         if not has_any(rendered, ["急ぎで", "今のところ"]):
             errors.append("doc caution follow-up does not lower the urgency explicitly")
+    if scenario == "signing_secret_rotation_recurrence":
+        if not has_any(rendered, ["再発", "同じこと"]):
+            errors.append("signing secret rotation case does not answer recurrence directly")
+        if not has_any(rendered, ["signing secret", "secret"]):
+            errors.append("signing secret rotation case does not mention the secret directly")
+        if not has_any(rendered, ["Webhook", "設定", "そろえて", "同じ新しいもの"]):
+            errors.append("signing secret rotation case does not explain how to avoid recurrence")
     if (
         scenario == "side_effect_question"
         and has_any(raw, ["体感", "気のせい", "不具合ってほどではない"])
@@ -175,8 +199,15 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("soft side-effect probe still carries a time commitment")
         if "承諾" not in rendered:
             errors.append("soft side-effect probe does not answer approval directly")
+    if scenario == "deliverable_share_permission" and not has_any(rendered, ["社内共有", "そのまま", "大丈夫"]):
+        errors.append("deliverable share permission case does not answer the share/forward question directly")
     if scenario == "side_effect_question" and "Webhook" in raw and "出なくなりました" in raw and not has_any(rendered, ["よかった", "出なくなった"]):
         errors.append("side-effect follow-up dropped acknowledgment that the webhook error is now gone")
+    if scenario == "side_effect_question" and has_any(raw, ["修正前は問題なかった", "今回の修正が影響", "今回の修正の影響", "修正後に別の問題"]):
+        if not has_any(rendered, ["今回の修正の影響も含めて確認します", "修正後の差分", "今回の修正との関係"]):
+            errors.append("post-fix regression report does not show ownership of checking our own change")
+        if not has_any(rendered, ["Webhookの受信は直った", "Webhookの受信は確認でき", "Webhookのエラーが出なくなった"]):
+            errors.append("post-fix regression report dropped the acknowledgment that the original fix worked")
     if scenario == "delivery_scope_mismatch" and not has_any(rendered, ["期待と違っていた", "認識差", "差し戻し"]):
         errors.append("delivery mismatch complaint is not acknowledged clearly")
     if scenario == "delivery_scope_mismatch" and "診断レポートだけ" in raw and "診断レポート" not in rendered:
@@ -217,6 +248,16 @@ def lint_case(module, source: dict) -> list[str]:
             "保留中",
             "どのくらいの作業量",
             "自分でも直せた可能性",
+            "まじで直ってる",
+            "神です",
+            "嘘みたい",
+            "社内のエンジニア",
+            "そのまま転送",
+            "転送しちゃって",
+            "納品物の内容",
+            "Webhookのログ",
+            "自分で見る方法",
+            "自分でも確認できる",
         ],
     ):
         errors.append("generic_delivered fallback survived a concrete delivered follow-up request")

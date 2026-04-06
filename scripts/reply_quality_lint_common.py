@@ -6,6 +6,10 @@ import re
 
 STYLE_RULES: list[tuple[re.Pattern[str], str]] = [
     (
+        re.compile(r"日本語が少し整理しきれていない"),
+        "rendered text comments on the buyer's Japanese ability",
+    ),
+    (
         re.compile(r"(?:1つ|1点)だけ(?:そのまま)?(?:教えて|送って)ください"),
         "rendered text still uses the fixed `1つだけ` ask pattern",
     ),
@@ -24,6 +28,10 @@ STYLE_RULES: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(r"(?:共有します|共有が少なくて|共有を入れます)"),
         "rendered text still uses PM-style `共有` wording",
+    ),
+    (
+        re.compile(r"大丈夫です。[\s\n]+大丈夫です。"),
+        "rendered text still repeats `大丈夫です` too closely",
     ),
 ]
 
@@ -135,6 +143,35 @@ def _split_sections(rendered: str) -> list[str]:
     if current:
         sections.append("\n".join(current))
     return sections
+
+
+def _common_prefix_len(left: str, right: str) -> int:
+    count = 0
+    for lch, rch in zip(left, right):
+        if lch != rch:
+            break
+        count += 1
+    return count
+
+
+def _has_adjacent_near_echo(rendered: str) -> bool:
+    sections = _split_sections(rendered)
+    for left, right in zip(sections, sections[1:]):
+        nl = _normalized_text(left)
+        nr = _normalized_text(right)
+        if not nl or not nr:
+            continue
+        shorter = min(len(nl), len(nr))
+        if shorter < 12:
+            continue
+        if nl in nr or nr in nl:
+            return True
+        prefix_len = _common_prefix_len(nl, nr)
+        if prefix_len >= 12 and prefix_len / shorter >= 0.55:
+            return True
+    return False
+
+
 
 
 def _iter_texts(rendered: str, slot_values: dict[str, str] | None = None) -> list[str]:
@@ -275,6 +312,19 @@ def collect_reasoning_preservation_errors(
         if direct_answer_line and _is_procedural_direct_answer(direct_answer_line) and not _contains_money_anchor(direct_answer_line):
             errors.append("direct answer line is still procedural for a money-related question")
 
+    if "先にお伝えします" in rendered:
+        concrete_markers = [
+            "いまは、",
+            "現時点では",
+            "昨日いただいた内容をもとに",
+            "原因の切り分けを進めています",
+            "切り分け中",
+            "見えている候補",
+            "次に見る点",
+        ]
+        if not any(marker in rendered for marker in concrete_markers):
+            errors.append("rendered text promises `先にお伝えします` without concrete status detail")
+
     return list(dict.fromkeys(errors))
 
 
@@ -283,6 +333,8 @@ def collect_quality_style_errors(rendered: str) -> list[str]:
     for pattern, message in STYLE_RULES:
         if pattern.search(rendered):
             errors.append(message)
+    if _has_adjacent_near_echo(rendered):
+        errors.append("rendered text still has near-echo across adjacent sections")
     return errors
 
 

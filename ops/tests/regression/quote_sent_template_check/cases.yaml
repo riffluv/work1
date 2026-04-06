@@ -24,7 +24,7 @@ cases:
       - 確認できます
 
   - case_id: QTPL-003
-    expected_scenario: general_bugfix_scope_question
+    expected_scenario: browser_vs_code_question
     raw_message: |
       はじめまして。非エンジニアです。Bubble.ioでマッチングアプリを作っていて、Stripeの決済プラグインを使ってるんですが、iOSのSafariだけ決済画面が開かないという報告を3人のユーザーからもらいました。Androidは問題ないです。Bubbleのフォーラムにも同じ症状の人がいるんですが、解決してるっぽい人が見当たらなくて。
     required_context_markers_any:

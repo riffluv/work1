@@ -51,6 +51,13 @@ def body_signature(rendered: str) -> str:
     return "\n".join(normalize(paragraph) for paragraph in target if paragraph.strip())
 
 
+def direct_answer_signature(rendered: str) -> str:
+    paragraphs = [paragraph.strip() for paragraph in rendered.split("\n\n") if paragraph.strip()]
+    if len(paragraphs) < 2:
+        return ""
+    return normalize(paragraphs[1].splitlines()[0].strip())
+
+
 def build_report_text(
     started_at: datetime,
     case_results: list[dict],
@@ -99,6 +106,7 @@ def main() -> int:
     case_results: list[dict] = []
     errors: list[str] = []
     signatures: dict[str, list[str]] = defaultdict(list)
+    direct_signatures: dict[str, list[str]] = defaultdict(list)
 
     for item in cases:
         source = {
@@ -131,10 +139,14 @@ def main() -> int:
             errors.append(f"{item['case_id']}: missing required support pickup")
 
         signatures[body_signature(rendered)].append(item["case_id"])
+        direct_signatures[direct_answer_signature(rendered)].append(item["case_id"])
 
     duplicate_groups = [group for group in signatures.values() if len(group) >= 3]
     for group in duplicate_groups:
         errors.append(f"body_signature duplicated across {len(group)} cases: {', '.join(group)}")
+    duplicate_direct_groups = [group for key, group in direct_signatures.items() if key and len(group) >= 3]
+    for group in duplicate_direct_groups:
+        errors.append(f"direct_answer_signature duplicated across {len(group)} cases: {', '.join(group)}")
 
     report_text = build_report_text(started_at, case_results, duplicate_groups, errors)
     if args.save_report:

@@ -66,17 +66,82 @@ def load_service_grounding() -> dict:
         "same_cause_followup_rule": "トークルームが開いている間に同じ原因の範囲で詰まる点があれば、その範囲は基本料金内で確認します。",
         "no_secret_share_rule": "evt_... やログ、設定画面の見える範囲で確認できます。",
         "text_only_support_rule": "スクショや短い箇条書きで送っていただければ大丈夫です。",
+        "capability": facts.get("capability") or {},
+        "diagnostic_patterns": facts.get("diagnostic_patterns") or [],
     }
 
 
 SERVICE_GROUNDING = load_service_grounding()
 
 
+def classify_capability_fit(raw: str) -> tuple[str, str | None]:
+    capability = SERVICE_GROUNDING.get("capability") or {}
+
+    for entry in capability.get("out_of_scope_or_review") or []:
+        markers = entry.get("markers") or []
+        if any(marker in raw for marker in markers):
+            return "out_of_scope_or_review", entry.get("id")
+
+    for entry in capability.get("cautious_fit") or []:
+        markers = entry.get("markers") or []
+        if any(marker in raw for marker in markers):
+            return "cautious_fit", entry.get("id")
+
+    for entry in capability.get("strong_fit") or []:
+        markers = entry.get("markers") or []
+        if any(marker in raw for marker in markers):
+            return "strong_fit", entry.get("id")
+
+    return "unknown", None
+
+
+def classify_diagnostic_patterns(raw: str) -> list[dict]:
+    patterns = SERVICE_GROUNDING.get("diagnostic_patterns") or []
+    matched: list[dict] = []
+    for entry in patterns:
+        markers = entry.get("markers") or []
+        if any(marker in raw for marker in markers):
+            matched.append(entry)
+    return matched
+
+
+def diagnostic_priority_line(raw: str) -> str:
+    pattern_ids = [entry.get("id") for entry in classify_diagnostic_patterns(raw)]
+    if "prod_only_failure" in pattern_ids and "partial_or_branch_failure" in pattern_ids:
+        return "まずは本番だけ出る環境差に加えて、プランや条件ごとの差を優先して見ます。"
+    if "browser_specific_failure" in pattern_ids and "mobile_sdk_platform_gap" in pattern_ids:
+        return "まずは Android 実機と iOS の差に加えて、モバイルSDK側のコールバック処理を優先して見ます。"
+    if "database_persistence_gap" in pattern_ids:
+        return "まずは Webhook 受信後の保存処理と DB 書き込み経路を優先して見ます。"
+    if "mobile_sdk_platform_gap" in pattern_ids:
+        return "まずはモバイルSDK差と端末差を優先して見ます。"
+    if "prod_only_failure" in pattern_ids:
+        return "まずは環境差と環境変数まわりを優先して見ます。"
+    if "partial_or_branch_failure" in pattern_ids:
+        return "まずは条件差や商品ごとの設定差を優先して見ます。"
+    if "intermittent_or_time_window" in pattern_ids:
+        return "まずは発生条件や時間帯の偏りを優先して見ます。"
+    if "browser_specific_failure" in pattern_ids:
+        return "まずは端末差やブラウザ差を優先して見ます。"
+    if "subscription_change_overlap" in pattern_ids:
+        return "まずはプラン変更時の請求処理の流れを優先して見ます。"
+    if "connect_transfer_path" in pattern_ids:
+        return "まずは入金から送金までの経路差を優先して見ます。"
+    return ""
+
+
 def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
+    if scenario == "discount_request":
+        plan = shared.build_temperature_plan(source, case_type="boundary")
+        plan["opening_move"] = "react_briefly"
+        return plan
     if scenario in {
         "proposal_change",
         "purchase_timing",
         "reissue_quote",
+        "prequote_extra_signal",
+        "service_comparison_refund_question",
+        "service_comparison_strength_question",
         "risk_refund_question",
         "payment_method",
         "dashboard_scope_question",
@@ -87,6 +152,9 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
         "private_repo_share_question",
         "zip_share_question",
         "multi_symptom_same_cause_scope_question",
+        "scope_constraints_question",
+        "mixed_scope_fee_question",
+        "browser_vs_code_question",
         "code_vs_setting_scope_question",
         "subscription_bug_scope_question",
         "general_bugfix_scope_question",
@@ -95,8 +163,17 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
         "checkout_not_opening_scope_question",
         "service_interruption_anxiety",
         "price_trust_question",
+        "discount_request",
+        "self_try_webhook_test_question",
         "response_speed_anxiety",
         "stage_only_before_fix_question",
+        "feature_addition_scope_question",
+        "outline_share_permission_question",
+        "auth_boundary_scope_question",
+        "provider_unknown_scope_question",
+        "cause_and_prevention_scope_question",
+        "ai_fix_failure_reassurance_question",
+        "price_not_found_self_fix_question",
         "generic_quote_sent",
     }:
         return shared.build_temperature_plan(source, case_type="boundary")
@@ -108,102 +185,274 @@ def opener_for(source: dict) -> str:
 
 
 def purchase_closing(scenario: str, raw: str) -> str:
+    if scenario == "discount_request":
+        return "この条件で問題なければ、ご購入をご検討ください。"
+    if scenario == "self_try_webhook_test_question":
+        return ""
+    if scenario == "prequote_extra_signal":
+        return "この前提でよければ、そのままご購入へ進めてください。"
+    if scenario == "service_comparison_refund_question":
+        return "内容に違和感がなければ、そのままご購入へ進めてください。"
+    if scenario == "service_comparison_strength_question":
+        return "内容が合いそうなら、そのままご購入をご検討ください。"
+    if scenario == "risk_refund_question":
+        return "この条件で進める形でもよければ、ご購入をご検討ください。"
     if scenario == "general_bugfix_scope_question":
+        if any(marker in raw for marker in ["機会損失", "取りこぼして", "毎日だいたい", "注文が来る"]):
+            return "急ぎの前提でよければ、そのままご購入へ進めてください。"
         if any(marker in raw for marker in ["Bubble", "非エンジニア", "手探り"]):
-            return "この進め方で問題なければ、そのままご購入いただいて大丈夫です。"
+            return "この進め方でよければ、そのままご購入へ進めてください。"
         if any(marker in raw for marker in ["Shopify", "Liquid", "0円", "カート情報"]):
-            return "問題なければ、そのままご購入いただければ大丈夫です。"
+            return "問題なければ、そのままご購入ください。"
         if any(marker in raw for marker in ["Connect", "Destination Charge", "送金が動いていない", "送金が動いていません"]):
-            return "この内容で問題なければ、そのままご購入いただいて大丈夫です。"
+            return "この内容でよければ、そのままご購入へ進めてください。"
         if any(marker in raw for marker in ["本番", "テスト", "タイムアウト", "時間帯だけ", "深夜"]):
-            return "内容が合えば、そのままご購入いただいて大丈夫です。"
+            return "内容が合いそうであれば、そのままご購入へ進めてください。"
+        return "この範囲でよければ、そのままご購入へ進めてください。"
     if scenario in {"subscription_bug_scope_question", "checkout_not_opening_scope_question"}:
-        return "この内容で問題なければ、そのままご購入いただければ大丈夫です。"
+        return "この範囲感で問題なければ、そのままご購入ください。"
     if scenario == "multi_symptom_same_cause_scope_question":
-        return "問題なければ、このままご購入いただければ大丈夫です。"
+        return "問題なければ、このままご購入へ進めてください。"
+    if scenario == "scope_constraints_question":
+        return "この範囲で問題なければ、そのままご購入へ進めてください。"
+    if scenario == "mixed_scope_fee_question":
+        return "切り分け方で問題なければ、そのままご購入へ進めてください。"
+    if scenario == "browser_vs_code_question":
+        return "その前提でよければ、そのままご購入へ進められます。"
     if scenario == "service_interruption_anxiety":
-        return "問題なければ、そのままご購入いただいて進められます。"
+        return "問題なければ、そのままご購入へ進められます。"
     if scenario == "secret_key_value_question":
-        return "問題なければ、そのままご購入いただければ大丈夫です。"
+        return "問題なければ、そのままご購入へ進めてください。"
     if scenario == "zip_share_question":
         return "問題なければ、そのままご購入後にZIPで共有いただければ大丈夫です。"
     if scenario == "price_trust_question":
-        return "この内容で問題なければ、そのままご購入いただければ問題ありません。"
+        return "内容に違和感がなければ、そのままご購入ください。"
     if scenario == "response_speed_anxiety":
-        return "この前提で問題なければ、そのままご購入いただければ大丈夫です。"
+        return "この前提でよければ、そのままご購入へ進めてください。"
     if scenario == "stage_only_before_fix_question":
         return "問題なければ、そのまま進め方をそろえてご案内できます。"
+    if scenario == "feature_addition_scope_question":
+        return ""
+    if scenario == "outline_share_permission_question":
+        return ""
+    if scenario == "auth_boundary_scope_question":
+        return "切り分けの進め方で問題なければ、そのままご購入へ進めてください。"
+    if scenario == "provider_unknown_scope_question":
+        return ""
+    if scenario == "ai_fix_failure_reassurance_question":
+        return "問題なければ、そのままご購入へ進めてください。"
+    if scenario == "price_not_found_self_fix_question":
+        return ""
     if scenario == "can_you_fix_direct":
-        return "問題なければ、そのままご購入いただければ大丈夫です。"
+        return "問題なければ、そのままご購入へ進めてください。"
     if "内容" in raw:
-        return "この内容で問題なければ、そのままご購入いただいて大丈夫です。"
-    return "この前提で問題なければ、そのままご購入いただいて大丈夫です。"
+        return "この内容でよければ、そのままご購入へ進めてください。"
+    return "この前提でよければ、そのままご購入へ進めてください。"
 
 
 def subscription_scope_detail_line(raw: str) -> str:
+    priority = diagnostic_priority_line(raw)
     if (
         any(marker in raw for marker in ["Laravel", "Cashier", "SDK"])
         and any(marker in raw for marker in ["プラン変更", "アップグレード", "旧プラン", "新プラン"])
     ):
-        return "購入後に、Laravel で SDK を直接使っている前提も含めて、アップグレード時の請求の重なりを優先して確認します。"
+        detail = "購入後に、Laravel で SDK を直接使っている前提も含めて、アップグレード時の請求の重なりを優先して確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["プラン変更", "アップグレード", "旧プラン", "新プラン"]):
-        return "購入後に、プラン変更時だけ起きる請求の重なりかどうかを優先して確認して進めます。"
+        detail = "購入後に、プラン変更時だけ起きる請求の重なりかどうかを優先して確認して進めます。"
+        return f"{detail}\n{priority}".strip()
     if "解約" in raw and "請求" in raw:
-        return "購入後に、解約後も請求が走るような症状かどうかを優先して確認して進めます。"
-    return "購入後に、影響が大きい症状でも優先して状況を確認して進めます。"
+        detail = "購入後に、解約後も請求が走るような症状かどうかを優先して確認して進めます。"
+        return f"{detail}\n{priority}".strip()
+    detail = "購入後に、影響が大きい症状でも優先して状況を確認して進めます。"
+    return f"{detail}\n{priority}".strip()
 
 
 def subscription_scope_support_line(raw: str) -> str:
+    if any(marker in raw for marker in ["1件分の料金", "収まりますか", "料金で収まりますか", "15,000円", "15000円", "もっとかかりますか", "済みますか"]):
+        if any(marker in raw for marker in ["音沙汰なし", "信用するのが怖い", "何も解決しませんでした"]):
+            return "別原因まで広がる場合だけ、その時点で事前にご相談します。確認できたところは止めずに順にお返しします。"
+        return "別原因まで広がる場合だけ、その時点で事前にご相談します。"
     if any(marker in raw for marker in ["ドキュメント通り", "やったつもり"]):
         return "ドキュメント通りに進めていても起きうるので、その前提で切り分けます。"
+    if any(marker in raw for marker in ["音沙汰なし", "信用するのが怖い", "何も解決しませんでした"]):
+        return "進め方が見えにくくならないよう、確認できたところから順にお返しします。"
     return ""
 
 
 def general_bugfix_direct_answer_line(raw: str) -> str:
-    if any(marker in raw for marker in ["Shopify", "Liquid", "0円", "カート情報"]):
-        return "はい、Shopify と Stripe のつなぎ込みで起きている不具合でも確認できます。"
+    fit_level, _ = classify_capability_fit(raw)
+    can_start = "まず確認できます" if fit_level == "cautious_fit" else "確認できます"
+    if any(marker in raw for marker in ["Stripe も見てもらえるんですよね", "Stripeも見てもらえるんですよね", "Stripe も見てもらえる", "Stripeも見てもらえる"]):
+        return f"Stripe を含む決済導線も今回のサービスで{can_start}。"
+    if any(marker in raw for marker in ["機会損失", "取りこぼして", "毎日だいたい", "注文が来る"]) and any(
+        marker in raw for marker in ["対応可能", "対応可能ですか", "早めに直したい"]
+    ):
+        return f"売上影響が出ている決済停止でも、{can_start}。"
+    if any(marker in raw for marker in ["Webフック", "ウェブソケット", "APIキーが合わない", "認証トークン"]) and "Stripe" in raw:
+        return f"Webhook の署名まわりで止まっている症状でも、{can_start}。"
+    if any(marker in raw for marker in ["thanks ページ", "success URL", "success ページ"]) and any(marker in raw for marker in ["遷移しない", "戻される", "崩れる"]):
+        return f"決済完了後の画面表示トラブルでも、{can_start}。"
+    if "カート" in raw and any(marker in raw for marker in ["決済後に消えない", "消えない症状", "残る症状", "残って"]) :
+        return f"決済後の状態更新が崩れている症状でも、{can_start}。"
+    if (
+        any(marker in raw for marker in ["15,000円", "15000円", "15,000", "15000"])
+        and "Checkout" in raw
+        and any(marker in raw for marker in ["無理そうだったら", "正直に言って", "プロの目で"])
+    ):
+        return f"Checkout が途中で止まる症状なら、まず {SERVICE_GROUNDING['fee_text']} の範囲で見られるか確認できます。"
+    if any(marker in raw for marker in ["15,000円", "15000円", "15,000", "15000"]) and any(
+        marker in raw for marker in ["可能ですか", "可能でしょうか", "可能ですか？", "可能でしょうか？"]
+    ):
+        return f"今回の不具合1件の範囲なら {SERVICE_GROUNDING['fee_text']} でまず確認できます。"
+    if any(marker in raw for marker in ["見てもらうことって可能でしょうか", "見てもらえる感じですか", "見てもらえたりしますか"]) and "Stripe" in raw:
+        return "Stripe の決済まわりで困っている段階でも、まず相談できます。"
+    if ("http://" in raw or "https://" in raw) and any(marker in raw for marker in ["直せますか", "動かないです"]):
+        return "Stripe 決済の不具合でしたら、確認できます。"
+    if any(marker in raw for marker in ["直せますか", "修正できますか"]) and "Stripe" in raw:
+        return f"Stripe の決済まわりの不具合でも、{can_start}。"
+    if any(marker in raw for marker in ["昨日までは", "今朝から", "急にエラー", "急に"]) and "決済" in raw:
+        return f"急に出始めた決済エラーでも、{can_start}。"
+    if any(marker in raw for marker in ["Checkout", "success ページ", "画面が真っ白", "/checkout に戻される"]):
+        return f"決済完了後の画面表示トラブルでも、{can_start}。"
+    if any(marker in raw for marker in ["Prisma", "PlanetScale", "注文テーブル", "書き込み"]) and "Webhook" in raw:
+        return f"Webhook は届いているのに注文反映が止まる症状でも、{can_start}。"
+    if any(marker in raw for marker in ["Vercel", "本番"]) and "500エラー" in raw:
+        return f"Vercel の本番でだけ 500 エラーになる症状でも、{can_start}。"
+    if any(marker in raw for marker in ["Vercel", "serverless functions", "10秒制限"]) and "Webhook" in raw:
+        return f"Vercel のタイムアウトが疑われる Webhook 停止でも、{can_start}。"
+    if any(marker in raw for marker in ["React Native", "stripe-react-native", "@stripe/stripe-react-native"]):
+        return f"React Native の Stripe 決済まわりでも、{can_start}。"
+    if any(marker in raw for marker in ["Shopify", "Liquid"]):
+        return f"Shopify と Stripe のつなぎ込みで起きている不具合でも、{can_start}。"
     if any(marker in raw for marker in ["Bubble", "決済プラグイン"]) and any(marker in raw for marker in ["Safari", "iOS"]):
-        return "はい、Bubble.io の決済プラグインまわりでも確認できます。"
+        return f"Bubble.io の決済プラグインまわりでも、{can_start}。"
     if any(marker in raw for marker in ["Connect", "Destination Charge", "送金が動いていない", "送金が動いていません"]):
-        return "はい、Stripe Connect の送金まわりでも確認できます。"
+        return f"Stripe Connect の送金まわりでも、{can_start}。"
+    if "payment_intent.succeeded" in raw and any(marker in raw for marker in ["Webhook", "届かなく", "届いていません"]):
+        return f"payment_intent.succeeded の Webhook が届かない症状でも、{can_start}。"
+    if any(marker in raw for marker in ["メールが行かない", "メールが届かない", "完了メールが届かない"]) and any(
+        marker in raw for marker in ["支払い", "決済", "Stripe"]
+    ):
+        return f"決済完了後のメール通知トラブルでも、{can_start}。"
     if any(marker in raw for marker in ["Nuxt", "Nginx", "VPS", "タイムアウト", "時間帯だけ", "深夜"]):
-        return "はい、Stripe の Webhook が不安定になる症状でも確認できます。"
-    return "はい、Stripeや決済まわりの不具合であれば、このサービスでまず確認できます。"
+        return f"Stripe の Webhook が不安定になる症状でも、{can_start}。"
+    return f"Stripe や決済まわりの不具合なら、このサービスで{can_start}。"
 
 
 def general_bugfix_scope_detail_line(raw: str) -> str:
+    priority = diagnostic_priority_line(raw)
+    if any(marker in raw for marker in ["Webフック", "ウェブソケット", "APIキーが合わない", "認証トークン"]) and "Stripe" in raw:
+        return "購入後に、Webhook の署名設定や検証まわりでどこがずれているかを確認します。"
+    if any(marker in raw for marker in ["thanks ページ", "success URL", "success ページ"]) and any(
+        marker in raw for marker in ["遷移しない", "戻される", "崩れる"]
+    ):
+        detail = "購入後に、thanks ページへ進まず戻り先が崩れる条件と、本番環境だけで出る差を確認します。"
+        if "payment_intent.succeeded" in raw:
+            detail = f"{detail}\nStripe 側で payment_intent.succeeded になっている前提も含めて、戻り先でどこが崩れているかを確認します。"
+        return detail
+    if any(marker in raw for marker in ["success ページ", "/checkout に戻される"]) and any(
+        marker in raw for marker in ["本番", "localhost", "payment_intent", "succeeded", "Vercel"]
+    ):
+        detail = "購入後に、success ページへ進まず /checkout に戻る再現条件と、本番環境だけで出る差を確認します。"
+        if "payment_intent.succeeded" in raw:
+            detail = f"{detail}\nStripe 側で payment_intent.succeeded になっている前提も含めて、戻り先でどこが崩れているかを確認します。"
+        return detail
+    if "カート" in raw and "消えない" in raw and "決済後" in raw:
+        detail = "購入後に、決済後の状態更新でカートが残る条件と、その後の画面遷移を確認します。"
+        return f"{detail}\n{priority}".strip()
+    if "Webhook" in raw and any(marker in raw for marker in ["たまに失敗", "たまに", "失敗してるみたい"]):
+        detail = "購入後に、Webhook が失敗する条件や前後の状態を確認します。"
+        priority_line = "まずは発生条件や時間帯の偏りを優先して見ます。"
+        return f"{detail}\n{priority_line}".strip()
+    if any(marker in raw for marker in ["Prisma", "PlanetScale", "注文テーブル", "書き込み"]) and "Webhook" in raw:
+        detail = "購入後に、Prisma と PlanetScale の保存処理を含めて、注文テーブルへの反映がどこで止まっているかを確認します。"
+        return f"{detail}\n{priority}".strip()
+    if any(marker in raw for marker in ["Vercel", "serverless functions", "10秒制限"]) and "Webhook" in raw:
+        detail = "購入後に、Vercel の serverless functions のタイムアウト仮説も候補として、Webhook が止まる条件を確認します。"
+        return f"{detail}\n{priority}".strip()
+    if any(marker in raw for marker in ["React Native", "stripe-react-native", "@stripe/stripe-react-native"]):
+        detail = "購入後に、@stripe/stripe-react-native を使った前提で、Android 実機だけ決済完了コールバックが返らない条件を確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["時間帯だけ", "深夜", "タイムアウト"]) and "Webhook" in raw:
         if any(marker in raw for marker in ["Nuxt", "Nginx", "VPS"]):
-            return "購入後に、Nuxt 3 側の処理に加えて、さくらのVPS と Nginx を通した時だけタイムアウトが出ていないかも含めて確認します。"
-        return "購入後に、時間帯で変わるWebhookの失敗かどうかも含めて確認します。"
+            detail = "購入後に、Nuxt 3 側の処理に加えて、さくらのVPS と Nginx を通した時だけタイムアウトが出ていないかも含めて確認します。"
+            return f"{detail}\n{priority}".strip()
+        detail = "購入後に、時間帯で変わるWebhookの失敗かどうかも含めて確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["0円", "カート情報"]) and any(marker in raw for marker in ["Shopify", "Liquid"]):
         if "テスト環境" in raw or "テスト" in raw:
-            return "購入後に、Shopify の Liquid とカスタムJSの間で、テスト環境でもカート情報と金額の受け渡しがどこで崩れているかを確認します。"
-        return "購入後に、Shopify のカート情報と金額の受け渡しがどこで崩れているかも含めて確認します。"
+            detail = "購入後に、Shopify の Liquid とカスタムJSの間で、テスト環境でもカート情報と金額の受け渡しがどこで崩れているかを確認します。"
+            return f"{detail}\n{priority}".strip()
+        detail = "購入後に、Shopify のカート情報と金額の受け渡しがどこで崩れているかも含めて確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["Safari", "iOS"]) and "決済画面" in raw:
-        return "購入後に、iOS の Safari だけで起きる症状かどうかを切り分けながら確認します。"
+        detail = "購入後に、iOS の Safari だけで起きる症状かどうかを切り分けながら確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["Connect", "Destination Charge", "送金が動いていない", "送金が動いていません"]):
-        return "購入後に、Destination Charge 前提で入金から接続先アカウントへの送金までの流れがどこで止まっているかも含めて確認します。"
+        detail = "購入後に、Destination Charge 前提で入金から接続先アカウントへの送金までの流れがどこで止まっているかも含めて確認します。"
+        return f"{detail}\n{priority}".strip()
+    if ("本番環境" in raw or "本番だけ" in raw) and any(marker in raw for marker in ["年額プラン", "月額プラン", "特定のプラン"]) and "500" in raw:
+        detail = "購入後に、Vercel の本番環境で年額プランだけ 500 エラーになる条件差を確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["たらい回し", "どこに頼めばいいか分から", "どこに頼めばいいか"]) :
         return "購入後に、切り分け先が曖昧な状態でもこちらで確認の入口を整理しながら進めます。"
     if any(marker in raw for marker in ["真っ白", "5回に1回", "再現条件がよく分から", "再現条件"]) :
-        return "購入後に、毎回ではない症状でも再現条件を追いながら確認します。"
+        if any(marker in raw for marker in ["Node.js", "サーバーの移行"]):
+            detail = "購入後に、Checkout から戻った後に画面が真っ白になる条件に加えて、移行後の環境差も含めて確認します。"
+        else:
+            detail = "購入後に、毎回ではない症状でも再現条件を追いながら確認します。"
+        return f"{detail}\n{priority}".strip()
     if ("特定の商品" in raw or "他の商品" in raw) and ("メール" in raw or "飛ばない" in raw):
-        return "購入後に、一部の商品だけ起きる症状でもイベントや通知の流れを含めて確認します。"
+        detail = "購入後に、一部の商品だけ起きる症状でもイベントや通知の流れを含めて確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["テスト環境", "テストキー", "本番に出した途端", "本番だけ"]) :
-        return "購入後に、テストでは出ず本番でだけ出る症状かどうかも含めて環境差を確認します。"
+        detail = "購入後に、テストでは出ず本番でだけ出る症状かどうかも含めて環境差を確認します。"
+        return f"{detail}\n{priority}".strip()
     if any(marker in raw for marker in ["YouTube", "エンジニアではなく", "説明が分かりにくかったら"]) :
-        return "購入後に、説明は分かる範囲で大丈夫な前提で今見えている症状から確認します。"
-    return "購入後にまず状況を確認して、原因の切り分けから進めます。"
+        detail = "購入後に、説明は分かる範囲で大丈夫な前提で今見えている症状から確認します。"
+        return f"{detail}\n{priority}".strip()
+    if "payment_intent.succeeded" in raw and any(marker in raw for marker in ["Webhook", "届かなく", "届いていません"]):
+        detail = "購入後に、payment_intent.succeeded の Webhook が届かなくなった経路と設定差を確認します。"
+        return f"{detail}\n{priority}".strip()
+    if any(marker in raw for marker in ["メールが行かない", "メールが届かない", "完了メールが届かない"]) and any(
+        marker in raw for marker in ["支払い", "決済", "Stripe"]
+    ):
+        detail = "購入後に、決済完了後の通知処理とメール送信の流れがどこで止まっているかを確認します。"
+        return f"{detail}\n{priority}".strip()
+    detail = "購入後にまず状況を確認して、原因の切り分けから進めます。"
+    return f"{detail}\n{priority}".strip()
 
 
 def general_bugfix_scope_support_line(raw: str) -> str:
+    if any(marker in raw for marker in ["Stripe は対象外", "Stripeは対象外"]):
+        return "以前そう言われた経緯があっても、今回は Stripe を含む決済導線として見ます。"
+    if any(marker in raw for marker in ["友人から紹介", "紹介されて来", "紹介されてき", "紹介されて来ました"]):
+        return "今回の症状も、まず同じように切り分けながら確認します。"
+    if any(marker in raw for marker in ["支払いが完成", "メールが行かない"]):
+        return "詳しい説明はあとからで大丈夫なので、まず今見えている症状から確認できます。"
+    if any(marker in raw for marker in ["機会損失", "取りこぼして", "毎日だいたい", "注文が来る"]) and any(
+        marker in raw for marker in ["対応可能", "対応可能ですか", "早めに直したい"]
+    ):
+        return "売上影響が続いている状況なので、購入後に優先して確認します。"
+    if any(marker in raw for marker in ["無理そうだったら正直", "無理そうだったら", "正直に言ってもらって大丈夫"]):
+        return "難しそうな場合は、その時点でそのままお伝えします。"
+    if any(marker in raw for marker in ["再現できませんでした", "2週間待った", "今度こそちゃんと見てもらえる"]):
+        return "前回のようにテスト環境だけで切り上げず、本番でだけ出る前提も含めて見ます。"
+    if any(marker in raw for marker in ["Vercel", "serverless functions", "10秒制限"]) and any(
+        marker in raw for marker in ["多分", "確証はない", "引っかかってるんじゃないか"]
+    ):
+        return "その推測も候補として見ますが、決めつけずにログや挙動を見ながら確認します。"
     if any(marker in raw for marker in ["非エンジニア", "Bubble", "説明が分かりにくかったら", "YouTube"]):
         return "非エンジニアの方でも大丈夫なので、分かる範囲の情報から進められます。"
     if any(marker in raw for marker in ["手探り", "Connectの経験がほとんどなくて", "Connectの経験がほとんどなく"]):
         return "手探りの状態でも進められるので、その前提で整理します。"
     if any(marker in raw for marker in ["自分のコードの問題だと思う", "自分のコードの問題"]):
         return "ご自身のコード側が原因かもしれない段階でも、その前提で確認できます。"
+    if any(marker in raw for marker in ["コードをほぼ理解できていません", "何を送ればいいかも分からない", "ChatGPTとCursor", "AIに書いてもらった", "ChatGPT", "Cursor"]):
+        return "コードをすべて理解できていない状態でも大丈夫なので、分かる範囲の情報から進められます。"
+    if ("http://" in raw or "https://" in raw) and any(marker in raw for marker in ["直せますか", "動かないです"]):
+        return "どこで止まるかだけ、分かる範囲で教えてください。"
     if any(marker in raw for marker in ["たらい回し", "どこに頼めばいいか分から", "どこに頼めばいいか"]):
         return "切り分け先が曖昧な状態でも、こちらで入口を整理しながら進めます。"
     return ""
@@ -313,6 +562,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         if "convenience_store_payment_requested" in facts_known:
             return "コンビニ払いのような別の支払い方法が選べるか知りたい"
         return "購入画面で選べる支払い方法を確認したい"
+    if scenario == "prequote_extra_signal":
+        return "追記したエラーも今回の件とあわせて見てもらえるか確認したい"
     if scenario == "dashboard_scope_question":
         return "Webhook受信口の調査にStripeダッシュボード設定も含まれるか確認したい"
     if scenario == "extra_fee_fear":
@@ -339,12 +590,28 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "Stripeの定期課金まわりの不具合も今回のサービスで対応できるか確認したい"
     if scenario == "general_bugfix_scope_question":
         return "いま起きている決済まわりの不具合を今回のサービスで見てもらえるか確認したい"
+    if scenario == "scope_constraints_question":
+        return "15,000円で見られる範囲の制約と、同じ原因ならどこまで含まれるか知りたい"
+    if scenario == "mixed_scope_fee_question":
+        return "決済ボタンの不具合と画像アップロード不具合を一緒に見られるか、別料金になるか知りたい"
+    if scenario == "outline_share_permission_question":
+        return "まず概要だけ伝えて相談してよいか不安"
+    if scenario == "provider_unknown_scope_question":
+        return "カード決済がStripeかどうかも分からない状態で、まず相談してよいか不安"
     if scenario == "checkout_not_opening_scope_question":
         return "チェックアウト画面に進まない不具合も今回のサービスで対応できるか確認したい"
     if scenario == "service_interruption_anxiety":
         return "作業中にサイトが止まることがあるのか不安"
     if scenario == "price_trust_question":
         return "15,000円で内容が足りるのか、本当にちゃんと見てもらえるのか不安"
+    if scenario == "discount_request":
+        return "予算の都合がある中で、10,000円に下げられるか知りたい"
+    if scenario == "self_try_webhook_test_question":
+        return "購入前に自分で送信テストを試したいが、そのあと直らなければ戻ってきてよいか知りたい"
+    if scenario == "service_comparison_refund_question":
+        return "他サービスと比較した時の強みと、直らなかった場合の返金の扱いを確認したい"
+    if scenario == "price_not_found_self_fix_question":
+        return "price_not_found が設定ずれだけで直るのか、自分で直せる範囲かを先に知りたい"
     if scenario == "response_speed_anxiety":
         return "購入後に何日も返事が来ないことがないか不安"
     if scenario == "can_you_fix_direct":
@@ -376,6 +643,7 @@ def detect_scenario(source: dict) -> str:
     raw = source.get("raw_message", "")
     note = source.get("note", "")
     combined = f"{raw}\n{note}"
+    fit_level, fit_id = classify_capability_fit(combined)
     has_bugfix_stack_context = any(
         marker in combined
         for marker in [
@@ -399,6 +667,13 @@ def detect_scenario(source: dict) -> str:
             "Cashier",
             "Connect",
             "Destination Charge",
+            "Prisma",
+            "PlanetScale",
+            "React Native",
+            "stripe-react-native",
+            "payment_intent.succeeded",
+            "Webフック",
+            "ウェブソケット",
         ]
     )
     has_bugfix_surface = any(
@@ -421,8 +696,26 @@ def detect_scenario(source: dict) -> str:
             "送金が動いていません",
             "送金が動いていない",
             "受け取れなくなる",
+            "届かなくなりました",
+            "届かなくなった",
             "請求が同時に走る",
             "アップグレードの時だけ",
+            "コールバックが返ってこない",
+            "注文テーブル",
+            "書き込みが途中で止まって",
+            "反映されてない",
+            "500エラー",
+            "特定のプランだけ",
+            "エラーは出てる",
+            "エラーが出てる",
+            "本番だけかもしれない",
+            "テスト環境では動いてる",
+            "success ページ",
+            "/checkout に戻される",
+            "payment_intent は succeeded",
+            "APIキーが合わない",
+            "認証トークンが違う",
+            "直してもらえますか",
         ]
     )
 
@@ -436,6 +729,11 @@ def detect_scenario(source: dict) -> str:
         return "secret_share_reassurance"
     if "納品された修正コード" in combined or "自分で反映" in combined:
         return "self_apply_support"
+    if (
+        any(marker in combined for marker in ["先ほどメッセージ送った", "追記", "念のためお伝え", "追加でお伝え"])
+        and any(marker in combined for marker in ["No signatures found matching the expected signature for payload", "署名", "signature"])
+    ):
+        return "prequote_extra_signal"
     if (
         any(marker in combined for marker in ["書き直してみた", "自分で触った", "余計に壊してる可能性", "変に触っちゃった"])
         and any(marker in combined for marker in ["対応してもらえますか", "追加料金", "申し訳ない"])
@@ -460,17 +758,57 @@ def detect_scenario(source: dict) -> str:
     ):
         return "stage_only_before_fix_question"
     if (
+        any(marker in combined for marker in ["15,000円", "15000円", "15,000", "15000"])
+        and any(marker in combined for marker in ["制約", "Stripe部分だけ", "対象がStripe部分だけ", "期間が決まってる", "逆に何か制約"])
+    ):
+        return "scope_constraints_question"
+    if (
+        any(marker in combined for marker in ["画像アップロード", "別料金になりますか", "一緒に見てもらえたら", "決済とは関係ない"])
+        and any(marker in combined for marker in ["決済ボタン", "Stripe", "反応しない"])
+    ):
+        return "mixed_scope_fee_question"
+    if (
+        any(marker in combined for marker in ["Safari", "iPhone", "ブラウザの問題", "コード側の問題", "完了画面に飛ばない"])
+        and "Stripe" in combined
+    ):
+        return "browser_vs_code_question"
+    if (
         any(marker in combined for marker in ["コード側", "自分のコード側", "Stripeの設定", "設定の問題"])
         and any(marker in combined for marker in ["範囲外", "直してもらえる", "直してもらえるんですか", "このサービス"])
     ):
         return "code_vs_setting_scope_question"
+    if (
+        any(marker in combined for marker in ["ログインしたのに", "認証の問題", "決済ページに行けない"])
+        and any(marker in combined for marker in ["Stripeの問題なのか認証の問題なのか", "分からなくて", "見ていただくことは可能", "対応可能", "このサービス"])
+    ):
+        return "auth_boundary_scope_question"
+    if (
+        any(marker in combined for marker in ["Stripeかどうかも", "Stripeかどうか", "正直よく分かりません"])
+        and any(marker in combined for marker in ["クレジットカード決済", "カード決済", "管理画面くらい", "外注"])
+    ):
+        return "provider_unknown_scope_question"
+    if fit_level == "out_of_scope_or_review" and any(
+        marker in combined
+        for marker in ["新しく作りたい", "カスタムUI", "Billing Portal", "プラン変更フォーム", "ポータル画面"]
+    ):
+        return "feature_addition_scope_question"
+    if (
+        any(marker in combined for marker in ["SendGrid", "Stripe以外の部分", "送り忘れてたファイル", "追加で聞いてもいい"])
+        and any(marker in combined for marker in ["含めて1件で見てもらえ", "追加で聞いてもいい", "Stripe関連のユーティリティ"])
+    ):
+        return "proposal_change"
     if "STRIPE_SECRET_KEY" in combined and ("sk_live_" in combined or "貼って送" in combined or "そのまま貼って" in combined):
         return "secret_key_value_question"
     if (
+        any(marker in combined for marker in ["返金してもらえる", "原因が分からなかった場合", "原因がわからなかった場合", "直らなかった場合"])
+        and "Stripe" in combined
+    ):
+        return "risk_refund_question"
+    if (
         any(marker in combined for marker in ["定期課金", "サブスクリプション", "プラン変更", "アップグレード"])
         and (
-            any(marker in combined for marker in ["対応可能", "対応でしょうか", "対応できますか", "こちらのサービスで", "見ていただけ", "見てもらえ"])
-            or any(marker in combined for marker in ["請求が同時に走る", "旧プラン", "新プラン", "解約したあとも"])
+            any(marker in combined for marker in ["対応可能", "対応でしょうか", "対応できますか", "こちらのサービスで", "見ていただけ", "見てもらえ", "1件分の料金", "収まりますか", "15,000円", "15000円", "もっとかかりますか", "済みますか"])
+            or any(marker in combined for marker in ["請求が同時に走る", "旧プラン", "新プラン", "解約したあとも", "二重請求"])
         )
     ):
         return "subscription_bug_scope_question"
@@ -480,10 +818,40 @@ def detect_scenario(source: dict) -> str:
     ):
         return "checkout_not_opening_scope_question"
     if (
-        any(marker in combined for marker in ["見ていただくことは可能", "見ていただけますでしょうか", "見ていただける", "対応いただけるか教えて", "一度見てもらうことは可能", "対応いただけるか"])
+        any(marker in combined for marker in ["機会損失", "取りこぼして", "毎日だいたい", "注文が来る", "早めに直したい"])
+        and any(marker in combined for marker in ["対応可能", "対応可能ですか", "直したい"])
+        and "Stripe" in combined
+    ):
+        return "general_bugfix_scope_question"
+    if (
+        any(marker in combined for marker in ["10,000円", "10000円", "予算が厳しくて", "難しいですかね", "値引き"])
+        and has_bugfix_stack_context
+    ):
+        return "discount_request"
+    if (
+        any(marker in combined for marker in ["まだ購入はしてない", "自分でも試してから", "自分で直せなかったら", "またここから連絡"])
+        and any(marker in combined for marker in ["Webhook", "送信テスト", "Stripe"])
+    ):
+        return "self_try_webhook_test_question"
+    if (
+        any(marker in combined for marker in ["見ていただくことは可能", "見ていただけますでしょうか", "見ていただける", "見てもらえる感じ", "見てもらえるんですよね", "見てもらえますか", "対応いただけるか教えて", "一度見てもらうことは可能", "対応いただけるか", "対応できる範囲", "このサービスで対応できる範囲"])
         and has_bugfix_stack_context
     ):
         return "general_bugfix_scope_question"
+    if (
+        has_bugfix_stack_context
+        and any(
+            marker in combined
+            for marker in [
+                "概要だけお伝えしても",
+                "ご相談させていただければ",
+                "お願いして良いものか",
+                "ご迷惑でなければ",
+                "概要だけお伝えしてもよろしいでしょうか",
+            ]
+        )
+    ):
+        return "outline_share_permission_question"
     if has_bugfix_stack_context and has_bugfix_surface:
         return "general_bugfix_scope_question"
     if (
@@ -491,6 +859,17 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["本当にちゃんと直りますか", "迷ってます", "迷っています", "率直にお聞きします"])
     ):
         return "price_trust_question"
+    if (
+        any(marker in combined for marker in ["他にも2件", "どこに頼むか迷って", "迷ってます", "迷っています", "強み"])
+        and any(marker in combined for marker in ["全額返金", "返金", "直らなかった場合"])
+    ):
+        return "service_comparison_refund_question"
+    if (
+        any(marker in combined for marker in ["3つくらいのサービス", "比較してて", "比較している", "比較中"])
+        and any(marker in combined for marker in ["強みって何ですか", "強みは何ですか", "強み"])
+        and "Stripe" in combined
+    ):
+        return "service_comparison_strength_question"
     if (
         any(marker in combined for marker in ["使えなくなったりする", "営業時間中", "止まると困る", "環境が使えなく"])
         and any(marker in combined for marker in ["困る", "不安", "止まる"])
@@ -503,6 +882,35 @@ def detect_scenario(source: dict) -> str:
         return "response_speed_anxiety"
     if "直りますか" in combined and any(marker in combined for marker in ["で、結局", "結局これ"]):
         return "can_you_fix_direct"
+    if has_bugfix_stack_context and any(marker in combined for marker in ["直せますか", "修正できますか"]):
+        return "general_bugfix_scope_question"
+    if any(
+        marker in combined
+        for marker in [
+            "ChatGPT",
+            "Cursor",
+            "AIに任せるのが怖い",
+            "人が見てくれる",
+            "元のコードに戻してある",
+            "AIに修正を任せた",
+            "翌日には壊れて",
+            "全部手作業でやり直しました",
+            "品質管理",
+            "壊れないような確認",
+            "二度とああいう経験はしたくない",
+        ]
+    ):
+        return "ai_fix_failure_reassurance_question"
+    if (
+        any(marker in combined for marker in ["再発しないような対策", "原因だけじゃなく", "対策まで含めて", "そういう範囲もカバー"])
+        and "Stripe" in combined
+    ):
+        return "cause_and_prevention_scope_question"
+    if (
+        "price_not_found" in combined
+        and any(marker in combined for marker in ["管理画面の設定", "設定が間違ってる", "自分で直せるなら", "お金かけずに"])
+    ):
+        return "price_not_found_self_fix_question"
     if "別原因" in combined and ("金額が増える" in combined or "キャンセル" in combined or "怖くて" in combined):
         return "extra_fee_fear"
     if any(
@@ -515,6 +923,10 @@ def detect_scenario(source: dict) -> str:
             "今日中に見てもらえ",
             "今日中に見てもら",
             "売上に直結",
+            "3日後",
+            "納品がある",
+            "契約に影響",
+            "納期感で対応可能",
         ]
     ):
         return "timeline_question"
@@ -539,36 +951,54 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     fee_text = SERVICE_GROUNDING["fee_text"]
 
     if scenario == "proposal_change":
-        has_change_points = any(
-            fact in facts_known for fact in ["payment_error_present", "email_notification_issue_present"]
-        )
-        if has_change_points:
-            direct_answer_line = "同じ提案で進められるかは、決済エラーとメール通知が同じ原因かどうかを確認してからお返しします。"
-            response_order = ["reaction", "direct_answer", "next_action"]
+        if "sendgrid_present" in facts_known and "additional_file_offer_present" in facts_known:
+            direct_answer_line = "Stripeに関係する範囲であれば、SendGrid側の処理も今回の件として一緒に確認できる可能性があります。"
+            blocking_missing_facts = ["stripe_related_file"]
+            response_order = ["reaction", "direct_answer", "answer_detail", "ask"]
+        elif "sendgrid_present" in facts_known and "stripe_utility_file_present" in facts_known:
+            direct_answer_line = "Stripeに関係する範囲であれば、SendGrid側の処理も今回の件として一緒に確認できる可能性があります。"
+            blocking_missing_facts = ["stripe_related_file"]
+            response_order = ["reaction", "direct_answer", "answer_detail", "ask"]
         else:
-            blocking_missing_facts = ["change_points"]
-            direct_answer_line = "同じ提案で進められるかは、追加したい内容が今回の範囲に収まるかを確認してからお返しします。"
-            response_order = ["reaction", "direct_answer", "ask", "next_action"]
+            has_change_points = any(
+                fact in facts_known for fact in ["payment_error_present", "email_notification_issue_present"]
+            )
+            if has_change_points:
+                direct_answer_line = "同じ提案で進められるかは、決済エラーとメール通知が同じ原因かどうかを確認してからお返しします。"
+                response_order = ["reaction", "direct_answer", "next_action"]
+            else:
+                blocking_missing_facts = ["change_points"]
+                direct_answer_line = "同じ提案で進められるかは、追加したい内容が今回の範囲に収まるかを確認してからお返しします。"
+                response_order = ["reaction", "direct_answer", "ask", "next_action"]
     elif scenario == "purchase_timing":
         direct_answer_line = "来週の購入でも大丈夫です。"
         response_order = ["reaction", "direct_answer", "answer_detail"]
+    elif scenario == "prequote_extra_signal":
+        direct_answer_line = "ありがとうございます。そのエラーも今回の件とあわせて確認対象です。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "service_comparison_refund_question":
+        direct_answer_line = "このサービスは、Next.js / Stripe まわりの不具合をコードやログを見ながら切り分けて進めるのが軸です。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "service_comparison_strength_question":
+        direct_answer_line = "強みは、Next.js / Stripe まわりの不具合をコードやログを見ながら切り分けて進めるところです。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "reissue_quote":
         direct_answer_line = "はい、同じ内容で再提案できます。"
         response_order = ["reaction", "direct_answer"]
     elif scenario == "risk_refund_question":
-        direct_answer_line = "調査の結果として修正が不要だった場合でも、作業分として15,000円は発生します。"
+        direct_answer_line = "原因が特定できなかった場合でも、調査と切り分けの作業分として15,000円は発生します。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "payment_method":
         direct_answer_line = "支払い方法の表示はココナラ側の仕様によるため、こちらで選択肢を増やすことはできません。"
         response_order = ["reaction", "direct_answer", "answer_detail"]
     elif scenario == "dashboard_scope_question":
-        direct_answer_line = "はい、Webhook受信口に関係する範囲であれば、Stripeダッシュボード側の設定も確認対象です。"
+        direct_answer_line = "Webhook受信口に関係する範囲であれば、Stripeダッシュボード側の設定も確認対象です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "extra_fee_fear":
         direct_answer_line = "別原因が見つかっても、自動で料金が増えたり追加対応に進んだりはしません。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "self_edit_fee_anxiety":
-        direct_answer_line = "はい、その場合でもまず今の状態を見て対応可否を確認できます。"
+        direct_answer_line = "その場合でもまず今の状態を見て対応可否を確認できます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "self_apply_support":
         direct_answer_line = "今回の提案では、本番への反映自体は依頼者様でお願いしていますが、確認手順はお渡しします。"
@@ -577,10 +1007,19 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "必ずリポジトリ全体を共有いただく必要はなく、不具合に関係する範囲からで大丈夫です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "zip_share_question":
-        direct_answer_line = "はい、GitHubではなくZIPで送っていただいて大丈夫です。"
+        direct_answer_line = "GitHubではなくZIPで送っていただいて大丈夫です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "multi_symptom_same_cause_scope_question":
         direct_answer_line = "同じ原因なら、1回の購入としてまとめて確認できる場合があります。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "scope_constraints_question":
+        direct_answer_line = f"はい、{fee_text}では今回の不具合1件を対象に、決済導線に関わる範囲を見ます。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "mixed_scope_fee_question":
+        direct_answer_line = "決済ボタンの件は今回のサービスで確認できます。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "browser_vs_code_question":
+        direct_answer_line = "どちらの可能性もありますが、ここではまだ片方に決め切らず、まずブラウザ差か実装側かを切り分けて見ます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "code_vs_setting_scope_question":
         direct_answer_line = "原因がご自身のコード側でも、このサービスで確認できます。"
@@ -589,10 +1028,14 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "STRIPE_SECRET_KEY は通常 sk_live_ で始まりますが、値そのものは送らないでください。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "subscription_bug_scope_question":
-        if any(marker in raw for marker in ["Laravel", "Cashier", "SDK"]):
-            direct_answer_line = "はい、Laravel のサブスクリプション処理でも確認できます。"
+        fit_level, _ = classify_capability_fit(raw)
+        can_start = "まず確認できます" if fit_level == "cautious_fit" else "確認できます"
+        if any(marker in raw for marker in ["1件分の料金", "収まりますか", "料金で収まりますか", "15,000円", "15000円", "もっとかかりますか", "済みますか"]):
+            direct_answer_line = "同じ原因の定期課金不具合として整理できる範囲なら、1件分の料金で進める形になります。"
+        elif any(marker in raw for marker in ["Laravel", "Cashier", "SDK"]):
+            direct_answer_line = f"Laravel のサブスクリプション処理でも、{can_start}。"
         else:
-            direct_answer_line = "はい、Stripeの定期課金まわりの不具合であれば、このサービスで確認できます。"
+            direct_answer_line = f"Stripeの定期課金まわりの不具合であれば、このサービスで{can_start}。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "general_bugfix_scope_question":
         direct_answer_line = general_bugfix_direct_answer_line(raw)
@@ -606,17 +1049,47 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "price_trust_question":
         direct_answer_line = f"{fee_text}でも、今回の不具合1件の範囲で原因確認と修正判断まで見ます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "discount_request":
+        direct_answer_line = f"現在の公開範囲は{fee_text}固定で、10,000円への変更はしていません。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "self_try_webhook_test_question":
+        direct_answer_line = "Stripe ダッシュボードに Webhook の送信テスト機能自体はあります。"
+        response_order = ["reaction", "direct_answer", "answer_detail"]
     elif scenario == "response_speed_anxiety":
         direct_answer_line = "購入後は、まず受領確認と次の流れをお返しします。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "stage_only_before_fix_question":
         direct_answer_line = "追加で修正を頼むかどうかを、整理した内容を見てから判断する進め方はできます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "feature_addition_scope_question":
+        direct_answer_line = "新しい機能追加は、今回の bugfix 対応の範囲ではありません。"
+        response_order = ["reaction", "direct_answer", "answer_detail"]
+    elif scenario == "outline_share_permission_question":
+        direct_answer_line = "概要だけでも、まず今回の範囲か確認できます。"
+        response_order = ["reaction", "direct_answer", "answer_detail"]
+    elif scenario == "auth_boundary_scope_question":
+        direct_answer_line = "決済導線に関わる範囲として、まず確認できます。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "provider_unknown_scope_question":
+        direct_answer_line = "こういう状態でも、まず相談できます。"
+        response_order = ["reaction", "direct_answer", "answer_detail"]
+    elif scenario == "cause_and_prevention_scope_question":
+        direct_answer_line = "原因の確認に加えて、今回の不具合に対して再発しにくくするための対策まではあわせて見ます。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "ai_fix_failure_reassurance_question":
+        if any(marker in raw for marker in ["品質管理", "壊れないような確認", "修正後に壊れない"]):
+            direct_answer_line = "はい、現在のコードと症状を確認しながら進め、修正後の確認方法もあわせてお返しします。"
+        else:
+            direct_answer_line = "はい、現在のコードと症状を確認しながら進めます。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "price_not_found_self_fix_question":
+        direct_answer_line = "price_not_found だけなら、price ID の設定ずれで起きることが多く、ご自身で直せる可能性があります。"
+        response_order = ["reaction", "direct_answer", "answer_detail"]
     elif scenario == "can_you_fix_direct":
         direct_answer_line = "購入前の段階で必ず直るとまでは断定できませんが、今回の不具合として確認して進めます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "secret_share_reassurance":
-        direct_answer_line = "はい、本番のURLをそのまま送っていただかなくても進められます。"
+        direct_answer_line = "本番のURLをそのまま送っていただかなくても進められます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "no_meeting_request":
         direct_answer_line = "Zoomや通話での進行はしていません。"
@@ -624,6 +1097,8 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "timeline_question":
         if "今日中" in raw:
             direct_answer_line = "購入後、まず調査結果を先にお返しして、今日中にどこまで確認できるかもあわせてお伝えします。"
+        elif any(marker in raw for marker in ["3日後", "納品がある", "契約に影響", "納期感"]):
+            direct_answer_line = "購入後、まず調査結果を先にお返しして、3日以内にどこまで進められるかもあわせてお伝えします。"
         else:
             direct_answer_line = "まず調査結果を先にお返しして、その時点で修正まで進められそうかもあわせてお伝えします。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
@@ -726,6 +1201,67 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "prequote_extra_signal":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "追記したエラーも確認対象になるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "ありがとうございます。そのエラーも今回の件とあわせて確認対象です。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "service_comparison_refund_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "このサービスの強みは何か", "priority": "primary"},
+                {"id": "q2", "text": "直らなかった場合に全額返金されるか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "このサービスは、Next.js / Stripe まわりの不具合をコードやログを見ながら切り分けて進めるのが軸です。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "購入前の段階で全額返金を先に断定する形ではなく、返金についてはココナラの規定に沿う形になります。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "service_comparison_strength_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "このサービスの強みは何か", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "強みは、Next.js / Stripe まわりの不具合をコードやログを見ながら切り分けて進めるところです。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "risk_refund_question":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -734,7 +1270,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "この提案は、原因確認と修正判断を含めた15,000円の提案です。必要な手続きがある場合は、ココナラ上の案内に沿う形になります。",
+                    "answer_brief": "原因が特定できなかった場合でも、調査と切り分けの作業分として15,000円は発生します。返金についてはココナラの規定に沿う形になります。",
                 }
             ],
             "ask_map": [],
@@ -894,6 +1430,75 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "scope_constraints_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "15,000円で見られる範囲に制約があるか", "priority": "primary"},
+                {"id": "q2", "text": "Stripe部分だけに限るのか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": f"{SERVICE_GROUNDING['fee_text']}では今回の不具合1件を対象に、決済導線に関わる範囲を見ます。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "Stripe部分だけに機械的に区切るのではなく、同じ原因の流れまでを基本の範囲として進めます。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "mixed_scope_fee_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "決済ボタンの不具合を見てもらえるか", "priority": "primary"},
+                {"id": "q2", "text": "画像アップロードも一緒に見ると別料金になるか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "決済ボタンの件は今回のサービスで確認できます。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "画像アップロードの件は、決済と別原因なら別の相談としてご案内する形になります。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "browser_vs_code_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "ブラウザの問題かコード側の問題か", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "どちらの可能性もありますが、ここではまだ片方に決め切らず、まずブラウザ差か実装側かを切り分けて見ます。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "code_vs_setting_scope_question":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1029,6 +1634,50 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "discount_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "10,000円くらいで対応できるか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": f"現在の公開範囲は{SERVICE_GROUNDING['fee_text']}固定で、10,000円への変更はしていません。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "self_try_webhook_test_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "Stripe ダッシュボードで Webhook の送信テストができるか", "priority": "primary"},
+                {"id": "q2", "text": "自分で直せなければまたここから連絡してよいか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "Stripe ダッシュボードに Webhook の送信テスト機能自体はあります。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "ご自身で試してみて直らなければ、またこのままご連絡ください。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "response_speed_anxiety":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1114,6 +1763,127 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "feature_addition_scope_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "新しい機能追加も今回のサービスで見てもらえるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "新しい機能追加は、今回の bugfix 対応の範囲ではありません。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "outline_share_permission_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "概要だけ伝えて相談してよいか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "概要だけでも、まず今回の範囲か確認できます。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "auth_boundary_scope_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "認証側か決済側か不明な症状でも見てもらえるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "決済導線に関わる範囲として、まず確認できます。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "provider_unknown_scope_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "Stripeかどうか分からない状態でも相談可能か", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "こういう状態でも、まず相談できます。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "cause_and_prevention_scope_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "原因確認だけでなく再発対策まで見てもらえるか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "原因の確認に加えて、今回の不具合に対して再発しにくくするための対策まではあわせて見ます。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "ai_fix_failure_reassurance_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "AIで直そうとして失敗した状態でも、現在のコードを確認しながら見てもらえるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "はい、現在のコードと症状を確認しながら進めます。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "price_not_found_self_fix_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "price_not_found が設定見直しだけで直る可能性があるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "price_not_found だけなら、price ID の設定ずれで起きることが多く、ご自身で直せる可能性があります。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "can_you_fix_direct":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1171,94 +1941,154 @@ def draft_opening_anchor(case: dict) -> str:
     user_signal = temperature_plan.get("user_signal")
     if scenario == "proposal_change":
         if "決済エラー" in raw and "メール通知" in raw:
-            return "決済エラーに加えてメール通知の件も確認しました。"
-        return "提案後に変更したい点が出てきたとのこと、確認しました。"
+            return "決済エラーに加えてメール通知の件ですね。"
+        return "提案後に変更したい点が出てきたとのことですね。"
     if scenario == "purchase_timing":
         if "バタバタ" in raw:
             return "お忙しいところ確認いただきありがとうございます。"
-        return "購入タイミングについてのご相談、確認しました。"
+        return "購入タイミングについてのご相談ですね。"
     if scenario == "reissue_quote":
-        return "期限切れの表示が出たとのこと、確認しました。"
+        return "期限切れの表示が出たとのことですね。"
+    if scenario == "prequote_extra_signal":
+        return "追記ありがとうございます。追加で出たエラーも承知しました。"
+    if scenario == "service_comparison_refund_question":
+        return "比較中で迷っているとのことですね。"
+    if scenario == "service_comparison_strength_question":
+        return "比較中で、サービスの違いも気になっているのですね。"
     if scenario == "risk_refund_question":
         if "了解" in raw:
             return f"{SERVICE_GROUNDING['fee_text']}でのご了解、ありがとうございます。"
+        if any(marker in raw for marker in ["返金", "原因が分からなかった", "直らなかった"]):
+            return "直らなかった場合の扱いが気になるのですね。"
         if "不安" in raw:
             return "即決のご不安、ごもっともです。"
-        return "料金面のご心配、確認しました。"
+        return "料金面のご心配ですね。"
     if scenario == "payment_method":
         if "コンビニ" in raw:
-            return "購入画面で支払い方法が限られて見える状況、確認しました。"
-        return "支払い方法の件、確認しました。"
+            return "購入画面で支払い方法が限られて見える状況ですね。"
+        return "支払い方法の件ですね。"
     if scenario == "dashboard_scope_question":
-        return "Webhook受信口に加えて、Stripeダッシュボード設定の件、確認しました。"
+        return "Webhook受信口に加えて、Stripeダッシュボード設定の件ですね。"
     if scenario == "extra_fee_fear":
         return "金額が増えるのでは、というご不安はもっともです。"
     if scenario == "self_edit_fee_anxiety":
-        return "ご自身で触った影響も不安とのこと、確認しました。"
+        return "ご自身で触った影響もご不安とのことですね。"
     if scenario == "self_apply_support":
-        return "ご自身で反映する場合のサポート範囲ですね。確認しました。"
+        return "ご自身で反映する場合のサポート範囲ですね。"
     if scenario == "private_repo_share_question":
-        return "コード共有の方法が不安とのこと、確認しました。"
+        return "コード共有の方法がご不安とのことですね。"
     if scenario == "zip_share_question":
-        return "ZIPでの共有方法が気になっている件、確認しました。"
+        return "ZIPでの共有方法が気になっている件ですね。"
     if scenario == "multi_symptom_same_cause_scope_question":
-        return "似た症状が複数ある件、確認しました。"
+        return "似た症状が複数ある件ですね。"
     if scenario == "code_vs_setting_scope_question":
-        return "コード側か設定側かが気になっている件、確認しました。"
+        return "コード側か設定側かが気になっている件ですね。"
     if scenario == "secret_key_value_question":
-        return "STRIPE_SECRET_KEY の共有方法が気になっている件、確認しました。"
+        return "STRIPE_SECRET_KEY の共有方法が気になっている件ですね。"
     if scenario == "subscription_bug_scope_question":
         if any(marker in raw for marker in ["プラン変更", "アップグレード", "旧プラン", "新プラン"]):
-            return "プラン変更時に請求が重なる件、確認しました。"
+            return "プラン変更時に請求が重なる件ですね。"
         if "解約" in raw and "請求" in raw:
-            return "解約後も請求が走っている件、確認しました。"
-        return "定期課金の二重請求が出ていてお困りとのこと、確認しました。"
+            return "解約後も請求が走っている件ですね。"
+        return "定期課金の請求まわりでお困りとのことですね。"
     if scenario == "general_bugfix_scope_question":
+        if any(marker in raw for marker in ["Stripe は対象外", "Stripeは対象外"]) and any(
+            marker in raw for marker in ["見てもらえるんですよね", "見てもらえますか", "見てもらえる"]
+        ):
+            return "Stripe も見てもらえるかご不安とのことですね。"
+        if any(marker in raw for marker in ["友人から紹介", "紹介されて来", "紹介されてき", "紹介されて来ました"]) and "カート" in raw and "消えない" in raw:
+            return "ご紹介ありがとうございます。決済後にカートが残る件ですね。"
+        if any(marker in raw for marker in ["機会損失", "取りこぼして", "毎日だいたい", "注文が来る"]):
+            return "売上への影響が出ていてお急ぎとのことですね。"
+        if any(marker in raw for marker in ["Prisma", "PlanetScale", "注文テーブル", "書き込み"]) and "Webhook" in raw:
+            return "Webhook受信後の保存処理が止まる件ですね。"
+        if any(marker in raw for marker in ["Vercel", "serverless functions", "10秒制限"]) and "Webhook" in raw:
+            return "Webhookが届かなくなった件ですね。"
+        if any(marker in raw for marker in ["React Native", "stripe-react-native", "@stripe/stripe-react-native"]):
+            return "Androidだけ決済完了コールバックが返らない件ですね。"
         if any(marker in raw for marker in ["時間帯だけ", "深夜", "タイムアウト"]) and "Webhook" in raw:
-            return "特定の時間帯だけWebhookが失敗する件、確認しました。"
+            return "特定の時間帯だけWebhookが失敗する件ですね。"
         if any(marker in raw for marker in ["0円", "カート情報"]) and any(marker in raw for marker in ["Shopify", "Liquid"]):
-            return "カート情報が渡らず0円で決済される件、確認しました。"
+            return "カート情報が渡らず0円で決済される件ですね。"
         if any(marker in raw for marker in ["Safari", "iOS"]) and "決済画面" in raw:
-            return "iOSのSafariだけ決済画面が開かない件、確認しました。"
+            return "iOSのSafariだけ決済画面が開かない件ですね。"
         if any(marker in raw for marker in ["Connect", "Destination Charge", "送金が動いていません", "送金が動いていない"]):
-            return "接続先アカウントへの送金が動いていない件、確認しました。"
+            return "接続先アカウントへの送金が動いていない件ですね。"
+        if ("本番環境" in raw or "本番だけ" in raw) and any(marker in raw for marker in ["年額プラン", "月額プラン", "特定のプラン"]) and "500" in raw:
+            return "本番の特定プランだけ500エラーになる件ですね。"
+        if "payment_intent.succeeded" in raw and any(marker in raw for marker in ["Webhook", "届かなく", "届いていません"]):
+            return "payment_intent.succeeded のWebhookが届かない件ですね。"
         if "たらい回し" in raw or "どこに頼めばいいか分から" in raw:
-            return "たらい回しになっていてお困りとのこと、確認しました。"
+            return "たらい回しになっていてお困りとのことですね。"
         if ("特定の商品" in raw or "他の商品" in raw) and ("メール" in raw or "飛ばない" in raw):
-            return "特定の商品だけ購入完了後のメールが飛ばない件、確認しました。"
+            return "特定の商品だけ購入完了後のメールが飛ばない件ですね。"
         if ("本番に出した途端" in raw or "本番だけ" in raw) and ("エラー" in raw or "決済" in raw):
-            return "本番でだけ決済時エラーが出る件、確認しました。"
+            return "本番でだけ決済時エラーが出る件ですね。"
+        if any(marker in raw for marker in ["success URL", "/checkout に戻される"]) and "Checkout" in raw:
+            return "Checkout 完了後に戻り先が崩れる件ですね。"
         if "メールが飛ばない" in raw:
-            return "購入完了後のメールが飛ばない件、確認しました。"
+            return "購入完了後のメールが飛ばない件ですね。"
         if "真っ白" in raw:
-            return "決済完了後の画面が真っ白になる件、確認しました。"
+            return "決済完了後の画面が真っ白になる件ですね。"
         if "決済が通らなく" in raw:
-            return "決済が通らなくなっている件、確認しました。"
+            return "決済が通らなくなっている件ですね。"
+        if any(marker in raw for marker in ["メールが行かない", "メールが届かない", "完了メールが届かない"]):
+            return "決済完了後のメールが届かない件ですね。"
+        if "直せますか" in raw and "Stripe" in raw:
+            return "Stripe決済が動かない件ですね。"
         if "お支払い処理中にエラー" in raw:
-            return "決済時エラーが出ている件、確認しました。"
-        return "決済まわりの不具合の件、確認しました。"
+            return "決済時エラーが出ている件ですね。"
+        if any(marker in raw for marker in ["聞いていいですか", "見てもらえる感じ", "急にエラー"]) and "決済" in raw:
+            return "決済エラーの件ですね。"
+        return "決済まわりの不具合の件ですね。"
+    if scenario == "scope_constraints_question":
+        return "今回の範囲や制約が気になっている件ですね。"
+    if scenario == "mixed_scope_fee_question":
+        return "決済ボタンの件と別の不具合を一緒に相談したい件ですね。"
+    if scenario == "browser_vs_code_question":
+        return "iPhone の Safari だけ完了画面に進まない件ですね。"
     if scenario == "checkout_not_opening_scope_question":
-        return "チェックアウト画面に進まなくなったとのこと、確認しました。"
+        return "チェックアウト画面に進まなくなったとのことですね。"
     if scenario == "service_interruption_anxiety":
-        return "作業中に環境が使えなくならないかご不安とのこと、確認しました。"
+        return "作業中に環境が使えなくならないかご不安とのことですね。"
     if scenario == "price_trust_question":
-        return "金額差があるとご不安になりますよね。確認しました。"
+        return "金額差があるとご不安になりますよね。"
+    if scenario == "discount_request":
+        return "ご予算の件も気になっているのですね。"
+    if scenario == "self_try_webhook_test_question":
+        return "購入前にご自身でも試したい件ですね。"
     if scenario == "response_speed_anxiety":
-        return "購入後のレスポンスが気になっている件、確認しました。"
+        return "購入後のレスポンスが気になっている件ですね。"
     if scenario == "stage_only_before_fix_question":
-        return "整理だけで一度判断したい件、確認しました。"
+        return "整理だけで一度判断したい件ですね。"
+    if scenario == "feature_addition_scope_question":
+        return "プラン変更フォームの新規実装で詰まっている件ですね。"
+    if scenario == "outline_share_permission_question":
+        return "そのくらいの段階でも問題ありません。"
+    if scenario == "auth_boundary_scope_question":
+        return "認証側か決済側か切り分けたい件ですね。"
+    if scenario == "provider_unknown_scope_question":
+        return "カード決済ができなくなっている状況ですね。"
+    if scenario == "cause_and_prevention_scope_question":
+        return "原因確認に加えて再発対策まで含めたい件ですね。"
+    if scenario == "ai_fix_failure_reassurance_question":
+        return "何度か試してご不安になったとのことですね。"
+    if scenario == "price_not_found_self_fix_question":
+        return "price_not_found が出ている状況ですね。"
     if scenario == "can_you_fix_direct":
-        return "ご不安な点、確認しました。"
+        return "ご不安な点ですね。"
     if scenario == "secret_share_reassurance":
         if "evt_" in raw:
             return "evt_... まで確認できているとのこと、ありがとうございます。"
-        return "共有範囲についてのご不安、確認しました。"
+        return "共有範囲についてのご不安ですね。"
     if scenario == "no_meeting_request":
-        return "文章で伝えるのが大変な点、確認しました。"
+        return "文章で伝えるのが大変とのことですね。"
     if scenario == "timeline_question":
         if "今日中" in raw:
             return "売上に直結していてお急ぎとのこと、まず優先して確認に入ります。"
-        return "今週末の確認会に間に合わせたいとのこと、確認しました。"
+        if any(marker in raw for marker in ["3日後", "納品がある", "契約に影響", "納期感"]):
+            return "3日後の納品が迫っていてお急ぎとのことですね。"
+        return "今週末の確認会に間に合わせたいとのことですね。"
     if opening_move == "action_first":
         return "まず気になっている点から確認します。"
     if opening_move == "pressure_release":
@@ -1271,7 +2101,7 @@ def draft_opening_anchor(case: dict) -> str:
         if user_signal == "negative_feedback":
             return "率直に伝えていただいてありがとうございます。まず今の内容からお返しします。"
         return "まず今の内容からお返しします。"
-    return "提案後のご連絡、確認しました。"
+    return "提案後のご連絡ですね。"
 
 
 def _normalized(text: str) -> str:
@@ -1313,6 +2143,11 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     facts_known = decision_plan.get("facts_known") or []
 
     if scenario == "proposal_change":
+        if "sendgrid_present" in facts_known and "additional_file_offer_present" in facts_known:
+            return [
+                f"{direct_answer}\nStripe以外の別の原因まで広がる場合だけ、その時点で切り分けてお返しします。".strip(),
+                "送り忘れていたファイルは、そのまま送ってください。",
+            ]
         if blocking_missing_facts:
             return [
                 direct_answer,
@@ -1326,8 +2161,27 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "purchase_timing":
         return [f"{direct_answer}\n{grounding.get('reissue_support', '')}".strip()]
 
+    if scenario == "prequote_extra_signal":
+        return [
+            f"{direct_answer}\nNo signatures found matching the expected signature for payload が出ているなら、署名シークレットや署名検証まわりも含めて見ます。".strip(),
+            purchase_closing(scenario, raw),
+        ]
+
     if scenario == "reissue_quote":
         return [direct_answer]
+
+    if scenario == "service_comparison_refund_question":
+        return [
+            f"{direct_answer}\n価格だけで作業内容を削っているわけではありません。".strip(),
+            "ただ、購入前の段階で「必ず直る」や全額返金までは先に断定せず、返金についてはココナラの規定に沿う形になります。",
+            purchase_closing(scenario, raw),
+        ]
+    if scenario == "service_comparison_strength_question":
+        return [
+            f"{direct_answer}\n今回も、まず症状と前提を整理してから進めます。".strip(),
+            "必要以上に広げず、今回の不具合1件として切り分けて進めるのが基本です。",
+            purchase_closing(scenario, raw),
+        ]
 
     if scenario == "risk_refund_question":
         paragraphs = [
@@ -1417,6 +2271,19 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         paragraphs.append(purchase_closing(scenario, raw))
         return paragraphs
 
+    if scenario == "outline_share_permission_question":
+        return [
+            direct_answer,
+            "まずは今見えている症状や、どこで止まるかを分かる範囲でそのまま送ってください。",
+        ]
+
+    if scenario == "provider_unknown_scope_question":
+        return [
+            direct_answer,
+            "まず現在のカード決済が Stripe かどうかも含めて確認します。",
+            "Stripe ではない場合は、その時点で切り分けてご案内します。",
+        ]
+
     if scenario == "checkout_not_opening_scope_question":
         return [
             f"{direct_answer}\n先週までは動いていた症状でも、購入後にまず状況を確認して進めます。".strip(),
@@ -1436,6 +2303,20 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             purchase_closing(scenario, raw),
         ]
 
+    if scenario == "discount_request":
+        return [
+            direct_answer,
+            f"ご予算の事情は分かりますが、今回は {SERVICE_GROUNDING['fee_text']} の公開条件でご案内しています。",
+            "今回の不具合1件として整理できる範囲なら、その前提で確認します。",
+            purchase_closing(scenario, raw),
+        ]
+
+    if scenario == "self_try_webhook_test_question":
+        return [
+            direct_answer,
+            "ご自身で試してみて直らなければ、またこのままご連絡ください。",
+        ]
+
     if scenario == "response_speed_anxiety":
         return [
             f"{direct_answer}\n確認に時間がかかる場合も、何日も無反応のまま止める進め方にはしません。".strip(),
@@ -1446,6 +2327,73 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "stage_only_before_fix_question":
         return [
             f"{direct_answer}\nまず整理した内容を見て、そのあとで追加対応が必要かを判断いただく形で大丈夫です。".strip(),
+        ]
+
+    if scenario == "feature_addition_scope_question":
+        return [
+            f"{direct_answer}\n今の決済自体が動いているなら、今回は既存不具合の修正ではなく新しい実装の相談になります。".strip(),
+            "現在の公開範囲では、この内容だけでの購入案内はしていません。",
+            "必要であれば、実装したい内容を別の相談として整理する形になります。",
+        ]
+
+    if scenario == "auth_boundary_scope_question":
+        return [
+            direct_answer,
+            "NextAuth のバージョン更新後という前提も含めて、まず認証側か決済側かを切り分けます。",
+            "認証側だけの問題なら、その時点で切り分けてご相談します。",
+            purchase_closing(scenario, raw),
+        ]
+
+    if scenario == "scope_constraints_question":
+        return [
+            direct_answer,
+            "Stripe部分だけに機械的に区切るのではなく、同じ原因の流れまでを基本の範囲として進めます。",
+            "別原因や別機能まで広がる場合だけ、その時点で事前にご相談します。",
+            purchase_closing(scenario, raw),
+        ]
+
+    if scenario == "mixed_scope_fee_question":
+        return [
+            direct_answer,
+            "画像アップロードの件は、同じ原因でつながっている場合だけ今回の流れで見ます。",
+            "決済とは別原因なら、別の相談としてご案内する形になります。",
+            purchase_closing(scenario, raw),
+        ]
+
+    if scenario == "browser_vs_code_question":
+        paragraphs = [
+            direct_answer,
+            "iPhone の Safari だけ起きる症状なら、ブラウザ差と実装側のどちらが強いかを切り分けながら確認します。",
+            "この件も今回のサービスでまず確認できます。",
+        ]
+        if any(marker in raw for marker in ["非エンジニア", "Bubble", "分からない"]):
+            paragraphs.append("分かる範囲の情報からで大丈夫です。")
+        paragraphs.append(purchase_closing(scenario, raw))
+        return paragraphs
+
+    if scenario == "ai_fix_failure_reassurance_question":
+        paragraphs = [
+            direct_answer,
+            "AIにそのまま任せて書き換える形ではなく、元に戻してある今の状態を基準に確認します。",
+        ]
+        if any(marker in raw for marker in ["品質管理", "壊れないような確認", "修正後に壊れない"]):
+            paragraphs.append("壊れないことを先に保証する形ではありませんが、修正後に確認すべき点も含めてお返しします。")
+        paragraphs.append(purchase_closing(scenario, raw))
+        return paragraphs
+
+    if scenario == "cause_and_prevention_scope_question":
+        return [
+            direct_answer,
+            "購入後に、処理中のまま固まる条件と原因を確認したうえで、今の流れに対して取りやすい対策まで整理します。",
+            "別の機能追加や大きな作り替えまで広がる場合だけ、その時点で事前にご相談します。",
+            purchase_closing(scenario, raw),
+        ]
+
+    if scenario == "price_not_found_self_fix_question":
+        return [
+            direct_answer,
+            "まずはコードで参照している price ID と、Stripe 管理画面上の対象 price が一致しているかを見直してみてください。",
+            "それでも分からない場合は、その時点でこの件として確認できます。",
         ]
 
     if scenario == "can_you_fix_direct":
@@ -1471,6 +2419,15 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             return [
                 direct_answer,
                 "今日中に修正まで進められるかは見てからの判断になりますが、難しい場合でも確認できたところから先にお返しします。",
+                purchase_closing(scenario, raw),
+            ]
+        if any(marker in raw for marker in ["3日後", "納品がある", "契約に影響", "納期感"]):
+            detail = "3日以内に修正まで進められるかは見てからの判断ですが、難しい場合でも確認できたところから先にお返しします。"
+            if any(marker in raw for marker in ["本番", "テスト環境", "テスト"]) and "エラー" in raw:
+                detail = f"{detail}\n本番だけでテスト環境は通る前提なら、環境差も優先して見ます。"
+            return [
+                direct_answer,
+                detail,
                 purchase_closing(scenario, raw),
             ]
         return [

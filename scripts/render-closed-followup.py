@@ -153,6 +153,8 @@ def detect_scenario(source: dict) -> str:
         return "out_of_scope_general_question"
     if "管理画面にログインできなく" in combined or ("Stripe" in combined and "ログインでき" in combined):
         return "dashboard_login_issue"
+    if "紹介" in combined and any(marker in combined for marker in ["メルマガ", "全然急がない", "いつか見てもらえ", "同じサイト"]):
+        return "referral_and_soft_new_issue"
     if any(marker in combined for marker in ["テストモード", "本番モード", "サンドボックス"]) and any(
         marker in combined for marker in ["切り替え", "どこでやる", "どこでやるんでしたっけ", "メモを失く"]
     ):
@@ -259,6 +261,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         if "api_route_context_present" in facts_known and "mail_send_issue_present" in facts_known:
             return "API Route からメールが送れない件もお願いできるか知りたい"
         return "別件をまた依頼できるか知りたい"
+    if scenario == "referral_and_soft_new_issue":
+        return "紹介してよいかと、メルマガ配信機能の件を後日相談できるか知りたい"
     if scenario == "api_version_notice_question":
         return "StripeのAPIバージョン通知が前回の修正と関係あるか、放置でよいのか判断したい"
     if scenario == "dashboard_login_issue":
@@ -326,6 +330,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "放っておいて大丈夫とはまだ言い切れません。まず通知内容を見て、前回の修正に関係しているかを確認します。"
     elif scenario == "dashboard_login_issue":
         direct_answer_line = "これはコード修正というより、Stripeアカウント側のログインや権限の話の可能性が高く、このサービスでそのまま確認する内容ではなさそうです。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "referral_and_soft_new_issue":
+        direct_answer_line = "ご紹介いただけるのはありがたいです。ありがとうございます。"
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "mode_toggle_reminder":
         direct_answer_line = "テスト/本番の確認は、Stripeダッシュボード左上のアカウント名付近にある「サンドボックス」表示のところです。"
@@ -843,6 +850,30 @@ def build_case_from_source(source: dict) -> dict:
         }
         return case
 
+    if scenario == "referral_and_soft_new_issue":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "知り合いを紹介してよいか", "priority": "primary"},
+                {"id": "q2", "text": "メルマガ配信機能の件も後日相談できるか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "ご紹介いただけるのはありがたいです。ありがとうございます。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "メルマガ配信機能の件も、必要なタイミングで新しい相談として見積りできます。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
     if scenario == "mode_toggle_reminder":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1148,6 +1179,8 @@ def reaction_line(case: dict) -> str:
         return "前回メモで伝わりにくかった部分があったとのこと、承知しました。"
     if scenario == "new_issue_repeat_client":
         return "前回とは別の内容でまたご相談いただいた件、確認しました。"
+    if scenario == "referral_and_soft_new_issue":
+        return "ご紹介のお申し出と、メルマガ配信機能の件、ありがとうございます。"
     if scenario == "dashboard_login_issue":
         return "Stripeの管理画面にログインできない件、確認しました。"
     if scenario == "self_edit_regression":
@@ -1294,6 +1327,8 @@ def draft_opening_anchor(case: dict) -> str:
         if "API Route" in raw and ("メールが送れなく" in raw or "メール" in raw):
             return "API Routeからメールが送れない件でお困りとのこと、確認しました。"
         return "前回とは別の内容でまたご相談いただいた件、確認しました。"
+    if scenario == "referral_and_soft_new_issue":
+        return "本当に助かったとのこと、ありがとうございます。"
     if scenario == "repeat_bugfix_price_check":
         return "前回とは別の内容でまたご相談いただいた件、確認しました。"
     if scenario == "self_edit_regression":
@@ -1388,6 +1423,32 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 [
                     direct_answer,
                     "まずは、パスワード再設定、二段階認証、チーム権限の状態を確認してみてください。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "new_feature_request":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "いまの公開範囲では、この内容だけをそのまま進める形にはしていません。",
+                    "必要であれば、実装したい内容を別の相談として整理する形になります。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "referral_and_soft_new_issue":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "同じように困っている方がいれば、そのままご相談いただいて大丈夫です。",
+                    "メルマガ配信機能の件も、必要なタイミングで症状が分かれば新しい相談として見積りできます。",
                 ]
             ),
         )

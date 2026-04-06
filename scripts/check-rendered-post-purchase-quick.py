@@ -6,7 +6,10 @@ import importlib.util
 import re
 from pathlib import Path
 
-from reply_quality_lint_common import collect_quality_style_errors, collect_reasoning_preservation_errors
+from reply_quality_lint_common import (
+    collect_quality_style_errors,
+    collect_reasoning_preservation_errors,
+)
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 RENDERER_PATH = ROOT_DIR / "scripts/render-post-purchase-quick.py"
@@ -29,6 +32,14 @@ def normalized(text: str) -> str:
     return re.sub(r"[\s。、，,.！？?「」『』（）()・:：/／\\-]+", "", text)
 
 
+def first_nonempty_line(rendered: str) -> str:
+    for raw_line in rendered.splitlines():
+        line = raw_line.strip()
+        if line:
+            return line
+    return ""
+
+
 def split_sections(rendered: str) -> list[str]:
     sections: list[str] = []
     current: list[str] = []
@@ -43,14 +54,6 @@ def split_sections(rendered: str) -> list[str]:
     if current:
         sections.append("\n".join(current))
     return sections
-
-
-def first_nonempty_line(rendered: str) -> str:
-    for raw_line in rendered.splitlines():
-        line = raw_line.strip()
-        if line:
-            return line
-    return ""
 
 
 def is_complaint_like_source(source: dict) -> bool:
@@ -100,7 +103,7 @@ def buyer_word_pickup_ok(rendered: str, raw: str, scenario: str | None) -> bool:
         "external_channel_request": ["トークルーム", "電話", "Slack", "LINE", "Zoom"],
         "direct_push_request": ["push", "トークルーム", "修正内容"],
         "deployment_help_request": ["本番反映", "手順"],
-        "live_secrets_pasted": [".env", "キー名", "秘密"],
+        "live_secrets_pasted": [".env", "キー名", "秘密", "ログイン", "パスワード", "URL"],
         "secret_handling_question": [".env", "キー名", "秘密"],
         "external_api_shift": ["外部API", "料金", "依頼側"],
         "multiple_new_issues": ["つなが", "管理画面", "メール"],
@@ -131,7 +134,7 @@ def has_negation_only_answer(rendered: str, scenario: str | None) -> bool:
     if scenario == "deployment_help_request":
         return has_any(answer_window, ["前提にしていません", "できません"]) and not has_any(answer_window, ["手順", "トークルーム"])
     if scenario in {"live_secrets_pasted", "secret_handling_question"}:
-        return has_any(answer_window, ["扱わない", "送らず"]) and "キー名" not in answer_window
+        return has_any(answer_window, ["扱わない", "送らず"]) and not has_any(answer_window, ["キー名", "ログイン情報", "URL", "項目名"])
     return False
 
 
@@ -141,6 +144,16 @@ def buyer_compliance_respected(rendered: str, raw: str) -> bool:
     if has_any(rendered, ["秘密情報が貼られている", "以後は送らず"]):
         return False
     return has_any(rendered, ["キー名", "この情報で確認", "引き続き送らなくて大丈夫"])
+
+
+def looks_like_actual_secret_paste(raw: str) -> bool:
+    if has_any(raw, ["sk_live_", "whsec_", "DATABASE_URL="]):
+        return True
+    if "STRIPE_SECRET_KEY" in raw and has_any(raw, ["値が入って", "そのまま貼っ", "送っちゃ", "貼っちゃ", ".envの中身", "秘密情報"]):
+        return True
+    if has_any(raw, ["ログイン情報", "ログイン:", "ログイン："]) and has_any(raw, ["パスワード", "password", "パスワード:", "パスワード："]):
+        return True
+    return False
 
 
 def word_density_errors(rendered: str) -> list[str]:
@@ -175,6 +188,10 @@ def lint_case(module, source: dict) -> list[str]:
     raw = source.get("raw_message", "")
     complaint_like = is_complaint_like_source(source)
     errors: list[str] = []
+    has_concrete_deadline = (
+        ("本日" in rendered and "までに" in rendered)
+        or ("明日" in rendered and "までに" in rendered)
+    )
 
     if not temperature_plan:
         errors.append("temperature_plan is missing")
@@ -214,9 +231,9 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("complaint opening does not start with apology/ownership")
     elif not has_any(rendered, ["ありがとうございます", "確認しました"]):
         errors.append("missing brief reaction at the top")
-    if not has_any(rendered, ["本日", "までに"]):
+    if not has_concrete_deadline:
         errors.append("closing_present is missing")
-    if "本日" not in rendered or "までに" not in rendered:
+    if not has_concrete_deadline:
         errors.append("missing time commitment")
     if has_near_echo(rendered):
         errors.append("near_echo_check failed: adjacent sections still overlap too much")
@@ -224,6 +241,24 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("buyer_word_pickup check failed")
     if scenario == "runtime_context_followup" and not has_any(rendered, ["影響します", "影響があります"]):
         errors.append("runtime context follow-up does not answer `影響しますか` directly")
+    if scenario == "advanced_investigation_followup":
+        if rendered.count("handleCardAction") >= 2:
+            errors.append("advanced investigation follow-up still repeats `handleCardAction` too closely")
+        if rendered.count("優先して確認します") >= 2:
+            errors.append("advanced investigation follow-up still repeats the same `優先して確認します` phrase")
+    if scenario == "suspected_cause_found":
+        if not has_any(raw, ["だと思", "気がします", "候補", "違ったら", "多分", "仮説"]) and "仮説" in rendered:
+            errors.append("suspected_cause_found still calls a plain error share a `仮説`")
+    if ("Googleドライブ" in raw or "Google Drive" in raw) and not has_any(rendered, ["トークルーム", "分けて送", "Googleドライブでの共有は使わず"]):
+        errors.append("external share request does not keep the handoff inside the talkroom")
+    if has_any(raw, ["明日で全然大丈夫", "情報だけ先に送って"]) and has_any(raw, ["特定の商品だけ", "prod_"]) and not has_any(rendered, ["明日", "特定の商品", "条件差"]):
+        errors.append("late info share does not acknowledge the defer-to-tomorrow and product-specific info")
+    if scenario == "live_secrets_pasted" and not looks_like_actual_secret_paste(raw):
+        errors.append("live_secrets_pasted triggered without an actual secret-paste signal")
+    if has_any(raw, ["他のお客さん", "他のお客さま", "個人情報"]) and has_any(raw, ["ログ", "送ったログ", "さっき送った"]) and not has_any(rendered, ["広げず", "伏せた", "大丈夫です"]):
+        errors.append("privacy concern case does not explain safe handling of the shared log")
+    if "STRIPE_SECRET_KEY" in raw and "Vercel" in raw and has_any(raw, ["セットしておきました", "これで直るはず"]) and not has_any(rendered, ["直る可能性", "他の要因", "設定反映後"]):
+        errors.append("env fix recheck case does not keep the buyer's expectation and recheck balance")
     if scenario == "missing_file_followup":
         if not has_any(rendered, ["追加で送って", "受領後", "見直します"]):
             errors.append("missing file follow-up does not answer the resend/recheck path directly")
@@ -286,6 +321,8 @@ def lint_case(module, source: dict) -> list[str]:
     if case.get("scenario") == "progress_anxiety":
         if not has_any(direct_answer_line, ["まだ", "断定できていません", "切り分け中", "確認に入って", "対応可否"]):
             errors.append("progress anxiety direct answer does not state current status clearly")
+        if "確認できているところから先にお伝えします" in rendered:
+            errors.append("progress anxiety still uses the empty `先にお伝えします` promise")
     if case.get("scenario") == "delay_complaint_refund":
         if not has_any(rendered, ["進捗", "進み具合", "整理"]):
             errors.append("delay/refund case does not state the current progress handling")
@@ -303,6 +340,14 @@ def lint_case(module, source: dict) -> list[str]:
     if case.get("scenario") == "extra_scope_question" and "追加料金" in raw:
         if not has_any(rendered, ["追加見積り", "追加料金"]):
             errors.append("scope-addition case does not answer the fee concern")
+    if case.get("scenario") == "private_repo_access_question":
+        if not has_any(rendered, ["URLだけでは", "中身は見えません", "閲覧できる形", "ZIP"]):
+            errors.append("private repo access case does not answer the visibility/access question directly")
+    if case.get("scenario") == "screenshot_followup":
+        if not has_any(rendered, ["スクショ", "画面"]):
+            errors.append("screenshot follow-up does not acknowledge the screenshot context directly")
+        if not has_any(rendered, ["エラーメッセージ", "1行", "文字"]):
+            errors.append("screenshot follow-up does not offer a minimal text fallback for unreadable image content")
     if case.get("scenario") == "generic_followup" and has_any(
         raw,
         [
@@ -347,6 +392,12 @@ def lint_case(module, source: dict) -> list[str]:
             "pages/api/webhook.ts",
             ".gitignoreに入れて",
             "的外れな調査",
+            "privateリポジトリ",
+            "見えてますか",
+            "招待とか必要",
+            "[画像]",
+            "エラーの画面をスクショ",
+            "何回やっても同じ画面",
         ],
     ):
         errors.append("generic_followup fallback survived a concrete purchased follow-up request")
