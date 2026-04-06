@@ -1,0 +1,62 @@
+cases:
+  - case_id: QTPL-001
+    expected_scenario: general_bugfix_scope_question
+    raw_message: |
+      はじめまして。Nuxt 3 + Stripeで会員制サイトを作ったんですが、Webhookが特定の時間帯だけ受け取れなくなる現象が出ています。深夜2時〜5時くらいだけ失敗していて、昼間は問題なく動きます。サーバーはさくらのVPSで、Nginxでリバースプロキシしてます。Stripeのダッシュボードにはタイムアウトエラーが出てます。
+    required_context_markers_any:
+      - Nuxt
+      - Nginx
+      - VPS
+      - タイムアウト
+
+  - case_id: QTPL-002
+    expected_scenario: general_bugfix_scope_question
+    raw_message: |
+      こんにちは。Shopifyの既存ストアに、Stripeの独自チェックアウトを組み込もうとしたんですが、Shopifyのカート情報がStripe側に渡っていないみたいです。金額が0円で決済されてしまうケースが出ていて、テスト環境でも再現します。ShopifyのLiquidテンプレートとカスタムJSで実装してます。自分のコードの問題だと思うんですが。
+    required_context_markers_any:
+      - Shopify
+      - Liquid
+      - カスタムJS
+      - 0円
+    required_support_markers_any:
+      - コード側
+      - その前提
+      - 確認できます
+
+  - case_id: QTPL-003
+    expected_scenario: general_bugfix_scope_question
+    raw_message: |
+      はじめまして。非エンジニアです。Bubble.ioでマッチングアプリを作っていて、Stripeの決済プラグインを使ってるんですが、iOSのSafariだけ決済画面が開かないという報告を3人のユーザーからもらいました。Androidは問題ないです。Bubbleのフォーラムにも同じ症状の人がいるんですが、解決してるっぽい人が見当たらなくて。
+    required_context_markers_any:
+      - Bubble
+      - Safari
+      - iOS
+    required_support_markers_any:
+      - 非エンジニア
+      - 分かる範囲
+      - 大丈夫
+
+  - case_id: QTPL-004
+    expected_scenario: subscription_bug_scope_question
+    raw_message: |
+      お世話になります。Laravel + Stripeでサブスクリプションの仕組みを作ったんですが、プラン変更時に旧プランの請求と新プランの請求が同時に走ることがあります。毎回ではなく、アップグレードの時だけ起きてる気がします。Cashierは使わずにStripe SDKを直接叩いてます。ドキュメント通りにやったつもりなんですが…。
+    required_context_markers_any:
+      - Laravel
+      - SDK
+      - アップグレード
+    required_support_markers_any:
+      - ドキュメント
+      - その前提
+
+  - case_id: QTPL-005
+    expected_scenario: general_bugfix_scope_question
+    raw_message: |
+      こんにちは、初めてご相談します。フリーランスでWeb制作をしていて、クライアント様のサイトにStripe Connectを導入したんですが、プラットフォーム側のアカウントには入金されるのに、接続先のアカウントへの送金が動いていません。Destination Chargeで実装したつもりなんですが、Stripe Connectの経験がほとんどなくて手探り状態です。
+    required_context_markers_any:
+      - Connect
+      - Destination Charge
+      - 送金
+    required_support_markers_any:
+      - 手探り
+      - その前提
+      - 進められます
