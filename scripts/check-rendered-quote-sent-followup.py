@@ -8,6 +8,7 @@ from pathlib import Path
 from reply_quality_lint_common import (
     collect_quality_style_errors,
     collect_reasoning_preservation_errors,
+    collect_service_binding_errors,
     collect_temperature_constraint_errors,
 )
 
@@ -58,6 +59,10 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("service_grounding does not point to the public bugfix service")
         if not service_grounding.get("public_service"):
             errors.append("service_grounding is not marked public")
+        if service_grounding.get("base_price") != 15000:
+            errors.append("service_grounding base_price is missing or does not match the public service")
+        if not service_grounding.get("hard_no"):
+            errors.append("service_grounding is missing hard_no bindings")
         if not service_grounding.get("capability"):
             errors.append("service_grounding is missing capability map")
         if not service_grounding.get("diagnostic_patterns"):
@@ -424,6 +429,15 @@ def lint_case(module, source: dict) -> list[str]:
     errors.extend(collect_quality_style_errors(rendered))
     errors.extend(collect_temperature_constraint_errors(rendered, temperature_plan))
     errors.extend(collect_reasoning_preservation_errors(rendered, raw, decision_plan, scenario))
+    errors.extend(
+        collect_service_binding_errors(
+            rendered,
+            raw,
+            service_grounding,
+            state="quote_sent",
+            scenario=scenario,
+        )
+    )
     return errors
 
 

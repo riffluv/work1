@@ -1,0 +1,114 @@
+# Batch 8: dual-public 購入後 + 納品 + エッジケース（15件）
+# 目的: B7 は prequote の routing を検証した。B8 は購入後・納品・エッジケースを検証
+# 配分: purchased 7件 / delivered 4件 / prequote エッジ 4件
+
+# ─────────────────────────────────────
+# purchased（7件）: 購入後の対応を dual-public で検証
+# ─────────────────────────────────────
+
+[CASE 1: purchased / bugfix / 初回ログ送付 + 情報が多い]
+相手文:
+購入しました！以下が現状です。
+
+- 環境: Next.js 14 (App Router) + Stripe Checkout + Vercel
+- 症状: checkout.session.completed の Webhook が本番だけ 400 を返す
+- テスト環境では正常
+- Stripe Dashboard の Webhook ログで、最新5件の Event ID を控えてます
+  - evt_1abc... (400)
+  - evt_2def... (400)
+  - evt_3ghi... (400)
+- Vercel Function Logs にはリクエスト自体が来ていない
+- 先週金曜に Vercel の環境変数を整理して以降に発生
+- 自分では、エンドポイントURLか署名検証の問題だと思ってます
+
+添付: Dashboard のスクショ3枚、Vercel Logs のスクショ1枚
+
+[CASE 2: purchased / handoff / 初回コード送付]
+相手文:
+購入しました。リポジトリのZIPを添付します。構成はNext.js + Stripe + Supabaseで、前任のエンジニアが半年前に離脱してからそのままです。気になっているのは決済フローで、サブスクリプションの開始から解約までの流れがどうなっているか、整理してもらえると助かります。ドキュメントは何もありません。
+
+[CASE 3: purchased / bugfix / 催促 + reply_memory]
+reply_memory:
+  followup_count: 1
+  prior_tone: neutral
+  previous_assistant_commitment: share_status
+  previous_deadline_promised: "本日15:00まで"
+  commitment_fulfilled: false
+
+相手文:
+すみません、15時って言っていただいてたと思うんですが、何か進展ありましたか？急かすつもりはないんですが、社内で状況を聞かれていて。
+
+[CASE 4: purchased / handoff / 追加フロー相談]
+相手文:
+決済フローの整理、ありがとうございます。かなり分かりやすくなりました。もう1つ、認証フローも整理してもらいたいんですが、追加でお願いできますか？追加費用はいくらになりますか？
+
+[CASE 5: purchased / bugfix / 修正完了後に別症状]
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: share_result
+  previous_deadline_promised: null
+  commitment_fulfilled: true
+
+相手文:
+Webhook の件、直りました！ありがとうございます。ただ、別件なんですが、Customer Portal にアクセスしたらログインできるんですが、プラン変更のボタンが表示されなくなりました。これって今回の修正と関係ありますか？追加料金かかりますか？
+
+[CASE 6: purchased / handoff / scope を超えた質問]
+相手文:
+整理の途中ですみません。見てもらってる決済フローなんですが、ここ明らかにバグだと思うんです。定期課金の金額が Stripe 側と DB 側でズレてるっぽくて。これ修正もこのまま一緒にやってもらえますか？
+
+[CASE 7: purchased / bugfix / 非エンジニアからの質問]
+相手文:
+すみません、「署名検証」っていうのが分からなくて。納品してもらった説明にある「STRIPE_WEBHOOK_SECRET を確認して」というのは、具体的にどこを見ればいいですか？Vercel って画面のどこを触ればいいか教えてもらえますか？
+
+# ─────────────────────────────────────
+# delivered（4件）: 納品後の対応を検証
+# ─────────────────────────────────────
+
+[CASE 8: delivered / bugfix / 完了 + 高評価の流れ]
+相手文:
+確認しました！Webhookも正常に動いてるし、テスト購入も通りました。ちょっと思ったんですけど、こういう修正ってコードレビュー的なこともしてもらったりできるんですか？今回すごく助かったので、定期的にコードを見てもらう契約とかできたら嬉しいんですが。
+
+[CASE 9: delivered / handoff / 引き継ぎメモへの質問]
+相手文:
+引き継ぎメモ読みました。すごく分かりやすかったです。1つ質問なんですが、「危険箇所」に書いてある「環境変数の本番/テスト切り替えがハードコードされている」っていうのは、これは直した方がいいということですか？直すとしたらどのくらい大変ですか？
+
+[CASE 10: delivered / bugfix / 修正が効かないと言われた]
+相手文:
+すみません、送っていただいたZIPの修正を適用したんですが、状況が変わりません。まだWebhookが400を返してます。ちゃんとファイル差し替えたんですが…手順通りにやったつもりです。
+
+[CASE 11: delivered / handoff / 別の人に渡す前の確認]
+相手文:
+整理ありがとうございました。このメモを持って別のエンジニアさんに相談しようと思ってるんですが、このメモだけで伝わりますかね？何か補足した方がいいことってありますか？
+
+# ─────────────────────────────────────
+# prequote エッジケース（4件）: B7 で出なかったパターン
+# ─────────────────────────────────────
+
+[CASE 12: prequote / 間違ったサービスを購入しようとしている]
+route: service
+service_hint: boundary
+difficulty: high
+相手文:
+すみません、不具合修正のサービスを見て来ました。うちのコード、前の外注先が抜けてドキュメントもなくて、何がどうなってるか分からない状態です。不具合が出てるわけじゃないんですが、とりあえず15,000円で見てもらえますか？
+
+[CASE 13: prequote / 両方の金額を合算して交渉してくる]
+route: service
+service_hint: boundary
+difficulty: high
+相手文:
+15,000円と25,000円、合わせて4万ですよね。不具合も直したいし、構造も整理したいんですが、セットで3万にしてもらうことってできませんか？両方やるなら多少安くしてもらえると助かるんですが。
+
+[CASE 14: prequote / 技術スタックが対象外]
+route: service
+service_hint: bugfix
+difficulty: medium
+相手文:
+Shopifyのサイトで、Stripe決済のプラグインが動かなくなりました。テーマのLiquidテンプレートも触ったんですが、お願いできますか？Next.jsは使ってなくて、全部Shopifyです。
+
+[CASE 15: prequote / 法人 + フォーマルな問い合わせ]
+route: message
+service_hint: handoff
+difficulty: medium
+相手文:
+お世話になっております。弊社で運用しているNext.js + Stripeのサブスクリプションサービスについて、前任の開発担当が退職し、社内にコードの構造を理解している者がおりません。新しい開発パートナーへの引き継ぎ資料として、主要フローの整理をお願いしたく、ご相談させていただきました。対象は決済フロー（サブスクリプション開始〜解約）を想定しておりますが、認証フローも併せてお見積りいただくことは可能でしょうか。

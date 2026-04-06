@@ -607,6 +607,8 @@ def run_pipeline(source: dict, tools: dict[str, dict] | None = None, lint: bool 
     tools = tools or load_tools()
     enriched_source = dict(source)
     enriched_source["buyer_questions"] = extract_buyer_questions(source.get("raw_message", ""), source.get("state"))
+    if enriched_source.get("state") == "purchased" and "reply_memory" not in enriched_source:
+        enriched_source["reply_memory"] = tools["prequote"]["drafter"].load_reply_memory()
     lane = choose_lane(enriched_source)
     case_id = source.get("case_id") or source.get("id") or "<unknown>"
     state = source.get("state") or "<unknown>"
@@ -683,7 +685,7 @@ def main() -> int:
 
     rendered_blocks: list[str] = []
     lint_errors: list[str] = []
-    save_payload: tuple[str, str] | None = None
+    save_payload: tuple[str, str, dict | None] | None = None
 
     for source in cases:
         result = run_pipeline(source, tools=tools, lint=args.lint)
@@ -700,7 +702,11 @@ def main() -> int:
             if len(cases) != 1:
                 print("[NG] --save requires exactly one case")
                 return 1
-            save_payload = (result["sendable_reply"], source.get("raw_message", ""))
+            save_payload = (
+                result["sendable_reply"],
+                source.get("raw_message", ""),
+                (result.get("case") or {}).get("reply_memory_update"),
+            )
 
     if save_payload is not None:
         estimate_drafter.save_reply(*save_payload)

@@ -1,0 +1,117 @@
+# Batch 6: integrity check + service binding + reply memory 検証バッチ（15件）
+# 目的: 今日入った3つの構造改善が実際に効いているかを検証
+# 観点: 主質問回答 / 感情反映 / 空約束検出 / 価格正確性 / hard_no / follow-up トーン
+
+# ─────────────────────────────────────
+# quote_sent（5件）: integrity + service binding を検証
+# ─────────────────────────────────────
+
+[CASE 1: quote_sent / 価格を直接聞いている]
+相手文:
+こんにちは。Stripe の Checkout で、特定の商品だけ決済完了後にメール通知が飛ばない問題があります。他の商品は正常です。確認をお願いしたいんですが、料金はいくらですか？
+
+[CASE 2: quote_sent / scope 外を scope 内と間違えている]
+相手文:
+Stripe で月額課金のサービスを作りたいんですが、サブスクリプションの機能を一から実装してもらうことって可能ですか？予算は15,000円くらいで考えてます。
+
+[CASE 3: quote_sent / 感情：怒り + 情報が少ない]
+相手文:
+もう3日も決済が動かないんですよ。Vercelにデプロイしてから完全にダメ。いい加減にしてほしい。直せますか？
+
+[CASE 4: quote_sent / 自分の調査を詳しく書いている buyer]
+相手文:
+はじめまして。Next.js 14 (App Router) + Stripe Checkout の構成です。本番環境だけで checkout.session.completed の Webhook が不達になります。テスト環境では正常に動作しています。Stripe Dashboard の Webhook ログを確認したところ、エンドポイントへの配信自体が記録されていません。Vercel の Function Logs にもヒットがありません。原因として、Vercel の Serverless Function のタイムアウト（10秒制限）か、エンドポイントURLの本番/テスト切り替えミスを疑っています。ご確認いただけますか。
+
+[CASE 5: quote_sent / hard_no に触れてくる buyer]
+相手文:
+Stripeの設定がおかしくて困ってます。直してもらえるなら、うちのGitHubリポジトリに直接pushしてもらえると助かります。あと本番環境のデプロイもお願いしたいです。APIキーとかはメッセージで送ります。
+
+# ─────────────────────────────────────
+# purchased（7件）: reply memory + integrity を検証
+# ─────────────────────────────────────
+
+[CASE 6: purchased / 初回・ログ送付]
+相手文:
+購入しました。早速ですが、Stripe Dashboard のスクリーンショットとエラーログを添付します。Webhook が 400 を返してるみたいです。よろしくお願いします。
+
+[CASE 7: purchased / 1回目の催促・不安]
+reply_memory:
+  followup_count: 1
+  prior_tone: neutral
+  previous_assistant_commitment: share_status
+  previous_deadline_promised: null
+  commitment_fulfilled: false
+
+相手文:
+すみません、昨日お送りしたログの件、確認いただけましたでしょうか。まだ返事がないので少し不安になりまして。
+
+[CASE 8: purchased / 2回目の催促・焦り]
+reply_memory:
+  followup_count: 2
+  prior_tone: anxious
+  previous_assistant_commitment: share_status
+  previous_deadline_promised: "本日18:00まで"
+  commitment_fulfilled: false
+
+相手文:
+何度もすみません。18時までにとおっしゃっていたと思うんですが、まだご連絡いただけていないようで…。お客さんへの説明もあるので、何か分かっていることがあれば教えてください。
+
+[CASE 9: purchased / 進捗を具体的に求めている]
+reply_memory:
+  followup_count: 1
+  prior_tone: neutral
+  previous_assistant_commitment: share_summary
+  previous_deadline_promised: null
+  commitment_fulfilled: false
+
+相手文:
+お世話になります。上司に報告する必要がありまして、現時点で分かっていることを箇条書きで教えてもらえますか？原因の候補だけでも分かると助かります。
+
+[CASE 10: purchased / scope 追加の相談]
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: share_status
+  previous_deadline_promised: null
+  commitment_fulfilled: true
+
+相手文:
+ありがとうございます、Webhook の件は直ったんですね！ところで、ついでにもう1つ聞きたいんですが、Billing Portal の表示がおかしいのも見てもらえますか？別の不具合です。
+
+[CASE 11: purchased / 感情：感謝 + 追加質問]
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: share_result
+  previous_deadline_promised: null
+  commitment_fulfilled: true
+
+相手文:
+すごい、もう原因分かったんですか！早いですね、ありがとうございます。修正ファイルはいつ頃届きますか？あと、同じ問題が再発しないようにする方法ってありますか？
+
+[CASE 12: purchased / 日本語が不自然な buyer]
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: share_status
+  previous_deadline_promised: null
+  commitment_fulfilled: false
+
+相手文:
+こんにちは。すとらいぷのうぇぶふっくが、えらーになってます。ろぐは、どこからとればいいですか？おしえてください。
+
+# ─────────────────────────────────────
+# delivered（3件）: 納品後の対応を検証
+# ─────────────────────────────────────
+
+[CASE 13: delivered / 動作確認OK + 感謝]
+相手文:
+確認しました！完璧に動いてます。本当にありがとうございました。またなにかあったらお願いしたいです。
+
+[CASE 14: delivered / 納品後に別の不具合が出た]
+相手文:
+すみません、お送りいただいた修正を適用したんですが、Webhook は直ったものの、今度は決済完了後のリダイレクトが効かなくなりました。これは今回の修正の影響でしょうか？
+
+[CASE 15: delivered / 納品物の内容が理解できない]
+相手文:
+納品物を受け取りました。ただ正直、結論と確認方法のドキュメントを見ても、どこをどう変えればいいのかよく分からなくて…。コードを触ったことがほとんどないので、もう少し簡単に教えてもらえると助かります。

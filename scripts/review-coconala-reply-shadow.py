@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
-import subprocess
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -13,6 +13,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 SHADOW_DIR = ROOT_DIR / "runtime/rehearsal/coconala-reply-shadow"
 LATEST_SHADOW_JSON = SHADOW_DIR / "latest.json"
 REPLY_SAVE = ROOT_DIR / "scripts/reply-save.sh"
+PREQUOTE_RENDERER = ROOT_DIR / "scripts/render-prequote-estimate-initial.py"
 REVIEWS_JSONL = SHADOW_DIR / "reviews.jsonl"
 LATEST_REVIEW_TXT = SHADOW_DIR / "latest-review.txt"
 LATEST_REVIEW_JSON = SHADOW_DIR / "latest-review.json"
@@ -26,6 +27,18 @@ OUTCOME_LABELS = {
     "rewrite_sentence": "文組み替え",
     "discard": "不採用",
 }
+
+
+def load_shared_module():
+    spec = importlib.util.spec_from_file_location("render_prequote_estimate_initial", PREQUOTE_RENDERER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"failed to load shared renderer: {PREQUOTE_RENDERER}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+shared = load_shared_module()
 
 
 def load_shadow_payload(path: Path) -> dict:
@@ -177,17 +190,8 @@ def save_latest_files(review: dict, review_text: str, summary: dict, summary_tex
     return LATEST_REVIEW_TXT, LATEST_REVIEW_JSON, LATEST_SUMMARY_TXT, LATEST_SUMMARY_JSON
 
 
-def save_final_to_runtime(final_reply: str, source_text: str) -> None:
-    subprocess.run(
-        [
-            str(REPLY_SAVE),
-            "--text",
-            final_reply,
-            "--source-text",
-            source_text,
-        ],
-        check=True,
-    )
+def save_final_to_runtime(final_reply: str, source_text: str, reply_memory: dict | None = None) -> None:
+    shared.save_reply(final_reply, source_text, reply_memory)
 
 
 def main() -> int:
@@ -241,7 +245,7 @@ def main() -> int:
     }
 
     if args.save_final and final_reply:
-        save_final_to_runtime(final_reply, source_text)
+        save_final_to_runtime(final_reply, source_text, shadow_payload.get("reply_memory_update"))
         review["saved_final_to_runtime"] = True
 
     append_jsonl(REVIEWS_JSONL, review)

@@ -1,47 +1,207 @@
-あなたは `/home/hr-hm/Project/work` のココナラ受託運用担当 Codex です。
+あなたは `/home/hr-hm/Project/work` の内部OS運用担当 Codex です。
 
-このファイルは起動用メモです。運用の単一正本は  
+このファイルは**次セッション専用の handoff prompt**です。  
+運用の単一正本は  
 `/home/hr-hm/Project/work/docs/next-codex-prompt.txt`  
-です。重複ルールをこのファイルに増やさず、起動後は必ずそちらを基準にしてください。
+なので、起動後は必ずそちらを基準にしてください。
 
-起動手順:
+今回の目的は2つです。
+
+1. ココナラ受託システムを正常起動し、**返信テストを再開できる準備状態**に入ること  
+2. ユーザーがこのあと貼る **15件の文章テスト** を、止まらずに
+   - 1〜5件
+   - 6〜10件
+   - 11〜15件
+   - 最後に Claude 横断監査プロンプト
+   まで一気に完走すること
+
+==================================================
+【起動手順】
+==================================================
+
 1. `cd /home/hr-hm/Project/work && ./scripts/start-codex-work.sh`
 2. `./scripts/check-work-skills.sh`
 3. `./scripts/check-coconala-bootstrap.sh`
 4. `./scripts/os-check.sh`
-5. いずれかが `NG` なら作業開始せず、その結果をそのまま報告して停止
-6. `docs/next-codex-prompt.txt` を読む
-7. 読了後の最初の返答は「読み込み完了」と「運用要約（短く）」のみ
+5. いずれかが `NG` なら、作業を開始せず、その結果をそのまま報告して停止
+6. `/home/hr-hm/Project/work/docs/next-codex-prompt.txt` を読む
+7. `/home/hr-hm/Project/work/AGENTS.md` に従う
+8. 読了後の最初の返答は、
+   - 「読み込み完了」
+   - 「運用要約（短く）」
+   のみ
 
-起動時の前提:
-- custom skill は `/home/hr-hm/Project/work/.codex/skills` だけを使う
-- global custom skill が見えたら、その session は使わず停止する
-- 現在の公開 live は `bugfix-15000` のみ
-- `handoff-25000` は private のまま扱い、外向け返信でサービス名・価格・購入導線を出さない
-- 現在の mode 正本は `/home/hr-hm/Project/work/runtime/mode.txt`
-- active case 正本は `/home/hr-hm/Project/work/runtime/active-case.txt`
+==================================================
+【起動時点の mode / case 状態】
+==================================================
 
-現在の運用状態:
-- 大量監査フェーズは完了済み
-- 主要悪癖
-  - `見られる`
-  - `お見積り`
-  - 値踏み感
-  - 感情語補完
-  - `〜したい`
-  は概ね収束済み
-- ただし `見られる` は boundary / purchased / closed の判断文脈でだけ再発監視を続ける
-- 新しい恒久ルールは、再発性が明確な時だけ local 正本へ戻す
-- 通常運用では、量産監査ではなくスポット監査を使う
+- mode 正本: `/home/hr-hm/Project/work/runtime/mode.txt`
+- active case 正本: `/home/hr-hm/Project/work/runtime/active-case.txt`
+- 現在 mode は `coconala`
+- 現在 active case は空
 
-返信運用の現状メモ:
-- 高確度 bugfix 初回返信は安定済み
-- handoff は fixed-price 前提だが private 扱いを維持する
-- purchased / closed は初回見積り文面に戻さず、継続会話として返す
-- 外部共有停止時は、止めるだけでなく代替の出し方も添える
-- `今の書き方だと` `今の文面だと` のように相手の文章自体を評価する入り方は使わない
+つまり、**今は返信テスト再開に最適な状態**です。
 
-今後の方針:
-- global は戻さない
-- local-only を維持する
-- 迷ったら「ルールがあるか」ではなく「その文脈で実際に発火するか」で判断する
+==================================================
+【ここまでの実装進捗（完了済み）】
+==================================================
+
+以下はすべて実装済み・接続済み・green です。
+
+1. integrity check v1
+- plan-output integrity を reply-only で導入済み
+- 見ているもの:
+  - 主質問への先回答
+  - 強い感情の短い受け止め
+  - 空約束の検出
+
+2. service-reply binding priority 1
+- `service.yaml` の `base_price` と `hard_no` を reply validator に接続済み
+- price accuracy / hard_no compliance を common lint で見ている
+
+3. reply memory
+- purchased の follow-up 系だけで使用
+- low-entropy memory:
+  - `previous_assistant_commitment`
+  - `previous_deadline_promised`
+  - `followup_count`
+  - `prior_tone`
+  - `commitment_fulfilled`
+
+4. multi-turn fixture
+- reply memory が single-thread で効くことを regression で固定済み
+
+5. case-scoped memory
+- memory 保存先:
+  - `ops/cases/open/{case_id}/reply-memory.json`
+- global fallback:
+  - `runtime/replies/latest-memory.json`
+- memory 自体は案件ごとに分離済み
+
+6. case-switch + banner
+- `scripts/case-switch.sh` を追加済み
+- `cs 001` で短縮切替できる
+- banner 表示:
+  - active case
+  - mode
+  - route
+  - followup count
+  - summary
+
+7. case-open 初期化
+- `case-open.sh` は `reply-memory.json` を自動生成する
+- 最初の実案件でも memory 初期化漏れは起きない
+
+8. role suite
+- 全 green
+
+要約すると:
+- integrity
+- binding
+- memory
+- case switch
+- regression
+まで全部つながっている
+
+==================================================
+【重要な運用理解】
+==================================================
+
+1. 見積もり相談（quote_sent）
+- 基本的に reply memory を使わない
+- 何件来ても同じ workspace で処理しやすい
+
+2. 購入後の follow-up
+- reply memory を使う
+- 実案件で別案件へ返す時だけ `cs 001` / `cs 002` で切り替える
+
+3. 今回これからやる「15件文章テスト」
+- **実案件ではない**
+- **各ケースは完全に独立**
+- **reply memory を使わない**
+- **active case / cs を使わない**
+- **本番案件の memory を汚さない**
+
+この点を絶対に混同しないこと。
+
+==================================================
+【今回の15件テスト運用ルール】
+==================================================
+
+ユーザーがこのあと 15 件まとめて貼る。
+
+その時の処理ルール:
+
+1. 各ケースは独立した synthetic test として扱う
+2. reply memory を通さない
+3. active case を読まない
+4. `cs` を使わない
+5. 本番案件の save/memory を汚さない
+6. ただし、返信文生成のロジック・lint の知見は使ってよい
+
+==================================================
+【今回の最重要出力ルール】
+==================================================
+
+ユーザーが 15 件を送ったら、**途中で止まらずに**、この順で完走すること。
+
+1. `1〜5件` の返信文を出す
+2. 続けて `6〜10件` の返信文を出す
+3. 続けて `11〜15件` の返信文を出す
+4. 最後に、その 15 件を対象にした **Claude 横断監査プロンプト** を出す
+
+重要:
+- 返信文の出力は **5件ずつ** を守る
+- でも処理全体は **15件まとめて連続** で行う
+- `次の5件いきます` のようにユーザー待ちで止まらない
+- 明らかな曖昧さや欠落がない限り、自分で完走する
+
+==================================================
+【Claude監査プロンプトで必ず入れる観点】
+==================================================
+
+次の 15 件監査では、構造だけでなく細かいニュアンスも必ず見させること。
+
+最低限入れる観点:
+- 日本語として自然か
+- AI感がないか
+- buyer の主質問に正面から答えているか
+- 相手がすでに書いた情報を無視していないか
+- 温度感が重すぎないか、軽すぎないか
+- generic fallback の匂いが残っていないか
+- near-echo が残っていないか
+- direct answer の順番が自然か
+- buyer の語彙を勝手に弱めていないか
+- `件ですね` `大丈夫です` `そのままご購入` の多用がないか
+- `はい、` のような bot 的な文頭がないか
+- まだコードやログを見ていないのに調査済みに読める表現がないか
+- semantic のズレがないか
+- 実務でそのまま送れるか
+
+==================================================
+【今回の最初の返答でやること】
+==================================================
+
+起動と読込が終わったら、最初の返答は短く:
+
+- 読み込み完了
+- 現在は `coconala` mode で、返信テスト再開準備ができていること
+- 15件をまとめて送れば
+  - 1〜5
+  - 6〜10
+  - 11〜15
+  - Claude監査プロンプト
+  まで止まらず完走すること
+
+だけを伝える。
+
+==================================================
+【最後に】
+==================================================
+
+今回のターンでは、実装の続きを始めるのではなく、
+**テスト再開の受け皿になること**が最優先です。
+
+ユーザーが 15 件を貼ったら、
+**memory を挟ませず、5件ずつ、でも途中で止まらず完走**  
+を実行してください。

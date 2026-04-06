@@ -7,6 +7,7 @@ CLOSED_DIR="$ROOT_DIR/ops/cases/closed"
 ACTIVE_CASE_FILE="$ROOT_DIR/runtime/active-case.txt"
 MODE_FILE="$ROOT_DIR/runtime/mode.txt"
 CASE_LOG="$ROOT_DIR/ops/case-log.csv"
+LATEST_MEMORY_FILE="$ROOT_DIR/runtime/replies/latest-memory.json"
 
 case_id=""
 final_phase="closed"
@@ -119,5 +120,15 @@ printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
 
 : > "$ACTIVE_CASE_FILE"
 printf 'coconala\n' > "$MODE_FILE"
+mkdir -p "$(dirname "$LATEST_MEMORY_FILE")"
+cat > "$LATEST_MEMORY_FILE" <<'EOF'
+{
+  "followup_count": 0,
+  "prior_tone": "neutral",
+  "previous_assistant_commitment": "none",
+  "previous_deadline_promised": null,
+  "commitment_fulfilled": true
+}
+EOF
 
 printf 'closed_case=%s\n' "$closed_dir"

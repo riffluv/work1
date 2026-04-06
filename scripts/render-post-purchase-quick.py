@@ -69,15 +69,82 @@ def load_service_grounding() -> dict:
         "deploy_boundary_rule": "本番反映の代行は前提にしていません。必要なら反映手順が分かる形で返します。",
         "secret_boundary_rule": ".envや秘密値は送らず、必要ならキー名だけで大丈夫です。",
         "same_cause_followup_rule": "同じ原因の範囲で詰まる点があれば、その範囲は今回の件として確認します。",
+        "hard_no": facts.get("hard_no") or [],
     }
 
 
 SERVICE_GROUNDING = load_service_grounding()
+FOLLOWUP_MEMORY_SCENARIOS = {"progress_anxiety", "progress_summary_request", "timeline_anxiety"}
 
 
 def time_commit(hours: int = 2) -> str:
     target = datetime.now(JST) + timedelta(hours=hours)
     return f"本日{target:%H:%M}までに、現時点の確認結果をお返しします。"
+
+
+def reply_memory_for(source_or_case: dict | None) -> dict:
+    if not isinstance(source_or_case, dict):
+        return shared.default_reply_memory()
+    return shared.normalize_reply_memory(source_or_case.get("reply_memory"))
+
+
+def has_unfulfilled_commitment(source_or_case: dict | None) -> bool:
+    memory = reply_memory_for(source_or_case)
+    return memory.get("previous_assistant_commitment") != "none" and not memory.get("commitment_fulfilled", True)
+
+
+def promised_deadline_from_text(text: str) -> str | None:
+    match = re.search(r"((?:本日|明日)\d{1,2}:\d{2}までに)", text)
+    if match:
+        return match.group(1)
+    return None
+
+
+def infer_prior_tone_for_reply_memory(raw: str) -> str:
+    if any(marker in raw for marker in ["どうなってるんですか", "まだ何も返事", "対応するかしないか", "放置"]):
+        return "frustrated"
+    if any(marker in raw for marker in ["焦ってます", "問い合わせが6件", "心配になってき", "安心します", "週明けに社内で報告"]):
+        return "patient_urgent"
+    if any(marker in raw for marker in ["恐れ入ります", "恐れ入りますが", "お手数ですが"]):
+        return "formal"
+    if any(marker in raw for marker in ["不安", "心配", "気になって"]):
+        return "anxious"
+    return "neutral"
+
+
+def detect_commitment_kind(case: dict, rendered: str) -> str:
+    scenario = case.get("scenario")
+    if scenario == "progress_summary_request":
+        return "share_summary"
+    if scenario == "timeline_anxiety":
+        return "share_eta"
+    if scenario == "progress_anxiety":
+        return "share_status"
+    if "確認結果をお返し" in rendered or "状況を整理してお送りします" in rendered:
+        return "share_status"
+    return "none"
+
+
+def build_reply_memory_update(case: dict, rendered: str) -> dict:
+    memory = shared.default_reply_memory()
+    if case.get("state") != "purchased":
+        return memory
+
+    scenario = case.get("scenario")
+    if scenario not in FOLLOWUP_MEMORY_SCENARIOS:
+        return memory
+
+    previous_memory = reply_memory_for(case)
+    commitment_kind = detect_commitment_kind(case, rendered)
+    if commitment_kind == "none":
+        return memory
+
+    memory["followup_count"] = min((previous_memory.get("followup_count") or 0) + 1, 2)
+    memory["prior_tone"] = infer_prior_tone_for_reply_memory(case.get("raw_message", ""))
+    memory["previous_assistant_commitment"] = commitment_kind
+    memory["previous_deadline_promised"] = promised_deadline_from_text(rendered)
+    memory["commitment_fulfilled"] = False
+    return memory
 
 
 def is_complaint_like(source: dict) -> bool:
@@ -191,6 +258,9 @@ def opener_for(source: dict) -> str:
         return ""
     if source.get("scenario") in {"external_share_request", "late_info_share"}:
         return ""
+    if source.get("state") == "purchased" and source.get("scenario") in FOLLOWUP_MEMORY_SCENARIOS:
+        if (reply_memory_for(source).get("followup_count") or 0) > 0:
+            return ""
     route = source.get("route", source.get("src", "talkroom"))
     if route == "message":
         return "ご連絡ありがとうございます。"
@@ -748,6 +818,7 @@ def build_case_from_source(source: dict) -> dict:
     raw = source.get("raw_message", "")
     scenario = detect_scenario(source)
     summary = shared.derive_summary(source)
+    reply_memory = reply_memory_for(source)
 
     case = {
         "id": source.get("case_id") or source.get("id"),
@@ -787,6 +858,7 @@ def build_case_from_source(source: dict) -> dict:
             else "after_purchase",
         ),
         "scenario": scenario,
+        "reply_memory": reply_memory,
     }
 
     if scenario in {"external_share_request", "late_info_share"}:
@@ -2127,17 +2199,31 @@ def draft_opening_anchor(case: dict) -> str:
     scenario = case["scenario"]
     raw = case.get("raw_message", "")
     deadline_phrase = promised_deadline_phrase(raw)
+    reply_memory = reply_memory_for(case)
+    repeated_followup = (reply_memory.get("followup_count") or 0) > 0
+    pending_commitment = has_unfulfilled_commitment(case)
 
     if scenario == "delay_complaint_refund":
         lines = ["お待たせしてしまい、すみません。まず状況を確認します。"]
         lines.append(deadline_phrase or "連絡が空いてしまった点、申し訳ありません。")
         return "\n".join(lines)
     if scenario == "progress_anxiety":
+        if pending_commitment and repeated_followup:
+            lines = ["お待たせしています。前回お伝えした確認の件も含めて、今の状況を整理します。"]
+            if deadline_phrase:
+                lines.append(deadline_phrase)
+            return "\n".join(lines)
         lines = ["お待たせしてすみません。まず状況を整理します。"]
         if deadline_phrase:
             lines.append(deadline_phrase)
         return "\n".join(lines)
+    if scenario == "progress_summary_request":
+        if pending_commitment and repeated_followup:
+            return "お待たせしています。社内共有に使えるよう、現時点で見えている点を整理します。"
+        return "社内共有に使える形でまとめます。"
     if scenario == "timeline_anxiety":
+        if pending_commitment and repeated_followup:
+            return "お待たせしています。今の時点で出せる見通しを整理します。"
         if any(marker in raw for marker in ["焦ってます", "問い合わせが6件", "メンテナンス中"]):
             return "焦る状況ですよね。まず見通しが出せるところから確認します。"
         return "まず見通しが出せるところから確認します。"
@@ -2642,7 +2728,7 @@ def render_case(case: dict) -> str:
     shared.ensure_temperature_plan(case)
     if not case.get("response_decision_plan"):
         case["response_decision_plan"] = build_response_decision_plan(
-            {"raw_message": case.get("raw_message", "")},
+            {"raw_message": case.get("raw_message", ""), "reply_memory": case.get("reply_memory")},
             case.get("scenario", "generic_followup"),
             case["reply_contract"],
         )
@@ -2673,6 +2759,7 @@ def render_case(case: dict) -> str:
     payload = build_post_purchase_render_payload(case, opening_block, body_paragraphs, next_action)
     case["render_payload"] = payload
     violations = validate_render_payload(case, payload, rendered)
+    case["reply_memory_update"] = build_reply_memory_update(case, rendered)
     if violations:
         case["render_payload_violations"] = violations
         case["rendered_reply_validator_mode"] = "guardrail_violation"
@@ -2708,7 +2795,7 @@ def main() -> int:
             if len(selected) != 1:
                 print("[NG] --save requires exactly one case")
                 return 1
-            shared.save_reply(rendered, case["raw_message"])
+            shared.save_reply(rendered, case["raw_message"], case.get("reply_memory_update"))
 
     print("\n\n----\n\n".join(rendered_blocks))
     return 0

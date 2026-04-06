@@ -24,17 +24,19 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
 
 ## 最初に見るファイル
 1. `/home/hr-hm/Project/work/os/core/service-registry.yaml`
-2. `/home/hr-hm/Project/work/ops/common/output-schema.yaml`
-3. `/home/hr-hm/Project/work/ops/common/interaction-states.yaml`
-4. `/home/hr-hm/Project/work/ops/common/coconala-rule-guard.md`
-5. `/home/hr-hm/Project/work/ops/common/routing-table.yaml`
-6. `service-registry.yaml` の `bugfix-15000` から辿る `facts_file`
-7. `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/evidence-minimum.yaml`
-8. `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/estimate-decision.yaml`
-9. `/home/hr-hm/Project/work/docs/coconala-message-templates-short.ja.md`
-10. `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md`
+2. `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml`
+3. `/home/hr-hm/Project/work/ops/common/output-schema.yaml`
+4. `/home/hr-hm/Project/work/ops/common/interaction-states.yaml`
+5. `/home/hr-hm/Project/work/ops/common/coconala-rule-guard.md`
+6. `/home/hr-hm/Project/work/ops/common/routing-table.yaml`
+7. `service-registry.yaml` の `bugfix-15000` から辿る `facts_file`
+8. `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/evidence-minimum.yaml`
+9. `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/estimate-decision.yaml`
+10. `/home/hr-hm/Project/work/docs/coconala-message-templates-short.ja.md`
+11. `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md`
 
 ## required_facts
+- prequote の「購入前 / 購入後 / 正式な納品 / キャンセル手続き」の場の違いは、毎回 `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml` を正本として読む。
 - prequote の hard facts は、毎回 `/home/hr-hm/Project/work/os/core/service-registry.yaml` と、そこから辿る `facts_file` を正本として読む。
 - `bugfix-15000` の価格・追加料金・公開状態・範囲は、`service-registry.yaml` で `bugfix-15000` を解決し、その `facts_file` を正本にする。
 - 公開状態と外向け自然文の参照は、`service-registry.yaml` の `public` と `source_of_truth` を使う。
@@ -98,6 +100,10 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
 - bugfix として購入済みの案件を、途中で `先に handoff を購入してください` と振り直さない。同一トークルーム内で範囲を区切るか、追加対応の相談に留める。
 - 修正主目的だが症状がまだ絞れていない boundary では、handoff 推奨へ倒さず、購入前に `一番困っている症状` を1つだけ絞る。
 - 症状も対象フローも絞れないままなら、無理に受けず保留または辞退へ倒す。境界判定を購入後へ持ち越さない。
+- dual-service の境界案内でも、外向け本文に内部ラベルの `bugfix` `handoff` をそのまま出さない。`不具合修正` `主要1フローの整理` `このサービス` に言い換える。
+- Yes/No へ直答する場面でも、冒頭を機械的に `はい、` で始めない。`確認できます。` `まず不具合修正から入るのが近いです。` のように結論文そのものを先に置いてよい。
+- 相手が `高い` `予算が厳しい` のように価格への引っかかりを率直に書いている時は、scope 説明の前に短い受け止めを1文だけ置いてよい。
+- 相手が `安心しました` `助かりました` `自分では触れない` のように、好意・安心・弱さを1行差し出している時は、本題の前に1文だけ受けてよい。説明や励ましに広げず、そのまま判定へ入る。
 
 ## 判定ルール
 - `15,000円`
@@ -168,6 +174,8 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
 - 末尾クロージングを毎回同じ文にしない。`見積もり提案をお送りします` は 2〜3 パターンを回す
 - 公開 bugfix の prequote は定額サービスとして扱い、価格を出したあとに `お見積りをお返しします` を機械適用しない。`基本料金は15,000円です` を明示するか、価格提示済みなら次アクションだけで閉じる
 - anxious な prequote では、感謝だけで始めず `確認します` `まず見ます` などこちらのアクションを先に置く
+- 怒りや焦りが強い prequote では、技術的な見立ても平易に返す。`切り分けの軸は〜` のような分析語より `だいぶ絞れてきています` `まずそこから見ます` を優先する
+- 競合比較や価格差の説明で、`差額の説明だけすると` のような事務的な前置きを入れない
 - ただし prequote では、購入後の進行中会話のように `まず確認します。` だけで始めない。`ご連絡ありがとうございます。` `メッセージありがとうございます。` など route に合う受領を1行置いたうえで、次の文でアクションを返す
 - `15,000円` 案件の説明を毎回 `A、B、Cを見ながら、原因切り分けから修正まで進めます` の同一骨格にしない。`何を先に見るか` `どこで止まっているかを見るか` `何を見比べるか` の3型を回す
 - 高確度案件では `別の原因が混ざっていた場合は、その時点でご相談します` を機械適用しない。原因が複数に割れやすい案件や、相談者の前提が揺れている案件だけに使う
@@ -255,6 +263,8 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
 - boundary の bugfix 寄り案件で、`見られます` が残っていないか
 - `どちらがいいか` `相談できますか` `どう進めるのがいいか` の直球質問に、提案の前に1文で答えているか
 - hold や料金文脈で、`見られます` `見られそうか` が残っていないか
+- 外向け本文に `bugfix` `handoff` の内部ラベルが残っていないか
+- Yes/No 直答の冒頭が機械的な `はい、` になっていないか
 - 極短文 hold で、相手の `見てもらえますか` `大丈夫ですか` に質問より先に1文で答えているか
 - hold 文脈で `確認したいです` が再発していないか
 - 料金不安への回答で、相手が使っていない `不安` などの感情語を足していないか

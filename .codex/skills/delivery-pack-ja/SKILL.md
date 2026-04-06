@@ -11,6 +11,7 @@ description: "ココナラ案件の納品物を、bugfix は `00_結論と確認
 - 秘密情報を含まない納品を徹底する。
 
 ## 参照
+- プラットフォーム契約: `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml`
 - テンプレート: `references/pack-templates.ja.md`
 - 納品前ガード: `references/delivery-checklist.ja.md`
 - handoff テンプレート: `/home/hr-hm/Project/work/docs/handoff-delivery-template.ja.md`
@@ -64,6 +65,7 @@ description: "ココナラ案件の納品物を、bugfix は `00_結論と確認
 6. 正式納品メッセージを作る（承諾/差し戻し案内を含める）。
 
 ## ガード
+- 正式な納品と通常メッセージの違い、追加料金の相談を正式な納品前に終えること、キャンセル/返金をこちらで断定しないことは `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml` を正本にする。
 - `.env` 値、APIキー値、Webhook秘密値を含めない。
 - 納品物は完成品として作る。本文内で結果共有・追加情報送付・継続前提の依頼をしない。
 - 依頼者に求めるのは最終確認のみとし、合意内容との相違は正式納品メッセージで差し戻し案内する。

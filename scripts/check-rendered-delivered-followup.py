@@ -9,6 +9,7 @@ from pathlib import Path
 from reply_quality_lint_common import (
     collect_quality_style_errors,
     collect_reasoning_preservation_errors,
+    collect_service_binding_errors,
     collect_temperature_constraint_errors,
 )
 
@@ -92,6 +93,10 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("service_grounding does not point to the public bugfix service")
         if not service_grounding.get("public_service"):
             errors.append("service_grounding is not marked public")
+        if service_grounding.get("base_price") != 15000:
+            errors.append("service_grounding base_price is missing or does not match the public service")
+        if not service_grounding.get("hard_no"):
+            errors.append("service_grounding is missing hard_no bindings")
     if not hard_constraints:
         errors.append("hard_constraints is missing")
     else:
@@ -218,6 +223,15 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("delivery mismatch complaint still re-asks despite already named missing deliverable")
     if scenario == "price_complaint" and rendered.count("受け止め") > 1:
         errors.append("price complaint repeats 受け止め language")
+    errors.extend(
+        collect_service_binding_errors(
+            rendered,
+            raw,
+            service_grounding,
+            state="delivered",
+            scenario=scenario,
+        )
+    )
     if scenario == "price_complaint" and has_any(raw, ["価値があったのか", "モヤモヤ", "高い気が", "高かったかも"]) and not has_any(rendered, ["すみません", "申し訳"]):
         errors.append("price complaint with lingering discomfort does not include a brief ownership/apology line")
     if "Stripeのダッシュボードに「テスト」" in raw and "テストモード" not in rendered:

@@ -1,0 +1,72 @@
+cases:
+  - case_id: MEM-001
+    expected_scenario: progress_summary_request
+    raw_message: お世話になります。一昨日お送りしたログの件、進展ありましたか？急かすつもりはないんですが、週明けに社内で報告する必要がありまして。今の段階で何か分かっていることがあれば、箇条書きレベルで構わないので共有いただけると助かります。
+    reply_memory:
+      followup_count: 1
+      prior_tone: patient_urgent
+      previous_assistant_commitment: share_summary
+      previous_deadline_promised: 本日18:47までに
+      commitment_fulfilled: false
+    require_diff_from_baseline: true
+    required_markers_any:
+      - お待たせしています
+      - 社内共有に使えるよう
+      - 箇条書き
+    forbidden_markers_any:
+      - ご連絡ありがとうございます
+      - ありがとうございます。
+      - もちろんです。
+    expected_memory_update:
+      followup_count: 2
+      previous_assistant_commitment: share_summary
+      commitment_fulfilled: false
+      previous_deadline_promised_required: true
+
+  - case_id: MEM-002
+    expected_scenario: timeline_anxiety
+    raw_message: すみません、正直に言うとかなり焦ってます。昨日からECサイトの決済が完全に止まってて、今日だけで問い合わせが6件来てます。もちろんすぐ直せとは言いません、ただ、今の段階で「あとどれくらいかかりそうか」の目安だけでも教えてもらえませんか。
+    reply_memory:
+      followup_count: 1
+      prior_tone: patient_urgent
+      previous_assistant_commitment: share_eta
+      previous_deadline_promised: 本日18:47までに
+      commitment_fulfilled: false
+    require_diff_from_baseline: true
+    required_markers_any:
+      - お待たせしています
+      - 今の時点で出せる見通し
+      - 次の見通し
+    forbidden_markers_any:
+      - ご連絡ありがとうございます
+      - 焦る状況ですよね
+      - もちろんです。
+    expected_memory_update:
+      followup_count: 2
+      previous_assistant_commitment: share_eta
+      commitment_fulfilled: false
+      previous_deadline_promised_required: true
+
+  - case_id: MEM-003
+    expected_scenario: progress_anxiety
+    raw_message: すみません、昨日お送りした件なんですが、確認って進んでますか？ちょっと心配になってきまして。もしお忙しければ大丈夫なんですが、一応状況だけでも教えてもらえると安心します。
+    reply_memory:
+      followup_count: 1
+      prior_tone: anxious
+      previous_assistant_commitment: share_status
+      previous_deadline_promised: 本日18:47までに
+      commitment_fulfilled: false
+    require_diff_from_baseline: true
+    required_markers_any:
+      - お待たせしています
+      - 前回お伝えした確認の件
+      - いまは、昨日いただいた内容をもとに
+    forbidden_markers_any:
+      - ご連絡ありがとうございます
+      - ありがとうございます。
+      - もちろんです。
+    expected_memory_update:
+      followup_count: 2
+      previous_assistant_commitment: share_status
+      commitment_fulfilled: false
+      previous_deadline_promised_required: true

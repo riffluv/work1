@@ -1,0 +1,128 @@
+# Batch 9: 5.0 killer batch — 精度の限界を攻める15件
+# 目的: B8で4.5に到達。5.0に必要な「微妙なニュアンス」「判断の難しさ」を意図的に攻める
+# 特徴: 全件が何かしら「引っかけ」か「判断が割れる」ケース
+
+# ─────────────────────────────────────
+# prequote の難問（5件）
+# ─────────────────────────────────────
+
+[CASE 1: prequote / 怒り + 感謝が混在 + 2サービス迷い]
+route: service
+service_hint: boundary
+difficulty: extreme
+focus: 感情の複雑さ + routing
+note: 怒りと感謝が同居する稀なケース。温度設定が極めて難しい
+raw_message:
+もう本当に困ってて、3週間もサイトの決済が壊れたままです。前の開発者には何度連絡しても返事がないし。でもこういうサービスがあるのを見つけて、正直すごく安心しました。ただ、修正してほしい不具合はあるんですが、正直コードの全体像が分からなくて、修正してもまた壊れそうで怖いんです。15,000円と25,000円、どう使い分けたらいいですか？
+
+[CASE 2: prequote / 超短文で意図が読めない]
+route: message
+service_hint: bugfix
+difficulty: high
+focus: 情報不足への対応
+note: 短すぎて判断材料がほぼない。聞き返し方が問われる
+raw_message:
+Stripe動かない。見てもらえます？
+
+[CASE 3: prequote / 自分の問題を誤診している buyer]
+route: service
+service_hint: handoff
+difficulty: extreme
+focus: buyer の自己診断が間違っている可能性
+note: 「不具合」と言っているが実際は構造の問題。是正の仕方が問われる
+raw_message:
+Next.jsで作ったサービスなんですが、Stripeの定期課金でバグが頻発します。直してもまた別のところが壊れるんです。もう5回くらい同じことの繰り返しで。15,000円で根本的に直してもらうことってできますか？
+
+[CASE 4: prequote / 競合比較をしている buyer]
+route: service
+service_hint: bugfix
+difficulty: medium
+focus: 競合への言及にどう反応するか
+note: 他のサービスと比較している発言が入っている
+raw_message:
+いくつかStripe修正のサービスを見てるんですが、他のところは1万円くらいのもあるんですよね。15,000円の差額分って何が違うんですか？Checkoutの署名検証エラーなんですが。
+
+[CASE 5: prequote / 秘密情報を匂わせつつ、まだ送っていない]
+route: service
+service_hint: bugfix
+difficulty: medium
+focus: 秘密情報の予防的案内
+note: まだ送っていないが「送った方がいいですか？」と聞いている
+raw_message:
+Webhookが動かなくて困ってます。Stripe のAPIキーとかsecretって、先に送っておいた方がいいですか？あとVercelの環境変数のスクショもあります。
+
+# ─────────────────────────────────────
+# purchased の難問（6件）
+# ─────────────────────────────────────
+
+[CASE 6: purchased / bugfix / buyer が自分で直そうとして悪化させた]
+reply_memory:
+  followup_count: 1
+  prior_tone: neutral
+  previous_assistant_commitment: share_analysis
+  previous_deadline_promised: null
+  commitment_fulfilled: false
+
+相手文:
+すみません、待ってる間に自分でコードいじっちゃって、余計おかしくなったかもしれません。元に戻したつもりなんですが、よく分からなくて…。元の状態のコードってどうやって見ればいいですか？変更前の状態に戻す方法ってありますか？
+
+[CASE 7: purchased / handoff / 整理中に「もう全部お任せしたい」と言い出す]
+相手文:
+整理してもらってる内容を見て、正直もう自分では触れないなと思いました。修正も全部お任せして、動く状態にしてもらうことってできますか？追加で何万かかっても構いません。
+
+[CASE 8: purchased / bugfix / 3回目催促 + 怒り]
+reply_memory:
+  followup_count: 3
+  prior_tone: frustrated
+  previous_assistant_commitment: share_analysis
+  previous_deadline_promised: "本日15:00まで"
+  commitment_fulfilled: false
+
+相手文:
+もう3回目です。15時って言ったのにまた連絡ないですよね。お金払ってるんですけど、ちゃんとやってもらえてますか？正直このまま進むのか不安です。
+
+[CASE 9: purchased / bugfix / 修正内容に疑問を持っている]
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: share_result
+  previous_deadline_promised: null
+  commitment_fulfilled: true
+
+相手文:
+修正内容を見たんですが、1つ気になることがあって。Webhook の受信処理を変えてるんですけど、これって既存のデータに影響出ませんか？今動いてる部分が壊れたら困るので、確認してから適用したいです。
+
+[CASE 10: purchased / handoff / buyer が途中でキャンセルしたい]
+相手文:
+すみません、社内で方針が変わって、引き継ぎメモの作成は一旦止めてもらえますか。途中までの分ってどうなりますか？返金とかできるんですか？
+
+[CASE 11: purchased / bugfix / 非エンジニアが根本原因を聞いてきている]
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: share_result
+  previous_deadline_promised: null
+  commitment_fulfilled: true
+
+相手文:
+修正ありがとうございます。1つ教えてほしいんですが、そもそもなぜこのバグが起きたんですか？自分でも理解しておきたくて。専門用語は分からないので、簡単に教えてもらえると助かります。
+
+# ─────────────────────────────────────
+# delivered の難問（4件）
+# ─────────────────────────────────────
+
+[CASE 12: delivered / bugfix / 修正は効いたが別の懸念を持っている]
+相手文:
+修正は正常に動いてます。ただ、今回触ってもらった箇所以外にも似たような書き方のところがいくつかあって、同じ問題が別の場所で起きそうな気がしてます。全部チェックしてもらうことってできますか？
+
+[CASE 13: delivered / handoff / 引き継ぎメモの内容に不満]
+相手文:
+メモは受け取りました。ただ…正直もう少し詳しく書いてもらえると思ってました。危険箇所のところ、「ここは要注意」とは書いてあるんですが、具体的に何がどう危ないのかが分からなくて。もう少し掘り下げてもらうことってできますか？
+
+[CASE 14: delivered / bugfix / 好意的だが「次回値引きしてほしい」]
+相手文:
+今回は本当に助かりました。また次も相談したいんですが、リピーターだと少し安くしてもらったりできますか？定期的にお願いする可能性が高いので。
+
+[CASE 15: delivered / handoff / メモの一部が間違っていると指摘]
+相手文:
+引き継ぎメモを別のエンジニアに見てもらったんですが、認証フローの説明のところで「SupabaseのRLSで制御している」と書いてあるけど、実際にはFirebase Authを使っているとのことでした。この部分を修正してもらえますか？

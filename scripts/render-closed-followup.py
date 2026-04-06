@@ -62,6 +62,7 @@ def load_service_grounding() -> dict:
         "closed_room_boundary_rule": "前回のトークルームは閉じているため、そのまま同じトークルームで続ける形にはしません。",
         "same_cause_rule": "同じ原因なら前回の続きに近い話として見ます。別の原因なら切り分けて案内します。",
         "public_scope_rule": "公開中の bugfix 範囲で案内します。",
+        "hard_no": facts.get("hard_no") or [],
     }
 
 
@@ -942,7 +943,7 @@ def build_case_from_source(source: dict) -> dict:
             {
                 "question_id": "q1",
                 "disposition": "decline",
-                "answer_brief": "新しい機能追加は、今回の bugfix 対応の範囲ではありません。",
+                "answer_brief": "新しい機能追加は、今回の不具合修正の範囲ではありません。",
             },
         ]
         if "Invoice" in raw or "請求書" in raw:

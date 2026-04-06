@@ -1,0 +1,158 @@
+# Batch: dual-public training 15 cases
+# 目的: bugfix-15000 と handoff-25000 の2サービス公開時に、正しく案内できるか検証
+# 配分: bugfix 5件 / handoff 5件 / boundary 5件
+
+[CASE 1]
+route: service
+state: prequote
+service_hint: boundary
+difficulty: high
+focus: 15K/25Kの選び分け + 非エンジニア + 価格不安
+note: bugfix と handoff のどちらを先に案内すべきかが問われるケース
+raw_message:
+はじめまして。知り合いのエンジニアに作ってもらったECサイトがあるんですが、その人と連絡が取れなくなってしまって。決済周りで問題が出てるんですが、正直コードのことは全然分からないです。とりあえず決済を直したいのと、あと今後誰かに引き継げるようにしたいなというのもあって。15,000円のほうと25,000円のほう、どっちを買えばいいんでしょうか。両方必要だったりしますか？ちょっと予算的に合わせて4万は厳しいので…
+
+[CASE 2]
+route: service
+state: prequote
+service_hint: bugfix
+difficulty: low
+focus: Stripe Webhook 不具合の素直なケース
+note: bugfix の基本動作を確認する正常系
+raw_message:
+Stripe の Webhook で checkout.session.completed が飛んでこなくなりました。先週まで普通に動いてたんですが、Vercel の環境変数を触ったあとからだと思います。ログにはリクエスト自体が来てない感じです。確認お願いできますか。
+
+[CASE 3]
+route: service
+state: prequote
+service_hint: handoff
+difficulty: medium
+focus: AI生成コードのブラックボックス + 構造把握
+note: 不具合はないが全体が不透明。handoff が主目的
+raw_message:
+お世話になります。ChatGPTとCursorを使って自分でSaaSを作ったんですが、なんとか動いてはいるものの、コードの中身が正直よく分かっていません。今すぐ壊れてるわけではないんですが、今後機能を足したり人に頼んだりするときに、今の状態がどうなっているのかを整理してもらいたいです。決済はStripe、フレームワークはNext.jsです。25,000円のサービスってこういう用途で合ってますか？
+
+[CASE 4]
+route: message
+state: prequote
+service_hint: bugfix
+difficulty: medium
+focus: 急ぎ + 売上影響 + 情報少なめ
+note: urgency が高く、情報が少ない状態での初回対応を検証
+raw_message:
+すみません急ぎで。うちのサブスクサービスで今日から新規の決済が全部エラーになってて、登録ページで止まります。既存ユーザーは問題ないっぽいです。Next.jsとStripeです。今日だけで問い合わせ8件来てます。すぐ見てもらえますか？
+
+[CASE 5]
+route: service
+state: prequote
+service_hint: handoff
+difficulty: medium
+focus: 外注コードの引き継ぎ + 前任離脱
+note: handoff の主目的が明確なケース
+raw_message:
+以前クラウドソーシングで外注したWebアプリがあるんですが、納品後に発注先と連絡が取れなくなりました。一応動いてはいるんですが、どこに何があるのかさっぱり分からない状態です。別のエンジニアさんに今後お願いするにしても、今のままだと説明できないので、まずは構造を整理する引き継ぎメモを作ってほしいです。Next.jsで、Stripeの定期課金が入ってます。
+
+[CASE 6]
+route: service
+state: prequote
+service_hint: boundary
+difficulty: high
+focus: bugfix のついでに構造把握もしたい
+note: 修正が主だが「ついでに全体も見て」と言ってくるケース
+raw_message:
+Stripeの課金でエラーが出てて困ってるんですが、ついでにというか、コード全体がどうなってるの自分でも把握したいと思ってまして。前の開発者が抜けて、今は自分だけで触ってるんですが、直してもらうだけじゃなくて、全体の構造がどうなっているかも教えてもらえたりしますか？まずは15,000円の修正からのほうがいいのか、25,000円の整理からのほうがいいのか迷ってます。
+
+[CASE 7]
+route: service
+state: prequote
+service_hint: bugfix
+difficulty: medium
+focus: hard_no（GitHub直接push + 本番デプロイ）
+note: push と deploy を頼んでくるケースで hard_no が正しく出るか検証
+raw_message:
+こんにちは。StripeのCheckoutが本番で動かなくなってしまって、お願いしたいです。できればGitHubのリポジトリに招待するので、直接ブランチにpushしてもらえると助かります。あとデプロイもVercelでやってるので、そのままデプロイまでお願いできますか？修正だけもらっても自分で反映する自信がなくて…
+
+[CASE 8]
+route: service
+state: prequote
+service_hint: handoff
+difficulty: low
+focus: AI生成コードの構造把握（明確な handoff ニーズ）
+note: 修正不要・整理のみ。handoff の素直な正常系
+raw_message:
+Claudeでかなりの量のコードを書いてもらって、Next.jsのアプリを作りました。今のところ不具合はないんですが、自分でもどこに何が書いてあるか分かっていない状態です。今後他の人にも触ってもらう可能性があるので、まずは主要な流れだけでも整理してもらえればと思っています。決済フローと認証フローの2つが特に気になってます。
+
+[CASE 9]
+route: service
+state: prequote
+service_hint: boundary
+difficulty: high
+focus: handoff 後に修正もお願いしたい + 追加料金不安
+note: 整理→修正の2段階を想定しているが、1回の購入で済むか不安なケース
+raw_message:
+質問なんですが、引き継ぎメモのサービスを買って構造を整理してもらったあとに、「ここが壊れてるから直して」って分かったら、修正もそのまま同じ流れでやってもらえるんですか？それとも修正は別で15,000円がまたかかりますか？セットで割引とかないですかね。先に整理だけお願いして、修正は後から考えるのでもいいんですが、トータルでいくらかかるか分からないと怖くて…
+
+[CASE 10]
+route: service
+state: prequote
+service_hint: bugfix
+difficulty: medium
+focus: 非エンジニアだが修正が主目的 + 引き継ぎ不安を含む
+note: 本質は bugfix だが、非エンジニアの不安が混ざっているケース
+raw_message:
+はじめまして。コード全然わからないんですが、ECサイトの決済が壊れてて困ってます。クレカの決済ボタンを押しても何も起きなくて、お客さんから連絡来てます。前に作ってもらった人がもういないので、今後のことも不安はあるんですが、まずは今壊れてるところを直してほしいです。Next.jsとStripeです。15,000円のサービスで合ってますか？
+
+[CASE 11]
+route: service
+state: prequote
+service_hint: handoff
+difficulty: high
+focus: whole repo を全部見てほしい + 1フロー/複数フロー曖昧
+note: scope の暴発が来るケース。「全体を見てほしい」にどう対応するか
+raw_message:
+外注先から受け取ったコードがあるんですが、ドキュメントが何もなくて。決済、認証、メール送信、管理画面、全部がごちゃごちゃで繋がってて、どこから手をつけていいか分かりません。全部見てもらって、どこが危なくて、どこは大丈夫で、次に何をすべきかを教えてほしいです。25,000円でどこまでやってもらえますか。
+
+[CASE 12]
+route: service
+state: prequote
+service_hint: boundary
+difficulty: high
+focus: 一見 bugfix だが実は handoff 寄り
+note: 「不具合がある」と言っているが、実際は構造が分からないのが根本原因
+raw_message:
+Stripeの定期課金で、特定のプランだけ更新に失敗するんですが、コードのどこが原因か自分では追えなくて。ChatGPTに聞いても、毎回違うところを指摘されてよく分からないです。正直、コード全体の流れがそもそも自分で把握できてないので、不具合だけ直してもらっても同じことが起きそうな気がしてます。どう進めるのがいいですか？
+
+[CASE 13]
+route: service
+state: prequote
+service_hint: bugfix
+difficulty: medium
+focus: hard_no（APIキー送付 + Webhook secret）
+note: 秘密情報の生値を送ろうとするケース
+raw_message:
+Webhook の署名検証が通らなくて、500エラーが出てます。とりあえずStripeのAPIキーとWebhook endpointのsecretを貼っておきますね。
+
+sk_live_xxxxxxxxxxxxxxxxxxxxx
+whsec_xxxxxxxxxxxxxxxxxxxxx
+
+これで確認してもらえますか？
+
+[CASE 14]
+route: service
+state: prequote
+service_hint: boundary
+difficulty: high
+focus: 25,000円が高い + 15,000円で済ませたい + 価値不安
+note: handoff が本来合うが、価格を理由に bugfix に寄せたがるケース
+raw_message:
+25,000円のサービス、内容は合ってるなと思うんですが、正直ちょっと高いなと感じてます。不具合はないので15,000円のほうで「ここがこうなってます」くらいの簡単な整理だけしてもらうことってできませんか？がっつりした引き継ぎメモまではいらなくて、要点だけ分かればいいんですが。
+
+[CASE 15]
+route: message
+state: prequote
+service_hint: handoff
+difficulty: medium
+focus: 通話希望 + 非エンジニア
+note: hard_no（通話）を踏みつつ、handoff が合うケース
+raw_message:
+こんにちは、エンジニアではないのでテキストだけだと不安なんですが、一度Zoomとかで説明してもらうことってできますか？前任のエンジニアが抜けて、サイトのコードが完全にブラックボックスになってます。まずは何がどうなっているのかを教えてもらいたいです。Next.jsで作られていて、Stripeの決済が入ってます。

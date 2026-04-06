@@ -12,6 +12,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 CONTRACT_CHECKER = ROOT_DIR / "scripts/check-inferred-prequote-contracts.py"
 REPLY_REGRESSION = ROOT_DIR / "scripts/check-coconala-reply-regression.py"
 QUOTE_SENT_TEMPLATE_CHECKER = ROOT_DIR / "scripts/check-quote-sent-template-regression.py"
+REPLY_MEMORY_CHECKER = ROOT_DIR / "scripts/check-reply-memory-regression.py"
 REPORT_DIR = ROOT_DIR / "runtime/regression/coconala-reply/full"
 JST = ZoneInfo("Asia/Tokyo")
 
@@ -30,13 +31,21 @@ def build_report_text(
     reply_output: str,
     template_status: int,
     template_output: str,
+    reply_memory_status: int,
+    reply_memory_output: str,
 ) -> str:
-    overall_ok = contract_status == 0 and reply_status == 0 and template_status == 0
+    overall_ok = (
+        contract_status == 0
+        and reply_status == 0
+        and template_status == 0
+        and reply_memory_status == 0
+    )
     lines = [
         f"generated_at: {started_at.strftime('%Y-%m-%d %H:%M:%S %Z')}",
         f"contract_status: {'OK' if contract_status == 0 else 'NG'}",
         f"reply_status: {'OK' if reply_status == 0 else 'NG'}",
         f"template_status: {'OK' if template_status == 0 else 'NG'}",
+        f"reply_memory_status: {'OK' if reply_memory_status == 0 else 'NG'}",
         "",
         "[contract_check]",
         contract_output or "<no output>",
@@ -46,6 +55,9 @@ def build_report_text(
         "",
         "[quote_sent_template_regression]",
         template_output or "<no output>",
+        "",
+        "[reply_memory_regression]",
+        reply_memory_output or "<no output>",
         "",
         "[status]",
         "[OK] coconala reply full regression passed" if overall_ok else "[NG] coconala reply full regression failed",
@@ -75,6 +87,7 @@ def main() -> int:
     contract_cmd = ["python3", str(CONTRACT_CHECKER)]
     reply_cmd = ["python3", str(REPLY_REGRESSION)]
     template_cmd = ["python3", str(QUOTE_SENT_TEMPLATE_CHECKER)]
+    reply_memory_cmd = ["python3", str(REPLY_MEMORY_CHECKER)]
     if args.show_pass_details:
         contract_cmd.append("--show-passes")
         reply_cmd.append("--show-passes")
@@ -88,6 +101,7 @@ def main() -> int:
     contract_status, contract_output = run_command(contract_cmd)
     reply_status, reply_output = run_command(reply_cmd)
     template_status, template_output = run_command(template_cmd)
+    reply_memory_status, reply_memory_output = run_command(reply_memory_cmd)
 
     report_text = build_report_text(
         started_at=started_at,
@@ -97,6 +111,8 @@ def main() -> int:
         reply_output=reply_output,
         template_status=template_status,
         template_output=template_output,
+        reply_memory_status=reply_memory_status,
+        reply_memory_output=reply_memory_output,
     )
 
     if args.save_report:
@@ -105,7 +121,7 @@ def main() -> int:
         print(f"report_history: {history_path}")
 
     print(report_text.rstrip())
-    if contract_status != 0 or reply_status != 0 or template_status != 0:
+    if contract_status != 0 or reply_status != 0 or template_status != 0 or reply_memory_status != 0:
         return 1
     return 0
 

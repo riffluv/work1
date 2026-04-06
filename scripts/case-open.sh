@@ -7,6 +7,7 @@ CLOSED_DIR="$ROOT_DIR/ops/cases/closed"
 TEMPLATE_FILE="$ROOT_DIR/os/case/readme-template.md"
 ACTIVE_CASE_FILE="$ROOT_DIR/runtime/active-case.txt"
 MODE_FILE="$ROOT_DIR/runtime/mode.txt"
+LATEST_MEMORY_FILE="$ROOT_DIR/runtime/replies/latest-memory.json"
 
 service_id=""
 route=""
@@ -60,6 +61,7 @@ fi
 case_id="${date_part}-${seq}-${route}"
 case_dir="$OPEN_DIR/$case_id"
 readme="$case_dir/README.md"
+reply_memory="$case_dir/reply-memory.json"
 
 mkdir -p "$case_dir" "$(dirname "$ACTIVE_CASE_FILE")"
 
@@ -79,6 +81,25 @@ sed \
 
 printf '%s\n' "$case_id" > "$ACTIVE_CASE_FILE"
 printf '%s\n' "$phase" > "$MODE_FILE"
+cat > "$reply_memory" <<'EOF'
+{
+  "followup_count": 0,
+  "prior_tone": "neutral",
+  "previous_assistant_commitment": "none",
+  "previous_deadline_promised": null,
+  "commitment_fulfilled": true
+}
+EOF
+mkdir -p "$(dirname "$LATEST_MEMORY_FILE")"
+cat > "$LATEST_MEMORY_FILE" <<'EOF'
+{
+  "followup_count": 0,
+  "prior_tone": "neutral",
+  "previous_assistant_commitment": "none",
+  "previous_deadline_promised": null,
+  "commitment_fulfilled": true
+}
+EOF
 
 printf 'case_id=%s\n' "$case_id"
 printf 'dir=%s\n' "$case_dir"

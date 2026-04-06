@@ -64,6 +64,7 @@ def load_service_grounding() -> dict:
         "same_cause_rule": "同じ原因なら差し戻しの続きとして見ます。別の原因なら、その時点で切り分けて案内します。",
         "deployment_boundary_rule": "本番反映の代行は前提にしていません。必要なら反映手順が分かる形で返します。",
         "support_window_rule": "補足で答えられる範囲ならこのまま返します。",
+        "hard_no": facts.get("hard_no") or [],
     }
 
 

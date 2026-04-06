@@ -69,6 +69,7 @@ def load_service_grounding() -> dict:
         "text_only_support_rule": "スクショや短い箇条書きで送っていただければ大丈夫です。",
         "capability": facts.get("capability") or {},
         "diagnostic_patterns": facts.get("diagnostic_patterns") or [],
+        "hard_no": facts.get("hard_no") or [],
     }
 
 
@@ -1089,7 +1090,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "追加で修正を頼むかどうかを、整理した内容を見てから判断する進め方はできます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "feature_addition_scope_question":
-        direct_answer_line = "新しい機能追加は、今回の bugfix 対応の範囲ではありません。"
+        direct_answer_line = "新しい機能追加は、今回の不具合修正の範囲ではありません。"
         response_order = ["reaction", "direct_answer", "answer_detail"]
     elif scenario == "outline_share_permission_question":
         direct_answer_line = "概要だけでも、まず今回の範囲か確認できます。"
@@ -1800,7 +1801,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "新しい機能追加は、今回の bugfix 対応の範囲ではありません。",
+                    "answer_brief": "新しい機能追加は、今回の不具合修正の範囲ではありません。",
                 }
             ],
             "ask_map": [],

@@ -1,0 +1,178 @@
+version: 1
+platform: coconala
+last_verified: 2026-04-07
+
+purpose: >
+  Coconala 全サービス共通の取引仕様と返信ガイダンス。
+  価格・スコープは service-registry.yaml / service.yaml を正本とし、
+  このファイルは「購入前/購入後/正式納品/キャンセル」の場の違いを補う。
+
+applies_in_modes:
+  - coconala
+  - delivery
+
+authority_split:
+  platform_contract: /home/hr-hm/Project/work/os/coconala/platform-contract.yaml
+  service_contract: /home/hr-hm/Project/work/os/core/service-registry.yaml
+  case_context:
+    - /home/hr-hm/Project/work/runtime/replies/latest-source.txt
+    - /home/hr-hm/Project/work/runtime/replies/latest.txt
+    - reply_memory
+    - /home/hr-hm/Project/work/ops/cases/open/{case_id}/README.md
+
+not_duplicated_here:
+  - no_external_contact
+  - no_external_share
+  - no_external_payment
+  - no_direct_push
+  - no_prod_deploy
+  - no_raw_secret_values
+
+confidence_levels:
+  official:
+    usage: >
+      公式UI / 公式ヘルプ / 公式ガイドと整合する前提で、必要なら外向け文面にも直接使ってよい。
+  mixed:
+    usage: >
+      公式情報を含む調査メモから整理した項目。外向けでは断定しすぎず、
+      「プラットフォーム手続きに沿って確認します」のように cautious に使う。
+  operational:
+    usage: >
+      Workspace 内の返信運用ルール。外向けに「ココナラ仕様」として断定せず、
+      writer / lint / self-check のガイダンスとして使う。
+
+facts:
+  message_vs_talkroom:
+    summary: >
+      メッセージは主に購入前またはクローズ後の連絡、トークルームは購入後の取引空間として扱う。
+    confidence: official
+    outward_assertion: direct
+    source_refs:
+      - /home/hr-hm/Project/work/docs/external-research/coconala-platform-complete-guide.md#3-メッセージ機能-vs-トークルーム
+
+  estimate_proposal_flow:
+    summary: >
+      見積もり相談では、相談 -> 出品者の見積もり提案 -> buyer の承認/購入、の流れがある。
+    confidence: official
+    outward_assertion: direct
+    source_refs:
+      - /home/hr-hm/Project/work/docs/external-research/coconala-platform-complete-guide.md#4-見積もり提案の仕組み
+
+  formal_delivery_exists:
+    summary: >
+      「正式な納品」は通常メッセージと別の操作で、送信後はクローズ手続きに入る前提で扱う。
+    confidence: official
+    outward_assertion: direct
+    source_refs:
+      - /home/hr-hm/Project/work/docs/external-research/coconala-platform-complete-guide.md#5-正式な納品と納品確認
+
+  first_reply_after_purchase_deadline:
+    summary: >
+      購入後、出品者から 48 時間以内に一度もメッセージが送られない場合は自動キャンセルの対象になる。
+      Workspace ではこれを内部SLOではなく platform fact として扱う。
+    confidence: official
+    outward_assertion: cautious
+    source_refs:
+      - https://coconala-support.zendesk.com/hc/ja/articles/218722887-%E5%87%BA%E5%93%81%E8%80%85%E3%81%8B%E3%82%89%E9%80%A3%E7%B5%A1%E3%81%8C%E3%81%AA%E3%81%84
+      - https://coconala.com/smartphone/news/202
+
+  silence_cancel_risk:
+    summary: >
+      purchased 中に出品者からの連絡が 4 日以上途絶えると、
+      購入者側からキャンセルリクエスト可能になる条件がある。
+    confidence: official
+    outward_assertion: cautious
+    source_refs:
+      - https://coconala-support.zendesk.com/hc/ja/articles/218722887-%E5%87%BA%E5%93%81%E8%80%85%E3%81%8B%E3%82%89%E9%80%A3%E7%B5%A1%E3%81%8C%E3%81%AA%E3%81%84
+      - https://coconala-support.zendesk.com/hc/ja/articles/218179858-%E8%B3%BC%E5%85%A5%E8%80%85%E3%81%8B%E3%82%89%E9%80%A3%E7%B5%A1%E3%81%8C%E3%81%AA%E3%81%84
+
+  additional_payment_before_close:
+    summary: >
+      おひねり等の追加支払いは、正式な納品後でもクローズ前の一定期間は可能な場合がある。
+      ただし、どの経路で支払われた金額かによって取消方法や扱いは分かれる。
+    confidence: official
+    outward_assertion: cautious
+    source_refs:
+      - https://coconala.com/news/557
+      - https://coconala-support.zendesk.com/hc/ja/articles/900001972863-%E3%81%8A%E3%81%B2%E3%81%AD%E3%82%8A-%E6%9C%89%E6%96%99%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3-%E4%B8%80%E9%83%A8%E9%87%91%E9%A1%8D%E3%81%AE%E3%82%AD%E3%83%A3%E3%83%B3%E3%82%BB%E3%83%AB%E6%96%B9%E6%B3%95-%E5%87%BA%E5%93%81%E8%80%85%E5%90%91%E3%81%91
+
+  cancel_refund_shape:
+    summary: >
+      キャンセルや返金はプラットフォーム手続きに沿う話として扱い、
+      出品者側がこの場で可否や金額を断定しない。
+      一部金額の取消は、支払った経路やタイミングで処理方法が分かれる。
+    confidence: official
+    outward_assertion: cautious
+    source_refs:
+      - https://coconala-support.zendesk.com/hc/ja/articles/900001972863-%E3%81%8A%E3%81%B2%E3%81%AD%E3%82%8A-%E6%9C%89%E6%96%99%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3-%E4%B8%80%E9%83%A8%E9%87%91%E9%A1%8D%E3%81%AE%E3%82%AD%E3%83%A3%E3%83%B3%E3%82%BB%E3%83%AB%E6%96%B9%E6%B3%95-%E5%87%BA%E5%93%81%E8%80%85%E5%90%91%E3%81%91
+      - https://coconala-support.zendesk.com/hc/ja/articles/218722887-%E5%87%BA%E5%93%81%E8%80%85%E3%81%8B%E3%82%89%E9%80%A3%E7%B5%A1%E3%81%8C%E3%81%AA%E3%81%84
+
+  rejection_limit_exists:
+    summary: >
+      差し戻しは原則 1 回のみで、2 回目の正式な納品後は差し戻し/承諾ボタンの再表示はされない。
+    confidence: official
+    outward_assertion: direct
+    source_refs:
+      - https://coconala-support.zendesk.com/hc/ja/articles/4402957809049-%E7%B4%8D%E5%93%81%E7%A2%BA%E8%AA%8D%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6-%E8%B3%BC%E5%85%A5%E8%80%85%E5%90%91%E3%81%91
+
+guidance:
+  - id: do_not_mix_channels
+    when:
+      - prequote
+      - purchased
+      - delivered
+      - closed
+    rule: >
+      prequote ではトークルーム前提の文言を書かない。
+      purchased / delivered ではトークルーム前提で返し、クローズ後だけメッセージへ戻す。
+    based_on:
+      - message_vs_talkroom
+
+  - id: keep_platform_and_service_separate
+    when:
+      - all_coconala_replies
+    rule: >
+      このファイルは「場の仕様」を扱う。価格・スコープ・追加料金単位は service-registry.yaml と service.yaml を正本にする。
+    based_on:
+      - estimate_proposal_flow
+
+  - id: do_not_assert_refund_mechanics
+    when:
+      - purchased
+      - delivered
+    rule: >
+      キャンセル / 返金では、出品者が最終判断者のように書かない。
+      「取引状況に沿って確認します」「プラットフォーム手続きに沿う話になります」を基本にする。
+    based_on:
+      - cancel_refund_shape
+
+  - id: finish_extra_charge_before_formal_delivery
+    when:
+      - delivery
+    rule: >
+      platform 上はクローズ前に追加支払いできる時間帯があるが、
+      Workspace では追加費用や追加作業の合意を原則として正式な納品前に終える。
+      正式な納品後の追加請求を前提に本文を書かない。
+    based_on:
+      - formal_delivery_exists
+      - additional_payment_before_close
+
+  - id: confirm_before_formal_delivery
+    when:
+      - delivery
+    rule: >
+      初回の正式な納品前に、buyer へ「この内容で送って問題ないか」の確認を挟く。
+      差し戻し回数の上限を、初回納品文で圧として出しすぎない。
+    based_on:
+      - formal_delivery_exists
+      - rejection_limit_exists
+
+  - id: internal_sla_for_purchase_reply
+    when:
+      - purchased
+    rule: >
+      48時間初回返信と長期無応答リスクを内部SLOとして扱う。
+      遅れる前に区切り連絡を入れ、期限破り後の謝罪だけで終わらせない。
+    based_on:
+      - first_reply_after_purchase_deadline
+      - silence_cancel_risk

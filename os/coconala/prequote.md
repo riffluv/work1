@@ -8,11 +8,13 @@
 - 相手文
 
 優先:
-1. `coconala-intake-router-ja`
-2. `coconala-prequote-ops-ja`
-3. 送信用返信は毎回 `japanese-chat-natural-ja`
+1. `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml`
+2. `coconala-intake-router-ja`
+3. `coconala-prequote-ops-ja`
+4. 送信用返信は毎回 `japanese-chat-natural-ja`
 
 ガード:
+- 購入前/購入後/正式納品の場の違いは `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml` を正本にする
 - 公開中サービスの案内は `bugfix-15000` のみ
 - 価格に影響する判断を無料で確定しすぎない
 - 相手文だけなら分析のみ

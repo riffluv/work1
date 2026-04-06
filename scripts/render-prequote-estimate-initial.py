@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -15,6 +16,20 @@ from reply_quality_lint_common import collect_temperature_constraint_errors
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_FIXTURE = ROOT_DIR / "ops/tests/prequote-contract-v2-top5.yaml"
 REPLY_SAVE = ROOT_DIR / "scripts/reply-save.sh"
+REPLIES_DIR = ROOT_DIR / "runtime/replies"
+REPLY_MEMORY_PATH = REPLIES_DIR / "latest-memory.json"
+ACTIVE_CASE_PATH = ROOT_DIR / "runtime/active-case.txt"
+OPEN_CASES_DIR = ROOT_DIR / "ops/cases/open"
+
+REPLY_MEMORY_DEFAULT = {
+    "followup_count": 0,
+    "prior_tone": "neutral",
+    "previous_assistant_commitment": "none",
+    "previous_deadline_promised": None,
+    "commitment_fulfilled": True,
+}
+ALLOWED_REPLY_MEMORY_TONES = {"neutral", "formal", "anxious", "frustrated", "patient_urgent"}
+ALLOWED_REPLY_MEMORY_COMMITMENTS = {"none", "share_status", "share_summary", "share_eta", "share_result"}
 
 
 def strip_period(text: str) -> str:
@@ -23,6 +38,99 @@ def strip_period(text: str) -> str:
 
 def compact_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
+
+
+def default_reply_memory() -> dict:
+    return dict(REPLY_MEMORY_DEFAULT)
+
+
+def normalize_reply_memory(memory: dict | None) -> dict:
+    if not isinstance(memory, dict):
+        return default_reply_memory()
+
+    normalized = default_reply_memory()
+    raw_followup = memory.get("followup_count", 0)
+    try:
+        followup_count = int(raw_followup)
+    except (TypeError, ValueError):
+        followup_count = 0
+    normalized["followup_count"] = min(max(followup_count, 0), 2)
+
+    prior_tone = str(memory.get("prior_tone") or "neutral").strip()
+    normalized["prior_tone"] = prior_tone if prior_tone in ALLOWED_REPLY_MEMORY_TONES else "neutral"
+
+    previous_commitment = str(memory.get("previous_assistant_commitment") or "none").strip()
+    normalized["previous_assistant_commitment"] = (
+        previous_commitment if previous_commitment in ALLOWED_REPLY_MEMORY_COMMITMENTS else "none"
+    )
+
+    previous_deadline = compact_text(str(memory.get("previous_deadline_promised") or ""))
+    normalized["previous_deadline_promised"] = previous_deadline or None
+    normalized["commitment_fulfilled"] = bool(memory.get("commitment_fulfilled", True))
+    return normalized
+
+
+def active_case_id() -> str | None:
+    try:
+        case_id = ACTIVE_CASE_PATH.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    return case_id or None
+
+
+def case_reply_memory_path(case_id: str | None) -> Path | None:
+    if not case_id:
+        return None
+    case_dir = OPEN_CASES_DIR / case_id
+    if not case_dir.is_dir():
+        return None
+    return case_dir / "reply-memory.json"
+
+
+def resolve_reply_memory_path(path: Path | None = None) -> Path:
+    if path is not None:
+        return path
+    case_path = case_reply_memory_path(active_case_id())
+    if case_path is not None:
+        return case_path
+    return REPLY_MEMORY_PATH
+
+
+def _read_reply_memory_file(path: Path) -> dict:
+    if not path.exists():
+        return default_reply_memory()
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return default_reply_memory()
+    return normalize_reply_memory(data)
+
+
+def load_reply_memory(path: Path | None = None) -> dict:
+    resolved_path = resolve_reply_memory_path(path)
+    if resolved_path != REPLY_MEMORY_PATH and not resolved_path.exists() and REPLY_MEMORY_PATH.exists():
+        return _read_reply_memory_file(REPLY_MEMORY_PATH)
+    return _read_reply_memory_file(resolved_path)
+
+
+def save_reply_memory(memory: dict | None, path: Path | None = None) -> None:
+    normalized = normalize_reply_memory(memory)
+    resolved_path = resolve_reply_memory_path(path)
+    active_case_path = case_reply_memory_path(active_case_id())
+    write_reset_latest = active_case_path is not None and resolved_path == active_case_path
+
+    def write_memory(target_path: Path, payload: dict) -> None:
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = target_path.with_suffix(".tmp")
+        tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        tmp_path.replace(target_path)
+
+    write_memory(resolved_path, normalized)
+    if write_reset_latest:
+        write_memory(REPLY_MEMORY_PATH, default_reply_memory())
+        return
+    if resolved_path != REPLY_MEMORY_PATH:
+        write_memory(REPLY_MEMORY_PATH, normalized)
 
 
 def numbered_marker_count(text: str) -> int:
@@ -596,7 +704,7 @@ def primary_hold_brief_for(source: dict) -> str:
     if scenario == "performance_boundary":
         return "表示速度の問題はStripe起因とは限らないため、いまは15,000円で進める前に確認したいです。"
     if scenario == "security_fear":
-        return "確認対象ではありますが、いまは通常のbugfixとして進められるかをまだ断定しません。"
+        return "確認対象ではありますが、いまは通常の不具合修正として進められるかをまだ断定しません。"
     return "確認対象ではあるが、今の情報では15,000円の範囲で進められるかをまだ断定しない。"
 
 
@@ -1376,7 +1484,7 @@ def load_cases(path: Path) -> list[dict]:
     raise ValueError(f"unsupported fixture format: {path}")
 
 
-def save_reply(reply: str, source: str) -> None:
+def save_reply(reply: str, source: str, reply_memory: dict | None = None) -> None:
     cmd = [
         str(REPLY_SAVE),
         "--text",
@@ -1385,6 +1493,8 @@ def save_reply(reply: str, source: str) -> None:
         source,
     ]
     subprocess.run(cmd, check=True)
+    if reply_memory is not None:
+        save_reply_memory(reply_memory)
 
 
 def main() -> int:

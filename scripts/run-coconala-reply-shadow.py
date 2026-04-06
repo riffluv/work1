@@ -188,7 +188,11 @@ def main() -> int:
         if result.get("errors"):
             print("[NG] reply was not saved because lint failed")
         else:
-            tools["prequote"]["drafter"].save_reply(result["sendable_reply"], source_text)
+            tools["prequote"]["drafter"].save_reply(
+                result["sendable_reply"],
+                source_text,
+                (result.get("case") or {}).get("reply_memory_update"),
+            )
             saved = True
 
     report_payload = {
@@ -199,6 +203,7 @@ def main() -> int:
         "scenario": (result.get("case") or {}).get("scenario"),
         "buyer_questions": (result.get("case") or {}).get("buyer_questions") or [],
         "primary_concern": ((result.get("case") or {}).get("response_decision_plan") or {}).get("primary_concern"),
+        "reply_memory_update": (result.get("case") or {}).get("reply_memory_update"),
         "errors": result.get("errors") or [],
         "sendable_reply": result.get("sendable_reply") or "",
         "saved_to_runtime": saved,

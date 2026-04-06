@@ -91,6 +91,7 @@
 - `./scripts/case-open.sh`: `#S` の正本
 - `./scripts/case-note.sh`: `#M` の正本
 - `./scripts/case-phase.sh`: open case の phase / mode 切替
+- `./scripts/case-switch.sh`: active case の明示切替
 - `./scripts/case-close.sh`: `#C` の正本
 - `./scripts/reply-save.sh`: 送信用返信の保存
 

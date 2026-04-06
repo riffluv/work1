@@ -33,6 +33,14 @@ STYLE_RULES: list[tuple[re.Pattern[str], str]] = [
         re.compile(r"大丈夫です。[\s\n]+大丈夫です。"),
         "rendered text still repeats `大丈夫です` too closely",
     ),
+    (
+        re.compile(r"(?:^|[^A-Za-z])(?:bugfix|handoff)(?:[^A-Za-z]|$)", re.IGNORECASE),
+        "rendered text leaked internal service label `bugfix/handoff`",
+    ),
+    (
+        re.compile(r"整理サービス"),
+        "rendered text leaked internal service label `整理サービス`",
+    ),
 ]
 
 INTERNAL_TERM_RULES: list[tuple[re.Pattern[str], str]] = [
@@ -51,6 +59,14 @@ INTERNAL_TERM_RULES: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(r"reply_contract|answer_map|ask_map"),
         "rendered text leaked internal contract wording",
+    ),
+    (
+        re.compile(r"(?:^|[^A-Za-z])(?:bugfix|handoff)(?:[^A-Za-z]|$)", re.IGNORECASE),
+        "rendered text leaked internal service label `bugfix/handoff`",
+    ),
+    (
+        re.compile(r"整理サービス"),
+        "rendered text leaked internal service label `整理サービス`",
     ),
 ]
 
@@ -98,6 +114,27 @@ EMPTY_PROMISE_MARKERS = [
     "確認できているところから",
     "見えているところから",
 ]
+PRICE_QUESTION_MARKERS = [
+    "15,000",
+    "15000",
+    "10,000",
+    "10000",
+    "5,000",
+    "5000",
+    "25,000",
+    "25000",
+]
+PRICE_RENDER_MARKERS = [
+    "料金",
+    "金額",
+    "返金",
+    "費用",
+    "固定",
+    "値引",
+    "予算",
+    "提案",
+]
+YEN_AMOUNT_RE = re.compile(r"[0-9]{1,3}(?:,[0-9]{3})*円|[0-9]{4,}円")
 
 
 def infer_buyer_emotion(source_text: str) -> str:
@@ -134,6 +171,57 @@ def _contains_money_anchor(text: str) -> bool:
             "手続き",
         ]
     )
+
+
+def _base_price_variants(base_price: int) -> set[str]:
+    return {f"{base_price:,}円", f"{base_price}円"}
+
+
+def _contains_base_price(text: str, base_price: int) -> bool:
+    return any(variant in text for variant in _base_price_variants(base_price))
+
+
+def _affirmative_hard_no_violation(rendered: str, key: str) -> bool:
+    sentence_delims = ["。", "\n"]
+    segments = [rendered]
+    for delim in sentence_delims:
+        next_segments: list[str] = []
+        for segment in segments:
+            next_segments.extend(part.strip() for part in segment.split(delim))
+        segments = [segment for segment in next_segments if segment]
+
+    negative_markers = ["使わず", "使わない", "切り替えず", "しません", "前提にしていません", "送らず", "避けて"]
+    pattern_by_key: dict[str, list[re.Pattern[str]]] = {
+        "external_share": [
+            re.compile(r"(?:Google ?ドライブ|Dropbox|外部リンク).*(?:共有|リンク|ダウンロード).*(?:大丈夫|お願いします|ください)"),
+        ],
+        "external_contact": [
+            re.compile(r"(?:Slack|LINE|Zoom|電話)で.*(?:進め|やり取り|連絡|お願いします|大丈夫)"),
+            re.compile(r"メールで.*(?:やり取り|連絡|送って).*(?:大丈夫|お願いします)"),
+        ],
+        "external_payment": [
+            re.compile(r"(?:銀行振込|PayPay|直接支払い).*(?:支払|お支払|振込|送金).*(?:大丈夫|お願いします|進め)"),
+        ],
+        "direct_push": [
+            re.compile(r"(?:直接 ?push|master ブランチに push|pushしておいて|pushします)"),
+        ],
+        "prod_deploy": [
+            re.compile(r"(?:こちらで|そのまま).*(?:本番反映|デプロイ).*(?:します|しておきます|進めます)"),
+            re.compile(r"(?:本番反映|デプロイ)を.*(?:お願いします|進めます)"),
+        ],
+        "raw_secret_values": [
+            re.compile(r"(?:\.env|シークレット|secret|キー).*(?:そのまま|値を).*(?:送って|貼って|共有して)"),
+            re.compile(r"(?:そのまま|値を).*(?:送って|貼って).*(?:大丈夫|お願いします)"),
+        ],
+    }
+
+    for segment in segments:
+        if any(marker in segment for marker in negative_markers):
+            continue
+        for pattern in pattern_by_key.get(key, []):
+            if pattern.search(segment):
+                return True
+    return False
 
 
 def _is_procedural_direct_answer(text: str) -> bool:
@@ -268,6 +356,29 @@ def _rendered_has_direct_answer(rendered: str) -> bool:
     return any(marker in answer_window for marker in markers)
 
 
+def _normalize_reply_memory(reply_memory: dict | None) -> dict:
+    if not isinstance(reply_memory, dict):
+        return {
+            "followup_count": 0,
+            "prior_tone": "neutral",
+            "previous_assistant_commitment": "none",
+            "previous_deadline_promised": None,
+            "commitment_fulfilled": True,
+        }
+    raw_followup_count = reply_memory.get("followup_count") or 0
+    try:
+        followup_count = int(raw_followup_count)
+    except (TypeError, ValueError):
+        followup_count = 0
+    return {
+        "followup_count": followup_count,
+        "prior_tone": str(reply_memory.get("prior_tone") or "neutral"),
+        "previous_assistant_commitment": str(reply_memory.get("previous_assistant_commitment") or "none"),
+        "previous_deadline_promised": (reply_memory.get("previous_deadline_promised") or None),
+        "commitment_fulfilled": bool(reply_memory.get("commitment_fulfilled", True)),
+    }
+
+
 def collect_answer_coverage_errors(
     rendered: str,
     source_text: str,
@@ -297,9 +408,11 @@ def collect_reasoning_preservation_errors(
     source_text: str,
     decision_plan: dict | None = None,
     scenario: str | None = None,
+    reply_memory: dict | None = None,
 ) -> list[str]:
     errors: list[str] = []
     decision_plan = decision_plan or {}
+    reply_memory = _normalize_reply_memory(reply_memory)
     direct_answer_line = (decision_plan.get("direct_answer_line") or "").strip()
     primary_question_id = (decision_plan.get("primary_question_id") or "").strip()
     buyer_emotion = (decision_plan.get("buyer_emotion") or "none").strip()
@@ -375,6 +488,86 @@ def collect_reasoning_preservation_errors(
 
     if "中間報告としてお返しできます" in rendered:
         errors.append("rendered text promises a progress summary without concretely framing the deliverable")
+
+    followup_count = reply_memory.get("followup_count") or 0
+    previous_commitment = reply_memory.get("previous_assistant_commitment") or "none"
+    previous_deadline = str(reply_memory.get("previous_deadline_promised") or "")
+    commitment_fulfilled = bool(reply_memory.get("commitment_fulfilled", True))
+    first_text = _first_nonempty_text(rendered)
+
+    if followup_count > 0 and first_text.startswith("ご連絡ありがとうございます"):
+        errors.append("follow-up reply still opens like a first-contact reply")
+
+    if previous_commitment != "none" and not commitment_fulfilled:
+        progress_markers = [
+            "いまは、",
+            "現時点では",
+            "原因の方向性",
+            "次の見通し",
+            "箇条書き",
+            "見えている点",
+            "切り分け中",
+            "見立て",
+            "昨日いただいた内容をもとに",
+            "前回お伝えした",
+        ]
+        if previous_commitment == "share_summary" and not any(marker in rendered for marker in ["箇条書き", "見えている点", "整理した内容"]):
+            errors.append("reply does not carry forward the previously promised summary deliverable")
+        if previous_commitment == "share_eta" and not any(marker in rendered for marker in ["原因の方向性", "次の見通し", "見通し"]):
+            errors.append("reply does not carry forward the previously promised timeline deliverable")
+        if previous_commitment == "share_status" and not any(marker in rendered for marker in ["いまは、", "現時点では", "切り分け中", "見立て", "状況"]):
+            errors.append("reply does not carry forward the previously promised status deliverable")
+        if any(marker in rendered for marker in ["お返しします", "お送りします", "まとめます", "整理します"]) and not any(
+            marker in rendered for marker in progress_markers
+        ):
+            errors.append("reply repeats an unfulfilled prior commitment without concrete progress")
+        if previous_deadline and any(marker in rendered for marker in ["お返しします", "お送りします", "まとめます", "整理します"]) and not any(
+            marker in rendered for marker in [previous_deadline, "原因の方向性", "次の見通し", "箇条書き", "見えている点"]
+        ):
+            errors.append("reply drops a previously promised deadline and replaces it with a vague new promise")
+
+    return list(dict.fromkeys(errors))
+
+
+def collect_service_binding_errors(
+    rendered: str,
+    source_text: str,
+    service_grounding: dict | None = None,
+    *,
+    state: str | None = None,
+    scenario: str | None = None,
+) -> list[str]:
+    del scenario
+    errors: list[str] = []
+    service_grounding = service_grounding or {}
+    base_price = service_grounding.get("base_price")
+    hard_no = service_grounding.get("hard_no") or []
+
+    if isinstance(base_price, int):
+        rendered_yen_amounts = set(YEN_AMOUNT_RE.findall(rendered))
+        source_yen_amounts = set(YEN_AMOUNT_RE.findall(source_text))
+        allowed_amounts = _base_price_variants(base_price)
+        denial_markers = ["していません", "できません", "受けていません", "値引き", "値下げ", "変更はしていません", "下げる形では"]
+        unsupported: list[str] = []
+        for amount in sorted(rendered_yen_amounts):
+            if amount in allowed_amounts or amount in source_yen_amounts:
+                continue
+            if any(amount in segment and any(marker in segment for marker in denial_markers) for segment in re.split(r"[。\n]", rendered)):
+                continue
+            unsupported.append(amount)
+        if unsupported:
+            errors.append(f"rendered text uses unsupported yen amount(s): {', '.join(unsupported)}")
+
+        rendered_has_price_language = bool(rendered_yen_amounts) or any(marker in rendered for marker in PRICE_RENDER_MARKERS)
+        if state == "quote_sent" and any(marker in source_text for marker in PRICE_QUESTION_MARKERS) and rendered_has_price_language:
+            if not _contains_base_price(rendered, base_price):
+                errors.append("price-related quote_sent reply does not anchor the service base_price explicitly")
+            if any(marker in rendered for marker in PRICE_RENDER_MARKERS) and not _contains_base_price(rendered, base_price):
+                errors.append("price-related quote_sent reply still uses vague fee wording without the service base_price")
+
+    for key in hard_no:
+        if _affirmative_hard_no_violation(rendered, key):
+            errors.append(f"rendered text affirmatively permits a hard-no behavior: {key}")
 
     return list(dict.fromkeys(errors))
 

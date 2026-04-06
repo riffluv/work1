@@ -1,0 +1,157 @@
+Batch 10: Platform Knowledge Test — 15件
+目的: platform-contract.yaml が返信に反映されているかを検証
+全件 dual-public 前提（bugfix-15000 / handoff-25000）
+
+=== prequote（5件）===
+
+--- CASE 1 ---
+state: prequote
+service_hint: bugfix
+platform_test: メッセージ vs トークルーム
+difficulty: ★★
+buyer:
+修正をお願いしたいんですが、このメッセージで詳細を送ればそのまま作業してもらえますか？購入しなくてもここで進められるならその方が楽なんですが。
+
+--- CASE 2 ---
+state: prequote
+service_hint: bugfix
+platform_test: 見積もり提案の操作
+difficulty: ★
+buyer:
+Stripeの決済エラーを直してほしいんですが、見積もりってどうやってもらえるんですか？そちらから金額を提示してもらえるんですか？
+
+--- CASE 3 ---
+state: prequote
+service_hint: handoff
+platform_test: Zoom / 通話の代替提案
+difficulty: ★★
+buyer:
+コードの状態が複雑で、テキストだけだとうまく説明できる自信がないです。Zoomで画面共有しながら見てもらうことってできますか？30分くらいで済むと思うんですが。
+
+--- CASE 4 ---
+state: prequote
+service_hint: bugfix
+platform_test: 外部リンク / 直接取引
+difficulty: ★★★
+buyer:
+実は以前ココナラ外で別のエンジニアに直接頼んだことがあるんですが、途中で連絡つかなくなって。今回ちゃんとココナラ通じてお願いしたいんですが、もし追加で相談したいことが出てきたら、LINEとかで連絡とれますか？
+
+--- CASE 5 ---
+state: prequote
+service_hint: boundary
+platform_test: 購入前に秘密値を送ろうとする
+difficulty: ★★
+buyer:
+Webhook が動かなくて困ってます。購入前にまず見てもらいたいので、Stripeのダッシュボードのスクショとシークレットキーを送りますね。これで原因わかりますか？
+
+=== purchased（6件）===
+
+--- CASE 6 ---
+state: purchased
+service_hint: bugfix
+platform_test: 48時間ルールの意識
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: null
+  previous_deadline_promised: null
+  commitment_fulfilled: false
+buyer:
+（購入直後。buyerからの最初のメッセージ）
+購入しました！Stripeの定期課金がエラーになる件です。詳細はこれからまとめるので、明後日くらいに送りますね。
+
+--- CASE 7 ---
+state: purchased
+service_hint: bugfix
+platform_test: 正式な納品の確認プロセス
+reply_memory:
+  followup_count: 2
+  prior_tone: positive
+  previous_assistant_commitment: share_fix
+  previous_deadline_promised: null
+  commitment_fulfilled: true
+buyer:
+修正ファイル受け取りました！動作確認もOKです。これで大丈夫そうなので、このまま完了にしてもらって構いません。
+
+--- CASE 8 ---
+state: purchased
+service_hint: handoff
+platform_test: 追加料金 / おひねりの扱い
+reply_memory:
+  followup_count: 1
+  prior_tone: neutral
+  previous_assistant_commitment: share_analysis
+  previous_deadline_promised: null
+  commitment_fulfilled: true
+buyer:
+整理してもらった内容を見て、もう1フロー追加でお願いしたいんですが、追加料金ってどうやって払えばいいですか？
+
+--- CASE 9 ---
+state: purchased
+service_hint: bugfix
+platform_test: 途中キャンセル / 返金の扱い
+reply_memory:
+  followup_count: 1
+  prior_tone: frustrated
+  previous_assistant_commitment: share_analysis
+  previous_deadline_promised: "本日中"
+  commitment_fulfilled: false
+buyer:
+すみません、社内で予算が取り消しになってしまいました。途中ですがキャンセルしたいです。すでに作業してもらった分の返金ってどうなりますか？全額返ってきますか？
+
+--- CASE 10 ---
+state: purchased
+service_hint: bugfix
+platform_test: 4日間ルール / 自発報告
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: share_analysis
+  previous_deadline_promised: "3日以内"
+  commitment_fulfilled: false
+buyer:
+（3日経過後のbuyerからの催促）
+3日以内って言ってましたよね…？進捗どうなってますか？
+
+--- CASE 11 ---
+state: purchased
+service_hint: handoff
+platform_test: メッセージとトークルームの混同
+reply_memory:
+  followup_count: 0
+  prior_tone: neutral
+  previous_assistant_commitment: share_analysis
+  previous_deadline_promised: null
+  commitment_fulfilled: false
+buyer:
+すみません、追加で共有したいファイルがあるんですが、ココナラのメッセージの方に送った方がいいですか？それともここ（トークルーム）に送ればいいですか？
+
+=== delivered（4件）===
+
+--- CASE 12 ---
+state: delivered
+service_hint: bugfix
+platform_test: 正式な納品後の差し戻し
+buyer:
+納品してもらったんですが、1箇所だけ動作が違う部分があります。差し戻しして修正をお願いすることってできますか？
+
+--- CASE 13 ---
+state: delivered
+service_hint: handoff
+platform_test: トークルームクローズ後の連絡手段
+buyer:
+引き継ぎメモありがとうございました。評価も入れました。ただ、来月になってまた確認したいことが出てきたら、どうやって連絡すればいいですか？このトークルームって閉じちゃいますよね？
+
+--- CASE 14 ---
+state: delivered
+service_hint: bugfix
+platform_test: 正式な納品後の追加作業 + 追加料金
+buyer:
+修正ありがとうございます。あと1箇所だけ別のエラーが出てるんですが、これも今回の中でお願いできますか？追加料金がかかるなら払います。
+
+--- CASE 15 ---
+state: delivered
+service_hint: handoff
+platform_test: 評価の仕組み / 評価依頼のマナー
+buyer:
+メモの内容バッチリでした。星5入れておきますね。こちらとしては大満足なんですが、何かこちらからやっておくことってありますか？

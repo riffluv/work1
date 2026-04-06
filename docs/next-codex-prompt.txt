@@ -58,6 +58,7 @@ mode の正本:
 - 最終判断と正本反映は常に Codex が行う
 
 【Coconala OS】
+- ココナラ共通の取引仕様は `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml` を正本にする
 - 見積り相談の前段（prequote限定）: `coconala-prequote-ops-ja`
 - 入口判定: `coconala-intake-router-ja`
 - 返信文作成（不具合修正特化）: `coconala-reply-bugfix-ja`
@@ -98,6 +99,7 @@ mode の正本:
 【Delivery OS】
 - 納品物作成: `delivery-pack-ja`
 - 正式納品前後は `/home/hr-hm/Project/work/os/delivery/boot.md` を主モードにする
+- 正式な納品と通常メッセージの違いは `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml` を正本にする
 - 正式納品前後の外向け文面は、送信前に毎回 `japanese-chat-natural-ja` を通す
 - ここでいう外向け文面はトークルーム投稿文を指す。添付する納品物本文は自然化の対象にせず、`delivery-pack-ja` の構造とガードを優先する
 - delivery で得た改善も、`reply-only` / `common` / `delivery-only` を判定してから正本へ反映する

@@ -9,6 +9,7 @@ from pathlib import Path
 from reply_quality_lint_common import (
     collect_quality_style_errors,
     collect_reasoning_preservation_errors,
+    collect_service_binding_errors,
 )
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -184,6 +185,7 @@ def lint_case(module, source: dict) -> list[str]:
     decision_plan = case.get("response_decision_plan") or {}
     service_grounding = case.get("service_grounding") or {}
     hard_constraints = case.get("hard_constraints") or {}
+    reply_memory = case.get("reply_memory") or {}
     scenario = case.get("scenario")
     raw = source.get("raw_message", "")
     complaint_like = is_complaint_like_source(source)
@@ -210,6 +212,10 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("service_grounding does not point to the public bugfix service")
         if not service_grounding.get("public_service"):
             errors.append("service_grounding is not marked public")
+        if service_grounding.get("base_price") != 15000:
+            errors.append("service_grounding base_price is missing or does not match the public service")
+        if not service_grounding.get("hard_no"):
+            errors.append("service_grounding is missing hard_no bindings")
     if not hard_constraints:
         errors.append("hard_constraints is missing")
     else:
@@ -219,6 +225,8 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("hard_constraints lost ask_only_if_blocking")
     if not case.get("render_payload"):
         errors.append("render_payload is missing")
+    if "reply_memory" in source and not case.get("reply_memory"):
+        errors.append("reply_memory did not propagate into the purchased case")
     if case.get("render_payload_violations"):
         for violation in case["render_payload_violations"]:
             errors.append(f"render payload validator violation: {violation}")
@@ -418,7 +426,16 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append(f"forbidden term leaked into rendered text: {term}")
 
     errors.extend(collect_quality_style_errors(rendered))
-    errors.extend(collect_reasoning_preservation_errors(rendered, raw, decision_plan, case.get("scenario")))
+    errors.extend(collect_reasoning_preservation_errors(rendered, raw, decision_plan, case.get("scenario"), reply_memory))
+    errors.extend(
+        collect_service_binding_errors(
+            rendered,
+            raw,
+            service_grounding,
+            state="purchased",
+            scenario=case.get("scenario"),
+        )
+    )
     return errors
 
 
