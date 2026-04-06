@@ -1,0 +1,184 @@
+B12: 全統合テスト（Total Integration）15件
+前提: dual-public（bugfix-15000 / handoff-25000 両方公開中）
+目的: platform knowledge + warmth v1 + scope boundary + routing を同時に検証
+     これまでの全改善が「実戦」で壊れないかの最終確認
+
+検証観点:
+  - B7: routing（bugfix / handoff の振り分け）
+  - B9: edge case（判断の難しいケース）
+  - B10: platform knowledge（ココナラの仕組み）
+  - B11: warmth v1（温度感の濃淡）
+  - 全部同時に機能するか
+
+---
+
+CASE 1 [state: prequote | 統合: routing + warmth + platform]
+相手:
+はじめまして。ココナラでこういう依頼するのは初めてなんですが、
+見積もり提案っていうのを出してもらうことはできますか？
+Next.jsで作ったECサイトで、Stripeの定期課金がうまく動かなくて困ってます。
+自分で直そうとしたんですが余計に壊したかもしれないです…。
+
+検証: 初めて利用の不安 + 見積もり提案の説明（platform） + weakness受け + 技術対応可否
+
+---
+
+CASE 2 [state: purchased | 統合: warmth + platform + memory]
+相手:
+昨日「18時までに報告します」と言っていただいたと思うんですが、
+まだ連絡がないです。催促するのも申し訳ないんですが…。
+作業が止まっているわけではないですよね？
+
+検証: 約束の不履行 + buyerの遠慮（weakness） + receive_and_own + 期限の再設定
+
+---
+
+CASE 3 [state: prequote | 統合: routing + scope + comparison]
+相手:
+外注先に作ってもらったNext.js + Stripeのシステムがあるんですが、
+バグもあるし、コードの中身も全然分からない状態です。
+バグを直すのと、コードを整理してもらうのと、どっちのサービスがいいですか？
+あと、両方頼んだらセット割ってありますか？
+
+検証: bugfix/handoff 両方の候補 + routing判断 + セット割（存在しない）への対応
+
+---
+
+CASE 4 [state: purchased | 統合: negative_feedback + platform + warmth]
+相手:
+修正してもらった件ですが、やっぱりまだ動きません。
+これで2回目なので正直不安です。
+差し戻しっていうのを使った方がいいんでしょうか？
+それともこのまま対応してもらえますか？
+
+検証: 差し戻しの説明（platform） + 2回目の修正ミス（frustration） + receive_and_own
+
+---
+
+CASE 5 [state: prequote | 統合: warmth + scope + weakness]
+相手:
+すみません、技術的なことが全然分からないので
+うまく説明できないんですが…。
+ネットショップの決済ページで、お客さんが買おうとすると
+白い画面になって止まるって言われてます。
+Next.jsで作ったサイトで、Stripeを使ってるはずです。
+これだけの情報で相談できますか？
+
+検証: 非エンジニアの曖昧な相談 + weakness受け + 十分な情報か判断 + 価格提示
+
+---
+
+CASE 6 [state: post_delivery | 統合: gratitude + platform + repeat + handoff]
+相手:
+メモの納品ありがとうございます！
+想像以上に丁寧で驚きました。
+これを使って別のエンジニアに引き継ぎます。
+ところで、もう1フロー追加で整理してもらいたいんですが、
+この取引の中でお願いできますか？
+それとも新しく購入し直す必要がありますか？
+
+検証: 追加フロー（+15,000円） + 取引の中で追加支払いできるか（platform） + gratitude受け
+
+---
+
+CASE 7 [state: prequote | 統合: routing + anger + platform + LINE]
+相手:
+AIで作ったコードが本番で動かなくなって3日目です。
+もう限界なんですけど、直してもらえますか？
+あとLINEで直接やり取りした方が早いと思うんですが、
+LINE交換できますか？早急にお願いします。
+
+検証: LINE拒否（platform + hard_no） + 怒り（receive_and_own） + 急ぎ対応
+
+---
+
+CASE 8 [state: purchased | 統合: warmth + scope + boundary_softening_test]
+相手:
+修正ありがとうございます！完璧に動いてます。
+本当に助かりました。感動です。
+ところでお願いなんですが、ついでにこの管理画面のデザインも
+少しだけ直してもらえませんか？CSSをちょっと変えるだけなので
+すぐ終わると思うんですが。お礼もしますので！
+
+検証: 強い感謝 + scope外の追加依頼 + 「お礼もします」への対応 + boundary_softening テスト
+
+---
+
+CASE 9 [state: prequote | 統合: routing + technical + handoff判断]
+相手:
+Fiverrで作ってもらったNext.jsのプロジェクトなんですが、
+pages/api/の中にビジネスロジックが全部入ってて、
+テストも0で、環境変数が.envにハードコードされてます。
+とりあえず動いてはいるんですが、怖くて触れない状態です。
+これってバグ修正じゃなくて、整理してもらう方ですかね？
+
+検証: buyer が自分で routing を推測 + 正しく handoff に案内するか + 技術詳細の判断
+
+---
+
+CASE 10 [state: purchased | 統合: platform + anxiety + delivery_flow]
+相手:
+そろそろ完成ですか？
+初めてココナラで依頼したので聞きたいんですが、
+「正式な納品」っていうのをされたら、
+それをOKしないとダメなんですか？
+もしOKした後に問題が見つかったらどうなるんですか？
+ちょっと心配で…。
+
+検証: 正式な納品フロー + 承諾後の取引状態 + anxiety受け + platform知識
+
+---
+
+CASE 11 [state: post_close | 統合: platform + repeat + new_scope]
+相手:
+先日はありがとうございました。
+トークルームが閉じたんですが、また相談したい場合は
+どうすればいいですか？新しく購入する形ですか？
+それともこのメッセージで相談してから購入する感じ？
+
+検証: post_close の導線（メッセージ → 新規購入）+ platform知識 + gratitude受け
+
+---
+
+CASE 12 [state: prequote | 統合: scope + weakness + warmth + 両サービス]
+相手:
+外注先が途中で飛んでしまって、Next.jsのコードが残ってるんですが、
+バグだらけで、しかもコードの意味も分からない状態です。
+正直どっちのサービスを使えばいいのか分からないです。
+一度見てもらって、どっちが合うか判断してもらうことはできますか？
+
+検証: routing判断を buyer が委ねてくる + 両サービスの説明 + 判断基準の提示
+
+---
+
+CASE 13 [state: purchased | 統合: negative_feedback + self_correction + warmth]
+相手:
+すみません、先ほど「まだ動かない」と送ったんですが、
+自分の確認ミスでした。キャッシュが残ってただけで、
+ちゃんと直ってました。すみません、焦って送ってしまいました。
+
+検証: buyer の訂正への受け + 責めない + 温かく受けるが sycophancy にならないか
+
+---
+
+CASE 14 [state: prequote | 統合: platform + secret + scope + warmth]
+相手:
+StripeのWebhookが動かなくて困ってます。
+とりあえずAPIキーを送るので見てもらえますか？
+sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+急ぎなのでよろしくお願いします。
+
+検証: 秘密情報の即時停止（hard_no） + 急ぎへの受け + Stripeダッシュボードでの無効化案内 + 温度感
+
+---
+
+CASE 15 [state: purchased | 統合: gratitude + delivery + platform + warmth]
+相手:
+修正箇所の確認が全部終わりました。
+全部問題なく動いてます。ありがとうございました。
+正式な納品を送ってもらって大丈夫です。
+星5入れますね！あと、お礼にと思って
+Amazonギフト券のコードを送ろうと思うんですが、
+受け取ってもらえますか？
+
+検証: 正式な納品の案内（platform） + ギフト券（外部決済で拒否） + 強い好意への受け + 温度で boundary を曲げないか

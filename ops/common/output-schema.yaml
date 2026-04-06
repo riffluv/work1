@@ -200,6 +200,9 @@ nested_field_rules:
       - user_signal
       - support_goal
       - opening_move
+      - ack_style
+      - ack_anchor
+      - warmth_cap
       - tone_constraints
     user_signal:
       allowed:
@@ -207,12 +210,15 @@ nested_field_rules:
         - hesitation
         - confusion
         - negative_feedback
+        - gratitude
+        - weakness
         - neutral
     support_goal:
       allowed:
         - reduce_burden
         - normalize
         - receive_feedback
+        - receive_goodwill
         - set_boundary_calmly
         - move_forward
     opening_move:
@@ -221,8 +227,50 @@ nested_field_rules:
         - pressure_release
         - normalize_then_clarify
         - receive_and_own
+        - brief_ack_then_answer
         - yes_no_first
         - neutral_ack
+    ack_style:
+      allowed:
+        - none
+        - brief_generic
+        - brief_specific
+    ack_anchor:
+      allowed:
+        - none
+        - buyer_action
+        - buyer_effort
+        - buyer_result
+        - buyer_goodwill
+        - buyer_openness
+        - issue_detail
+    warmth_cap:
+      allowed:
+        - none
+        - one_sentence
+        - two_clauses
+    tone_constraints:
+      allowed:
+        - no_defense
+        - no_internal_terms
+        - no_burden_shift
+        - no_negative_lead
+        - no_groundless_reassurance
+        - no_sycophancy
+        - no_emotion_completion
+        - no_boundary_softening
+    derived_rules:
+      - temperature_plan is an interaction truth source and must not change reply_contract.answer_map or ask_map
+      - boundary handling stays in reply_contract.case_type and reply skeleton; temperature_plan only chooses the interaction move for that case
+      - ack_style and ack_anchor only control the opening ack slot and must not change answer polarity, scope, price, or ask count
+      - when ack_style is brief_specific and ack_anchor is not none, the first one or two sentences should mention a concrete buyer action, effort, result, goodwill, openness, or issue detail
+      - warmth_cap limits emotional language; v1 should stay at one_sentence or lower for stress, weakness, gratitude, and negative_feedback
+      - user_signal=gratitude should usually pair with support_goal=receive_goodwill and opening_move=brief_ack_then_answer or neutral_ack
+      - user_signal=negative_feedback should usually pair with support_goal=receive_feedback and opening_move=receive_and_own or action_first
+      - user_signal=stress should usually pair with support_goal=reduce_burden and opening_move=action_first or pressure_release
+      - no_groundless_reassurance forbids unsupported calming claims such as "よくあるケースです" or "大丈夫です" without evidence
+      - no_sycophancy forbids agreeing with buyer mistakes, softening boundaries, or mirroring praise in a way that weakens factual accuracy
+      - no_emotion_completion forbids over-interpreting or completing the buyer's feelings beyond what they actually said
   response_decision_plan:
     required:
       - primary_concern
@@ -243,16 +291,3 @@ nested_field_rules:
       - direct_answer_line must be renderable as an early answer-bearing line when the primary question is answerable
       - blocking_missing_facts must gate ask generation; when empty, the renderer should not re-ask known context
       - validator should check that rendered text preserves direct_answer_line intent and does not duplicate its meaning across nearby sections
-        - normalize_then_clarify
-        - receive_and_own
-        - yes_no_first
-        - neutral_ack
-    tone_constraints:
-      allowed:
-        - no_defense
-        - no_internal_terms
-        - no_burden_shift
-        - no_negative_lead
-    derived_rules:
-      - temperature_plan is an interaction truth source and must not change reply_contract.answer_map or ask_map
-      - boundary handling stays in reply_contract.case_type and reply skeleton; temperature_plan only chooses the interaction move for that case

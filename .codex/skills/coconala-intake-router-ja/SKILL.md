@@ -117,6 +117,62 @@ reply_stance:
 - `state: purchased` の途中報告や調査進捗 -> `post_purchase_report`
 - `state: predelivery / delivered` -> `delivery`
 
+## `temperature_plan` の決め方
+`temperature_plan` は、reply の意味ではなく、冒頭の受け方と温度の上限を固定する interaction contract として出す。
+
+```yaml
+temperature_plan:
+  user_signal: stress | hesitation | confusion | negative_feedback | gratitude | weakness | neutral
+  support_goal: reduce_burden | normalize | receive_feedback | receive_goodwill | set_boundary_calmly | move_forward
+  opening_move: action_first | pressure_release | normalize_then_clarify | receive_and_own | brief_ack_then_answer | yes_no_first | neutral_ack
+  ack_style: none | brief_generic | brief_specific
+  ack_anchor: none | buyer_action | buyer_effort | buyer_result | buyer_goodwill | buyer_openness | issue_detail
+  warmth_cap: none | one_sentence | two_clauses
+```
+
+### user_signal
+- `gratitude`: `ありがとうございます` `助かりました` `星5` `大満足` `バッチリでした` `動作確認もOK` など、好意や前向きな結果共有が主
+- `weakness`: `自分では触れない` `よく分からない` `コードが読めない` `自信がない` など、弱さや率直さが主
+- `negative_feedback`: 品質不足、説明不足、遅延不満、記載ミス指摘など
+- `stress`: 急ぎ、本番障害、売上影響、繰り返し催促
+- `confusion` / `hesitation`: 方向が決められない、何を送ればよいか分からない、価格や入口で迷っている
+- どれにも強く寄らなければ `neutral`
+
+### opening_move
+- 情報収集や前進が主なら `action_first`
+- bad experience や品質不足をまず受けるなら `receive_and_own`
+- gratitude / weakness で短い受けを置いてから答えるなら `brief_ack_then_answer`
+- Yes/No 直答が最優先で、温度は薄くてよい時は `yes_no_first`
+
+### ack_style / ack_anchor
+- v1 の核心は、generic な共感ではなく、buyer が実際にした行動や差し出した情報に1文で触れること
+- `ack_style: brief_specific` を使う場面:
+  - 動作確認や評価を返してくれた
+  - 詳細を整理して送ってくれた
+  - 弱さや率直さを短く差し出した
+- `ack_anchor` の優先順:
+  - `buyer_action`: `動作確認までしていただけて`
+  - `buyer_effort`: `情報をここまで整理していただけたので`
+  - `buyer_result`: `バッチリ動いたとのことで`
+  - `buyer_goodwill`: `評価まで入れていただけて`
+  - `buyer_openness`: `率直に書いていただけたので`
+  - `issue_detail`: buyer の具体事象を1点だけ受ける
+- anchor が拾えないのに具体文を捏造しない。拾えなければ `brief_generic` か `none` に落とす
+
+### warmth_cap
+- v1 は原則 `one_sentence`
+- 温度は冒頭の1文までで止め、本題の回答や境界説明に侵食させない
+- `two_clauses` は、短い謝意 + すぐ結論のような一息分までに留める
+
+### 実務ルール
+- `buyer の行動に具体的に触れる1文` は、褒めるためではなく「ちゃんと読んでいる」証拠として使う
+- 情報収集フェーズでは assertive を優先し、感情応答を長くしない
+- bad experience では empathetic でもよいが、境界・価格・事実を曲げない
+- `この手の症状はよくある` `大丈夫です` のような根拠のない安心は v1 では使わない
+- boundary 判定や scope 説明は `temperature_plan` で軟化させない
+- 受け止めで buyer が言っていない感情語を補完しない。`迷いますよね` `つらいですよね` のような感情完成より、buyer の言葉か状況描写へ寄せる
+- 冒頭で受け止めを1文入れる時は、その直後を `ですが` で逆接しない。受けるなら1文で止めるか、根拠説明からそのまま本題へ入る
+
 ## `reply_contract` の決め方
 `reply_stance` の次に、下流が守るべき実行契約を出力に含める。
 

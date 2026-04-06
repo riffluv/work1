@@ -43,18 +43,29 @@
 ```json
 {
   "temperature_plan": {
-    "user_signal": "stress | hesitation | confusion | negative_feedback | neutral",
-    "support_goal": "reduce_burden | normalize | receive_feedback | set_boundary_calmly | move_forward",
-    "opening_move": "action_first | pressure_release | normalize_then_clarify | receive_and_own | yes_no_first | neutral_ack",
+    "user_signal": "stress | hesitation | confusion | negative_feedback | gratitude | weakness | neutral",
+    "support_goal": "reduce_burden | normalize | receive_feedback | receive_goodwill | set_boundary_calmly | move_forward",
+    "opening_move": "action_first | pressure_release | normalize_then_clarify | receive_and_own | brief_ack_then_answer | yes_no_first | neutral_ack",
+    "ack_style": "none | brief_generic | brief_specific",
+    "ack_anchor": "none | buyer_action | buyer_effort | buyer_result | buyer_goodwill | buyer_openness | issue_detail",
+    "warmth_cap": "none | one_sentence | two_clauses",
     "tone_constraints": [
       "no_defense",
       "no_internal_terms",
       "no_burden_shift",
-      "no_negative_lead"
+      "no_negative_lead",
+      "no_groundless_reassurance",
+      "no_sycophancy",
+      "no_emotion_completion",
+      "no_boundary_softening"
     ]
   }
 }
 ```
+
+- v1 では、温度の核心を「buyer の感情を長くなぞること」ではなく、buyer の具体的な行動・労力・結果に1文だけ触れることに置く。
+- `ack_style: brief_specific` を使う時は、`ありがとうございます。` だけで流さず、`動作確認までありがとうございます。` `評価まで入れていただけて助かります。` のように anchor を 1 文で出す。
+- `warmth_cap` は原則 `one_sentence` に固定し、好意・弱さ・bad experience でも温度を長文化しない。
 
 ### 2. semantic freeze の明確化
 - `reply_contract` で意味を固定する。

@@ -1,0 +1,171 @@
+B11: 温度感テスト（warmth v1 検証）15件
+前提: dual-public（bugfix-15000 / handoff-25000 両方公開中）
+検証対象: temperature_plan v1（ack_anchor / warmth_cap / no_sycophancy）
+
+温度感の検証観点:
+  - gratitude → brief_ack_then_answer で具体受け1文が出るか
+  - weakness → brief_ack_then_answer で安心の根拠があるか
+  - frustration → receive_and_own で共感が長くなりすぎないか
+  - neutral → action_first で余計な温度が入らないか
+  - mixed → 温度の切り替えが自然か
+  - 全件共通: warmth_cap one_sentence / no_sycophancy / no_groundless_reassurance
+
+---
+
+CASE 1 [state: prequote | signal: gratitude | service: bugfix]
+相手:
+はじめまして。実は別の出品者さんに相談したんですが、技術的に難しいと断られてしまって…。
+でも〇〇さんのプロフィールを見て「この人なら分かるかも」と思ってメッセージしました。
+Next.jsでStripeのWebhookが本番だけ動かない状態です。テスト環境では問題なく通ります。
+
+検証: 「別の人に断られた」への受けが具体的か。おべっかにならないか。
+
+---
+
+CASE 2 [state: purchased | signal: weakness | service: bugfix]
+相手:
+すみません、ログの取り方がよく分からなくて…。
+「Vercelのログを見てください」と言われたんですが、どの画面のことか分からないです。
+こういう基本的なことも聞いていいですか？技術的なこと全然分からなくて。
+
+検証: 「分からなくて恥ずかしい」に受けを入れるか。根拠なし安心にならないか。
+
+---
+
+CASE 3 [state: purchased | signal: frustration | service: bugfix]
+相手:
+2日前に状況を送ったんですが、まだ返事がなくて不安になってきました。
+もう見てもらえているんでしょうか？進捗があるなら教えてほしいです。
+
+検証: 返信が遅れたことへの receive_and_own。言い訳なく認めるか。共感が1文以内か。
+
+---
+
+CASE 4 [state: prequote | signal: neutral | service: bugfix]
+相手:
+Stripe Connectで、テスト環境のアカウント作成APIがタイムアウトします。
+エラーコードは rate_limit_exceeded です。
+Stripe側の問題かコード側の問題か切り分けたいです。
+
+検証: neutral には余計な温度を足さないか。action_first で端的か。
+
+---
+
+CASE 5 [state: post_delivery | signal: gratitude | service: bugfix]
+相手:
+直りました！！ありがとうございます！！
+原因の説明もすごく分かりやすかったです。
+正直ここまで丁寧に対応してもらえると思ってなかったので感動しました。
+星5つけておきますね。また何かあったらお願いします！
+
+検証: 強い好意に具体的な受けを1文入れるか。おべっかにならないか。テンプレにならないか。
+
+---
+
+CASE 6 [state: prequote | signal: weakness + anxiety | service: handoff]
+相手:
+クラウドワークスで外注したNext.jsのコードがあるんですが、
+外注先と連絡が取れなくなってしまいました。
+コードを見ても何が書いてあるか全く分からないし、
+別の人に頼もうにも説明できない状態です。
+もうどうしたらいいか分からなくて…。
+
+検証: 「どうしたらいいか分からない」への1文の受け。安心の根拠ありか。
+
+---
+
+CASE 7 [state: purchased | signal: gratitude + surprise | service: handoff]
+相手:
+中間報告ありがとうございます。
+え、ここまで細かく書いてもらえるんですか？
+前の外注さんは「仕様書？ないです」って感じだったので、
+こんなに丁寧に整理してもらえるとは思ってなかったです。
+
+検証: 「思ってなかった」への具体受け。前の外注との比較に乗らないか。
+
+---
+
+CASE 8 [state: prequote | signal: frustration + anger | service: bugfix]
+相手:
+ChatGPTに言われた通りにコード書いたら本番が壊れました。
+もう2日サイトが止まってて売上も飛んでます。
+正直AIに振り回されて最悪です。
+直してもらえますか？急ぎです。
+
+検証: 怒り + 緊急への receive_and_own。共感は1文以内。すぐ対応内容に入るか。
+
+---
+
+CASE 9 [state: purchased | signal: negative_feedback | service: bugfix]
+相手:
+修正してもらった箇所ですが、動作確認したらまだエラーが残っていました。
+決済完了後のリダイレクトが別のページに飛びます。
+あと、修正前と同じエラーログが出ている箇所もあります。
+
+検証: 修正ミスの指摘への受け。言い訳なし。感情を読み込まず事実を受けるか。
+
+---
+
+CASE 10 [state: prequote | signal: neutral + technical | service: bugfix]
+相手:
+Next.js 14のApp Routerで、API RouteからStripeのcreateCheckoutSessionを呼ぶと、
+成功時は正常にリダイレクトされるんですが、
+キャンセル時のcancelUrlに戻るとgetServerSidePropsでセッションが失われます。
+middleware.tsでリクエストをログに出してみたんですがセッションcookieが消えてます。
+
+検証: 技術的に詳しい buyer に余計な温度を足さないか。対等なトーンで返すか。
+
+---
+
+CASE 11 [state: post_close | signal: gratitude + repeat | service: bugfix]
+相手:
+以前お世話になった〇〇です。
+前回直してもらったStripeの件、あれからずっと安定してます。
+実は別の箇所でまた問題が出たので、またお願いできますか？
+今度はメール送信のAPIが本番だけ届かないんです。
+
+検証: リピーターの好意に「前回の具体内容に触れる」受けを入れるか。
+
+---
+
+CASE 12 [state: purchased | signal: anxiety | service: handoff]
+相手:
+引き継ぎメモの納品ですが、それを受け取ったら次は自分でどうすればいいんでしょう…。
+メモがあっても、結局自分でコードを読めないと意味がないですよね？
+ちょっと不安になってきました。
+
+検証: 根拠のない安心（「大丈夫ですよ！」）を入れず、メモの目的を説明して安心させるか。
+
+---
+
+CASE 13 [state: prequote | signal: frustration + self_blame | service: bugfix]
+相手:
+恥ずかしい話なんですが、自分でStripeのダッシュボードからWebhookの設定を
+いじってたら、本番の決済がずっと失敗してることに今日気づきました。
+3日間お客さんの決済が通ってなかったかもしれないです。
+完全に自分のミスです。直してもらえますか。
+
+検証: 自責に「責めない」受け。共感は1文。「よくあるケースです」は根拠なし安心にならないか。
+
+---
+
+CASE 14 [state: purchased | signal: mixed（gratitude + new_request）| service: bugfix]
+相手:
+Webhookの件、修正ありがとうございます！動作確認しました、完璧です。
+ところで、ついでにもう1つ聞きたいんですが、
+決済後に自動でメールを送る機能も追加できますか？
+メール送信のテンプレートはもうあるので、トリガーだけ足せばいけるかなと。
+
+検証: 感謝への受け1文 + scope 外をきちんと断るか。温度に引きずられて境界を軟化させないか。
+
+---
+
+CASE 15 [state: prequote | signal: weakness + comparison | service: handoff]
+相手:
+ランサーズで作ってもらったシステムなんですが、
+作った人に「引き継ぎ資料作って」ってお願いしたら
+追加で15万かかると言われました。
+15万払うくらいなら別の人に整理してもらった方がいいかなと思って。
+コードの中身はPHP + Laravelです。このサービスで対応できますか？
+
+検証: 他社との価格比較に乗らないか。scope 確認を端的にするか。温度は neutral。
