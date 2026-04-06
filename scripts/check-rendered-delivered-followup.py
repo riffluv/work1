@@ -143,8 +143,40 @@ def lint_case(module, source: dict) -> list[str]:
 
     if scenario == "approval_ok" and "承諾" not in rendered:
         errors.append("approval case does not mention 承諾 directly")
+    if scenario == "approval_test_method":
+        if not has_any(rendered, ["Webhook", "受信側"]):
+            errors.append("approval test method case does not answer the receiver-side scope directly")
+        if not has_any(rendered, ["送信テスト", "承諾前", "本番で決済を試さなくても"]):
+            errors.append("approval test method case does not answer the safe pre-approval test method clearly")
+        if has_any(rendered, ["本番で試してください", "購入して試して"]):
+            errors.append("approval test method case pushes a real production test")
+    if scenario == "pending_webhook_events":
+        if "保留中" not in rendered:
+            errors.append("pending webhook events case does not mention 保留中 directly")
+        if not has_any(rendered, ["未処理", "表示だけ", "イベント詳細"]):
+            errors.append("pending webhook events case does not explain what is being checked")
     if scenario == "prevention_question" and not has_any(rendered, ["再発", "起きにくく", "可能性"]):
         errors.append("prevention case does not answer recurrence directly")
+    if scenario == "doc_caution_followup":
+        if "環境変数" not in rendered:
+            errors.append("doc caution follow-up does not mention environment variables directly")
+        if not has_any(rendered, ["急ぎで", "今のところ"]):
+            errors.append("doc caution follow-up does not lower the urgency explicitly")
+    if (
+        scenario == "side_effect_question"
+        and has_any(raw, ["体感", "気のせい", "不具合ってほどではない"])
+        and "承諾" in raw
+    ):
+        if "今の文面だけでは" in rendered:
+            errors.append("soft side-effect probe still says `今の文面だけでは`")
+        if "切り分け" in rendered:
+            errors.append("soft side-effect probe still uses heavy `切り分け` language")
+        if "本日" in rendered and "までに" in rendered:
+            errors.append("soft side-effect probe still carries a time commitment")
+        if "承諾" not in rendered:
+            errors.append("soft side-effect probe does not answer approval directly")
+    if scenario == "side_effect_question" and "Webhook" in raw and "出なくなりました" in raw and not has_any(rendered, ["よかった", "出なくなった"]):
+        errors.append("side-effect follow-up dropped acknowledgment that the webhook error is now gone")
     if scenario == "delivery_scope_mismatch" and not has_any(rendered, ["期待と違っていた", "認識差", "差し戻し"]):
         errors.append("delivery mismatch complaint is not acknowledged clearly")
     if scenario == "delivery_scope_mismatch" and "診断レポートだけ" in raw and "診断レポート" not in rendered:
@@ -155,6 +187,8 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("delivery mismatch complaint still re-asks despite already named missing deliverable")
     if scenario == "price_complaint" and rendered.count("受け止め") > 1:
         errors.append("price complaint repeats 受け止め language")
+    if scenario == "price_complaint" and has_any(raw, ["価値があったのか", "モヤモヤ", "高い気が", "高かったかも"]) and not has_any(rendered, ["すみません", "申し訳"]):
+        errors.append("price complaint with lingering discomfort does not include a brief ownership/apology line")
     if "Stripeのダッシュボードに「テスト」" in raw and "テストモード" not in rendered:
         errors.append("dashboard test label case does not mention mode check")
     if scenario == "generic_delivered" and has_any(
@@ -163,6 +197,8 @@ def lint_case(module, source: dict) -> list[str]:
             "高い",
             "待って",
             "承諾",
+            "送信テスト",
+            "本番で試すのが怖い",
             "確認できてません",
             "価格",
             "同じ原因",
@@ -176,6 +212,11 @@ def lint_case(module, source: dict) -> list[str]:
             "質問が出たら",
             "前と違う動き",
             "ビルドが通ら",
+            "考えさせてもらって",
+            "ちょっと考えさせて",
+            "保留中",
+            "どのくらいの作業量",
+            "自分でも直せた可能性",
         ],
     ):
         errors.append("generic_delivered fallback survived a concrete delivered follow-up request")

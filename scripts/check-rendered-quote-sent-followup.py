@@ -134,6 +134,42 @@ def lint_case(module, source: dict) -> list[str]:
         if not has_any(rendered, ["Webhook", "受信口"]):
             errors.append("dashboard scope case does not anchor the webhook scope")
 
+    if scenario == "general_bugfix_scope_question":
+        if not has_any(rendered, ["このサービス", "確認できます"]):
+            errors.append("general bugfix scope case does not answer service-fit directly")
+        if not has_any(rendered, ["購入後", "原因", "切り分け"]):
+            errors.append("general bugfix scope case does not explain the post-purchase next step")
+        if has_any(raw, ["Nuxt", "Nginx", "VPS"]) and not has_any(rendered, ["Nuxt", "Nginx", "VPS"]):
+            errors.append("general bugfix scope case dropped the buyer's stack context")
+        if has_any(raw, ["Shopify", "Liquid", "カスタムJS"]) and not has_any(rendered, ["Shopify", "Liquid", "カスタムJS"]):
+            errors.append("general bugfix scope case dropped the buyer's Shopify/Liquid context")
+        if has_any(raw, ["Bubble", "非エンジニア"]) and not has_any(rendered, ["Bubble", "非エンジニア", "分かる範囲", "大丈夫"]):
+            errors.append("general bugfix scope case dropped the buyer's non-engineer/no-code context")
+        if has_any(raw, ["本番", "テスト環境", "テストキー"]) and not has_any(rendered, ["本番", "テスト", "環境差"]):
+            errors.append("general bugfix scope case dropped the buyer's prod-vs-test context")
+        if has_any(raw, ["特定の商品", "他の商品"]) and not has_any(rendered, ["特定", "商品", "一部"]):
+            errors.append("general bugfix scope case dropped the buyer's partial-symptom context")
+        if has_any(raw, ["たらい回し", "どこに頼めばいいか分から"]) and not has_any(rendered, ["入口", "整理", "たらい回し"]):
+            errors.append("general bugfix scope case dropped the buyer's bounced-around context")
+        if has_any(raw, ["真っ白", "5回に1回", "再現条件"]) and not has_any(rendered, ["真っ白", "毎回ではない", "再現条件"]):
+            errors.append("general bugfix scope case dropped the buyer's intermittent symptom context")
+        if has_any(raw, ["タイムアウト", "深夜", "時間帯だけ"]) and not has_any(rendered, ["時間帯", "タイムアウト", "Webhook"]):
+            errors.append("general bugfix scope case dropped the buyer's time-window timeout context")
+        if has_any(raw, ["0円", "カート情報"]) and not has_any(rendered, ["0円", "カート", "金額"]):
+            errors.append("general bugfix scope case dropped the buyer's zero-amount/cart context")
+        if has_any(raw, ["Safari", "iOS"]) and not has_any(rendered, ["Safari", "iOS", "ブラウザ"]):
+            errors.append("general bugfix scope case dropped the buyer's browser-specific context")
+        if has_any(raw, ["Connect", "Destination Charge", "送金が動いていない", "送金が動いていません"]) and not has_any(rendered, ["送金", "Connect", "Destination Charge", "入金"]):
+            errors.append("general bugfix scope case dropped the buyer's connect-transfer context")
+        if has_any(raw, ["手探り", "自分のコードの問題だと思う"]) and not has_any(rendered, ["手探り", "コード側", "その前提", "大丈夫"]):
+            errors.append("general bugfix scope case dropped the buyer's self-disclosed uncertainty")
+
+    if scenario == "subscription_bug_scope_question":
+        if has_any(raw, ["Laravel", "Cashier", "SDK"]) and not has_any(rendered, ["Laravel", "Cashier", "SDK"]):
+            errors.append("subscription bug scope case dropped the buyer's Laravel/Cashier/SDK context")
+        if has_any(raw, ["ドキュメント通り", "やったつもり"]) and not has_any(rendered, ["ドキュメント", "その前提"]):
+            errors.append("subscription bug scope case dropped the buyer's implementation-confidence context")
+
     if scenario == "extra_fee_fear":
         if not has_any(rendered, ["自動", "事前", "止める"]):
             errors.append("extra fee fear case does not explain the stop / prior-consult rule")
@@ -141,6 +177,19 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("extra fee fear case does not address the fee anxiety directly")
         if not has_any(rendered, ["キャンセル", "ココナラ"]):
             errors.append("extra fee fear case does not land the cancellation question")
+
+    if scenario == "self_edit_fee_anxiety":
+        if not has_any(rendered, ["触った", "今の状態", "対応"]):
+            errors.append("self-edit fee anxiety case does not answer the self-edit concern directly")
+        if not has_any(rendered, ["追加料金", "事前", "決まるわけではない"]):
+            errors.append("self-edit fee anxiety case does not answer the fee concern clearly")
+        if not has_any(rendered, ["ご購入", "大丈夫です"]):
+            errors.append("self-edit fee anxiety case does not end with a clear quote_sent closing")
+
+    if "SendGrid" in raw and "SendGrid" not in rendered:
+        errors.append("quote_sent case dropped the buyer's `SendGrid` scope question")
+    if ("送り忘れてたファイル" in raw or "ファイルがあって" in raw) and "ファイル" not in rendered:
+        errors.append("quote_sent case dropped the buyer's extra-file follow-up")
 
     if scenario == "self_apply_support":
         if not has_any(rendered, ["依頼者様", "確認手順"]):
@@ -164,6 +213,14 @@ def lint_case(module, source: dict) -> list[str]:
         if not has_any(rendered, ["ご購入", "大丈夫です"]):
             errors.append("no-meeting case does not end with a clear quote_sent closing")
 
+    if scenario == "timeline_question":
+        if not has_any(rendered, ["調査結果", "共有"]):
+            errors.append("timeline question case does not mention investigation-result-first handling")
+        if "今週末" in raw and "今週末" not in rendered:
+            errors.append("timeline question case dropped the buyer's weekend deadline")
+        if not has_any(rendered, ["ご購入", "大丈夫です"]):
+            errors.append("timeline question case does not end with a clear quote_sent closing")
+
     forbidden_terms = ["GitHubに招待", "Driveに置いて", "Dropbox", "外部決済", "無料で対応"]
     for term in forbidden_terms:
         if term in rendered:
@@ -171,6 +228,34 @@ def lint_case(module, source: dict) -> list[str]:
 
     if "提案" in raw and not has_any(rendered, ["提案"]):
         errors.append("quote_sent case does not mention proposal context")
+    if scenario == "generic_quote_sent" and has_any(
+        raw,
+        [
+            "で、結局",
+            "直りますか",
+            "zipで送って",
+            "githubじゃなくてzip",
+            "githubじゃなくて",
+            "見ていただくことは可能",
+            "見ていただけますでしょうか",
+            "対応いただけるか教えて",
+            "メールが飛ばない",
+            "たらい回し",
+            "真っ白になる",
+            "根本原因が分から",
+            "タイムアウト",
+            "0円",
+            "Safari",
+            "iOS",
+            "送金が動いていない",
+            "送金が動いていません",
+            "プラン変更",
+            "アップグレード",
+            "整理だけ",
+            "メモを見てから",
+        ],
+    ):
+        errors.append("generic_quote_sent fallback survived a concrete quote_sent question")
 
     errors.extend(collect_quality_style_errors(rendered))
     errors.extend(collect_temperature_constraint_errors(rendered, temperature_plan))

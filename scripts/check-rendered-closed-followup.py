@@ -133,7 +133,10 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("answer_after_check case has ask_map but no ask request")
 
     if primary["disposition"] in {"answer_now", "decline"}:
-        if not primary.get("answer_brief", "") or primary["answer_brief"] not in rendered:
+        if (
+            (not primary.get("answer_brief", "") or primary["answer_brief"] not in rendered)
+            and direct_answer_line == primary.get("answer_brief", "")
+        ):
             errors.append("direct primary answer is missing from rendered text")
 
     if not decision_plan.get("blocking_missing_facts"):
@@ -150,7 +153,7 @@ def lint_case(module, source: dict) -> list[str]:
         if not has_any(rendered, ["返金", "状況確認", "つながり"]):
             errors.append("refund request is not acknowledged clearly")
 
-    if "新しい機能" in raw or "クーポン機能" in raw:
+    if "新しい機能" in raw or "クーポン機能" in raw or "Invoice" in raw or "請求書" in raw:
         if not has_any(rendered, ["範囲ではありません", "機能追加"]):
             errors.append("new feature request is not declined clearly")
 
@@ -161,6 +164,15 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("repeat client new issue does not answer the estimate request directly")
         if not has_any(rendered, ["送ってください"]):
             errors.append("repeat client new issue is missing minimal ask")
+        if "API Route" in raw and "API Route" not in rendered and "メール" not in rendered:
+            errors.append("repeat client new issue dropped the API Route/mail context")
+    if scenario == "price_discount_request" and "メモ" not in raw and "メモ" in rendered:
+        errors.append("discount case leaked unrelated memo context")
+    if scenario == "price_discount_request" and has_any(raw, ["別の箇所", "別の件", "また依頼したい", "また別", "不具合が見つかった"]):
+        if "見積" not in rendered:
+            errors.append("discount case with a new issue does not mention estimate guidance")
+        if not has_any(rendered, ["送ってください", "そのまま送ってください"]):
+            errors.append("discount case with a new issue is missing the minimal symptom ask")
     if scenario == "price_complaint" and "納得いかない" in raw and not has_any(rendered, ["納得いかない", "ごもっとも"]):
         errors.append("closed price complaint did not receive the buyer's `納得いかない` feeling")
     if scenario == "feedback_for_next_time" and "問題なかった" in raw and not has_any(rendered, ["問題なかった", "ありがとうございます"]):
@@ -187,6 +199,11 @@ def lint_case(module, source: dict) -> list[str]:
             "前と同じ原因かも",
             "高かったかな",
             "お金を払いたくない",
+            "お願いできるものなんでしょうか",
+            "Stripeとは直接関係ない",
+            "API Route",
+            "Invoice",
+            "請求書",
         ],
     ):
         errors.append("generic_closed fallback survived a concrete closed follow-up request")

@@ -92,10 +92,18 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
         return plan
     if scenario in {
         "approval_ok",
+        "approval_test_method",
+        "approval_complete_thanks",
+        "backup_diff_request",
         "generic_delivered",
         "delivery_scope_mismatch",
         "same_cause_check",
+        "extra_scope_after_delivery",
+        "approval_reassurance_request",
+        "future_breakage_reassurance",
+        "cause_explanation_request",
         "doc_to_bugfix_addon",
+        "doc_caution_followup",
         "deployment_help_request",
         "future_architecture_question",
         "doc_explanation_request",
@@ -110,6 +118,8 @@ def opener_for(source: dict) -> str:
         return ""
     if source.get("scenario") == "approval_wait_request":
         return "大丈夫です。"
+    if source.get("scenario") == "pending_webhook_events":
+        return ""
     return "ご連絡ありがとうございます。"
 
 
@@ -125,22 +135,66 @@ def detect_scenario(source: dict) -> str:
         return "price_complaint"
     if "ビルドが通らなくなりました" in combined or "手順通りにやったつもり" in combined:
         return "apply_followup_issue"
-    if "承諾はもう少し待って" in combined or "正式な承諾" in combined or "待ってもらっていいですか" in combined:
+    if (
+        "承諾はもう少し待って" in combined
+        or "正式な承諾" in combined
+        or "待ってもらっていいですか" in combined
+        or "考えさせてもらっていい" in combined
+        or "少し考えさせて" in combined
+        or "ちょっと考えさせて" in combined
+    ):
         return "approval_wait_request"
+    if (
+        any(marker in combined for marker in ["問題なく動いています", "問題なく動いてる", "確認できました"])
+        and any(marker in combined for marker in ["承諾のボタン", "承諾を押せ", "承諾のボタンを押せば"])
+        and any(marker in combined for marker in ["今後また", "また何かあったとき", "またお願いできる", "お願いできるもの"])
+    ):
+        return "approval_ok_with_future_request"
+    if (
+        any(marker in combined for marker in ["承諾しておきます", "承諾しておきます。", "承諾します", "承諾しておきます。また"])
+        and any(marker in combined for marker in ["ありがとうございました", "ありがとうございます", "また何かあれば", "よろしくお願いいたします"])
+        and any(marker in combined for marker in ["問題なさそう", "決済テストも通って", "通って問題なさそう", "問題なく動いて"])
+    ):
+        return "approval_complete_thanks"
+    if (
+        any(marker in combined for marker in ["判断がつかなく", "自分では判断がつかなく", "大丈夫だと思います"])
+        and "テストデータ" in combined
+        and "承諾" in combined
+    ):
+        return "approval_reassurance_request"
+    if any(marker in combined for marker in ["レイアウト", "余白"]) and any(
+        marker in combined for marker in ["気のせい", "微妙に変わ", "一見動いてる", "一見動いている"]
+    ):
+        return "layout_side_effect_probe"
     if "承諾に進んで大丈夫" in combined:
         return "approval_ok"
     if "期待していた内容と違います" in combined or "診断レポートだけ" in combined:
         return "delivery_scope_mismatch"
+    if "バックアップ" in combined and ("差分" in combined or "取り忘れて" in combined):
+        return "backup_diff_request"
+    if (
+        any(marker in combined for marker in ["別の話", "ついでに", "Webhookとは関係ない", "関係ないと思う"])
+        and any(marker in combined for marker in ["読み込み", "重い", "パフォーマンス", "軽く見てもら"])
+    ):
+        return "extra_scope_after_delivery"
     if "未確認" in combined and ("できなかった" in combined or "スコープ外" in combined):
         return "doc_status_question"
     if "そのまま追加でお願い" in combined or "修正依頼として別件への移行" in combined or "修正後の状態に合わせてもらう" in combined:
         return "doc_to_bugfix_addon"
     if "ここも危なそう" in combined or "予防的に知っておきたくて" in combined:
         return "future_risk_question"
+    if any(marker in combined for marker in ["仕様が変わったら", "また壊れたりしますか", "ちょっと心配"]) and any(
+        marker in combined for marker in ["今はちゃんと動いています", "問題なく動いています", "確認完了"]
+    ):
+        return "future_breakage_reassurance"
     if "本番に反映作業まで" in combined or "Vercelへの上げ方がわかりません" in combined:
         return "deployment_help_request"
     if "全体の構成見直し" in combined or "おいくらくらい" in combined:
         return "future_architecture_question"
+    if ("資料" in combined or "納品いただいた資料" in combined) and "環境変数" in combined and any(
+        marker in combined for marker in ["設定順序", "デプロイし直す", "気をつけること", "あとで困りたくない"]
+    ):
+        return "doc_caution_followup"
     if "もう少しかみ砕いた説明" in combined:
         return "doc_explanation_request"
     if "質問が出たら聞いてもいいですか" in combined:
@@ -149,9 +203,31 @@ def detect_scenario(source: dict) -> str:
         return "same_cause_check"
     if "今後また同じことが起きる可能性" in combined or "予防できるなら" in combined:
         return "prevention_question"
+    if (
+        any(marker in combined for marker in ["送信テスト", "ダッシュボードから送信テスト", "本番で試すのが怖い"])
+        and "承諾" in combined
+    ):
+        return "approval_test_method"
+    if "保留中" in combined and any(marker in combined for marker in ["Webhook", "イベント", "開発者 > Webhook", "ダッシュボード"]):
+        return "pending_webhook_events"
+    if (
+        any(marker in combined for marker in ["なんでこのバグ", "なんでこのバグが起き", "そもそもなんで", "自分のコードが悪かった", "Stripe側の仕様変更", "今後のために知っておきたくて"])
+        and any(marker in combined for marker in ["教えてほしい", "知っておきたくて", "原因"])
+    ):
+        return "cause_explanation_request"
+    if any(marker in combined for marker in ["どのくらいの作業量", "自分でも直せた可能性", "半年くらい悩んで", "今後の参考に"]) and any(
+        marker in combined for marker in ["全部問題なく動きました", "問題なく動きました", "嘘みたい"]
+    ):
+        return "workload_reflection_question"
     if "Vercelにデプロイすると500エラー" in combined or "差し戻しというか" in combined or "また違うエラー" in combined:
         return "redelivery_same_error"
-    if "影響ですか" in combined or "別の機能が動かなく" in combined or "せいじゃないですか" in combined:
+    if (
+        "影響ですか" in combined
+        or "別の機能が動かなく" in combined
+        or "せいじゃないですか" in combined
+        or "何か変わった部分がある可能性" in combined
+        or ("メール" in combined and ("遅くなった" in combined or "タイミング" in combined))
+    ):
         return "side_effect_question"
     if "テスト" in combined and "ダッシュボード" in combined:
         return "dashboard_test_label"
@@ -176,12 +252,30 @@ def extract_facts_known(raw: str, scenario: str) -> list[str]:
         facts.append("dashboard_test_label_present")
     if "メール送信" in raw:
         facts.append("mail_flow_mentioned")
+    if "環境変数" in raw:
+        facts.append("env_var_context_present")
+    if "設定順序" in raw:
+        facts.append("env_order_caution_present")
+    if "デプロイし直す" in raw or "デプロイ" in raw:
+        facts.append("redeploy_context_present")
+    if "メール" in raw and ("遅く" in raw or "タイミング" in raw):
+        facts.append("mail_timing_delay_present")
+    if "Webhook" in raw and ("出なくなりました" in raw or "問題なく動" in raw):
+        facts.append("webhook_issue_resolved_present")
+    if any(marker in raw for marker in ["体感", "気のせい", "不具合ってほどではない"]):
+        facts.append("soft_probe_present")
     if "診断レポートだけ" in raw:
         facts.append("report_only_named")
     if "修正ファイル" in raw:
         facts.append("fix_file_named")
     if "承諾" in raw:
         facts.append("approval_question_present")
+    if "送信テスト" in raw:
+        facts.append("dashboard_send_test_present")
+    if "受信側" in raw:
+        facts.append("receiver_side_scope_question_present")
+    if "本番で試すのが怖" in raw or ("本番" in raw and "怖" in raw):
+        facts.append("prod_test_fear_present")
     return facts
 
 
@@ -191,23 +285,51 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
     if scenario == "dashboard_test_label":
         return "ダッシュボードの「テスト」表示が異常か確認したい"
     if scenario == "side_effect_question":
+        if "mail_timing_delay_present" in facts_known and "approval_question_present" in facts_known:
+            return "決済成功後のメールが少し遅く見える点が承諾前に気になっている"
+        if "mail_timing_delay_present" in facts_known:
+            return "決済成功後のメールが少し遅く見える点が今回の修正と関係あるか知りたい"
         return "別の機能停止が今回の修正の影響か知りたい"
     if scenario == "prevention_question":
         return "今後の再発可能性と予防の考え方を知りたい"
+    if scenario == "approval_test_method":
+        return "受信側の修正範囲と、本番で試さずに承諾前確認する方法を知りたい"
     if scenario == "redelivery_same_error":
         return "本番だけ残る同じエラーが修正不足か環境差か知りたい"
     if scenario == "approval_ok":
         return "問題なく動いたので承諾に進んでよいか確認したい"
+    if scenario == "approval_reassurance_request":
+        return "承諾前に、大丈夫そうか一言ほしい"
+    if scenario == "pending_webhook_events":
+        return "Webhook受信はできているが、保留中イベントが残っていて放置でよいか知りたい"
+    if scenario == "layout_side_effect_probe":
+        return "差し替え後の見た目が少し変わったように見える点が気になっている"
+    if scenario == "approval_complete_thanks":
+        return "確認が済んだので承諾して区切りたい"
+    if scenario == "approval_ok_with_future_request":
+        return "承諾してよいかと、今後また何かあった時に相談できるかを知りたい"
     if scenario == "delivery_scope_mismatch":
         return "納品内容が期待とずれていた点をどう埋めるか確認したい"
+    if scenario == "backup_diff_request":
+        return "修正前のバックアップや差分を後から確認できるか知りたい"
+    if scenario == "extra_scope_after_delivery":
+        return "今回とは別の読み込みの重さもついでに見てもらえるか知りたい"
     if scenario == "apply_followup_issue":
         return "反映後のビルドエラーを今回の続きで見てもらいたい"
     if scenario == "doc_status_question":
         return "納品物の「未確認」の意味を知りたい"
+    if scenario == "doc_caution_followup":
+        return "納品資料の環境変数に関する注意書きが、今後の再デプロイ時にどう関係するか知りたい"
     if scenario == "doc_to_bugfix_addon":
         return "納品後の流れからそのまま修正相談に移れるか知りたい"
     if scenario == "future_risk_question":
         return "他に危なそうな箇所があるかを知りたい"
+    if scenario == "future_breakage_reassurance":
+        return "今は動いているので、このまま承諾してよいか安心したい"
+    if scenario == "cause_explanation_request":
+        return "今回のバグの原因がコード側かStripe側か知りたい"
+    if scenario == "workload_reflection_question":
+        return "今回の作業量と、自分でも直せた可能性があったのか知りたい"
     if scenario == "deployment_help_request":
         return "反映で止まっているので代替支援の範囲を知りたい"
     if scenario == "future_architecture_question":
@@ -256,9 +378,44 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     if scenario == "dashboard_test_label":
         blocking_missing_facts = ["dashboard_mode_screen"]
         direct_answer_line = "修正した決済フローが動いているなら、その表示だけで異常とは限りません。"
+    elif scenario == "approval_test_method":
+        direct_answer_line = "はい、今回見ているのはWebhookの受信側です。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "approval_complete_thanks":
+        direct_answer_line = "承諾の件もありがとうございます。また何かあればご相談ください。"
+        response_order = ["opening", "direct_answer"]
+    elif scenario == "approval_reassurance_request":
+        direct_answer_line = "現時点の確認材料を見る限り、こちらの確認範囲では大丈夫そうです。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "pending_webhook_events":
+        blocking_missing_facts = ["pending_event_detail"]
+        direct_answer_line = "放置で大丈夫とはまだ言い切れません。まず保留中イベントの状態を確認します。"
+        response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
+    elif scenario == "future_breakage_reassurance":
+        direct_answer_line = "今の時点で、すぐまた壊れる前提ではありません。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "cause_explanation_request":
+        direct_answer_line = "今回の件は、Stripe側だけの問題というより、実装側とのつなぎ方にずれが出ていたのが原因です。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "workload_reflection_question":
+        direct_answer_line = "今回の件は、すぐ一行で直る種類ではなく、原因の切り分けを含めて確認が必要な内容でした。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "layout_side_effect_probe":
+        blocking_missing_facts = ["layout_change_screen"]
+        direct_answer_line = "決済が問題なく動いているなら、急ぎの不具合とは考えにくいです。"
+        response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "side_effect_question":
-        blocking_missing_facts = ["mail_error_surface"]
-        direct_answer_line = "今の文面だけでは、今回の修正の影響かどうかはまだ切り分けられていません。"
+        if {
+            "mail_timing_delay_present",
+            "soft_probe_present",
+            "approval_question_present",
+        }.issubset(set(facts_known)):
+            blocking_missing_facts = []
+            direct_answer_line = "体感で少し遅く感じる程度で、他に問題が出ていなければ大きな不具合とは考えにくいです。"
+            response_order = ["opening", "direct_answer", "answer_detail"]
+        else:
+            blocking_missing_facts = ["mail_error_surface"]
+            direct_answer_line = "今の時点では、今回の修正の影響かどうかはまだ言い切れません。"
     elif scenario == "redelivery_same_error":
         blocking_missing_facts = ["post_deploy_error_surface"]
         direct_answer_line = "今の時点では、修正が足りていないとはまだ言い切れません。"
@@ -269,6 +426,15 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         else:
             blocking_missing_facts = ["missing_points"]
             direct_answer_line = "期待と違っていた点は確認しました。"
+    elif scenario == "extra_scope_after_delivery":
+        direct_answer_line = "軽く確認することはできますが、Webhookとは別の話なら今回の範囲とは分けて案内します。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "backup_diff_request":
+        direct_answer_line = "修正前のファイルは別途保管していませんでした。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "doc_caution_followup":
+        direct_answer_line = "はい、今後ご自身でデプロイし直す時に気をつける点として書いています。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "apply_followup_issue":
         blocking_missing_facts = ["build_error_text"]
     elif scenario == "doc_to_bugfix_addon":
@@ -329,7 +495,7 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q1",
                     "disposition": "answer_after_check",
                     "answer_brief": "修正した決済フローが動いているなら、その表示だけで異常とは限りません。",
-                    "hold_reason": "まずはStripeのテストモードと本番モードの見分けを確認したいです。",
+                    "hold_reason": "まずはStripeのテストモードと本番モードの見分けを確認します。",
                     "revisit_trigger": "画面を受領したあとに、見えているモードをお返しします。",
                 }
             ],
@@ -346,27 +512,58 @@ def build_case_from_source(source: dict) -> dict:
         return case
 
     if scenario == "side_effect_question":
+        has_mail_delay = "メール" in raw and ("遅く" in raw or "タイミング" in raw)
+        has_approval_question = "承諾" in raw
+        has_soft_probe = has_mail_delay and any(marker in raw for marker in ["体感", "気のせい", "不具合ってほどではない"])
         case["reply_contract"] = {
             "primary_question_id": "q1",
-            "explicit_questions": [{"id": "q1", "text": "今回の修正の影響か", "priority": "primary"}],
+            "explicit_questions": [{"id": "q1", "text": "今回の修正の影響か", "priority": "primary"}]
+            + ([{"id": "q2", "text": "関係なければ承諾してよいか", "priority": "secondary"}] if has_approval_question else []),
             "answer_map": [
                 {
                     "question_id": "q1",
-                    "disposition": "answer_after_check",
-                    "answer_brief": "今の文面だけでは、今回の修正の影響かどうかはまだ切り分けられていません。",
-                    "hold_reason": "修正箇所と、止まっているメール送信のつながりを先に確認します。",
-                    "revisit_trigger": "状況を受領したあとに、今回の修正との関係をお返しします。",
+                    "disposition": "answer_now" if has_soft_probe and has_approval_question else "answer_after_check",
+                    "answer_brief": "体感で少し遅く感じる程度なら、今回の修正が直接影響している可能性は高くないです。"
+                    if has_soft_probe and has_approval_question
+                    else "今の時点では、今回の修正の影響かどうかはまだ言い切れません。",
+                    "hold_reason": ""
+                    if has_soft_probe and has_approval_question
+                    else (
+                        "修正箇所と、メールのタイミング変化に関係がありそうかを先に確認します。"
+                        if has_mail_delay
+                        else "修正箇所と、止まっているメール送信のつながりを先に確認します。"
+                    ),
+                    "revisit_trigger": ""
+                    if has_soft_probe and has_approval_question
+                    else "状況を受領したあとに、今回の修正との関係をお返しします。",
                 }
-            ],
-            "ask_map": [
+            ]
+            + (
+                [
+                    {
+                        "question_id": "q2",
+                        "disposition": "answer_now",
+                        "answer_brief": "今の挙動で問題なければ、そのまま承諾で大丈夫です。",
+                    }
+                ]
+                if has_approval_question
+                else []
+            ),
+            "ask_map": []
+            if has_soft_probe and has_approval_question
+            else [
                 {
                     "id": "a1",
                     "question_ids": ["q1"],
-                    "ask_text": "メール送信が止まっていることが分かる画面か、操作手順を送ってください。",
+                    "ask_text": "前より遅く感じた場面か、どのタイミングでそう見えたかが分かるものをそのまま送ってください。"
+                    if has_mail_delay
+                    else "メール送信が止まっていることが分かる画面か、操作手順を送ってください。",
                     "why_needed": "今回の修正とのつながりが強いかを先に見るため",
                 }
             ],
-            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+            "required_moves": ["react_briefly_first", "answer_directly_now"]
+            if has_soft_probe and has_approval_question
+            else ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
         }
         return case
 
@@ -387,6 +584,30 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q2",
                     "disposition": "answer_now",
                     "answer_brief": "今回の確認内容で問題なければ、このまま承諾に進んでいただいて大丈夫です。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "approval_test_method":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "今回修正したのはWebhookの受信側だけか", "priority": "primary"},
+                {"id": "q2", "text": "本番で試さずに承諾前確認する方法はあるか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "はい、今回見ているのはWebhookの受信側です。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "Stripeダッシュボードからの送信テストが成功しているなら、受信側の確認としてはそこまでで大丈夫です。",
                 },
             ],
             "ask_map": [],
@@ -435,6 +656,119 @@ def build_case_from_source(source: dict) -> dict:
         }
         return case
 
+    if scenario == "approval_complete_thanks":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "確認が済んだので承諾して区切ってよいか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "承諾の件もありがとうございます。また何かあればご相談ください。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "approval_reassurance_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "大丈夫そうか", "priority": "primary"},
+                {"id": "q2", "text": "承諾してよいか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "テストデータで決済まで通っていて、他に気になる挙動がなければ、こちらの確認範囲では大丈夫そうです。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "その前提なら、承諾いただいて大丈夫です。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "pending_webhook_events":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "Webhookの保留中イベントを放置してよいか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "放置で大丈夫とはまだ言い切れません。まず保留中イベントの状態を確認します。",
+                    "hold_reason": "保留中のまま未処理なのか、表示だけ残っているのかで案内が変わります。",
+                    "revisit_trigger": "イベント詳細を受領したあとに、何をすればよいかお返しします。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "保留中になっているイベント詳細が見える画面があれば、そのまま送ってください。",
+                    "why_needed": "未処理なのか表示だけ残っているのかを先に切るため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "approval_ok_with_future_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "承諾のボタンを押してよいか", "priority": "primary"},
+                {"id": "q2", "text": "今後また何かあった時もお願いできるか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "はい、承諾のボタンを押していただいて大丈夫です。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "また何かあれば、その時点の内容を見て対応できるかご案内できます。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "extra_scope_after_delivery":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "今回とは別の読み込みの重さも見てもらえるか", "priority": "primary"},
+                {"id": "q2", "text": "無理なら今回はそのままでよいか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "軽く確認することはできますが、Webhookとは別の話なら今回の範囲とは分けて案内します。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "今の修正が問題なく動いているなら、この件はそのまま区切っていただいて大丈夫です。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
     if scenario == "delivery_scope_mismatch":
         mismatch_is_specific = "診断レポートだけ" in raw and "修正ファイル" in raw
         case["reply_contract"] = {
@@ -471,6 +805,95 @@ def build_case_from_source(source: dict) -> dict:
         }
         return case
 
+    if scenario == "backup_diff_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "修正前のバックアップや差分を見られるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "修正前のファイルは別途保管していませんでした。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "layout_side_effect_probe":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "見た目の変化が今回の修正の影響か", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "決済が問題なく動いているなら、急ぎの不具合とは考えにくいです。",
+                    "hold_reason": "ただ、今回の差分の影響かどうかは確認します。",
+                    "revisit_trigger": "見た目が変わって見える画面を受領したあとに、今回の差分との関係をお返しします。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "ヘッダーの余白が広がって見える画面があれば、そのまま送ってください。",
+                    "why_needed": "今回の差分と見た目の変化がつながっているかを確認するため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "future_breakage_reassurance":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "このまま承諾して大丈夫そうか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "今の時点で、すぐまた壊れる前提ではありません。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "cause_explanation_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "なぜこのバグが起きていたのか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "今回の件は、Stripe側だけの問題というより、実装側とのつなぎ方にずれが出ていたのが原因です。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "workload_reflection_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "今回の作業量はどのくらいで、自分でも直せた可能性があったか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "今回の件は、すぐ一行で直る種類ではなく、原因の切り分けを含めて確認が必要な内容でした。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
     if scenario == "apply_followup_issue":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -480,7 +903,7 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q1",
                     "disposition": "answer_after_check",
                     "answer_brief": "反映後にビルドが通らなくなった件、こちらでも一緒に確認します。",
-                    "hold_reason": "手順の抜けか差分の反映違いかを先に切りたいです。",
+                    "hold_reason": "手順の抜けか差分の反映違いかを先に切ります。",
                     "revisit_trigger": "エラー内容を受領したあとに、どこから確認するかをお返しします。",
                 }
             ],
@@ -512,6 +935,22 @@ def build_case_from_source(source: dict) -> dict:
         }
         return case
 
+    if scenario == "doc_caution_followup":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "資料の環境変数の注意は今後の再デプロイ時に気をつけることか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "はい、今後ご自身でデプロイし直す時に気をつける点として書いています。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
     if scenario == "doc_to_bugfix_addon":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -521,7 +960,7 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q1",
                     "disposition": "answer_after_check",
                     "answer_brief": "修正の相談には移れます。まず今の依頼の補足で足りるか、別の修正相談として切るかを確認します。",
-                    "hold_reason": "納品後なので、そのまま続きとして扱う前に今回見たい内容を先に切りたいです。",
+                    "hold_reason": "納品後なので、そのまま続きとして扱う前に今回見たい内容を先に切ります。",
                     "revisit_trigger": "直したい点を受領したあとに、次の入口をお返しします。",
                 }
             ],
@@ -613,7 +1052,7 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q2",
                     "disposition": "answer_after_check",
                     "answer_brief": "料金は、補足で足りる範囲かを見てからお伝えします。",
-                    "hold_reason": "まずはどの部分が難しかったかを見て、補足で足りるかを先に切りたいです。",
+                    "hold_reason": "まずはどの部分が難しかったかを見て、補足で足りるかを先に切ります。",
                     "revisit_trigger": "分かりにくかった箇所を受領したあとにお返しします。",
                 }
             ],
@@ -654,7 +1093,7 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q1",
                     "disposition": "answer_after_check",
                     "answer_brief": "同じ原因かどうかは、まず今回の症状を見てからお返しします。",
-                    "hold_reason": "納品後の追加確認なので、前回と同じ流れかを先に切りたいです。",
+                    "hold_reason": "納品後の追加確認なので、前回と同じ流れかを先に切ります。",
                     "revisit_trigger": "症状が分かるものを受領したあとに、前回とのつながりをお返しします。",
                 }
             ],
@@ -702,7 +1141,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "確認が終わってから承諾いただければ問題ありません。",
+                    "answer_brief": "確認が終わってからご判断いただければ問題ありません。",
                 },
             ],
             "ask_map": [],
@@ -717,7 +1156,7 @@ def build_case_from_source(source: dict) -> dict:
             {
                 "question_id": "q1",
                 "disposition": "answer_after_check",
-                "answer_brief": "今回のご連絡内容は確認しました。まず前回対応の続きで見られる話かを確認します。",
+                "answer_brief": "今回のご連絡内容は確認しました。まず前回対応の続きとして扱える話かを確認します。",
                 "hold_reason": "納品後のご相談なので、今の確認ポイントを整理してからお返しします。",
                 "revisit_trigger": "必要な情報を受領したあとに、どの形で進めるかをお伝えします。",
             }
@@ -767,6 +1206,8 @@ def reaction_line(case: dict) -> str:
         return "反映後にビルドが通らなくなった件、確認しました。"
     if scenario == "doc_status_question":
         return "納品物の表記についての確認ありがとうございます。"
+    if scenario == "doc_caution_followup":
+        return "決済後の処理が正常に動くようになったとのこと、よかったです。"
     if scenario == "doc_to_bugfix_addon":
         return "追加で修正も相談したいとのこと、確認しました。"
     if scenario == "future_risk_question":
@@ -784,6 +1225,8 @@ def reaction_line(case: dict) -> str:
     if scenario == "price_complaint":
         return "率直に伝えていただいてありがとうございます。"
     if scenario == "approval_wait_request":
+        if any(marker in raw for marker in ["考えさせてもらって", "考えさせて", "ちょっと考え"]):
+            return "もちろん大丈夫です。"
         return "ご連絡ありがとうございます。"
     return "納品後のご連絡、確認しました。"
 
@@ -836,10 +1279,17 @@ def _paragraph_from_lines(lines: list[str]) -> str:
 
 def current_focus_line(case: dict) -> str | None:
     scenario = case["scenario"]
+    raw = case.get("raw_message", "")
     if scenario == "dashboard_test_label":
         return "まず、Stripeの表示がテストモードを見ているだけか確認します。"
+    if scenario == "approval_test_method":
+        return "無理に本番で決済を試さなくても、承諾前の確認としては十分です。"
+    if scenario == "pending_webhook_events":
+        return "まず、保留中のまま未処理なのか、表示だけ残っているのかを確認します。"
     if scenario == "side_effect_question":
-        return "そこを見て、今回の修正とのつながりを切り分けます。"
+        if "メール" in raw and any(marker in raw for marker in ["体感", "気のせい", "不具合ってほどではない"]) and "承諾" in raw:
+            return "もし今後も気になる場面があれば、その時にまた送ってください。"
+        return "そこを見て、今回の修正とのつながりを確認します。"
     if scenario == "redelivery_same_error":
         return "ローカルでは直っているので、デプロイ後に変わる条件から見ます。"
     if scenario == "delivery_scope_mismatch":
@@ -857,7 +1307,7 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "same_cause_check":
         return "まず前回と同じ流れの話かを確認します。"
     if scenario == "generic_delivered":
-        return "まず前回対応の続きとして見られる話かを確認します。"
+        return "まず前回対応の続きとして扱える話かを確認します。"
     return None
 
 
@@ -866,8 +1316,12 @@ def draft_opening_anchor(case: dict) -> str:
     raw = case.get("raw_message", "")
     if scenario == "dashboard_test_label":
         return "Stripeダッシュボードの「テスト」表示が気になっているとのこと、確認しました。"
+    if scenario == "approval_test_method":
+        return "送信テストまで確認いただいているとのこと、ありがとうございます。"
     if scenario == "side_effect_question":
-        if "メール送信" in raw:
+        if "Webhook" in raw and ("出なくなりました" in raw or "問題なく動" in raw):
+            return "Webhookのエラーが出なくなったとのこと、よかったです。"
+        if "メール" in raw:
             return "まずメール送信の件から見ます。"
         return "まず別の機能で出ている症状から確認します。"
     if scenario == "prevention_question":
@@ -878,6 +1332,26 @@ def draft_opening_anchor(case: dict) -> str:
         return "まずデプロイ後に変わる条件から確認します。"
     if scenario == "approval_ok":
         return "今回は問題なく動いているとのこと、確認しました。"
+    if scenario == "approval_complete_thanks":
+        return "決済テストも通って問題なさそうとのこと、ありがとうございます。"
+    if scenario == "approval_ok_with_future_request":
+        return "問題なく動いているとのこと、よかったです。"
+    if scenario == "approval_reassurance_request":
+        return "テストデータで決済までは通っているとのこと、ありがとうございます。"
+    if scenario == "pending_webhook_events":
+        return "Webhookの受信は確認できていて、保留中イベントが残っているとのこと、確認しました。"
+    if scenario == "future_breakage_reassurance":
+        return "今はちゃんと動いているとのこと、よかったです。"
+    if scenario == "cause_explanation_request":
+        return "動作確認ありがとうございます。原因の件、確認しました。"
+    if scenario == "workload_reflection_question":
+        return "全部問題なく動いたとのこと、よかったです。"
+    if scenario == "layout_side_effect_probe":
+        return "見た目が少し変わったように見える件、確認しました。"
+    if scenario == "extra_scope_after_delivery":
+        return "無事動いたとのこと、よかったです。"
+    if scenario == "backup_diff_request":
+        return "Webhookは動いているとのこと、よかったです。"
     if scenario == "delivery_scope_mismatch":
         if "診断レポートだけ" in raw and "修正ファイル" in raw:
             return "納品内容にずれがあったとのこと、確認しました。"
@@ -886,6 +1360,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "まず反映後のビルドエラーから確認します。"
     if scenario == "doc_status_question":
         return "納品物の表記についての確認、ありがとうございます。"
+    if scenario == "doc_caution_followup":
+        return "決済後の処理が正常に動くようになったとのこと、よかったです。"
     if scenario == "doc_to_bugfix_addon":
         return "追加で修正も相談したいとのこと、確認しました。"
     if scenario == "future_risk_question":
@@ -903,12 +1379,15 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "price_complaint":
         return "率直に伝えていただいてありがとうございます。高く感じられた点は受け止めています。"
     if scenario == "approval_wait_request":
+        if any(marker in raw for marker in ["考えさせてもらって", "考えさせて", "ちょっと考え"]):
+            return "少し考えたいとのこと、承知しました。"
         return "承諾を少し待ちたいとのこと、承知しました。"
     return reaction_line(case)
 
 
 def draft_body_paragraphs(case: dict) -> list[str]:
     scenario = case["scenario"]
+    raw = case.get("raw_message", "")
     contract = case["reply_contract"]
     decision_plan = case.get("response_decision_plan") or {}
     primary_id = contract["primary_question_id"]
@@ -936,13 +1415,136 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         )
         return paragraphs
 
-    if scenario == "side_effect_question":
+    if scenario == "approval_test_method":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "Stripeダッシュボードからの送信テストが成功しているなら、受信側の確認としてはそこまでで大丈夫です。",
+                    "無理に本番で決済を試さなくても、承諾前の確認としては十分です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "approval_reassurance_request":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "その前提なら、承諾いただいて大丈夫です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "pending_webhook_events":
         _append_unique(paragraphs, direct_answer)
         _append_unique(
             paragraphs,
             _paragraph_from_lines(
                 [
-                    "メール送信が止まっていることが分かる画面か、操作手順を送ってください。",
+                    focus_line or "",
+                    "保留中になっているイベント詳細が見える画面があれば、そのまま送ってください。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "future_breakage_reassurance":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "将来の仕様変更まではここで言い切れませんが、今の動きに問題がなければ承諾いただいて大丈夫です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "cause_explanation_request":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "「自分のコードが全部悪かった」というより、実装側で前提がそろっていなかったイメージです。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "workload_reflection_question":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "Webhookや処理のつながりを見ながら確認する必要があったので、ご自身だけで詰まりやすい内容でした。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "layout_side_effect_probe":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "ただ、今回の差分の影響かどうかは確認します。",
+                ]
+            ),
+        )
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "ヘッダーの余白が広がって見える画面があれば、そのまま送ってください。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "approval_complete_thanks":
+        _append_unique(paragraphs, direct_answer)
+        return paragraphs
+
+    if scenario == "side_effect_question":
+        raw = case.get("raw_message", "")
+        is_soft_timing_probe = "メール" in raw and any(marker in raw for marker in ["体感", "気のせい", "不具合ってほどではない"]) and "承諾" in raw
+        if is_soft_timing_probe:
+            _append_unique(
+                paragraphs,
+                _paragraph_from_lines(
+                    [direct_answer] + [item["answer_brief"] for item in secondary_now if item.get("answer_brief")]
+                ),
+            )
+            _append_unique(
+                paragraphs,
+                _paragraph_from_lines(
+                    [
+                        "もし今後も気になる場面があれば、その時の状況だけ送ってください。",
+                    ]
+                ),
+            )
+            return paragraphs
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [direct_answer] + [item["answer_brief"] for item in secondary_now if item.get("answer_brief")]
+            ),
+        )
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "前より遅く感じた場面か、どのタイミングでそう見えたかが分かるものをそのまま送ってください。"
+                    if ("メール" in raw and ("遅く" in raw or "タイミング" in raw))
+                    else "メール送信が止まっていることが分かる画面か、操作手順を送ってください。",
                     focus_line or "",
                 ]
             ),
@@ -971,6 +1573,44 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                     ]
                 ),
             )
+        return paragraphs
+
+    if scenario == "extra_scope_after_delivery":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "必要なら、読み込みが重いページや気になる場面を見て、別の相談としてご案内できます。",
+                    "今の修正が問題なく動いているなら、今回はそのまま区切っていただいて大丈夫です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "backup_diff_request":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "必要なら、今回変更したファイルや変更点は整理してお伝えできます。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "doc_caution_followup":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "今のところ正常に動いているなら、急ぎで何か変更する必要はありません。",
+                    "今後デプロイし直す時に環境変数を入れ直す場合は、その注意点を見ながら進めてもらえれば大丈夫です。",
+                ]
+            ),
+        )
         return paragraphs
 
     if scenario == "redelivery_same_error":
@@ -1006,6 +1646,11 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 [direct_answer] + [item["answer_brief"] for item in secondary_now if item.get("answer_brief")]
             ),
         )
+        if any(marker in raw for marker in ["価値があったのか", "モヤモヤ", "高い気が", "高かったかも"]):
+            _append_unique(
+                paragraphs,
+                "結果として軽微に見える内容だったからこそ、そう感じさせてしまった点はすみません。",
+            )
         return paragraphs
 
     answer_lines = [direct_answer]

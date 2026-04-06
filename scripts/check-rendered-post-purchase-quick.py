@@ -91,6 +91,9 @@ def buyer_word_pickup_ok(rendered: str, raw: str, scenario: str | None) -> bool:
         "evidence_offer_question": ["スクショ", "管理画面", "Stripe"],
         "repo_access_confirm": ["見られ", "アクセス"],
         "info_sufficiency_check": ["足り", "追加"],
+        "received_materials_flow_check": ["ログ", "スクショ", "流れ", "追加"],
+        "runtime_context_followup": ["Vercel", "決済", "本番モード", "ビルド"],
+        "missing_file_followup": ["webhook.ts", "追加", "見直し"],
         "suspected_cause_found": ["原因", "ログ", "priceId", "Webhook"],
         "symptom_shift_after_user_edit": ["コード", "症状", "送り直"],
         "handoff_fix_addon": ["修正", "費用", "内容"],
@@ -219,6 +222,16 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("near_echo_check failed: adjacent sections still overlap too much")
     if not buyer_word_pickup_ok(rendered, raw, scenario):
         errors.append("buyer_word_pickup check failed")
+    if scenario == "runtime_context_followup" and not has_any(rendered, ["影響します", "影響があります"]):
+        errors.append("runtime context follow-up does not answer `影響しますか` directly")
+    if scenario == "missing_file_followup":
+        if not has_any(rendered, ["追加で送って", "受領後", "見直します"]):
+            errors.append("missing file follow-up does not answer the resend/recheck path directly")
+    if scenario == "received_materials_flow_check":
+        if not has_any(rendered, ["確認できています", "届いています"]):
+            errors.append("received materials follow-up does not answer receipt directly")
+        if not has_any(rendered, ["追加で必要なものがあれば", "追加で準備いただくものはありません"]):
+            errors.append("received materials follow-up does not answer flow/prep clearly")
     if has_negation_only_answer(rendered, scenario):
         errors.append("negation_only_answer check failed")
     if not buyer_compliance_respected(rendered, raw):
@@ -271,7 +284,7 @@ def lint_case(module, source: dict) -> list[str]:
         if known_facts.intersection({"zip_already_sent", "symptom_surface_described", "extra_fee_question_present", "same_cause_relation_question_present"}) and has_any(rendered, ["送ってください", "教えてください"]):
             errors.append("rendered text asks for information already present in the buyer message")
     if case.get("scenario") == "progress_anxiety":
-        if not has_any(direct_answer_line, ["まだ", "断定できていません", "切り分け中"]):
+        if not has_any(direct_answer_line, ["まだ", "断定できていません", "切り分け中", "確認に入って", "対応可否"]):
             errors.append("progress anxiety direct answer does not state current status clearly")
     if case.get("scenario") == "delay_complaint_refund":
         if not has_any(rendered, ["進捗", "進み具合", "整理"]):
@@ -319,12 +332,21 @@ def lint_case(module, source: dict) -> list[str]:
             "大丈夫そうですか",
             "ちゃんと見れましたか",
             "足りてますか",
+            "届いてますでしょうか",
+            "初めてこういうサービス",
+            "準備しておきます",
             "忘れてて",
             "差額払う",
+            "3点あります",
+            "フォルダ構成",
+            "今日中",
             "送り直す",
             "前のは破棄",
             "フローは",
             "重複決済",
+            "pages/api/webhook.ts",
+            ".gitignoreに入れて",
+            "的外れな調査",
         ],
     ):
         errors.append("generic_followup fallback survived a concrete purchased follow-up request")
