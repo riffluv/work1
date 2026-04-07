@@ -60,25 +60,37 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
    - UI進行タグ（`#$0` / `#$1` / `#$2` / `#$3`）があるか
    - 文末タグ（`#R` / `#A` / `#D` / `#P`）があるか
    - `#R 受領返信` などのショート指示があるか
-3. `reply_contract.primary_question_id`、`explicit_questions`、`answer_map`、`ask_map` を先に読む。
-4. `temperature_plan` があれば、`reply_contract` の sibling として扱う。`reply_contract` は「何を答えるか」、`temperature_plan` は「どう受け止めるか」の正本にする。
-5. `reply_contract.issue_plan` は互換要約として扱い、実行契約の正本は `answer_map` と `ask_map` に置く。
-6. `reply_skeleton` に沿って section の大枠だけを決める。ただし writer を slot-filling に閉じ込めず、先に `response_decision_plan` を作る。
-7. `response_decision_plan` には最低でも `primary_concern / facts_known / blocking_missing_facts / direct_answer_line / response_order` を持たせる。
-8. `reply_contract` は「何を言ってよいか」、`response_decision_plan` は「何を先にどう言うか」の正本にする。
-9. 文面は renderer が template-first で埋めるのではなく、Codex が freeform に近い形で下書きし、renderer / validator は guardrail として使う。
-10. `primary_question_id` に対応する答えは、`response_decision_plan.direct_answer_line` として最初の answer-bearing section に置く。
-11. `ask_map` にない質問は増やさず、`blocking_missing_facts` が空なら原則 ask を出さない。
-12. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
-13. 相手がすでに書いた情報は `facts_known` として保持し、再要求しない。
-14. `required_moves` を落とさず、`forbidden_moves` を踏まない範囲で文面を下書きする。skill は writer の代わりではなく、writer を壊さないガードレールとして使う。
-15. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
-16. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
-17. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
-18. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
-19. ただし `japanese-chat-natural-ja` には全文の意味変更権限を与えず、語順・接続・語感の自然化に限定する。
-20. 自然化後も `direct_answer_line`、価格、禁止事項、ask 数、次アクション、`required_moves / forbidden_moves` を崩していないか再lintする。
-21. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
+3. `#R` の後ろや次行に自由文の補足がある場合は、`user_override` として読む。
+4. `reply_contract.primary_question_id`、`explicit_questions`、`answer_map`、`ask_map` を先に読む。
+5. `temperature_plan` があれば、`reply_contract` の sibling として扱う。`reply_contract` は「何を答えるか」、`temperature_plan` は「どう受け止めるか」の正本にする。
+6. `user_override` があれば、hard constraints を崩さない範囲で `temperature_plan`、`reply_contract`、`response_decision_plan` を狭める方向へ反映する。
+7. `reply_contract.issue_plan` は互換要約として扱い、実行契約の正本は `answer_map` と `ask_map` に置く。
+8. `reply_skeleton` に沿って section の大枠だけを決める。ただし writer を slot-filling に閉じ込めず、先に `response_decision_plan` を作る。
+9. `response_decision_plan` には最低でも `primary_concern / facts_known / blocking_missing_facts / direct_answer_line / response_order` を持たせる。
+10. `reply_contract` は「何を言ってよいか」、`response_decision_plan` は「何を先にどう言うか」の正本にする。
+11. 文面は renderer が template-first で埋めるのではなく、Codex が freeform に近い形で下書きし、renderer / validator は guardrail として使う。
+12. `primary_question_id` に対応する答えは、`response_decision_plan.direct_answer_line` として最初の answer-bearing section に置く。
+13. `ask_map` にない質問は増やさず、`blocking_missing_facts` が空なら原則 ask を出さない。
+14. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
+15. 相手がすでに書いた情報は `facts_known` として保持し、再要求しない。
+16. `required_moves` を落とさず、`forbidden_moves` を踏まない範囲で文面を下書きする。skill は writer の代わりではなく、writer を壊さないガードレールとして使う。
+17. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
+18. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
+19. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
+20. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
+21. ただし `japanese-chat-natural-ja` には全文の意味変更権限を与えず、語順・接続・語感の自然化に限定する。
+22. 自然化後も `direct_answer_line`、価格、禁止事項、ask 数、次アクション、`required_moves / forbidden_moves` を崩していないか再lintする。
+23. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
+
+## `#R` 補足指示の扱い
+- `#R 受領返信` のようなショート指示だけでなく、`#R` の後ろや次行に付く自由文の補足も受ける。
+- 補足は optional な `user_override` として扱い、優先順は `hard constraints > user_override > デフォルト推論`。
+- `ここは柔らかめにしてほしい` `まず謝罪から入って` のような補足は、主に `temperature_plan` と冒頭の `opening ack` に反映する。
+- `質問は1つだけにして` `追加料金の話は今回は避けて` `handoff の案内は出さないで` のような補足は、`reply_contract` と `response_decision_plan` を狭める方向で反映する。
+- ただし、公開状態、価格、規約、セキュリティ、scope boundary、最低限必要な確認は補足で上書きしない。
+- `質問は1つだけ` と書かれていても、実行に2点必要なら2点のまま最小化する。
+- `handoff を出さないで` と書かれていても、実際に対象外や別サービス案内が必須なら hard constraints を優先する。
+- 補足が tone 指示だけなら、価格・可否・ask 数を動かさず `temperature_plan` 側だけを変える。
 
 ## `reply_contract` の使い方
 - `reply_contract` はヒントではなく、下流が守る実行契約として扱う。

@@ -74,6 +74,9 @@ mode の正本:
 - `#CL` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Claude 向け監査プロンプトを作る
 - `#GE` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Gemini 向け監査プロンプトを作る
 - `#R / #A / #D / #P` を優先し、相手文だけなら分析のみ
+- `#R` の後ろや次行に自由文の補足がある場合は、optional な `user_override` として扱う
+- `user_override` の優先順は `hard constraints > user_override > デフォルト推論` とし、tone は `temperature_plan`、ask / format / scope emphasis は `reply_contract` と `response_decision_plan` へ寄せる
+- `user_override` が hard facts・公開状態・規約・最低限必要な確認と衝突する場合は hard constraints を優先し、反映できる範囲だけに留める
 - 見積り相談では `coconala-prequote-ops-ja` を優先する
 - skill 一覧に `/home/hr-hm/.codex/skills/coconala-*` や `/home/hr-hm/.codex/skills/delivery-pack-ja` などの custom skill が見えた場合は、その session を使わず再起動する
 - 新しい文章 stock は `/home/hr-hm/Project/work/ops/tests/stock/inbox` に置く

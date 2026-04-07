@@ -16,10 +16,14 @@
 - `reply_contract.primary_question_id` に対応する質問へ、最初の answer-bearing section で答えているか
 - `reply_contract.explicit_questions` を取りこぼしていないか
 - `reply_contract.answer_map` と本文の `今答える / 確認後に返す / 依頼する / 断る` が一致しているか
+- `user_override` がある時は、その意図が hard constraints を崩さない範囲で本文へ反映されているか
+- `user_override` を十分に反映できない時は、公開状態・規約・セキュリティ・最低限必要な確認のどれが優先して残ったか説明できるか
 - `temperature_plan.opening_move` が先頭1〜2文に反映されているか
 - `temperature_plan.tone_constraints` にある禁止事項（`no_defense / no_internal_terms / no_burden_shift / no_negative_lead`）を本文で踏んでいないか
 - `temperature_plan.ack_style = brief_specific` の時は、冒頭1文で buyer の具体的な行動・労力・結果・好意のどれかに触れられているか
 - `temperature_plan.warmth_cap = one_sentence` の時は、温度のある受けが1文で止まり、本題へすぐ戻れているか
+- `ここは柔らかめに` のような tone 指示がある時に、tone だけを動かして価格・可否・ask 数まで動かしていないか
+- `質問は1つだけ` のような補足がある時に、実行に必要な minimum evidence を壊さない範囲で ask を最小化できているか
 - `reply_stance.answer_timing` を reply-global の正本として扱わず、主質問の要約としてしか使っていないか
 - `reply_contract.issue_plan` で `answer_after_check` にした論点を、本文で無理に断定していないか
 - `answer_map` の `answer_after_check` に `hold_reason` と `revisit_trigger` があるか

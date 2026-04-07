@@ -72,6 +72,7 @@ optional_fields:
   - summary
   - scenario
   - known_facts
+  - user_override
   - routing_meta
   - response_decision_plan
   - evidence_found
@@ -271,6 +272,44 @@ nested_field_rules:
       - no_groundless_reassurance forbids unsupported calming claims such as "よくあるケースです" or "大丈夫です" without evidence
       - no_sycophancy forbids agreeing with buyer mistakes, softening boundaries, or mirroring praise in a way that weakens factual accuracy
       - no_emotion_completion forbids over-interpreting or completing the buyer's feelings beyond what they actually said
+  user_override:
+    required:
+      - raw_text
+    optional_fields:
+      - source
+      - applies_to
+      - parsed_preferences
+      - conflict_policy
+    source:
+      allowed:
+        - inline_after_tag
+        - next_line
+        - multi_line_note
+    applies_to:
+      allowed:
+        - temperature_plan
+        - reply_contract
+        - response_decision_plan
+        - routing_preference
+    parsed_preferences:
+      allowed:
+        - soften_tone
+        - apology_first
+        - avoid_fee_talk
+        - ask_limit_one
+        - short_reply
+        - bugfix_only
+        - no_handoff_pitch
+    conflict_policy:
+      allowed:
+        - apply_if_safe
+        - preserve_hard_constraints
+    derived_rules:
+      - user_override is optional and absent by default; when absent, existing reply behavior stays unchanged
+      - hard constraints from service-registry public state, platform-contract, security rules, and minimum executable reply obligations always win over user_override
+      - user_override may narrow or steer default heuristics, but must not force a false answer, hide a mandatory boundary, or remove minimum evidence needed to execute the reply safely
+      - tone or opening requests should map into temperature_plan; ask-count, format, and service-emphasis requests should map into reply_contract and response_decision_plan
+      - when a user override cannot be fully applied, preserve the executable contract and reflect the override as far as possible without violating hard constraints
   response_decision_plan:
     required:
       - primary_concern

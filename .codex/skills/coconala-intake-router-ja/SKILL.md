@@ -34,32 +34,44 @@ description: "ココナラ相談文の入口判定専用。相手文を、経路
 - `reply`: `analysis_only` / `make_reply`
 - `raw_message`: 相手文そのまま
 - `service_hint`: 任意。分かるときだけ
+- `user_override`: 任意。`#R` の後ろや次行に付いた自由補足がある時だけ入れる
 
 ## 標準ルート
 1. 相手文から事実だけ抽出する。
-2. 主力サービス適合を `high / medium / service_mismatch_but_feasible / low / unknown` で置く。
-3. `risk-gates` に当てて、`allow / hold / decline` 相当の危険を拾う。
-4. スコープを `same_cause_likely / different_cause_likely / undecidable / not_applicable` のどれかへ落とす。
-5. `case_type` と `certainty` を決める。
-6. `explicit_questions` を作り、`primary_question_id` を1つ決める。
-7. `answer_map` と `ask_map` を含む `reply_contract` を作る。
-8. `reply_stance` を決める。`answer_timing` は `primary_question_id` に対応する `answer_map[].disposition` から要約として置く。
-9. 不足情報は、その状態で本当に必要なものだけ最大3点に絞る。
-10. `next_action` を1つに絞る。
-11. `reply` が明示されていない限り、送信用文面は作らない。
+2. `user_override` があれば先に読む。tone / opening は `temperature_plan`、ask / format / service emphasis は `reply_contract` と `response_decision_plan` に流す前提で扱う。
+3. 主力サービス適合を `high / medium / service_mismatch_but_feasible / low / unknown` で置く。
+4. `risk-gates` に当てて、`allow / hold / decline` 相当の危険を拾う。
+5. スコープを `same_cause_likely / different_cause_likely / undecidable / not_applicable` のどれかへ落とす。
+6. `case_type` と `certainty` を決める。
+7. `explicit_questions` を作り、`primary_question_id` を1つ決める。
+8. `answer_map` と `ask_map` を含む `reply_contract` を作る。
+9. `reply_stance` を決める。`answer_timing` は `primary_question_id` に対応する `answer_map[].disposition` から要約として置く。
+10. 不足情報は、その状態で本当に必要なものだけ最大3点に絞る。
+11. `next_action` を1つに絞る。
+12. `reply` が明示されていない限り、送信用文面は作らない。
 
 ## 判定フロー
 1. 相手文から事実だけ抽出する。
-2. 主力サービス適合を `high / medium / service_mismatch_but_feasible / low / unknown` で置く。
-3. `risk-gates` に当てて、`allow / hold / decline` 相当の危険を拾う。
-4. スコープは `same_cause_likely / different_cause_likely / undecidable / not_applicable` のどれかへ落とす。
-5. `case_type` と `certainty` を決める。
-6. `explicit_questions` を作り、`primary_question_id` を1つ決める。
-7. `answer_map` と `ask_map` を含む `reply_contract` を作る。
-8. `reply_stance` を決める。`answer_timing` は `primary_question_id` に対応する `answer_map[].disposition` から要約として置く。
-9. 不足情報は、その状態で本当に必要なものだけ出す。
-10. 次アクションを1つに絞る。
-11. `reply` が明示されていない限り、送信用文面は作らない。
+2. `user_override` があれば、hard constraints と矛盾しない範囲で `temperature_plan`、`reply_contract`、`response_decision_plan` へ反映する前提で読む。
+3. 主力サービス適合を `high / medium / service_mismatch_but_feasible / low / unknown` で置く。
+4. `risk-gates` に当てて、`allow / hold / decline` 相当の危険を拾う。
+5. スコープは `same_cause_likely / different_cause_likely / undecidable / not_applicable` のどれかへ落とす。
+6. `case_type` と `certainty` を決める。
+7. `explicit_questions` を作り、`primary_question_id` を1つ決める。
+8. `answer_map` と `ask_map` を含む `reply_contract` を作る。
+9. `reply_stance` を決める。`answer_timing` は `primary_question_id` に対応する `answer_map[].disposition` から要約として置く。
+10. 不足情報は、その状態で本当に必要なものだけ出す。
+11. 次アクションを1つに絞る。
+12. `reply` が明示されていない限り、送信用文面は作らない。
+
+## `#R` 補足指示の扱い
+- `#R` の後ろや次行に自由文の補足があれば、`user_override.raw_text` として扱う。
+- 優先順は `hard constraints > user_override > デフォルト推論`。
+- `ここは柔らかめに` `まず謝罪から` は `temperature_plan` へ寄せる。
+- `質問は1つだけ` `追加料金の話は今回は避けて` `handoff の案内は出さないで` は、`reply_contract` と `response_decision_plan` を狭める方向で使う。
+- ただし、公開状態・規約・セキュリティ・最低限必要な確認と衝突する補足は、そのままは採用しない。
+- `handoff を出さないで` と書かれていても、実際に対象外や別サービス案内が必須なら hard constraints を優先する。
+- `質問は1つだけ` と書かれていても、実行に最低2点必要なら、2点のまま最小化して残す。
 
 ## `case_type` と `certainty` の決め方
 出力に次を含める。
