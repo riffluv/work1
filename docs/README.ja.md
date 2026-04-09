@@ -26,43 +26,37 @@
 出品ページ文面の同期ミラー（一次ソースから同期する）
 補足: 2026-03-12 時点で、サービス本文・プロフィール・購入にあたってのお願い・Q&A・トークルーム回答例まで文章調整済み
 
-2. `docs/20260212-coconala-monetization-deepresearch.clean.ja.md`  
-価格・追加料金・KPI・90日運用の方針
-
-3. `docs/coconala-win-strategy.ja.md`
+2. `docs/coconala-win-strategy.ja.md`
 今の主力サービスで、最初の高評価コメントを取りにいくための勝ち筋メモ
 
-4. `docs/first-case-sop-1page.ja.md`  
+3. `docs/first-case-sop-1page.ja.md`  
 初案件を受注してから納品までの最短手順
 
-5. `docs/coconala-premium-roadmap.ja.md`  
-現行15,000円サービスから上位プレミアムへ派生する実行ロードマップ
-
-6. `docs/service-catalog.ja.md`  
+4. `docs/service-catalog.ja.md`  
 サービスIDと公開状態の台帳（複数サービス運用時の正本）
 
-7. `docs/coconala-guide-market-ops.ja.md`  
+5. `docs/coconala-guide-market-ops.ja.md`  
 ココナラ公式段取り（購入時挨拶 / 滞留時連絡 / 正式納品）を固定した運用メモ
 
-8. `docs/coconala-seller-help-key-links.ja.md`  
+6. `docs/coconala-seller-help-key-links.ja.md`  
 サービス出品者向けヘルプの要点（見積り経路・紐付け・受付設定）
 
-9. `docs/coconala-special-case-policy.ja.md`
+7. `docs/coconala-special-case-policy.ja.md`
 特例対応の判断基準・文面・記録ルール（価格崩壊防止）
 
-10. `ops/common/coconala-rule-guard.md`
+8. `ops/common/coconala-rule-guard.md`
 返信・提案・納品の前に読む共通ガード（規約事故・外部共有・秘密情報・正式納品の境界）
 
-11. `ops/services/next-stripe-bugfix/service.yaml`
+9. `ops/services/next-stripe-bugfix/service.yaml`
 主力サービスの固定条件・証跡回収・人手判断条件をまとめた設定ファイル
 
-12. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
+10. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
 見積り設定UIの挙動を3行で確認するチートシート
 
-13. `/home/hr-hm/Project/work/stripe日本語UI案内`
+11. `/home/hr-hm/Project/work/stripe日本語UI案内`
 Stripeでお客さんに確認してもらう項目と導線の運用版（返信文作成時の最優先参照先）
 
-14. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
+12. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
 Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal/price_idの切り分け）
 
 ## 正本ルール（重要）
@@ -71,7 +65,6 @@ Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal
 - プロフィールの実体正本は `/home/hr-hm/Project/work/現在のプロフィール` とする。
 - `docs/coconala-listing-final.ja.md` は同期ミラー。直接編集より、一次ソース更新後の同期を優先する。
 - `Next.js_Stripe不具合診断・修正.md` は参考要約（一次ソースではない）。
-- `deepresearch.clean` 系は調査ログであり、旧案（LIGHT/STANDARD/PREMIUM）を含む場合がある。
 - 実運用で矛盾が出た場合は、一次ソース（サービス正本 + プロフィール正本）を優先する。
 - 複数サービス運用時は `docs/service-catalog.ja.md` の `Service ID` を起点に参照先を固定する。
 - 外向けに案内してよいのは、`docs/service-catalog.ja.md` で `運用中` のサービスだけとする。
@@ -126,11 +119,7 @@ same / different / undecidable の具体例
 - `ops/macro-15.md`
 ココナラ定型文15枠の推奨配分
 
-## 調査ログ（Clean）
-- `docs/20260212-coconala-flow-deepresearch.clean.ja.md`  
-取引フロー・規約・テンプレ整理
-- `docs/20260212-coconala-monetization-deepresearch.clean.ja.md`  
-収益化設計の要点整理
+## 調査ログ
 - `docs/external-research/README.ja.md`
 外部調査レーンのメモ置き場
 - `docs/external-research/2026-04-02-handoff-pain-points-agent-reach.ja.md`
@@ -139,9 +128,9 @@ Agent-Reach を使った `handoff-25000` 向けの外部調査メモ
 ## 公開前チェック
 - `docs/coconala-launch-prep.ja.md`
 公開当日の入力値・設定値・48時間運用を1ページで確認するための実行用キット
-- `docs/coconala-listing-checklist.md`  
+- `docs/coconala-listing-checklist.md`
 出品前の確認リスト
-- `docs/service-plan.ja.md`  
+- `docs/service-plan.ja.md`
 提供プランの定義
 
 ## Skill一覧
