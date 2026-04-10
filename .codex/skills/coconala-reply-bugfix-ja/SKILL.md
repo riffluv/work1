@@ -67,20 +67,21 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 7. `reply_contract.issue_plan` は互換要約として扱い、実行契約の正本は `answer_map` と `ask_map` に置く。
 8. `reply_skeleton` に沿って section の大枠だけを決める。ただし writer を slot-filling に閉じ込めず、先に `response_decision_plan` を作る。
 9. `response_decision_plan` には最低でも `primary_concern / facts_known / blocking_missing_facts / direct_answer_line / response_order` を持たせる。
-10. `reply_contract` は「何を言ってよいか」、`response_decision_plan` は「何を先にどう言うか」の正本にする。
-11. 文面は renderer が template-first で埋めるのではなく、Codex が freeform に近い形で下書きし、renderer / validator は guardrail として使う。
-12. `primary_question_id` に対応する答えは、`response_decision_plan.direct_answer_line` として最初の answer-bearing section に置く。
-13. `ask_map` にない質問は増やさず、`blocking_missing_facts` が空なら原則 ask を出さない。
-14. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
-15. 相手がすでに書いた情報は `facts_known` として保持し、再要求しない。
-16. `required_moves` を落とさず、`forbidden_moves` を踏まない範囲で文面を下書きする。skill は writer の代わりではなく、writer を壊さないガードレールとして使う。
-17. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
-18. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
-19. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
-20. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
-21. ただし `japanese-chat-natural-ja` には全文の意味変更権限を与えず、語順・接続・語感の自然化に限定する。
-22. 自然化後も `direct_answer_line`、価格、禁止事項、ask 数、次アクション、`required_moves / forbidden_moves` を崩していないか再lintする。
-23. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
+10. 可能なら `phase_act` も持たせる。`estimate_answer / estimate_hold / purchase_check_started / purchase_scope_recheck` のどれかで、今の返信が「見積もり判断」なのか「購入後の確認開始」なのかを先に固定する。
+11. `reply_contract` は「何を言ってよいか」、`response_decision_plan` は「何を先にどう言うか」の正本にする。
+12. 文面は renderer が template-first で埋めるのではなく、Codex が freeform に近い形で下書きし、renderer / validator は guardrail として使う。
+13. `primary_question_id` に対応する答えは、`response_decision_plan.direct_answer_line` として最初の answer-bearing section に置く。
+14. `ask_map` にない質問は増やさず、`blocking_missing_facts` が空なら原則 ask を出さない。
+15. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
+16. 相手がすでに書いた情報は `facts_known` として保持し、再要求しない。
+17. `required_moves` を落とさず、`forbidden_moves` を踏まない範囲で文面を下書きする。skill は writer の代わりではなく、writer を壊さないガードレールとして使う。
+18. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
+19. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
+20. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
+21. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
+22. ただし `japanese-chat-natural-ja` には全文の意味変更権限を与えず、語順・接続・語感の自然化に限定する。
+23. 自然化後も `direct_answer_line`、価格、禁止事項、ask 数、次アクション、`required_moves / forbidden_moves` を崩していないか再lintする。
+24. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
 
 ## `#R` 補足指示の扱い
 - `#R 受領返信` のようなショート指示だけでなく、`#R` の後ろや次行に付く自由文の補足も受ける。
@@ -118,12 +119,22 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - `post_purchase_report`: 現状 -> 判明事項 -> 次ステップ -> 時刻コミット
 - `delivery`: 確認依頼 -> 確認ポイント -> 次ステップ
 
+## skeleton と phase_act
+- `estimate_initial` / `estimate_followup` では、`phase_act` を `estimate_answer` か `estimate_hold` に寄せる。ここで `purchase_check_started` を使わない。
+- `estimate_answer` は、購入前に言ってよい受注可否・価格・次アクションだけを返す。コードやログを見始めたような現在形を混ぜない。
+- `estimate_hold` は、見積もり判断が未確定で、追加の最小情報が必要な状態を表す。`この情報があれば見積もれる` に寄せ、確認開始報告へずらさない。
+- `post_purchase_quick` / `post_purchase_report` では、`phase_act` を `purchase_check_started` か `purchase_scope_recheck` に寄せる。
+- `purchase_check_started` は、購入後に現在見ている対象や次に見る箇所を返す。
+- `purchase_scope_recheck` は、購入後に別論点や追加要求が出て、今回範囲とつながるかを見直す時に使う。
+
 ## renderer の固定
 - 最初に renderer 化するのは `estimate_initial` と `post_purchase_quick` の2つだけに絞る。
 - renderer は section の有無、順序、ask 上限、主質問を扱う位置を固定する guardrail として使う。
 - writer を slot 埋めに閉じ込めない。文章生成は Codex の reasoning を残した freeform draft を優先し、renderer は過剰な template-first を避ける。
 - `estimate_initial` では、最初の answer-bearing section で `primary_question_id` に対する結論を出す。
+- `estimate_initial` では、`phase_act` が `estimate_answer / estimate_hold` のどちらでも、`direct_answer_line` を「見積もり判断の返答」として書く。未受領なのに `確認を進めます` のような purchased 語彙へ滑らせない。
 - `post_purchase_quick` では、`answer_now` を先に、`answer_after_check` は理由つき保留として後段に置く。
+- `post_purchase_quick` では、`phase_act` が `purchase_check_started / purchase_scope_recheck` なら、現在見ている対象や別件切り分けを1文で可視化してよい。
 - `answer_after_check` を出す時は、`hold_reason` と `revisit_trigger` を落とさない。
 - `ask_map` が空なら、質問 section を作らない。
 - `ask_map` が任意確認だけなら、相手に判断を丸投げせず、答えがなくても進める既定方針を同じ段落で添える。
@@ -202,7 +213,8 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 受け止めで buyer が使っていない感情語を補完しない。`迷いますよね` `焦りますよね` のように感情を完成させるより、buyer の語や状況描写に寄せる。
 - 冒頭で受け止めを1文入れる時は、その直後を `ですが` で逆接しない。受け止めが必要ない場面では、根拠説明からそのまま入ってよい。
 - 冒頭の肯定や受領を `もちろんです。` に固定しない。
-- Yes/No へ直答が必要でも、先頭の1語を機械的に `はい、` に固定しない。`確認できます。` `可能です。` `15,000円の方が近いです。` のように、結論文そのものを先に置いてよい。
+- Yes/No へ直答が必要でも、先頭の1語を機械的に `はい、` に固定しない。`可能です。` `この内容なら対象になりそうです。` `15,000円の方が近いです。` のように、フェーズに合う結論文そのものを先に置いてよい。
+- ただし、まだ中身を見ていない段階の `確認できます。` は確認済みに読まれやすい。未確認なら `見ます` `調査できます` `対応可能です` を優先する。
 - 受領の言い方は `ありがとうございます。` `承知しました。` `確認できます。` などに散らす。
 - 外向け返信で内部ラベルの `bugfix` `handoff` をそのまま書かない。`不具合修正` `主要1フローの整理` `このサービス` に言い換える。
 - 相手が `高い` `予算が厳しい` のように価格への引っかかりを率直に出している時は、説明へ入る前に短い受け止めを1文だけ置いてよい。弁明には広げない。
@@ -212,6 +224,10 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 追加対応や別対応への切り分けで、`この場で勝手に進めず` のような防御的な言い方を使わない。`先にご相談したうえで進めます` `進める前にご相談します` を優先する。
 - buyer の冒頭文をそのまま返しておうむ返しにしない。`先日はありがとうございました` `ありがとうございます` など相手と同一の書き出しが直後に続くなら、`こちらこそありがとうございました` `前回の件が安定していてよかったです` のように少しずらす。
 - 納期や見通しの返答で、`まだ確定できない` と `ここまでは返せる` が同時にある時は、先に `返せること` を置く。`見立てまでは返せます。そのうえで、症状を見ないまま日数は確定していません` の順を基本にする。
+- 修正完了や調査完了の見通しに `時刻` を使わない。`目処` `完了時期` `見通し` を優先する。
+- 保留判断や境界説明で `言っていません` のような訂正口調を使わない。`現時点ではまだ確定していません` `この時点ではまだ判断していません` に寄せる。
+- 判断返答で `先に見るのが近いです` `このサービスが近いです` のような直訳調を避ける。`先に対応するのがよさそうです` `まずはこの進め方が自然です` を優先する。
+- 次回案内や結果共有を `返します / お返しします` に固定しない。`ご連絡します` `お伝えします` `回答します` を混ぜてテンプレ感を落とす。
 - buyer が `ちょっとだけ` `5分で終わる` `CSS1行だけ` のように作業量を根拠に広げてきても、範囲判断は作業量ではなく分類で返す。`1行かどうかに関係なく、今回はデザイン調整なので範囲外です` のように書いてよい。
 - 低評価や不満をにおわせる圧力には、その言葉をなぞって返さない。まず `進み方が見えにくい状態にしてしまってすみません` のように、こちらが直せる事実へ受けを寄せてから、次回共有時刻と今見る点を書く。
 - `post_close` で buyer が前回のお礼や遠慮を先に置いて再相談してきた時は、本題の前に短い受けを1文だけ返してよい。`こちらこそありがとうございました。` `前回の件が安定していてよかったです。` 程度で止める。

@@ -129,6 +129,12 @@ reply_stance:
 - `state: purchased` の途中報告や調査進捗 -> `post_purchase_report`
 - `state: predelivery / delivered` -> `delivery`
 
+### response_decision_plan.phase_act
+- `state: prequote` の `estimate_initial / estimate_followup` -> `estimate_answer` または `estimate_hold`
+- `state: purchased` の `post_purchase_quick / post_purchase_report` -> `purchase_check_started` または `purchase_scope_recheck`
+- `estimate_*` は見積もり判断の speech act であり、未受領のコードやログを見始めたような現在形へ寄せない
+- `purchase_*` は購入後の確認・切り分け・範囲見直しの speech act であり、見積もり相談の受付文面へ戻さない
+
 ## `temperature_plan` の決め方
 `temperature_plan` は、reply の意味ではなく、冒頭の受け方と温度の上限を固定する interaction contract として出す。
 

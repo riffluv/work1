@@ -318,15 +318,27 @@ nested_field_rules:
       - direct_answer_line
       - response_order
     optional_fields:
+      - phase_act
       - explicit_questions
       - primary_question
       - ask_policy
       - known_facts_used
       - risk_flags
+    phase_act:
+      allowed:
+        - estimate_answer
+        - estimate_hold
+        - purchase_check_started
+        - purchase_scope_recheck
     derived_rules:
       - response_decision_plan is a pre-render decision object and must not replace reply_contract
       - reply_contract remains the source of truth for what may be said
       - response_decision_plan decides concern focus, answer-first line, missing-fact gating, and section order
+      - phase_act should describe the current speech act of the reply, not the future implementation step
+      - when state is prequote and reply_skeleton is estimate_initial or estimate_followup, phase_act should stay in estimate_answer or estimate_hold
+      - when state is purchased and reply_skeleton is post_purchase_quick or post_purchase_report, phase_act should stay in purchase_check_started or purchase_scope_recheck
+      - estimate_* phase_act must not imply that code, logs, ZIP, or permissions were already received and reviewed
+      - purchase_* phase_act may refer to ongoing confirmation work, current inspection focus, or scope recheck inside the talkroom
       - direct_answer_line must be renderable as an early answer-bearing line when the primary question is answerable
       - blocking_missing_facts must gate ask generation; when empty, the renderer should not re-ask known context
       - validator should check that rendered text preserves direct_answer_line intent and does not duplicate its meaning across nearby sections
