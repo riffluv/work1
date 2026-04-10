@@ -81,6 +81,7 @@
   - bugfix: 原則購入後
   - handoff: 構成確認が必要な時だけ購入前に依頼可
   - 高確度 handoff: 購入導線を先に出し、コード共有は購入後
+  - bugfix の prequote で buyer が `15,000円でいけるか` を聞いている時は、ZIP 前提で答えない。まず `15,000円でどこまで見るか` を返す
 
 9. 最後に1文で次アクションを示す。
   - `見積もり提案を送ります`
@@ -90,3 +91,6 @@
   - 高確度案件は `あいさつ + 結論 + 購入導線` の短い構造で終えてよい
   - 最終自然化のあとも、`required_moves` が残り `forbidden_moves` を踏んでいないかを確認する
   - 最終自然化のあとも、section order・価格・ask 数・hold reason・次アクションが壊れていないか再チェックする
+
+参照:
+- `/home/hr-hm/Project/work/docs/coconala-prequote-commitment-policy.ja.md`

@@ -37,3 +37,6 @@
 - 見積り受付: ON
 - 見積り必須: OFF（即購入も許可）
 - 同時対応件数: 1件で固定し、品質優先で回す
+- prequote の bugfix は、原則として購入後に作業開始する
+- prequote では ZIP 非依存を標準にし、症状・環境・エラー文・スクショで入口判断する
+- prequote の約束範囲は `/home/hr-hm/Project/work/docs/coconala-prequote-commitment-policy.ja.md` を参照する
