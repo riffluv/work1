@@ -45,7 +45,7 @@ cases:
       answer_map:
         - question_id: q1
           disposition: answer_now
-          answer_brief: "この内容なら15,000円で進められる。"
+          answer_brief: "この状態でも対応できる。"
           evidence_refs:
             - service.scope
             - stripe.subscription_active_but_site_state_wrong
@@ -107,7 +107,7 @@ cases:
       answer_map:
         - question_id: q1
           disposition: answer_now
-          answer_brief: "この内容なら15,000円の範囲で切り分けから修正可否確認まで進められる。"
+          answer_brief: "切り分けから対応できる。"
           evidence_refs:
             - service.scope
             - checkout_webhook_firestore_timeout
@@ -244,7 +244,7 @@ cases:
       answer_map:
         - question_id: q1
           disposition: answer_now
-          answer_brief: "この内容なら15,000円で進められる。"
+          answer_brief: "この症状なら対応できる。"
           evidence_refs:
             - service.scope
             - subscription_deleted_duplicate_mail
@@ -306,7 +306,7 @@ cases:
       answer_map:
         - question_id: q1
           disposition: answer_now
-          answer_brief: "この内容なら15,000円で進められる。"
+          answer_brief: "急ぎで見るべき不具合として対応できる。"
           evidence_refs:
             - service.scope
             - success_url_404

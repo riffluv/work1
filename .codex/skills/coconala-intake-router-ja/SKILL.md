@@ -232,12 +232,16 @@ reply_contract:
 - `explicit_questions` には、相手が明示した質問だけを入れる。
 - 勝手な善意解釈で `implicit_questions` を増やさない。
 - `primary_question_id` は、最初に答えるべき主質問を1つだけ指す。
+- 価格、追加料金、別原因リスク、広いスコープ説明は、相手が明示していない限り `explicit_questions` へ勝手に昇格させない。
+- `お願いできますか` `依頼できそうですか` のような可否質問が主なら、`対応可否` を primary にし、価格や範囲説明を別の主質問として混ぜない。
 
 ### answer_map
 - `answer_map` は renderer と lint が使う正本で、`issue_plan` より優先する。
 - 各質問を `answer_now / answer_after_check / ask_client / decline` のどれかへ落とす。
 - `answer_after_check` には必ず `hold_reason` と `revisit_trigger` を入れる。
 - `answer_brief` は、最終文面で先に答えるべき結論の短い核として使う。
+- `answer_brief` は primary question の核だけを書く。二次論点の価格・分岐・広い範囲説明をここへ混ぜない。
+- 相手が価格を聞いていない場面では、`answer_brief` に価格を入れない。価格は policy 上必要な場合か、相手の主質問に含まれる場合だけ後段で扱う。
 
 ### ask_map
 - `ask_map` は、相手に依頼する最小限の確認だけを置く。
@@ -250,6 +254,7 @@ reply_contract:
 - `issue_plan` は互換用の要約として残す。
 - 実行契約の正本は `answer_map` と `ask_map` と考える。
 - `issue_plan` を本文生成側の別真実源にしない。
+- `issue_plan` に価格や別原因リスクが入っていても、primary question でなければ先頭へ出さない。
 
 ### required_moves
 - `answer_timing: after_check` なら `defer_with_reason` を原則入れる。
@@ -259,12 +264,18 @@ reply_contract:
 - 任意確認で進められる場面では、`state` を問わず `state_default_path_if_no_answer` を優先候補に入れる。
 
 ### forbidden_moves
-- `burden_owner: us` なら `ask_client_to_prioritize_when_burden_owner_us` を避ける。
-- `reply_skeleton: post_purchase_quick` なら `numbered_QA_for_all_questions` を避ける。
-- purchased では `reopen_estimate_intake` を避ける。
-- 保留だけで終わる `vague_hold_without_reason`、内部語露出の `internal_term_exposure` を避ける。
-- purchased の軽い追加報告では `overexplain_branching` を避ける。
-- 任意確認しかないのに `choose_one_before_we_can_start` の形へ落とすのを避ける。
+- `forbidden_moves` は「気をつけるメモ」ではなく、下流 writer へ渡す実行契約として具体的に立てる。
+- 外向け返信では、原則として `internal_term_exposure` を入れる。
+- `state: purchased / predelivery / delivered / closed` では、原則として `reopen_estimate_intake` を入れる。
+- `burden_owner: us` では、原則として `ask_client_to_prioritize_when_burden_owner_us` を入れる。
+- `reply_skeleton: post_purchase_quick` で短く返すべき場面では、原則として `numbered_QA_for_all_questions` を入れる。
+- `answer_map` に `answer_after_check` が1件でもあるなら、原則として `vague_hold_without_reason` を入れる。
+- purchased の軽い追加報告で、分岐説明が主題でないなら `overexplain_branching` を入れる。
+- 相手が価格を明示質問しておらず、primary question が可否・対象性なら `frontload_price_when_not_asked` を入れる。
+- 相手が別原因や追加料金を明示質問しておらず、分岐説明が主題でないなら `frontload_branching_risk_when_not_asked` を入れる。
+- 相手が範囲説明を明示質問しておらず、scope 説明が主題でないなら `frontload_scope_explanation_when_not_asked` を入れる。
+- `frontload_*` 3種は、policy 上の必須説明が主質問そのものになっている時だけ外してよい。
+- 詳細基準は `/home/hr-hm/Project/work/docs/reply-quality/forbidden-moves-matrix.ja.md` を正本として参照する。
 
 ## Gotchas
 - 相手文が貼られただけなら分析のみで止める。自動で返信文を作らない。
@@ -278,6 +289,7 @@ reply_contract:
 - `reply_stance` は文体の好みではなく、返信姿勢の固定として使う。`now / after_check` `us / client / shared` を曖昧にしない。
 - `reply_contract` は強めのヒントではなく、下流が守る実行契約として扱う。特に `primary_question_id / answer_map / ask_map` を本文側で再解釈しない。
 - `answer_timing` を reply-global の正本として扱わない。主質問の要約に留める。
+- primary question へ答える前に、二次論点の価格・分岐・広いスコープ説明を前に出さない。
 
 ## 出力ルール
 - `output-schema.yaml` の項目名に沿って返す。

@@ -191,11 +191,20 @@ nested_field_rules:
         - vague_hold_without_reason
         - internal_term_exposure
         - overexplain_branching
+        - frontload_price_when_not_asked
+        - frontload_branching_risk_when_not_asked
+        - frontload_scope_explanation_when_not_asked
     derived_rules:
       - answer_map and ask_map are the executable contract for renderer and lint
       - issue_plan remains as a compatibility summary and must be derived from answer_map and ask_map, not treated as a separate source of truth
       - every answer_after_check item in answer_map must include hold_reason and revisit_trigger
       - ask_map must stay minimal and link each ask to one or more explicit_questions via question_ids
+      - forbidden_moves must be selected from state, reply_skeleton, burden_owner, primary_question_id, and explicit_questions, not left as a generic preference list
+      - internal_term_exposure should be present for almost all external replies unless there is a documented exception
+      - when the primary question is not about price, branching risk, or broad scope, those topics should be blocked from the first answer-bearing section via the corresponding frontload forbidden_moves unless policy requires otherwise
+      - the first answer-bearing section must answer primary_question_id before introducing secondary topics
+      - topics not represented in explicit_questions must not lead the first answer-bearing section unless needed for safety, policy, or to avoid a misleading answer
+      - price, branching risk, and broad scope explanation must not be front-loaded when they are not part of the primary question and not required by policy
   temperature_plan:
     required:
       - user_signal
