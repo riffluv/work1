@@ -29,3 +29,12 @@
 - `05_handoff_private_quote-gate.ja.md`
 - `06_purchased-closed_scope-continue.ja.md`
 - `07_handoff_explanation_non_engineer.ja.md`
+- `08_bugfix_scope-buyer-words.ja.md`
+- `09_bugfix_setting-vs-code_self-fix-intent.ja.md`
+- `10_delivered_value-doubt_light-fix.ja.md`
+- `11_boundary_unknown-spec-vs-bug.ja.md`
+- `12_boundary_refuse-external-share-and-push.ja.md`
+- `13_bugfix_structured-intake_ack-then-ask-delta.ja.md`
+- `14_quote-sent_refuse-zoom_with-anxiety.ja.md`
+- `15_repeat-project_discount-firm-but-natural.ja.md`
+- `16_handoff_followup_deeper-memo-paid-supplement.ja.md`

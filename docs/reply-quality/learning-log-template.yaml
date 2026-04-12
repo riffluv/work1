@@ -1,0 +1,33 @@
+# 返信OS 学習メモテンプレート
+#
+# 1件の監査指摘ごとに作る。
+# 目的は、単発修正ではなく
+# - どの文脈で
+# - どの層が
+# - どんな失敗をしたか
+# を蓄積し、共通化可否と戻し先を判断できるようにすること。
+
+date: YYYY-MM-DD
+case_ref: ""
+
+# --- 文脈 ---
+consultation_type: ""
+buyer_decision_stage: ""
+service: ""
+state: ""
+
+# --- 診断 ---
+symptom: ""
+failure_label: ""
+failure_layer: ""
+
+# --- 投資判断 ---
+generalizability: ""
+reason: ""
+return_target: ""
+decision: ""
+decision_reason: ""
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: ""
+upstream_fix: ""

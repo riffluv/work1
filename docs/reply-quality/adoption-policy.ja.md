@@ -22,6 +22,7 @@
 3. `即反映 / 観察保留 / 却下` のどれかを決める
 4. 反映するなら、戻し先を1つに絞る
 5. バッチで再確認する
+6. 学習メモに `failure_layer / generalizability / return_target / decision` を残す
 
 ## 判定
 
@@ -66,6 +67,11 @@
 - 相手文や route が特殊すぎて一般化に向かない
 
 ## 戻し先の原則
+
+共通化可否の基準:
+- `service facts` を入れ替えても再発するなら `common`
+- service 固有の facts / scope / forbidden に依存するなら `service_specific`
+- 1回限りの特殊文脈なら `one_off`
 
 ### router / schema
 
@@ -126,6 +132,7 @@
 
 避ける:
 - 1つのケースを見て、router / policy / naturalizer / gold を一気に全部いじること
+- 1件の違和感をそのまま self-check 項目追加へ流すこと
 
 ## 昇格条件
 
@@ -153,7 +160,9 @@
 
 - `見つけたら直す` ではなく、`見つけたら分類して、昇格条件を満たしたら直す`
 - まず `QA分類`
+- 次に `failure_layer`
 - 次に `適用域`
+- その次に `共通化可否`
 - その次に `採用判定`
 - 最後に `戻し先`
 

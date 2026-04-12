@@ -20,6 +20,12 @@
   - 見積り相談で、主質問より先に説明しすぎないための圧縮ルール
 - `writer-brief.ja.md`
   - Writer に渡す最小原則。`主質問に先に答える / buyer の語を拾う / 次の行動が分かる言葉で書く` を固定する
+- `service-facts-onboarding-template.ja.md`
+  - 新しいサービスへ入れる時に、何を facts 化するかを揃える導入テンプレ
+- `acceptance-gate.ja.md`
+  - 送る / 差し戻す / system に戻す の通過条件
+- `onboarding-flow.ja.md`
+  - 新しいサービスへ返信OSを導入する順番
 - `coconala-handoff-prequote-mini-contract.ja.md`
   - `handoff prequote` の proposal first / ZIP optional を固定するサービス別契約
 - `gold-replies/`
@@ -29,14 +35,15 @@
 1. 返信を5件単位で作る
 2. Claude などでまとめて監査する
 3. 指摘を `QA分類` に落とす
-4. `どこにだけ効かせるか` を scoping で切る
-5. `adoption-policy` で即反映か観察保留かを決める
-6. `forbidden_moves` で止めるべき崩れかを確認する
-7. `Writer / Reviewer` のどちらの問題かを切る
-8. 再発癖だけを skill に戻す
-9. 良い返信を `gold-replies/` に追加する
-10. 悪い再発を `ng-expressions.ja.md` に追加する
-11. 実案件の微修正も、月次で `good / bad` として戻す
+4. 1件ごとに `learning-log` へ学習メモを残す
+5. `どこにだけ効かせるか` を scoping で切る
+6. `adoption-policy` で即反映か観察保留かを決める
+7. `forbidden_moves` で止めるべき崩れかを確認する
+8. `Writer / Reviewer / Router / Facts` のどこで壊れたかを切る
+9. 再発癖だけを skill / facts / lint に戻す
+10. 良い返信を `gold-replies/` に追加する
+11. 悪い再発を `ng-expressions.ja.md` に追加する
+12. 実案件の微修正も、月次で `good / bad` として戻す
 
 ## 監査の固定 rubric
 1. 相手の質問や不安に正面から返しているか
@@ -46,8 +53,12 @@
 
 ## 運用ルール
 - 監査コメントは、まず `failure-taxonomy.ja.md` の主ラベル1つで整理する。
+- 学習メモは `/home/hr-hm/Project/work/ops/tests/stock/learning-log/` に残す。
+- 学習メモのひな形は `learning-log-template.yaml` を使う。
+- 1件の違和感は、`現象 -> パターン -> 層` の3段で抽象化する。
 - 恒久反映の前に、`guidance-scoping.ja.md` で `reply-only / route / state / service` を切る。
 - 恒久反映の前に、`adoption-policy.ja.md` で `即反映 / 観察保留 / 却下` を判定する。
+- 共通化可否は、`service facts` を入れ替えても再発するかで判断する。
 - `gold replies` は最初から増やしすぎない。主要場面ごとに 3〜5 本ずつ増やす。
 - `NG表現` は好みではなく、再発した崩れだけを足す。
 - 監査では新案を広げすぎず、再発癖の指摘を優先する。
@@ -67,3 +78,8 @@
 - データ件数の厳密な上限/下限
 - 重い自動評価基盤
 - 監査項目の過剰な細分化
+
+## 学習ループの目的
+- `ここが変` で終わらせず、`どの相談タイプで / buyer がどの判断段階で / どの層が壊れたか` を残す
+- 10件たまった時に、`failure_label` と `failure_layer` の頻度を見て、どの層を直すべきかを判断できる状態にする
+- self-check に項目を足し続ける前に、上流の入力や facts packet を直せないかを先に見る
