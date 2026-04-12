@@ -18,6 +18,8 @@
   - 指摘をいつ恒久反映するか決める採用基準
 - `prequote-compression-rules.ja.md`
   - 見積り相談で、主質問より先に説明しすぎないための圧縮ルール
+- `writer-brief.ja.md`
+  - Writer に渡す最小原則。`主質問に先に答える / buyer の語を拾う / 次の行動が分かる言葉で書く` を固定する
 - `coconala-handoff-prequote-mini-contract.ja.md`
   - `handoff prequote` の proposal first / ZIP optional を固定するサービス別契約
 - `gold-replies/`
@@ -30,10 +32,11 @@
 4. `どこにだけ効かせるか` を scoping で切る
 5. `adoption-policy` で即反映か観察保留かを決める
 6. `forbidden_moves` で止めるべき崩れかを確認する
-7. 再発癖だけを skill に戻す
-8. 良い返信を `gold-replies/` に追加する
-9. 悪い再発を `ng-expressions.ja.md` に追加する
-10. 実案件の微修正も、月次で `good / bad` として戻す
+7. `Writer / Reviewer` のどちらの問題かを切る
+8. 再発癖だけを skill に戻す
+9. 良い返信を `gold-replies/` に追加する
+10. 悪い再発を `ng-expressions.ja.md` に追加する
+11. 実案件の微修正も、月次で `good / bad` として戻す
 
 ## 監査の固定 rubric
 1. 相手の質問や不安に正面から返しているか
@@ -52,6 +55,7 @@
 - 返信OSの改善は `reply-only` として扱い、納品物本文へは自動波及させない。
 - 現行ルールと矛盾する古い `gold replies` や test asset を放置しない。`主質問より先に価格を出す` のような旧パターンは、良い例として残さない。
 - overlap 整理では、新ルールを足す前に `正本 / 良い例 / 契約テスト` の3層で競合がないかを先に見る。
+- Writer に self-check 全文を読ませない。判定と lint は Reviewer で行い、本文生成は `writer-brief.ja.md` の最小原則へ圧縮する。
 
 ## いま固定してよいこと
 - prompt を増やすより、`gold replies + NG表現 + 仕上げ前チェック` を強くする

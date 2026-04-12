@@ -28,3 +28,4 @@
 - `04_bugfix_boundary_clear-symptom-first.ja.md`
 - `05_handoff_private_quote-gate.ja.md`
 - `06_purchased-closed_scope-continue.ja.md`
+- `07_handoff_explanation_non_engineer.ja.md`

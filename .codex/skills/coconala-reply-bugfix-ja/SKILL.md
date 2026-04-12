@@ -50,9 +50,17 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - `/home/hr-hm/Project/work/docs/coconala-japanese-banlist.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-japanese-must-rules.ja.md`
 - `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md`
+- `/home/hr-hm/Project/work/docs/reply-quality/writer-brief.ja.md`
 - `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md`
+
+## Writer / Reviewer 分離
+- この skill は `Classifier -> Writer -> Reviewer` を前提に使う。
+- Classifier は `reply_contract / response_decision_plan / phase_act / service facts` を確定する strict 層。
+- Writer は `/home/hr-hm/Project/work/docs/reply-quality/writer-brief.ja.md` の最小原則だけで本文を書く。
+- Reviewer は `/home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md` と ban / fact lint を使って検査する。
+- `self-check` は Writer に読ませるのではなく、draft 後に通す。
 
 ## 標準ルート
 1. 可能なら先に `coconala-intake-router-ja` を使い、経路・状態・`case_type`・`certainty`・`reply_stance`・`reply_contract` を確定する。
@@ -70,21 +78,23 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 10. 可能なら `phase_act` も持たせる。`estimate_answer / estimate_hold / purchase_check_started / purchase_scope_recheck` のどれかで、今の返信が「見積もり判断」なのか「購入後の確認開始」なのかを先に固定する。
 11. `reply_contract` は「何を言ってよいか」、`response_decision_plan` は「何を先にどう言うか」の正本にする。
 12. 文面は renderer が template-first で埋めるのではなく、Codex が freeform に近い形で下書きし、renderer / validator は guardrail として使う。
-13. `primary_question_id` に対応する答えは、`response_decision_plan.direct_answer_line` として最初の answer-bearing section に置く。
-14. 最初の answer-bearing section では、primary question に必要な情報だけで答える。価格・別原因リスク・広いスコープ説明などの二次論点を、善意で先頭に差し込まない。
-15. 相手が価格を聞いていない場面では、価格を自動挿入しない。価格は policy 上必要な場合、予算不安が明示されている場合、または主質問が価格の時だけ出す。
-16. `answer_map` にない二次論点を足す必要がある時は、最初の answer-bearing section ではなく後段へ置く。
-17. `ask_map` にない質問は増やさず、`blocking_missing_facts` が空なら原則 ask を出さない。
-18. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
-19. 相手がすでに書いた情報は `facts_known` として保持し、再要求しない。
-20. `required_moves` を落とさず、`forbidden_moves` を踏まない範囲で文面を下書きする。skill は writer の代わりではなく、writer を壊さないガードレールとして使う。
-21. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
-22. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
-23. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
-24. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
-25. ただし `japanese-chat-natural-ja` には全文の意味変更権限を与えず、語順・接続・語感の自然化に限定する。
-26. 自然化後も `direct_answer_line`、価格、禁止事項、ask 数、次アクション、`required_moves / forbidden_moves` を崩していないか再lintする。
-27. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
+13. Writer に渡す guidance は `/home/hr-hm/Project/work/docs/reply-quality/writer-brief.ja.md` の要点までに圧縮し、長い self-check や reviewer ルール全文を混ぜない。
+14. `primary_question_id` に対応する答えは、`response_decision_plan.direct_answer_line` として最初の answer-bearing section に置く。
+15. 最初の answer-bearing section では、primary question に必要な情報だけで答える。価格・別原因リスク・広いスコープ説明などの二次論点を、善意で先頭に差し込まない。
+16. 相手が価格を聞いていない場面では、価格を自動挿入しない。価格は policy 上必要な場合、予算不安が明示されている場合、または主質問が価格の時だけ出す。
+17. `answer_map` にない二次論点を足す必要がある時は、最初の answer-bearing section ではなく後段へ置く。
+18. `ask_map` にない質問は増やさず、`blocking_missing_facts` が空なら原則 ask を出さない。
+19. 追加質問の前に、現時点の見立てまたは確認観点を1文だけ入れる。
+20. 相手がすでに書いた情報は `facts_known` として保持し、再要求しない。
+21. `required_moves` を落とさず、`forbidden_moves` を踏まない範囲で文面を下書きする。skill は writer の代わりではなく、writer を壊さないガードレールとして使う。
+22. 次回報告時刻を入れる。購入後の調査 / 判定フェーズでは `本日[時刻]まで` と `48時間以内` の二段構成を基本にする。
+23. draft 後に `/home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md` を Reviewer として通す。
+24. `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md` で再発しやすい NG 表現を落とす。
+25. 近い場面があれば `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md` と `/home/hr-hm/Project/work/docs/reply-quality/gold-replies/README.ja.md` を見て、温度感と依頼数の基準を合わせる。
+26. 送信用文面は、毎回 `japanese-chat-natural-ja` で最終自然化する。
+27. ただし `japanese-chat-natural-ja` には全文の意味変更権限を与えず、語順・接続・語感の自然化に限定する。
+28. 自然化後も `direct_answer_line`、価格、禁止事項、ask 数、次アクション、`required_moves / forbidden_moves` を崩していないか再lintする。
+29. 送信用文面モードでは `/home/hr-hm/Project/work/runtime/replies/latest.txt` に保存する。相手文が明確なときは `/home/hr-hm/Project/work/runtime/replies/latest-source.txt` にも保存する。
 
 ## `#R` 補足指示の扱い
 - `#R 受領返信` のようなショート指示だけでなく、`#R` の後ろや次行に付く自由文の補足も受ける。
@@ -212,6 +222,13 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 購入後の継続会話では、相手の追加報告に短く反応してから本題へ入る。`別のページでもですか。` `ログイン画面も崩れていますか。` のような一言で十分。
 - 購入後の継続会話では、情報依頼を文中に混ぜる形を優先する。番号リストは3点以上、または取りこぼしが起きやすい時だけ使う。
 - 購入後の継続会話では、`いただければ、共有します` のSLA文より `もらえると助かります` `本日[時刻]までに共有しますね` のようなチャット口調を優先する。
+- 購入後の追加報告で、`先にお答えすると` `まず結論だけ言うと` のようなメタ説明を挟まない。答えれば伝わる場面では、そのまま結論へ入る。
+- 購入後の追加報告では、こちらの反応や優先度より先に、相手が持ち込んだ事象を主語に置く。`二重に引き落とされた件は` `前回と同じ症状であれば` のように、件名側から入る。
+- 購入後の scope 判断で、`可能性が高いです` `確率としては` のような確信度報告を前面に出しすぎない。会話として足りる場面では `よさそうです` `まずは別の話として見た方が自然です` を優先する。
+- 購入後の追加報告では、`ここは優先して見ます` のような曖昧な指示語を使わない。`優先して確認します` `この件を先に見ます` のように対象を明示する。
+- `前回に続いてのご相談` のような分類ラベルを、そのまま挨拶に混ぜない。リピート相談でも、相手の挨拶や文脈に寄せて `前回お世話になりました` `前回の件ではありがとうございました` など自然な受け方を優先する。
+- post-close の再相談で、`流用` のような内部寄りの語を外向けに出さない。`前回の件とは分けて見る` `前回の結果を活かせるか確認する` のように、buyer が読める語へ言い換える。
+- buyer が `活かして` `引き続き` などの語を使っている時は、意味が変わらない範囲でその語を優先して拾う。自然な同義語へずらすより、buyer の語彙に寄せる。
 - purchased で `issue_plan` が混在する時は、即答できるものだけ答え、残りは `確認してから返す` と分けて書く。
 - 購入後の `確認してから返す` では、`いまは〜を先に見ています` の現在地を1文入れて不透明さを減らす。
 - 相手が `箇条書きで` `一言ずつ` `短く` のように返答形式を明示した時は、その形式を本文でも守る。
