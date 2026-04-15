@@ -1,0 +1,43 @@
+# =========================
+# .antigravityignore
+# Antigravity のインデックス・コンテキストから除外するファイル
+# トークン消費の節約 & パフォーマンス向上
+# =========================
+
+# --- 依存パッケージ ---
+node_modules/
+
+# --- ビルド成果物・キャッシュ ---
+.next/
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# --- Git 内部 ---
+.git/objects/
+.git/logs/
+
+# --- 画像・バイナリ（AIが読む必要なし）---
+*.jfif
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.svg
+*.mp4
+*.webm
+
+# --- 他のAIエージェント設定（Antigravityには不要）---
+.claude/
+.codex/
+.serena/
+.image-gen/
+
+# --- ログ・一時ファイル ---
+*.log
+*.lock
+.DS_Store
+Thumbs.db

@@ -38,3 +38,8 @@
 - `14_quote-sent_refuse-zoom_with-anxiety.ja.md`
 - `15_repeat-project_discount-firm-but-natural.ja.md`
 - `16_handoff_followup_deeper-memo-paid-supplement.ja.md`
+- `17_purchased_secret-value_and-share-split.ja.md`
+- `18_purchased_deploy-anxiety_no-direct-deploy_but-guide.ja.md`
+- `19_prequote_success-rate-fear_no-guarantee_but_clear_value.ja.md`
+- `20_closed_repeat_with-refund-anxiety_scope-first.ja.md`
+- `21_boundary_bugfix-vs-handoff_confused-route_bugfix-first.ja.md`

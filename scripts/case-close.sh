@@ -17,6 +17,7 @@ scope_status=""
 additional_handling=""
 review_risk=""
 reuse_hint=""
+buyer_final_action=""
 notes=""
 
 while [[ $# -gt 0 ]]; do
@@ -29,6 +30,7 @@ while [[ $# -gt 0 ]]; do
     --additional-handling) additional_handling="${2:-}"; shift 2 ;;
     --review-risk) review_risk="${2:-}"; shift 2 ;;
     --reuse-hint) reuse_hint="${2:-}"; shift 2 ;;
+    --buyer-final-action) buyer_final_action="${2:-}"; shift 2 ;;
     --notes) notes="${2:-}"; shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
@@ -67,6 +69,10 @@ if [[ -z "$scope_status" ]]; then
   scope_status="$(extract_field scope_status)"
 fi
 
+if [[ -z "$buyer_final_action" ]]; then
+  buyer_final_action="unknown"
+fi
+
 mid_snapshots="$(awk '/^## Mid Snapshots/{flag=1; next} /^## Delivery Notes/{flag=0} flag{print}' "$open_readme")"
 closed_at="$(date '+%Y-%m-%d %H:%M JST')"
 
@@ -84,6 +90,7 @@ cat > "$closed_readme" <<EOF
 - scope_status: ${scope_status}
 - amount: ${amount}
 - outcome: ${outcome}
+- buyer_final_action: ${buyer_final_action}
 
 ## What Happened
 - issue:
@@ -101,13 +108,33 @@ cat > "$closed_readme" <<EOF
 ${mid_snapshots}
 EOF
 
-if [[ ! -f "$CASE_LOG" ]] || ! head -n 1 "$CASE_LOG" | grep -Fq 'date,case_id,service_id,route,final_phase,scope_status,next_action,outcome,notes'; then
-  cat > "$CASE_LOG" <<'EOF'
-date,case_id,service_id,route,final_phase,scope_status,next_action,outcome,notes
+expected_header='date,case_id,service_id,route,final_phase,scope_status,next_action,outcome,buyer_final_action,notes'
+legacy_header='date,case_id,service_id,route,final_phase,scope_status,next_action,outcome,notes'
+
+if [[ ! -f "$CASE_LOG" ]]; then
+  cat > "$CASE_LOG" <<EOF
+$expected_header
 EOF
+else
+  current_header="$(head -n 1 "$CASE_LOG" || true)"
+  if [[ "$current_header" == "$legacy_header" ]]; then
+    tmp_file="$(mktemp)"
+    {
+      printf '%s\n' "$expected_header"
+      tail -n +2 "$CASE_LOG" | sed 's/$/,unknown/'
+    } > "$tmp_file"
+    mv "$tmp_file" "$CASE_LOG"
+  elif [[ "$current_header" != "$expected_header" ]]; then
+    tmp_file="$(mktemp)"
+    {
+      printf '%s\n' "$expected_header"
+      tail -n +2 "$CASE_LOG" | sed 's/$/,unknown/'
+    } > "$tmp_file"
+    mv "$tmp_file" "$CASE_LOG"
+  fi
 fi
 
-printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
   "$(date +%Y-%m-%d)" \
   "$case_id" \
   "$service_id" \
@@ -116,6 +143,7 @@ printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
   "$scope_status" \
   "$next_action" \
   "$outcome" \
+  "$buyer_final_action" \
   "$notes" >> "$CASE_LOG"
 
 : > "$ACTIVE_CASE_FILE"
