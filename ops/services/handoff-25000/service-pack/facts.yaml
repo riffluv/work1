@@ -1,0 +1,99 @@
+service_id: handoff-25000
+kind: handoff
+public: false
+
+public_name: "AI/外注コードの主要1フロー整理・引き継ぎメモ作成"
+one_line_goal: "主要1フローだけ整理して、次にどこから触ればよいか分かる状態にする"
+
+public_facts:
+  base_price: 25000
+  addon_extra_flow: 15000
+  target_stack:
+    - Next.js
+    - Stripe
+    - API連携
+  includes:
+    - 主要1フローの現状整理
+    - 関連ファイル・危険箇所の特定
+    - 次の着手順の提示
+    - 引き継ぎメモ作成
+  excludes_core:
+    - コード修正
+    - 新機能開発
+    - 正式な仕様書作成
+  deliverables:
+    - 00_結論と要点.md
+    - 01_[対象フロー名]_引き継ぎメモ.md
+  reply_expectation:
+    initial_reply: "24時間以内（通常数時間以内）"
+
+scope_unit:
+  rule: "one_main_process_flow"
+  explanation: "1つの起点から1つの目的に向かう処理のまとまり"
+
+phase_rules:
+  prequote:
+    can_offer:
+      - 最初に見る1フローの見立て
+      - 25,000円の範囲説明
+      - bugfix との境界説明
+    can_ask_for:
+      - target_flow
+      - expected_behavior
+      - unknowns_or_fears
+      - environment
+    must_not_do:
+      - いきなりコード一式必須にする
+      - 公開前 handoff を外向け導線として押し出す
+  quote_sent:
+    can_offer:
+      - 対象フローの固定
+      - 追加フローの境界
+      - 修正は別対応だが続けられる旨
+    can_ask_for:
+      - 購入判断に必要な最小確認
+    must_not_do:
+      - bugfix 的な修正受理へ寄りすぎる
+  purchased:
+    can_offer:
+      - 現在見ている流れ
+      - 危険箇所の途中共有
+      - 修正追加の線引き
+    can_ask_for:
+      - code_bundle_or_related_files
+      - intended_reader_of_memo
+      - logs
+      - screenshots
+      - existing_notes
+    must_not_do:
+      - 修正を基本料金に含める
+  delivered:
+    can_offer:
+      - 未確認の意味説明
+      - 補足メモの追加方針
+      - 修正追加の別対応案内
+    can_ask_for:
+      - 足りないと言われた箇所
+      - 別のエンジニアが止まった点
+    must_not_do:
+      - 修正追加を無料前提にする
+  closed:
+    can_offer:
+      - deeper memo の追加対応
+      - bugfix への戻しではなく handoff 補足として扱う判断
+    can_ask_for:
+      - 補足が必要な箇所
+    must_not_do:
+      - 公開前のまま外向け価格導線に出す
+
+buyer_anxieties:
+  common:
+    - "コードの中身が分からない"
+    - "どこから見ればよいか分からない"
+    - "次の担当者へ渡せる形にしたい"
+    - "非エンジニアでも読めるか不安"
+    - "25,000円で何が返るのか分かりにくい"
+
+source_refs:
+  service_page: "/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt"
+  service_yaml: "/home/hr-hm/Project/work/ops/services/handoff-25000/service.yaml"

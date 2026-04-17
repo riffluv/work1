@@ -1,0 +1,73 @@
+service_id: handoff-25000
+
+playbooks:
+  prequote_handoff_accept:
+    trigger:
+      - "どこから見ればいいか分からない"
+      - "前任者が辞めた"
+      - "引き継ぎたい"
+      - "まず把握したい"
+    objective: "最初に見る1フローの見立てを返す"
+    must_say:
+      - "主要1フローを整理するサービスである"
+      - "コード一式は購入後で大丈夫"
+
+  prequote_handoff_non_engineer:
+    trigger:
+      - "非エンジニアでも読めるか"
+      - "次の外注先に渡せるか"
+    objective: "納品物の読みやすさと用途を具体的に返す"
+    must_say:
+      - "どの操作で何が起きるかが追える形でまとめる"
+      - "次の担当者へ渡せる内容"
+
+  boundary_bugfix_vs_handoff:
+    trigger:
+      - "修正から入るべきか整理を先にやるべきか分からない"
+      - "コードがぐちゃぐちゃだがエラーも出ている"
+    objective: "buyer に選択を返さず、主目的で route を決める"
+    must_say:
+      - "今出ている不具合を止めるのが先なら bugfix"
+      - "整理自体が目的なら handoff"
+    state_contract:
+      promised_next_action:
+        action: "bugfix と handoff のどちらで進めるかを先に返す"
+        return_timing: next_reply
+        owner: codex
+
+  quote_sent_handoff_scope_confirm:
+    trigger:
+      - "まず整理だけで止められるか"
+      - "後から修正を頼むか決めたい"
+    objective: "段階対応を自然に返す"
+    must_say:
+      - "まず整理だけで止められる"
+      - "修正は別対応"
+    state_contract:
+      promised_next_action:
+        action: "整理だけで止めるか、次に修正を別対応へ分けるかを返す"
+        return_timing: next_reply
+        owner: codex
+
+  delivered_handoff_deeper_memo:
+    trigger:
+      - "もう少し詳しいメモを作ってほしい"
+      - "別のエンジニアが足りないと言っている"
+    objective: "補足か書き直しかで費用境界を返す"
+    must_say:
+      - "追加で詳しいメモは可能"
+      - "補足で足りるか、書き直しに近いかで扱いと費用が変わる"
+    state_contract:
+      secondary_thread:
+        default_disposition: separate_followup
+        preferred_return_timing: with_delivery
+        fallback_return_timing: before_close
+        default_required_input:
+          - "足りないと言われた箇所"
+      promised_next_action:
+        action: "補足で足りるか、書き直しになるかを返す"
+        return_timing: with_delivery
+        owner: codex
+
+source_refs:
+  service_page: "/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt"

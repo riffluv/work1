@@ -1,0 +1,38 @@
+service_id: bugfix-15000
+
+in_scope:
+  - "Next.js / Stripe / API連携の不具合診断と修正"
+  - "本番のみ再現する500系や反映漏れ"
+  - "Stripe Webhook の署名検証、不達、重複処理"
+  - "Checkout / Billing Portal / Subscriptions 周辺の不具合"
+  - "対象不具合の原因を切り分けるための最小整理"
+
+out_of_scope:
+  - "新機能開発"
+  - "仕様追加"
+  - "データ移行"
+  - "フロー全体の構造図作成"
+  - "危険箇所の網羅洗い出し"
+  - "引き継ぎメモ作成"
+  - "リポジトリ全体の整理"
+
+hard_no:
+  - "通話・ビデオ会議"
+  - "依頼者リポジトリへの直接push"
+  - "本番デプロイ代行"
+  - "本番ログイン / 本番操作代行"
+  - "raw secret values"
+  - "external_contact"
+  - "external_share"
+  - "external_payment"
+
+boundary_principles:
+  - "購入者の主目的が修正なら、コード全体が不明でも bugfix 起点で扱う"
+  - "技術的整理が必要でも、公開前 handoff を先に買わせない"
+  - "別原因が見つかっても追加料金は自動発生させない"
+  - "同一原因の範囲は今回の中で扱う"
+  - "別機能・別原因は新しい依頼として切る"
+
+source_refs:
+  scope_matrix: "/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/scope-matrix.md"
+  service_page: "/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt"

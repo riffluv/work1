@@ -1,0 +1,100 @@
+service_id: bugfix-15000
+kind: bugfix
+public: true
+
+public_name: "Next.js/Stripe不具合診断・修正"
+one_line_goal: "決済は通るのに反映されない不具合を、原因特定から修正まで進める"
+
+public_facts:
+  base_price: 15000
+  addon_extra_fix: 15000
+  target_stack:
+    - Next.js
+    - Stripe
+    - API連携
+  includes:
+    - 同一原因の不具合1件の調査
+    - 修正可否の確認
+    - 修正
+    - 確認手順の共有
+  deliverables:
+    - 調査結果と修正内容の報告
+    - 修正済みZIPまたはpatch
+    - 動作確認メモ
+  reply_expectation:
+    initial_reply: "24時間以内（通常数時間以内）"
+    first_result_target: "必要情報がそろい次第48時間以内を目標に一次結果"
+
+scope_unit:
+  rule: "same_cause_and_same_flow_and_same_endpoint"
+  same_cause_principle: "修正箇所数ではなく原因で判定する"
+
+phase_rules:
+  prequote:
+    can_offer:
+      - 対応可否
+      - 15,000円の範囲説明
+      - 進め方の見立て
+    can_ask_for:
+      - 症状が分かる画面
+      - 文言
+      - 発生日時
+      - 本番/プレビュー/ローカル
+    must_not_do:
+      - ZIPやコード一式の前のめり要求
+      - 本番操作の引き受け
+      - secrets の要求
+  quote_sent:
+    can_offer:
+      - 範囲確認
+      - 追加対応境界
+      - 購入後の初動
+    can_ask_for:
+      - 購入判断に必要な最小確認
+    must_not_do:
+      - prequote 的な generic ask へ戻る
+  purchased:
+    can_offer:
+      - 対象症状の固定
+      - 進捗共有
+      - 関連症状の disposition
+    can_ask_for:
+      - reproduction_steps
+      - error_logs
+      - stack_runtime_hosting
+    must_not_do:
+      - スコープ未整理のまま secondary symptom を閉じる
+  delivered:
+    can_offer:
+      - 変更点
+      - 確認点
+      - 同一原因の影響確認
+    can_ask_for:
+      - 影響が分かる画面
+      - 文言
+    must_not_do:
+      - 防御的な反論
+      - 未解決 secondary symptom の放置
+  closed:
+    can_offer:
+      - 再発か新規かの切り分け
+      - 値引き不可の事実
+      - 今回の続きとして扱えるかの判断
+    can_ask_for:
+      - 再発箇所の画面
+      - 文言
+    must_not_do:
+      - 一律保証の約束
+      - 公開前サービスへの誘導
+
+buyer_anxieties:
+  common:
+    - "調べただけで終わるのでは"
+    - "勝手に追加料金になるのでは"
+    - "同じ原因なら今回に含まれるのか"
+    - "本番だけ起きるので説明しづらい"
+    - "コードの中身が分からない"
+
+source_refs:
+  service_page: "/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt"
+  service_yaml: "/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml"

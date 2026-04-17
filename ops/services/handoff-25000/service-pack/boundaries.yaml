@@ -1,0 +1,33 @@
+service_id: handoff-25000
+
+in_scope:
+  - "主要1フローの現状整理"
+  - "関連ファイル / ディレクトリの特定"
+  - "危険箇所 / 影響が広がりやすい箇所の洗い出し"
+  - "次に着手する場所と順序の整理"
+  - "実務向けの引き継ぎメモ作成"
+
+out_of_scope:
+  - "コード修正"
+  - "新機能開発"
+  - "正式な仕様書作成"
+  - "リポジトリ全体の網羅調査"
+  - "テスト作成"
+
+hard_no:
+  - "通話・ビデオ会議"
+  - "依頼者リポジトリへの直接push"
+  - "本番デプロイ代行"
+  - "raw secret values"
+  - "external_contact"
+  - "external_share"
+  - "external_payment"
+
+boundary_principles:
+  - "主目的が修正なら bugfix を先に勧める"
+  - "コードが分からないだけでは handoff 送りの単独理由にしない"
+  - "整理後に修正が必要なら、同じトークルーム内で追加料金の修正として続けられる"
+  - "主要1フローを超える場合は追加フローで切る"
+
+source_refs:
+  service_page: "/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt"

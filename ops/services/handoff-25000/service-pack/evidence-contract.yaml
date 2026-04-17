@@ -1,0 +1,112 @@
+service_id: handoff-25000
+kind: evidence_contract
+
+purpose: "handoff サービスが、phase ごとに何を・どの順で・どこまで聞くかを固定する"
+
+principles:
+  symptom_or_operation_only_okay: true
+  ask_only_missing_items: true
+  do_not_repeat_known_facts: true
+  prequote_no_full_repo_required: true
+  secrets_rule: "raw secret values は不要。.env はキー名のみ"
+
+phase_minimums:
+  prequote:
+    goal: "最初に見る1フローの見立てと、25,000円の範囲判断に必要な最小情報だけ取る"
+    acceptable_start:
+      - target_flow_if_known
+      - most_troubling_operation
+      - one_screenshot
+      - one_existing_note
+    preferred_order:
+      - target_flow_or_operation
+      - expected_behavior
+      - unknowns_or_fears
+      - environment
+      - intended_reader_if_known
+    question_limit: 4
+    must_not_require:
+      - full_repo_zip
+      - complete_code_bundle
+      - raw_secret_values
+  quote_sent:
+    goal: "整理だけで止めるか、追加フローや修正をどう分けるかの判断に必要な最小確認だけ取る"
+    preferred_order:
+      - fixed_main_flow
+      - reader_of_memo_if_missing
+      - extra_flow_or_repair_need
+    question_limit: 3
+    must_not_require:
+      - generic_reintake
+      - full_repo_zip
+  purchased:
+    goal: "主要1フローの整理に必要な一次証跡をそろえる"
+    preferred_order:
+      - target_flow
+      - expected_behavior
+      - environment
+      - code_bundle_or_related_files
+      - intended_reader_of_memo
+    optional_if_relevant:
+      - logs
+      - screenshots
+      - existing_notes
+      - previous_handoff_materials
+    question_limit: 5
+  delivered:
+    goal: "未確認箇所の意味説明や、補足依頼の扱い判断に必要な最小証跡を取る"
+    preferred_order:
+      - missing_part
+      - intended_use
+      - blocked_next_reader
+    must_not_require:
+      - full_reintake
+  closed:
+    goal: "deeper memo / rewrite / extra flow / repair を切り分けるための最小証跡だけ取る"
+    preferred_order:
+      - lacking_part
+      - reason_it_is_insufficient
+      - whether_it_is_same_flow_or_new_flow
+    must_not_require:
+      - broad_reintake
+
+handoff_first_class_evidence:
+  main_flow_identification:
+    useful:
+      - most_troubling_operation
+      - expected_behavior
+      - where_the_reader_gets_lost
+      - environment
+  reader_and_handoff_goal:
+    useful:
+      - intended_reader
+      - whether_reader_is_non_engineer
+      - whether_material_is_for_takeover_or_self_use
+  extra_flow_or_repair_bundle:
+    useful:
+      - list_of_additional_flows
+      - whether_fix_is_requested_now
+      - whether_current_need_is_structure_or_repair
+  content_gap_after_delivery:
+    useful:
+      - missing_section
+      - blocked_next_step
+      - whether_supplement_is_enough_or_rewrite_needed
+
+attachment_policy:
+  screenshots_or_existing_notes:
+    rule: "prequote では1枚や既存メモだけでも大丈夫"
+  code_bundle:
+    rule: "購入後に必要な関連ファイルやコード一式を依頼する"
+  full_repo:
+    rule: "prequote では前のめりに要求しない"
+
+buyer_facing_promises:
+  - "全部そろっていなくても大丈夫"
+  - "まだどこを整理したいか決め切れていなくても、一番困る操作だけで大丈夫"
+  - "コード一式はご購入後で大丈夫"
+  - "必要な情報が足りない時は、何が必要かをこちらから伝える"
+
+source_refs:
+  service_page: "/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt"
+  evidence_minimum: "/home/hr-hm/Project/work/ops/services/handoff-25000/evidence-minimum.yaml"

@@ -24,8 +24,45 @@
   - 返信品質を 10項目で軽く数値化する採点表
 - `multi-turn-check.ja.md`
   - 連続3通で停滞や矛盾を見つけるためのチェック
+- `state-schema-minimal-contract.ja.md`
+  - multi-turn で最低限持つべき state 項目の契約
+  - `routing-playbooks` に `state_contract` を持たせ、route ごとの secondary / promised action の初期値を決める前提も含む
 - `service-facts-onboarding-template.ja.md`
   - 新しいサービスへ入れる時に、何を facts 化するかを揃える導入テンプレ
+- `service-pack-source-of-truth-policy.ja.md`
+  - service-pack の中で、何が公開契約の正本で、何が運用補助 / runtime asset かを分ける共通ポリシー
+- `service-pack-runtime-interface.ja.md`
+  - 共通 runtime が `facts / boundaries / decision / evidence / routing / state / seeds / tone` をどの順で読むかを固定する最小インターフェース
+- `service-pack-v1-fixed-points.ja.md`
+  - bugfix / handoff の service-pack で、v1 として固定してよい構成・優先順・未固定事項を短くまとめた基準点
+- `productization-foundation-v1-closure.ja.md`
+  - service-pack の商品化基盤フェーズを v1 close として閉じ、ここからは実運用モニタリングへ戻るための区切り文書
+- `self-check-layering-first-pass.ja.md`
+  - `self-check` を `L1 / L2 / L3` に棚卸しし、runtime と service-pack を分けるための初期設計メモ
+- `self-check-l3-extraction-map.ja.md`
+  - `self-check` の L3 を、`facts / boundaries / routing / state / seeds / tone` のどこへ移すかを決める抽出マップ
+- `self-check-l3-bugfix-candidates.ja.md`
+  - `bugfix-15000` について、`self-check` から先に外へ出す L3 候補を 10〜15 個に具体化した抜き取り一覧
+- `self-check-l3-handoff-candidates.ja.md`
+  - `handoff-25000` について、`self-check` から先に外へ出す L3 候補を facts / boundaries / routing / state / seeds に分けた抜き取り一覧
+- `self-check-l1-minimal-universal.ja.md`
+  - サービス固有知識を必要としない `L1: Universal` だけを抜いた最小 runtime check
+- `self-check-l2-domain-minimal.ja.md`
+  - 受託返信としての進め方だけを抜いた `L2: Domain` の最小チェック
+- `self-check-recomposition-plan.ja.md`
+  - 現行の巨大 `self-check` を、`L1 / L2 / L3` 前提でどう縮約し、最終的に compatibility layer へ寄せるかの再編方針
+- `self-check-section-tag-map.ja.md`
+  - 現行 `self-check` の章ごとに `L1 / L2 / L3 / compat-only` を振り、どこから薄くするかの順番を決めるタグ付け表
+- `self-check-send-check-integration-map.ja.md`
+  - `送信前チェック` を巨大ルール集ではなく `L1 / L2 / L3` の統合入口として再編するための入口設計図
+- `self-check-compat-residual-l1-candidates.ja.md`
+  - `compat-only residual` に残る項目のうち、実際には `L1: Universal` として戻せる候補を整理した抽出メモ
+- `self-check-compat-residual-l2-candidates.ja.md`
+  - `compat-only residual` に残る項目のうち、実際には `L2: Domain` として戻せる候補を整理した抽出メモ
+- `self-check-compat-residual-final-split.ja.md`
+  - `compat-only residual` に残る項目を、最終的に compatibility layer として残すものと、`L3 service-pack` へ再配置するものに二分した仕分け表
+- `self-check-compat-residual-exit-criteria.ja.md`
+  - `compat-only residual` のうち、最後まで残すものと、次の互換整理で消せるものを分けた出口条件メモ
 - `acceptance-gate.ja.md`
   - 送る / 差し戻す / system に戻す の通過条件
 - `onboarding-flow.ja.md`

@@ -1,0 +1,109 @@
+service_id: bugfix-15000
+kind: evidence_contract
+
+purpose: "phase 別に、何を・どの順で・どこまで聞くサービスかを固定する"
+
+principles:
+  symptom_only_okay: true
+  ask_only_missing_items: true
+  do_not_repeat_known_facts: true
+  prequote_no_heavy_ask: true
+  secrets_rule: "raw secret values は不要。.env はキー名のみ"
+
+phase_minimums:
+  prequote:
+    goal: "対応可否と 15,000円 の範囲判断に必要な最小情報だけ取る"
+    acceptable_start:
+      - symptom_only
+      - screenshot_only
+      - short_error_text
+    preferred_order:
+      - expected_behavior
+      - actual_behavior
+      - environment
+      - screenshot_or_error_text
+    question_limit: 3
+    must_not_require:
+      - zip_full_repo
+      - full_logs
+      - raw_secret_values
+  quote_sent:
+    goal: "範囲確認と購入判断に必要な最小確認だけ取る"
+    preferred_order:
+      - scope_clarifier
+      - evidence_gap_if_critical
+    question_limit: 2
+    must_not_require:
+      - generic_reintake
+      - full_repo_zip
+  purchased:
+    goal: "切り分けと修正可否判断に必要な一次証跡をそろえる"
+    preferred_order:
+      - expected_behavior
+      - actual_behavior
+      - reproduction_steps
+      - error_logs
+      - stack_runtime_hosting
+    optional_if_relevant:
+      - related_files_zip
+      - endpoint_config_summary
+      - deployment_context
+  delivered:
+    goal: "影響確認や secondary symptom の same-cause 判定に必要な最小証跡を取る"
+    preferred_order:
+      - changed_screen
+      - changed_wording
+      - affected_output
+    must_not_require:
+      - full_reintake
+  closed:
+    goal: "再発か新規かを判定するための最小証跡だけ取る"
+    preferred_order:
+      - repeated_screen
+      - repeated_wording
+      - event_or_time_reference
+    must_not_require:
+      - broad_reintake
+
+stripe_first_class_evidence:
+  payment_success_but_not_reflected:
+    useful:
+      - event_id_evt
+      - event_type
+      - mode_test_or_live
+      - endpoint_path
+      - delivery_status
+      - related_error_log
+  webhook_signature_or_delivery_failure:
+    useful:
+      - event_id_evt
+      - endpoint_path
+      - subscribed_events
+      - mode_test_or_live
+      - signature_failure_log
+      - unmodified_request_body_handling_summary
+  intermittent_runtime_failure:
+    useful:
+      - occurrence_time
+      - every_time_or_partial
+      - frequency_pattern
+      - environment_difference
+      - timeout_or_retry_log
+
+attachment_policy:
+  short_logs:
+    rule: "短ければ本文でよい"
+  long_logs:
+    rule: "長ければ txt 添付でよい"
+  zip:
+    rule: "購入後に必要と判断した時だけ依頼する。prequote では前のめりに要求しない"
+
+buyer_facing_promises:
+  - "全部そろっていなくても大丈夫"
+  - "まずは症状だけでも大丈夫"
+  - "必要な情報が足りない時は、何が必要かをこちらから伝える"
+  - "Stripe 関連は evt_... があると調査が早い"
+
+source_refs:
+  service_page: "/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt"
+  evidence_minimum: "/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/evidence-minimum.yaml"

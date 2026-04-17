@@ -1,0 +1,336 @@
+1. 総評
+
+今の設計で正しいのは、すでに「返信文テンプレ」ではなく「運用OS」として考えられている点です。特に、長いルールを足すより良い gold reply が効く、品質問題は 1〜2 バッチの小さな修正で収束しやすい、通常ケースと限界ケースを分けて監査している、multi-turn を別物として見ている――この4点はかなり筋が良いです。OpenAI は few-shot と例示を高レバレッジ手段として置き、出力形式も例で見せる方が安定すると説明しています。Anthropic も、エッジケースを長いルール列で詰め込むより、多様で canonical な例を厳選する方を推奨しています。さらに eval は production 由来のケースを小さく始めて増やすのがよい、というのが公式ガイダンスです。あなたの経験則は、かなり現場的で正しいです。
+
+最大ボトルネックは、品質不足ではなく知識の置き場所です。今の self-check が「検査器」であると同時に、「サービス知識ベース」「会話状態管理」「例外処理器」を兼務している。これが移植性を殺しています。公式ドキュメントでも、multi-turn では system instructions だけでは足りず、message history / conversation state / external data を明示的に管理する必要があるとされますし、最近の multi-turn 研究でも、モデルは早い段階の誤った前提から回復しづらく、single-turn より大きく性能が落ちます。つまり、暗黙知の塊になった self-check は、まさに壊れやすい場所です。
+
+厳しく言うと、いまの OS は「実務では強い」が、「商品として渡せる構造」にはまだ一歩足りません。足りないのは賢さではなく、runtime と service-pack の分離です。ここを外せば、今のココナラ実務を止めずに商品化へ寄せられます。🔧
+
+2. 推奨アーキテクチャ
+結論
+
+5系統は 80% 正しいです。ただし完成版は 6系統にした方がよいです。
+
+service facts
+boundaries
+routing / playbooks
+state schema
+seeds
+tone profile
+
+追加すべきは state schema です。理由は単純で、multi-turn の穴は facts でも boundaries でも tone でもなく、何を覚え、何を持ち越し、何を未解決として扱うかの設計不足から出るからです。OpenAI と Anthropic の最新ガイドは、prompt を「identity / instructions / examples / context」に分けること、加えて conversation state や message history を別管理することを明確に勧めています。あなたの5系統はこの構造にかなり近いのですが、state がないため、会話継続の責務が self-check に逆流しています。
+
+まず分けるべき3軸
+
+いま混ざっているのは、実は3軸です。
+
+stage軸: Classifier → State update → Writer → Self-check → Reviewer → Evals
+asset軸: facts / boundaries / routing-playbooks / state / seeds / tone
+portability軸: L1 / L2 / L3
+
+商品化では、L1/L2/L3 は self-check の層であり、facts や boundaries の置き場所ではありません。
+いまの詰まりは、asset軸の情報が self-check の prose に埋まっていることです。ここを分離すると、runtime は再利用でき、サービス差分は pack の差分になります。
+
+完成版の骨格
+
+共有 runtime はこうです。
+
+Classifier は reply_mode と service_case_tag を返す
+State updater は thread の状態を JSON で更新する
+Writer は route に必要な facts / boundaries / seeds / tone だけを読む
+Self-check は L1/L2/L3 の check を structured に返す
+Reviewer は fail した項目だけ最小修正する
+Scorecard / multi-turn / outcome tracking は別系統で回す
+
+重要なのは、毎回 pack 全体を prompt に流し込まないことです。Anthropic は context を「有限資源」として扱い、bloated な tool set や rule set を避け、just-in-time で必要な情報だけを取り込む設計を勧めています。したがって、writer に見せるのは「選ばれた playbook + 関連 facts/boundaries + 1〜3 本の seeds + 現在 state」で十分です。
+
+L1 / L2 / L3 の切り分け
+L1: Universal に置くべきもの
+
+L1 は、conversation と draft だけ見れば判定できるものです。サービス知識を必要としないものだけ置きます。
+
+最新ユーザー要求に答えているか
+既知情報を無視・再質問していないか
+会話履歴と矛盾していないか
+確証のないことを断定していないか
+情報不足時に「推測」ではなく「確認」に寄せているか
+冗長・反復・AIっぽい同型表現の連打がないか
+言語、長さ、基本的な自然さが崩れていないか
+未解決の open loop を落としていないか
+
+特に multi-turn で重要なのは、「secondary symptom を正しく処理したか」ではなく、まずsecondary symptom が新情報として state に残っているかです。残すのは L1、行き先を決めるのは L2/L3 です。multi-turn では、モデルが早い段階の仮説に引きずられて修正できなくなる、という研究結果と整合します。
+
+L2: Domain に置くべきもの
+
+L2 は、受託返信 / サポート返信というドメインで共通する運び方です。サービス固有ではないが、雑談にも普遍でもないものです。
+
+まず受理するのか、確認を取りに行くのか、境界を伝えるのか、という reply_mode の妥当性
+情報不足時に「最小十分」な確認だけを聞く
+1ターンでやることを増やしすぎず、次の一歩を明確にする
+複数論点が来たとき、主論点と副論点を分けて disposition を示す
+out-of-scope を伝えるとき、断るだけで終わらず次の現実的な導線を出す
+まだ詰まっているのに会話を閉じない
+
+ここは「ココナラ」固有ではなく、「依頼対応」「受託返信」共通の craft です。ここが強いと、2社目・3社目へ移しても runtime を変えずに済みます。
+
+L3: Service に残すべきもの
+
+L3 は、service pack を見ないと判定できないものだけに限定します。
+
+このサービスでできる / できない
+何を約束してよい / だめか
+価格・納期・対象範囲・例外条件
+サービス固有の route 分岐
+必要な素材や前提条件
+サービス固有の表現義務や注意文言
+
+ポイントは、L3 に「知識本文」を置かないことです。L3 は facts / boundaries / playbooks の ID を参照して検査するだけにします。
+つまり、L3 rule は「この boundary を破っていないか」を見るのであって、boundary の本文そのものを rule prose に再記述しない。
+
+仕分けの判定基準
+
+これで十分です。
+
+会話だけで判定できる → L1
+受託返信ドメイン知識が必要だが、特定サービス知識は不要 → L2
+proper noun / 価格 / 納期 / 提供範囲 / 例外条件 / 固有運用が必要 → L3
+
+加えて、L1/L2/L3 とは別に、各 rule に hard / soft を持たせてください。
+
+hard: 破ると危険。ブロック or 強制修正
+soft: 品質低下だが致命傷ではない。修正候補として返す
+
+これをやらないと、tone の軽微なズレと scope breach が同列になり、self-check がまた肥大化します。
+
+暗黙知の塊にしないための設計原則
+self-check は生成しない。検査するだけ
+1 rule = 1 failure mode
+すべての L3 rule に source_ref を持たせる
+writer と checker に同じサービス知識を別文面で二重記述しない
+ルール本文ではなく asset を正 にする
+失敗したとき「どの asset を直すか」が 2 分以内に分かる構造にする
+
+この形なら、self-check は暗黙知の墓場ではなく、明示資産の validator になります。
+
+5系統の妥当性と修正版
+
+あなたの 5 系統は、OpenAI の Identity / Instructions / Examples / Context にかなり対応しています。tone は identity、boundaries と routing は instructions、seeds は examples、facts は context です。だから方向は正しいです。修正点は、state schema を追加し、routing を route label ではなく playbook まで含むものにすることです。
+
+tone profile について
+
+tone は facts や boundaries から分離すべきです。OpenAI も customer-facing workflow では、persistent な personality と per-response の writing controls を分ける方が効くと明言しています。tone は「何が真か」を決める層ではなく、「どう聞こえるか」を決める層です。
+
+ただし、warm / neutral / dry だけでは粗すぎます。商品としては preset はあってよいですが、内部表現は最低でも次の軸が必要です。
+
+warmth
+directness
+politeness
+brevity
+acknowledgment style
+certainty calibration
+variety / repetition control
+
+日本語返信で tone が効くのは、冒頭の受け方、婉曲度、文末の圧、質問の柔らかさ、締めの余白、同じクッション表現の反復です。逆に、正しい scope 判断、何を聞くべきか、何を約束してよいか、secondary symptom を今処理するか後回しにするか、には tone は効きません。ここを tone で解決しようとすると必ず破綻します。OpenAI のガイドでも、tone/length/variety は自然さと一貫性に効く一方、task-specific requirements を上書きすべきでないとされています。
+
+3. 導入時の最小セットアップ
+初回導入で相手から取るべき情報
+
+優先順位はこれです。
+
+boundaries
+先に取る。理由は、商品事故の大半は tone ではなく誤約束だからです。
+routing / playbooks
+何種類の reply_mode が必要か、どの route が存在するか。品質の土台です。
+service facts
+正しいことを言うための材料。facts と boundaries は似て見えて役割が違います。
+state schema の確認
+何を thread で持ち越すべきか。multi-turn 安定性の芯です。
+seeds
+最初の自然さと route exemplar を作るため。
+tone profile
+最後でよい。早く効くが、先にやると本質を見失います。
+推奨する入力形式
+
+原則は一つです。
+machine が読むものは structured、人が判断する nuance は free text です。OpenAI は schema 準拠出力の信頼性を強調し、Anthropic / OpenAI とも instructions / context / examples を明示的に区切ることを勧めています。したがって、routing・state・boundaries のような machine-consumed な項目は構造化し、tone や exemplar のような nuance は自由記述に残すのが最も軽いです。
+
+実務上の最小入力セットはこれで十分です。
+
+既存資料: サービス説明、FAQ、過去返信、販売ページ
+structured form:
+提供できること / できないこと
+約束してよいこと / だめなこと
+必要な入力情報
+想定 route 一覧
+持ち越す state slot 一覧
+free text:
+「この返信は良い」3〜5例
+「この感じは違う」2〜3例
+例外やニュアンスの説明
+
+相手に最初から全部書かせるのは重いです。現実的には、既存資料から AI が first draft の service pack を起こし、相手は承認・修正だけする方式にするべきです。これは、公式に structured schema が信頼性を上げること、synthetic な候補生成を人間ラベラーで補正する運用が推奨されていることとも整合します。
+
+seeds が足りない場合
+
+AI に候補生成させて人が ○× する方式でよいです。
+ただし条件があります。
+
+候補生成は service facts / boundaries / playbook / tone を読ませて作る
+人は「採用」「修正して採用」「却下」の3択で見る
+却下例は writer prompt に入れない。eval / failure archive に回す
+live prompt に使うのは approved seed のみ
+
+本数の目安は、立ち上げ最低 12 本、安心は 20 本前後です。live で毎回使うのは 2〜4 本で十分です。OpenAI の few-shot は「handful」の例で新タスクを操縦する前提ですし、初期 eval も 10〜20 prompts から始めてよいとされています。したがって、seed library は 12〜20、本番注入は route に応じて数本、がちょうどよいです。
+
+最初の seeds は、話題別ではなく reply_mode 別に優先してください。
+
+受理して確認を取る
+out-of-scope を伝える
+次の一歩を明示する
+複数論点の disposition を示す
+途中で条件が変わったときに軌道修正する
+close / handoff する
+現実的な導入時間の目安
+
+私なら、1人運用前提で次を目安に置きます。
+
+相手の入力負荷: 45〜90分
+あなたの初回 pack 化: 2〜4時間
+初回監査: 20〜30件 or 1〜2バッチを 45〜60分
+改善反映: 1回 30〜90分
+
+これ以上重いと、ココナラ実務を邪魔します。逆に、これ以下で済まそうとすると boundaries と state が薄くなって後で self-check に逆流します。
+
+4. 育成ループ設計
+self-check と gold reply の役割分担
+
+役割は明確に分けるべきです。
+
+gold / seeds: どういう reply が「良い見本」かを前向きに教える
+self-check: must-pass 条件を満たしているかを後ろ向きに検査する
+
+ここを混ぜると、self-check がまた teacher 兼 policy store になります。OpenAI の eval ガイドは、LLM は open-ended に作文させるより、比較・分類・criteria scoring の方が信頼しやすいと述べています。だから self-check は、長い批評文ではなく、小さな pass/fail checks の集合にするべきです。
+
+gold replies は蓄積方針でよいです。
+ただし、1つの「gold archive」にまとめないで、最低でも3つに分けてください。
+
+live seeds: prompt に入る少数の exemplar
+eval gold: 採点用の参照ケース
+failure archive: 一度失敗した事例と修正履歴
+
+これを分けないと、prompt が肥大化し、同じ表現を繰り返して AI 感が増します。OpenAI の realtime guide でも、sample phrases はそのままだと反復的・ロボット的になりやすく、variety rule で制御すべきとされています。
+
+scorecard / multi-turn / outcome tracking の位置づけ
+scorecard: 日々の主計器。hard / soft を分けて見る
+multi-turn suite: state continuity と route revision を見る専用回帰セット
+outcome tracking: 本番真実。遅いが最重要
+
+multi-turn は single-turn の延長ではありません。研究でも、underspecified な会話で情報が後から入ると、モデルは早い仮説に固定されやすいと示されています。したがって multi-turn suite は「独立ターンの並び」ではなく、後から条件が足される thread を中心に組むべきです。あなたが言う secondary symptom の問題は、まさにここです。
+
+outcome tracking は、文章の綺麗さではなく実務結果を見ます。例えば、
+
+手戻り率
+同じ確認の再発率
+人手 rescue 率
+ユーザーの追加不満率
+次アクション実行率
+
+です。これは slow signal なので、最初のデバッグは scorecard と multi-turn でやり、outcome は方向確認に使うのが正解です。
+
+改善の順番
+
+順番は固定してください。
+
+boundary breach を潰す
+routing / playbook miss を潰す
+state continuity / multi-turn miss を潰す
+seed coverage を増やす
+tone / naturalness を磨く
+
+OpenAI も、まず eval を書き、real-world inputs に近いデータで測り、そこから prompt を直す flywheel を推奨しています。小さな targeted set から始めて production failure を test に戻すのが最短です。
+
+5. 商品化の完成条件
+「実務利用可能」
+
+私なら次を完成条件にします。
+
+hard rule の pass が安定して高い
+multi-turn の主要シナリオに専用 suite がある
+失敗時に「facts / boundaries / routing / state / seeds / tone のどれを直すか」がすぐ分かる
+返信の大半が軽微修正以下で済む
+週次メンテが 1人で回る
+
+目安としては、hard rule 98% 前後、multi-turn must-pass 85% 前後、median の人手 edit が軽い、くらいを置きます。これは学術的しきい値ではなく、1人運用で壊れにくい設計目標です。
+
+「他サービスに移植可能」
+
+ここから一段上です。
+
+core runtime を変えず、service pack 差し替えだけで立ち上がる
+L1/L2 の大半が再利用される
+新サービスの初回導入が 45〜90 分の入力で済む
+12〜20 seeds で初回品質が立ち上がる
+1〜2 回の監査で実務水準に入る
+
+要するに、2社目で prompt を書き直さなくてよいことです。
+これができて初めて portability があると言えます。
+
+「商品として販売可能」
+
+販売可能になる条件は、品質だけではありません。
+
+導入前ヒアリング項目が固定化されている
+納品物が明確である
+初回監査と改善反映の流れが固定化されている
+運用更新の仕方が明文化されている
+工数見積もりが読める
+known limits を最初から説明できる
+
+つまり、売るのは「返信OSそのもの」ではなく、まずは
+導入診断 + service pack 構築 + 初回監査 + 改善1回
+の導入型サービスです。ここから先に SaaS 化や UI 化を考えるのが順番です。
+
+最初の1人目の顧客への渡し方
+
+1人目には、テンプレ配布ではなくこの形が現実的です。
+
+導入前ヒアリング
+既存の販売ページ、FAQ、過去返信 15〜30 件、NG例を回収。面談は 30〜45 分で boundaries と tone だけ詰める。
+初回セットアップ
+AI で service pack draft を起こし、あなたが確定。12 本前後の approved seeds と、10〜20 ケースの eval、数本の multi-turn thread を作る。
+最初の監査
+20〜30 件を shadow で流し、failure を asset 単位でタグ付けする。
+改善反映
+core runtime ではなく service pack を更新し、失敗ケースを eval に追加する。
+
+この渡し方なら、いまのココナラ実務を止めずに、その運用知見を横展開できます。📌
+
+6. 最優先アクション
+現行 self-check の全ルールを棚卸しし、rule_id / layer / hard-soft / source_ref を付ける。
+理由: まず暗黙知を見える化しないと、何も移植できない。
+thread state schema を作る。
+理由: multi-turn の穴はここからしか埋まらない。self-check から state 責務を剥がすため。
+routing を route label ではなく playbook 化する。
+理由: 分類だけでは再利用できず、実務精度は「その route で何を必ず言うか」に依存するため。
+gold replies を live seeds / eval gold / failure archive に分割する。
+理由: 例示の効きは残しつつ、prompt 肥大化と反復を防げるため。
+導入用 service-pack テンプレを作り、ココナラ bugfix-15000 をその形式に逆充填する。
+理由: 商品化の最短ルートは、新OSを作ることではなく、現行OSを pack 化できると証明することだから。
+7. 反対意見
+
+あえて反対側から言います。⚠️
+
+L1/L2/L3 分離は、やり方を誤ると“整理した気分”になるだけです。
+asset の source_ref を持たせないなら、ただ名前を付け替えた blob になります。
+5系統/6系統の schema を相手に最初から書かせる設計は失敗します。
+商品の本体は schema ではなく、既存資料から draft pack を起こして承認だけさせる導入UXです。
+tone を先に磨くと危ないです。
+AI感の少なさは魅力ですが、 portability の本丸は routing と state です。tone は最後で十分です。
+gold reply は強いが、放置すると“隠れ仕様書”になります。
+facts / boundaries に存在しない知識が例示だけに入ると、例が真実を支配し始めます。
+今の仮説は少し“OS化”を急ぎすぎです。
+まず売るべきは software ではなく、導入型サービスです。2社目で core runtime を変えずに回って初めて、商品としての OS だと言えます。
+
+私の結論は明確です。
+今すぐやるべきは、現行の強い返信OSを作り直すことではなく、“service pack を外出しできる構造”に変えることです。
+そこに explicit state を足せば、ココナラ実務を守りながら、他サービスへ持ち込める骨格になります。

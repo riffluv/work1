@@ -1,0 +1,63 @@
+service_id: bugfix-15000
+
+thread_state:
+  primary_symptom:
+    type: string
+    required_from: prequote
+    description: "今回の主論点。buyer が最初に解決したい症状"
+  secondary_symptoms:
+    type: list
+    item:
+      symptom: string
+      urgency: low|medium|high|unknown
+      disposition: same_cause_check|later_check|separate_if_needed|closed
+      return_timing: before_delivery|with_delivery|before_close|with_close|after_close_followup
+      required_input: string|none
+    description: "会話中に追加で出てきた副論点"
+  current_route:
+    type: enum
+    values:
+      - prequote_bugfix_accept
+      - prequote_success_rate_fear
+      - quote_sent_scope_confirm
+      - purchased_related_secondary
+      - delivered_impact_check
+      - closed_repeat_scope_first
+      - closed_repeat_discount_firm
+      - boundary_bugfix_first
+  buyer_fears:
+    type: list
+    item:
+      - 調査だけで終わる
+      - 勝手に追加料金になる
+      - 無料で見てもらえない
+      - 本番を触るのが怖い
+      - 価値が見えにくい
+  promised_next_action:
+    type: object
+    fields:
+      action: string
+      return_timing: immediate|next_reply|before_delivery|with_delivery|before_close|with_close
+      owner: codex|buyer|shared
+    description: "こちらが次に返すと約束したことと、その返却タイミング"
+  unresolved_threads:
+    type: list
+    item:
+      thread: string
+      planned_resolution: string
+      return_timing: before_delivery|with_delivery|before_close|with_close|after_close_followup
+      required_input: string|none
+    description: "未解決の論点。delivery/close 前に行き先を明示する"
+  scope_status:
+    type: enum
+    values:
+      - single_issue
+      - same_cause_check
+      - separate_if_needed
+      - out_of_scope
+
+minimum_rules:
+  - "secondary_symptoms は出た時点で state に残す"
+  - "promised_next_action は action だけでなく return_timing まで持つ"
+  - "delivery / close では unresolved_threads の行き先だけでなく return_timing も明示する"
+  - "secondary_symptoms は disposition だけでなく return_timing か required_input のどちらかを持つ"

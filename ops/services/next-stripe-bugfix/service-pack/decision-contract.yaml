@@ -1,0 +1,69 @@
+service_id: bugfix-15000
+kind: decision_contract
+
+purpose: "何を根拠に同一原因 / 別原因 / 未確定を判定し、どこで正式納品を止めるかを固定する"
+
+scope_unit:
+  rule: same_cause_and_same_flow_and_same_endpoint
+  adjudication_order:
+    - cause
+    - flow
+    - endpoint
+  same_likely_when:
+    - "同じ root cause が説明できる"
+    - "同じフローの中で起きている"
+    - "同じエンドポイントまたは同じ更新経路に属する"
+  different_likely_when:
+    - "root cause が別"
+    - "別フローで起きている"
+    - "別エンドポイントまたは別更新経路で起きている"
+  undecidable_when:
+    - "一次証跡だけでは same / different を切れない"
+    - "ログ不足で主因が未確定"
+    - "複数症状があり primary を固定できていない"
+
+customer_facing_adjudication:
+  same_likely: "同じ原因の可能性が高いため、まず今回の続きとして扱えるかを確認します"
+  different_likely: "今回の不具合とは別の原因で起きていそうなので、新しい依頼になると先にお伝えします"
+  undecidable: "この時点では同じ原因か別原因かを断定せず、まず切り分け結果を返します"
+
+unknown_cause_gate:
+  formal_delivery_blockers:
+    - "原因を断定できていない"
+    - "修正可否を判断できていない"
+  must_return_before_delivery:
+    - "この時点で分かっていること"
+    - "追加で必要な情報"
+    - "次にどう進めれば判断できるか"
+  must_not_do:
+    - "原因不明のまま正式納品へ進める"
+    - "修正可否未確定のまま完了扱いにする"
+    - "追加対応を自動で既定路線化する"
+
+additional_work_policy:
+  automatic_charge: false
+  requires_prior_agreement: true
+  explain_first:
+    - "別原因かどうか"
+    - "なぜ今回の範囲外になるか"
+    - "次に必要な対応"
+
+final_confirmation:
+  code_and_fix_owner: codex
+  final_confirmation_owner: buyer_environment
+  production_reflection_owner: buyer
+  message_rule:
+    - "最終確認は依頼者環境でお願いする"
+    - "本番反映はこちらでは行わない"
+
+same_cause_adjustment_window:
+  active_while: talk_room_open
+  applies_when:
+    - "same_likely"
+    - "今回の変更と同じ更新経路に属する"
+  note: "トークルームが開いている間の同一原因の追加調整は基本料金内を原則とする"
+
+source_refs:
+  service_page: "/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt"
+  estimate_decision: "/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/estimate-decision.yaml"
+  scope_matrix: "/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/scope-matrix.md"

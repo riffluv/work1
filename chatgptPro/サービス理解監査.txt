@@ -1,0 +1,167 @@
+1. 総評
+率直に言うと、今の service-pack は 「何を売るサービスか」 はかなり保持できていますが、「どう判断するサービスか」 と 「どこで止まるサービスか」 の保持はまだ弱いです。なので fidelity は 中くらい です。営業返信の下敷きとしては使えますが、L3 監査の source of truth にそのまま置くにはまだ危ない、という評価です。 
+いちばん大きい理由は 3 つです。
+1つ目は、facts / boundaries / routing / state という 意味保持の核 は妥当なのに、そこへ seeds / tone のような 返信面の資産 が混ざっていること。2つ目は、公開ページの強い意味である 「同一原因の判定」 と 「原因不明時の扱い」 と 「何を最低限聞けばよいか」 が、pack では抽象化されすぎていること。3つ目は、公開サービス以外の知識や未公開運用ポリシーが pack 内に混入していて、registry の public_reply_must_use_public_true_only と緊張関係にあることです。   
+
+2. 十分に保持できているもの
+
+
+商品契約の中核 はかなり落ちています。15,000円、同一原因の不具合1件、追加料金は自動発生しない、納品物は報告・ZIP/patch・確認メモ、初回返信 24 時間、一次結果 48 時間目標、という基本線は pack で保持できています。 
+
+
+境界の明示 も概ね良いです。通話、直接 push、本番デプロイ代行、raw secret values を断つ線は、公開ページの「標準範囲外」や .env はキー名のみ という公開約束と整合しています。 
+
+
+同一原因を単位にする発想 は残っています。scope_unit で「修正箇所数ではなく原因で判定する」を持てているのは、価格と追加対応境界の根幹なので重要です。 
+
+
+multi-turn で見るべき論点 も最低限は押さえています。primary_symptom、secondary_symptoms、promised_next_action、unresolved_threads を state に持つ設計は、返信文の自然さよりも「何をまだ閉じていないか」を保持する意味で正しい方向です。
+
+
+構成の核 としては、facts / boundaries / routing-playbooks / state-schema の 4 系統は妥当です。少なくとも「サービス契約」「境界」「会話分岐」「会話状態」を分ける骨格はあります。
+
+
+
+3. 落ちている / 弱いもの
+
+
+いちばん落ちているのは intake / evidence contract です。 公開ページは「全部そろっていなくても大丈夫」「まずは症状だけでも大丈夫」と言いながら、実際には 本来の動き / 今起きている現象 / 発生環境 / 操作手順 / エラー情報 を聞き、Stripe なら evt_...、.env はキー名のみ、必要なら ZIP まで、かなり具体的に証跡要求を定義しています。ところが pack 側は prequote で 画面 / 文言 / 発生日時 / 環境、purchased で reproduction_steps / error_logs / hosting に圧縮されており、何を・どの順で・どこまで聞くサービスか が保持し切れていません。   
+
+
+これは Stripe 系の不具合では特に痛いです。Stripe 公式でも、Webhook 診断は event ID、type、livemode、delivery 状態、endpoint 設定、署名検証の成否、未加工の request body などが一次証跡になります。未配信イベントは event ID 起点で追えますし、endpoint ごとに secret も test/live で別です。つまり evt_... や endpoint 情報は「あると便利」ではなく、かなり本質的です。pack に first-class で持たせるべきです。
+
+
+「原因不明時の扱い」が意味変換されています。 公開ページの約束は「原因が分からないまま正式納品へ進めない」「その範囲で断定できない/修正が難しいなら、分かったことと次の進め方を整理して返す」です。これは delivery gate の話です。ところが pack の playbook では 判断できないまま終わらせない になっていて、保証っぽい継続約束 に寄っています。両者は同じではありません。ここは危ない意味ズレです。 
+
+
+同一原因判定の根拠が薄いです。 facts には same_cause_and_same_flow_and_same_endpoint があり、state には scope_status がありますが、何を根拠に same / separate と言うのか、buyer にどう説明するのか、flow/endpoint の切り分け根拠は何か が schema 化されていません。価格ズレや追加対応ズレは、だいたいここで起きます。いまは runtime の暗黙知に依存しすぎです。  
+
+
+最終確認の責任所在が first-class ではありません。 公開ページは「最終確認は依頼者様環境」「本番への反映は依頼者側」「同一原因の追加調整はトークルームが開いている間は基本料金内」とかなり大事な運用条件を持っています。pack は「本番操作を引き受けない」は持っていますが、final confirmation owner と same-cause adjustment window が構造化されていません。ここがないと、返信は自然でもサービス理解はズレます。 
+
+
+公開ページ自身が持つ canonical examples が、service-owned な形で保持されていません。 公開ページにはすでに 3 つのトークルーム回答例があり、特に「画面エラーがないときは Stripe ダッシュボードのイベント失敗を見る」「署名検証失敗なら evt_... と endpoint 設定を聞く」「別症状はまず same-cause を確認する」という、サービス理解そのものに関わる判断が書かれています。ところが pack はこれを抽象 playbook に平坦化し、さらに seeds を外部の gold reply へ飛ばしています。公開ページの意味を service-owned に固定できていません。   
+
+
+「AIで作ったコード / 外注・引き継ぎコード / コードの中身が分からない / 不具合が毎回は起きない / 購入前相談だけでも可」 という buyer の不安を解く公開約束は、pack では部分保持に留まっています。boundary principle には近いものがありますが、must-say にはなっておらず、返信で落ちやすいです。  
+
+
+6ファイル構成の妥当性 で言うと、facts / boundaries / routing / state は妥当です。ただしこの構成は、いまのままだと evidence-contract と decision-contract が欠けていて、逆に seeds / tone が前に出すぎています。監査対象としては、足りないものと余分なものがはっきりあります。
+
+
+
+4. ノイズになっているもの
+
+
+seeds.yaml はサービス理解そのものではありません。 これは runtime の補助か eval 資産です。しかも eval_gold に boundary_bugfix-vs-handoff_confused-route_bugfix-first のような cross-service seed が入り、公開 true only の registry ルールとぶつかりやすいです。service-pack の source of truth 側に置くのは危険です。 
+
+
+tone-profile.yaml も semantic fidelity の核ではありません。 warmth, directness, acknowledgment_style は出力の表面であって、サービスの意味ではないです。ここを service-pack に同居させると、「意味が合っているか」と「感じが合っているか」が監査上混線します。
+
+
+handoff を前提にした境界知識は、bugfix-15000 の pack にはノイズ寄りです。 公開前 handoff を先に買わせない は bugfix 側の意味保持というより、クロスサービス営業方針です。bugfix pack に必要なのは「症状があるなら bugfix 起点で扱う」という正のルールであって、private service 名そのものではありません。 
+
+
+値引き・返金・external_contact などの項目は、少なくとも現段階では runtime / platform policy 側です。 公開ページにない business policy を service-pack に入れると、返信が public contract ではなく内規に引っ張られます。 
+
+
+細かいですが、state-schema.yaml に 조사だけで終わる という mixed-script typo がある のは、監査資産としての品質シグナルとしてよくありません。意味論というより、pack 自体の堅牢性の問題です。
+
+
+
+5. ズレの切り分け設計
+ズレの切り分けは、reply 単体 を見るのではなく、必ず 主張単位 で切ってください。例えば「症状だけで相談可能か」「同一原因扱いか」「本番反映まで含むか」「原因不明時にどう閉じるか」など、争点を 1 個ずつ見ます。
+そのうえで、判定は次の順序がよいです。
+
+
+service page テスト
+公開ページに、その主張は明示されているか、少なくとも一義的に読めるか。ここで曖昧なら page 側の問題です。FAQ や回答例まで見てなお解釈が割れるなら、pack ではなく page を直すべきです。
+
+
+service-pack テスト
+page で明確なのに、pack に 構造化されたルール として存在しない、または弱い surrogate にしかなっていないなら pack 側の問題です。今回で言えば、symptom only okay、原因不明時の formal delivery gate、final confirmation owner、same-cause 判定根拠 は pack 欠損寄りです。  
+
+
+runtime テスト
+pack に十分あるのに reply がズレたら runtime 側です。具体的には、route selection が誤った、state が欠落した、writer が seeds を facts より優先した、reviewer が style しか見なかった、のどれかです。README 自体が L3 を pack source-of-truth 参照で設計しているので、ここで seeds/tone 混入があると reviewer も誤誘導されます。  
+
+
+意味落ちが起きやすい箇所は、今回の構造だと次の 3 点です。
+
+
+page → pack: FAQ と回答例にある判断材料が、facts や routing で抽象化されすぎる。 
+
+
+pack → reply: seeds や tone が強すぎて、契約より文体が勝つ。 
+
+
+review: L3 が full pack を source-of-truth と見なすことで、非公開知識や style 資産まで正当化してしまう。 
+
+
+実運用では、各返信に最低でも
+page_clause_ids / pack_field_ids / selected_route / state_snapshot / seed_ids / reviewer_fail_reason
+を残してください。これがあれば blame が切れます。これがないと、毎回「なんとなく pack が悪い」になります。
+
+6. fidelity を測る監査方法
+「AI がサービスをちゃんと把握している」と判定するチェック項目は、次の 7 つで十分です。全部 pass したときだけ合格 にした方がよいです。 
+
+
+Clause coverage
+公開ページの主要 clause・FAQ・回答例が、pack 内のどの field に対応するか明示されているか。未対応 clause があるなら fidelity debt です。
+
+
+Scope adjudication
+「同一原因 / 別原因 / 別フロー / 別エンドポイント / 範囲外」を、buyer 向け説明つきで正しく言い分けられるか。 
+
+
+Evidence adequacy
+phase に応じて最小限の情報だけ聞けるか。symptom only okay を守りつつ、Stripe 系では evt_...、環境、raw error、endpoint 設定など必要証跡を落とさないか。 
+
+
+Delivery gate fidelity
+「何を返すか」「何を返さないか」「原因不明時にどう閉じるか」「正式納品へ進めない条件」を誤らないか。
+
+
+Boundary / publicness fidelity
+通話・直接 push・本番デプロイ・raw secret values を断れるか。さらに、private service や未公開 policy を public reply に漏らさないか。  
+
+
+State continuity
+secondary_symptoms、promised_next_action、unresolved_threads を落とさず、delivery/close 前に行き先を明示できるか。
+
+
+Example replay
+公開ページのトークルーム回答例 1〜3 を、文面そのものではなく 同じ判断 で再現できるか。これができないなら、その AI はサービスを理解しておらず、例文をなぞっているだけです。
+
+
+
+7. 今すぐやるべき改善
+
+
+public_contract という最小コアを切り出し、各 field に provenance を付ける
+なぜ先か: いまの最大リスクは「公開契約」と「内規・style・他サービス知識」が混ざっていることだからです。 
+
+
+decision-contract.yaml を追加し、same-cause 判定根拠・原因不明時の gate・final confirmation owner を構造化する
+なぜ先か: 価格ズレ・範囲ズレ・納品ズレの大半はここで起きるからです。  
+
+
+evidence-contract.yaml を追加し、phase 別・症状 archetype 別の minimum ask を持つ
+なぜ先か: 今回いちばん meaning drop が起きているのが「何を聞くべきか」だからです。 
+
+
+seeds.yaml と tone-profile.yaml を source-of-truth から外し、runtime/eval 側へ寄せる
+なぜ先か: semantic fidelity の監査と返信スタイルの最適化を分離しないと、ズレの原因が見えなくなるからです。 
+
+
+公開ページの FAQ と回答例から regression suite を作り、各返信に justification log を残す
+なぜ先か: pack を直しても、テストがなければ次の変更でまた静かに崩れるからです。
+
+
+移植の観点でいうと、共通化できるのは schema, phase model, state minimum, provenance, audit harness です。個別設計に残すべきなのは scope unit, decision contract, evidence ask, deliverable contract, boundary examples, buyer anxieties です。seeds / tone は原則 runtime 共通、必要ならサービスごとに override で十分です。    
+
+8. 反対意見
+あえて強く反対すると、いまの service-pack 発想は 「サービス理解を構造化している」のではなく、「今うまくいっている返信習慣を YAML に凍結している」 危険があります。README は pack を L3 の source-of-truth に置いていますが、その pack 自体が公開文面以外の内部ファイル、seeds、tone、cross-service 知識を抱えています。これでは source-of-truth ではなく、source-of-current-habits になりやすいです。  
+もう一つ危ないのは、route ベースの設計が lexical trigger に寄りすぎる ことです。本当に保持すべきなのは「どの語が来たらどのテンプレを使うか」ではなく、「何を根拠に same-cause と言うか」「何が足りないから今は止めるか」「何を buyer に確認してもらうか」です。ここが decision schema になっていない限り、他サービスへ移植しても “それっぽい返信” は増えても、fidelity は増えません。 
+最後に、本当に移植性を上げるなら、pack を太くするより、public contract を細く強くし、公開ページから作った executable test を増やす方が安全 です。今回の bugfix-15000 で言えば、公開ページ・FAQ・回答例そのものが最強の gold です。ここに勝てない abstraction は、増やすほど危ないです。
+いま必要なのは pack を増築することではなく、契約・判断・証跡 の 3 つに分解して、service page -> service-pack -> reply のどこでも同じ意味が引ける状態にすることです。

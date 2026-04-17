@@ -72,6 +72,20 @@ primary_sources:
       - estimate_initial renderer / lint の初期入力
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
+    role: regression_seed
+    purpose:
+      - bugfix-15000 の公開ページ・FAQ・回答例が service-pack の decision / evidence contract に落ちているかを確認
+      - service page -> service-pack -> reply の意味落ち監査の入口に使う
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_handoff/cases.yaml
+    role: regression_seed
+    purpose:
+      - handoff-25000 の公開準備文面・FAQ・回答例が service-pack の decision / evidence contract に落ちているかを確認
+      - private / ready 状態でも service page -> service-pack の意味落ち監査に使う
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/stock/seed/stock-bulk-100-seed.txt
     role: seed
     purpose:

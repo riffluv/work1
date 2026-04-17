@@ -1,0 +1,23 @@
+service_id: bugfix-15000
+
+live_seeds:
+  prequote:
+    - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/08_bugfix_scope-buyer-words.ja.md"
+    - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/19_prequote_success-rate-fear_no-guarantee_but_clear_value.ja.md"
+  quote_sent:
+    - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/09_bugfix_setting-vs-code_self-fix-intent.ja.md"
+  purchased:
+    - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/17_purchased_secret-value_and-share-split.ja.md"
+    - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/18_purchased_deploy-anxiety_no-direct-deploy_but-guide.ja.md"
+  delivered_closed:
+    - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/10_delivered_value-doubt_light-fix.ja.md"
+    - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/20_closed_repeat_with-refund-anxiety_scope-first.ja.md"
+
+eval_gold:
+  - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/15_repeat-project_discount-firm-but-natural.ja.md"
+  - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/19_prequote_success-rate-fear_no-guarantee_but_clear_value.ja.md"
+  - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/20_closed_repeat_with-refund-anxiety_scope-first.ja.md"
+  - "/home/hr-hm/Project/work/docs/reply-quality/gold-replies/21_boundary_bugfix-vs-handoff_confused-route_bugfix-first.ja.md"
+
+failure_archive_policy:
+  description: "失敗事例は live seeds に入れず、eval/failure 側で再発防止に使う"

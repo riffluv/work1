@@ -1,0 +1,79 @@
+version: 1
+description: "bugfix-15000 の公開ページ・FAQ・回答例が、decision/evidence contract に落ちているかを見る回帰ケース"
+
+cases:
+  - case_id: SPF-BUGFIX-001
+    source_type: faq
+    source_summary: "追加料金は自動で発生しない"
+    public_clause_summary: "別原因が見つかった場合や切り分けが足りない場合でも、状況説明と事前合意なしに追加対応へ進まない"
+    expected_contract_refs:
+      - decision-contract.additional_work_policy.automatic_charge
+      - decision-contract.additional_work_policy.requires_prior_agreement
+      - decision-contract.additional_work_policy.explain_first
+
+  - case_id: SPF-BUGFIX-002
+    source_type: faq
+    source_summary: "原因不明や修正困難でも正式納品へ進めない"
+    public_clause_summary: "分かったことと次の進め方を返し、原因不明や修正できないまま正式納品へ進めない"
+    expected_contract_refs:
+      - decision-contract.unknown_cause_gate.formal_delivery_blockers
+      - decision-contract.unknown_cause_gate.must_return_before_delivery
+      - decision-contract.unknown_cause_gate.must_not_do
+
+  - case_id: SPF-BUGFIX-003
+    source_type: faq
+    source_summary: "同一原因か別原因かの判断例"
+    public_clause_summary: "Webhook署名検証エラーで複数イベント失敗は same、別エンドポイントの DB 更新不具合は different"
+    expected_contract_refs:
+      - decision-contract.scope_unit.rule
+      - decision-contract.scope_unit.adjudication_order
+      - decision-contract.customer_facing_adjudication.same_likely
+      - decision-contract.customer_facing_adjudication.different_likely
+      - decision-contract.customer_facing_adjudication.undecidable
+
+  - case_id: SPF-BUGFIX-004
+    source_type: faq
+    source_summary: "最終確認と本番反映の責任所在"
+    public_clause_summary: "最終確認は依頼者環境、本番反映は依頼者側"
+    expected_contract_refs:
+      - decision-contract.final_confirmation.final_confirmation_owner
+      - decision-contract.final_confirmation.production_reflection_owner
+      - decision-contract.final_confirmation.message_rule
+
+  - case_id: SPF-BUGFIX-005
+    source_type: purchase_notes
+    source_summary: "症状だけでも相談可 /.env はキー名のみ / evt_ があると早い"
+    public_clause_summary: "全部そろっていなくてもよく、まずは症状だけでよい。Stripe 関連は evt_...、.env はキー名のみ"
+    expected_contract_refs:
+      - evidence-contract.principles.symptom_only_okay
+      - evidence-contract.principles.secrets_rule
+      - evidence-contract.buyer_facing_promises
+      - evidence-contract.stripe_first_class_evidence.payment_success_but_not_reflected.useful
+      - evidence-contract.attachment_policy.zip.rule
+
+  - case_id: SPF-BUGFIX-006
+    source_type: example
+    source_summary: "回答例1: エラー画面なしの決済反映漏れ"
+    public_clause_summary: "画面にエラーが出ていないなら通知処理の可能性を示し、毎回か一部か・ダッシュボード失敗・ログ/スクショを聞く"
+    expected_contract_refs:
+      - evidence-contract.phase_minimums.prequote
+      - evidence-contract.buyer_facing_promises
+      - routing-playbooks.prequote_bugfix_accept
+
+  - case_id: SPF-BUGFIX-007
+    source_type: example
+    source_summary: "回答例2: 本番だけ署名検証失敗"
+    public_clause_summary: "Event ID、エラー原文、Webhookエンドポイント設定を聞く"
+    expected_contract_refs:
+      - evidence-contract.stripe_first_class_evidence.webhook_signature_or_delivery_failure.useful
+      - evidence-contract.phase_minimums.prequote
+
+  - case_id: SPF-BUGFIX-008
+    source_type: example
+    source_summary: "回答例3: 解消後の別箇所相談"
+    public_clause_summary: "まず same-cause を確認し、同じなら基本料金内、別なら追加対応を案内する"
+    expected_contract_refs:
+      - decision-contract.customer_facing_adjudication.same_likely
+      - decision-contract.customer_facing_adjudication.different_likely
+      - decision-contract.additional_work_policy
+      - decision-contract.same_cause_adjustment_window

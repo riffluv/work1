@@ -1,0 +1,90 @@
+service_id: handoff-25000
+kind: decision_contract
+
+purpose: "handoff サービスが、どの条件で in-scope / extra-flow / repair-as-additional / undecidable に止まるかを固定する"
+
+adjudication_order:
+  - identify_main_flow
+  - classify_primary_goal
+  - detect_extra_flow_or_repair_bundle
+  - stop_if_undecidable
+
+scope_adjudication:
+  one_flow_in_scope:
+    conditions:
+      - "いちばん整理したい処理の流れが1つに定まっている"
+      - "主目的が現状整理 / 危険箇所把握 / 引き継ぎメモ作成である"
+      - "コード修正や全体仕様化が今回の基本料金に混ざっていない"
+    customer_facing_adjudication:
+      - "主要な処理の流れ1つの範囲で整理します"
+  extra_flow_if_needed:
+    conditions:
+      - "追加で見たい流れが別フローとして切り出せる"
+      - "主要1フローを超えるが、整理対象としては継続可能"
+    customer_facing_adjudication:
+      - "追加フローとして切り分けて案内します"
+      - "対象範囲を確認してから料金を返します"
+  repair_as_additional_work:
+    conditions:
+      - "整理のあとに修正が必要と分かった"
+      - "主目的は整理だが、追加でコード修正相談が出ている"
+    customer_facing_adjudication:
+      - "まず整理で止められます"
+      - "修正が必要なら追加対応として続けられます"
+  undecidable:
+    conditions:
+      - "いちばん整理したい処理の流れがまだ決まっていない"
+      - "依頼者が全体を見てほしいと言っており優先箇所が切れていない"
+      - "引き継ぎメモを求めているが、実際は bugfix 相談の可能性が高い"
+    customer_facing_adjudication:
+      - "まず、いちばん整理したい処理の流れを1つ決めたいです"
+      - "主目的が修正なら bugfix を先に案内します"
+
+primary_goal_rules:
+  handoff_first:
+    conditions:
+      - "修正そのものより先に、現状整理や引き継ぎ自体が目的"
+      - "次の担当者へ渡せる形にしたい"
+      - "どこから見ればいいか分からない"
+  bugfix_first:
+    conditions:
+      - "まず直したい不具合が1件はっきりしている"
+      - "今出ている不具合を止めるのが先"
+    customer_facing_adjudication:
+      - "まず直したい不具合がはっきりしているなら bugfix の方が自然です"
+
+additional_work_policy:
+  repair_not_included_by_default: true
+  extra_flow_not_included_by_default: true
+  additional_charge_is_not_automatic: true
+  prior_agreement_required: true
+  customer_facing_adjudication:
+    - "追加料金は自動では発生しません"
+    - "対象範囲を確認して、事前合意後に進めます"
+
+delivery_gate:
+  can_formally_deliver_when:
+    - "主要1フローについて、確認できたこと / 推定 / 未確認 / 次の着手順が整理できている"
+    - "修正依頼や追加フローが unresolved thread として分離されている"
+  must_not_formally_deliver_when:
+    - "今回の主フローがまだ特定できていない"
+    - "修正相談と整理相談が混ざったまま、どちらで返すか決まっていない"
+
+final_confirmation:
+  memo_reader_owner: buyer
+  formal_delivery_owner: codex
+  customer_facing_adjudication:
+    - "納品物を見て、今回の主フロー整理として足りているかを確認してもらう"
+    - "追加フローや修正は、今回の納品とは分けて案内する"
+
+followup_window:
+  lightweight_content_clarification:
+    included: true
+    description: "納品後の軽微な内容確認や質問は基本料金内"
+  deeper_memo_or_rewrite:
+    included: false
+    description: "補足で足りるか、書き直しに近いかで扱いと費用を分ける"
+
+source_refs:
+  service_page: "/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt"
+  scope_matrix: "/home/hr-hm/Project/work/ops/services/handoff-25000/scope-matrix.md"

@@ -8,10 +8,11 @@
 - 同一 buyer の連続 3通を1単位で見る
 - `prequote` だけの単発監査には無理に使わない
 
-## 最小3項目
+## 最小4項目
 1. 前のターンで言った約束を次で履行しているか
 2. 同じ保留表現を引き延ばしていないか
 3. buyer が会話として前に進んでいるか
+4. secondary thread の行き先が delivery / close で見えているか
 
 ## pass / fail の例
 ### 1. 約束履行
@@ -32,6 +33,15 @@
 - fail:
   - 返信後も `で、どうすれば？` で止まる
 
+### 4. secondary thread の行き先
+- pass:
+  - `同じ原因かを正式納品前に返します`
+  - `別ならその時点で新しい依頼になると先に伝えます`
+  - `画面が分かれば納品前に判断を返します`
+- fail:
+  - `まだ確認中です` のまま closed へ進む
+  - `あとで見ます` のまま buyer に催促されて初めて動く
+
 ## 記録形式
 ```yaml
 conversation_ref:
@@ -41,6 +51,7 @@ checks:
   commitment_fulfilled: pass
   no_stalled_hold: pass
   buyer_progress_visible: pass
+  secondary_thread_disposition_visible: pass
 notes:
 ```
 
