@@ -1,0 +1,232 @@
+指定ファイル群を GitHub 上で実読した結論です。
+1. 総評
+
+
+今の repo 構造の評価: かなり良いです。platform -> service page -> service-pack -> runtime asset の切り分けが明文化されていて、特に bugfix-15000 については「何を売るか」「どう判断するか」「何を最低限聞くか」「どう自然化するか」がかなり分離できています。platform-contract も「場の仕様」に限定され、価格・スコープは service 側を正本にする方針が明示されています。
+
+
+一言で言うと: bugfix の実務運用はかなり回せる状態で、handoff と監査接続にだけ小さいが放置しづらい歪みが残っています。 repo 自身は v1 close と monitoring 主軸への移行を宣言していますが、私はその前に handoff-25000 の source-of-truth 記述と fidelity 回帰の接続だけは薄く直した方が安全だと見ます。
+
+
+2. 良い点
+
+
+platform-contract が チャネル差・phase差・formal delivery の扱いだけを持ち、価格や追加料金単位を service 側に逃がしているので、platform 理解と service 理解が混ざりにくいです。これは「phase は合っているのに返しがずれる」事故を減らします。
+
+
+公開サービスページが FAQ と回答例まで含む public contract になっていて、単なる商品説明ではなく buyer の不安と返答形まで repo 内に残せています。reply fidelity の土台として強いです。
+
+
+facts / boundaries / decision / evidence / routing / state / seeds / tone の 8ファイル分割が明示され、service理解 と reply スタイル を混ぜない方針が bugfix/handoff 共通で立っています。ここは設計の芯としてかなり良いです。
+
+
+bugfix-15000 の pack が same / different / undecidable、unknown cause gate、additional work policy、final confirmation owner、Stripe first-class evidence まで持っていて、「何を売るか」だけで終わっていません。返信品質に直結する判断が contract 化されています。
+
+
+handoff-25000 も one flow / extra flow / repair / undecidable、intended_reader、bugfix first vs handoff first を first-class に持っていて、未公開サービスとしては service 理解の芯がかなり立っています。
+
+
+Writer Brief がかなり良く、Writer に 長大 self-check や分類責務を渡さず、主質問に先に答える / 既出は聞き直さない / 次アクションは1つ に圧縮しています。これは Codex の思考を削がず、自然文を残しやすいです。
+
+
+state-schema と routing の state_contract が promised_next_action / return_timing / unresolved_threads を持っているので、multi-turn で「相手文には返したが副論点が沈む」を防ぐ設計になっています。
+
+
+seeds と tone を runtime asset と明言し、semantic fidelity の正本から外しているのはとても良いです。ここが混ざると AI感を薄める代わりに service 誤解が増えますが、その事故を避けられています。
+
+
+fidelity 回帰が 公開ページ・FAQ・回答例 -> contract refs に接続されていて、単発返信の添削ではなく「service page -> service-pack -> reply の意味落ち」を見る構造になっています。
+
+
+3. 弱い点
+
+
+[service-pack] handoff-25000 README だけ、decision-contract.yaml と evidence-contract.yaml を「source-of-truth から外すもの」に置いており、共通 policy と runtime interface の「layer 3 の first-class contract」という整理と食い違っています。ここは maintainer も Codex も迷いやすいです。
+
+
+[service-pack] legacy 資産から pack への移行がまだ完全には閉じていません。README が service.yaml / estimate-decision.yaml / evidence-minimum.yaml / scope-matrix.md を derivation input として参照し、さらに bugfix の legacy service.yaml は内部 service_id が next-stripe-bugfix で、registry / pack の bugfix-15000 と一致していません。source-of-truth の残留混線です。
+
+
+[runtime] service-registry.yaml は public/private と page の正本は持っていますが、service-pack root を引く正本は持っていません。runtime の読む順は docs で固定されている一方、repo レベルの lookup 契約は暗黙です。
+
+
+[monitoring] handoff の fidelity regression は contract ref 名が decision_contract / routing_playbooks のような underscore 形式で、bugfix 側の decision-contract / routing-playbooks と命名系が揃っていません。resolver が literal なら、handoff 監査が静かに弱くなるリスクがあります。
+
+
+[runtime] handoff のサービスページには purchased 中の進捗共有の回答例があるのに、routing/state/regression 側ではその型が十分 anchor されていません。相手文にしっかり返す うえで、未公開サービスの実運用 drift はここから出やすいです。
+
+
+[service-pack] bugfix の same / different / undecidable は構造化されていますが、回帰ケースはまだ 典型例中心です。近接フロー・隣接 endpoint・再発っぽい別原因のような曖昧境界は、今後のズレ源になりやすいです。
+
+
+[platform] private service の漏洩防止は registry と README で押さえられていますが、handoff pack 自体には buyer-facing facts や promises がしっかり入っています。つまり gating を runtime が必ず先に踏むことが前提で、ここは docs 依存がやや強いです。
+
+
+[service-page] 公開ページはよく出来ていますが長い free text です。runtime は page を毎回直接読まない前提なので、page 変更時に page -> pack -> regression の手動同期が要ります。今は2サービスだから耐えますが、増やすと drift point になります。
+
+
+4. source-of-truth 監査
+十分分離できている箇所
+
+
+platform と service の分離はかなり明確です。platform-contract はチャネル・formal delivery・キャンセル系の場の仕様に寄せ、価格・scope・追加料金単位は service 側を正本にすると明記しています。
+
+
+service理解 と runtime asset の分離も良いです。共通 policy と runtime interface がそろって facts/boundaries -> decision/evidence -> routing/state -> seeds/tone を固定し、seeds/tone を契約判断の根拠から外しています。
+
+
+Writer と Reviewer の責務分離も良いです。Writer は本文生成、Reviewer は phase / ask / forbidden / answer integrity 側に寄せられていて、自然文生成と監査の役割が混線していません。
+
+
+混線している箇所
+
+
+一番大きいのは handoff README の SoT 記述です。共通 policy では decision / evidence が service理解の核なのに、handoff README では outside 扱いになっています。ここは早めに一行修正した方がいいです。
+
+
+二つ目は legacy structured files と service-pack の二重化です。特に bugfix は registry が legacy service.yaml を指し、その中の service_id も pack と一致していません。今の repo は「混線して壊れている」までは行っていませんが、「移行中の残り香」はあります。
+
+
+三つ目は monitoring の参照命名の不整合です。bugfix/handoff で regression contract ref の書き方が揃っていないため、監査の信頼性そのものが揺れやすいです。
+
+
+5. service理解 fidelity 監査
+bugfix-15000
+
+
+評価: かなり良いです。公開ページの「15,000円 / 同一原因1件 / 追加料金は自動で発生しない / 原因不明のまま正式納品しない / 最終確認は buyer 環境 / .env はキー名のみ / evt_... があると早い」が、facts / boundaries / decision / evidence にかなり素直に落ちています。 regression も FAQ と回答例まで contract ref へ接続できています。
+
+
+特に良いのは、service page の平文ルールが decision/evidence にちゃんと昇格している点です。これで「同じ原因か別原因か」「今は止めるべきか」「何を最低限聞くか」が本文の気分ではなく contract で決まります。
+
+
+残る弱点は、曖昧な same/different の境界ケースの回帰がまだ薄いことです。構造は十分ですが、監査 coverage はもう少しだけ増やしたいです。
+
+
+handoff-25000
+
+
+評価: 良い。ただし bugfix より一段弱いです。公開準備文面の「主要1フロー / 25,000円 / 修正は含まない / intended reader / 追加フロー / repair は追加対応 / bugfix との境界」は、facts / boundaries / decision / evidence に概ね落ちています。
+
+
+良い点は、「コードが分からない」だけでは handoff 固定にしないことと、intended_reader を first-class evidence に置いていることです。これで bugfix との誤振り分けが減りやすいです。
+
+
+一段弱い理由は三つで、README の SoT 不整合、purchased 進捗共有 route の弱さ、regression ref 命名不整合です。つまり意味自体はかなり保持できているが、運用接続と監査接続が bugfix ほど締まっていません。
+
+
+6. runtime 接続監査
+writer
+
+
+良いです。 Writer は分類を背負わず、主質問に先に答える / buyer の語彙を1点拾う / 既出を聞き直さない / 次アクションは1つ に圧縮されています。ここは Codex の思考を削がない設計になっています。
+
+
+reviewer
+
+
+強いです。 Reviewer 側は decision / evidence を first-class に見て、routing / state を補助にし、seeds / tone を wording drift だけに限定しています。self-check も primary answer / phase / ask integrity を先に見ていて、止める場所が明確です。
+
+
+multi-turn
+
+
+設計は良いです。 multi-turn-check が「約束履行」「保留の引き延ばし」「buyer の前進」「secondary thread の行き先」を押さえていて、state 側も promised next action と return timing を持っています。
+
+
+state continuity
+
+
+bugfix はかなり十分、handoff は部分的に十分です。bugfix は secondary_symptoms / unresolved_threads / return_timing / required_input が揃っているので、delivery/close 前の回収がかなりしやすいです。一方 handoff は補足依頼や修正追加の thread は持てていますが、進捗共有や中間報告の型が route と regression にまだ十分固定されていません。
+
+
+現構造で「相手文に対してずれずに返す」のに十分か
+
+
+bugfix-15000 については、概ね十分です。
+
+
+handoff-25000 については、まだ“十分寄りだが未完成”です。
+
+
+つまり runtime の読み順そのものは正しいのですが、handoff の途中経過系と、bugfix の曖昧境界系だけは、今後ズレが出るならここが発生源になりやすいです。
+
+
+7. 運用負担監査
+
+
+low-burden 運用には耐えます。 8ファイル構成は一見多いですが、役割がかなり明確で、Writer には全部を投げず Reviewer と分けているので、実運用の prompt 負荷は抑えられています。
+
+
+ただし、これ以上の設計追加は逆効果になりやすいです。repo 自身も v1 では clause の細粒度増築や tone の細密化を止める方針を出していて、そこは妥当です。
+
+
+いまの最大メンテ負荷は、page -> pack -> regression の同期と、legacy file 群がまだ残っていることです。サービスが2本の今は回りますが、ここを増築で解決しようとすると逆に重くなります。薄い整合修正で止めるのが正解です。
+
+
+8. 今すぐやるべきこと
+
+
+handoff-25000 README の source-of-truth 記述を共通 policy に合わせる。
+なぜ先か: service理解の核をどこに置くかの迷いは、runtime と reviewer の両方を鈍らせるからです。
+
+
+handoff fidelity regression の contract ref 命名を bugfix と揃え、resolver が実際に解決できる形に統一する。
+なぜ先か: 監査が静かに効いていない状態は、見た目より危険だからです。
+
+
+handoff の purchased 中間報告ルートを routing-playbooks と regression に1本追加する。
+なぜ先か: 「相手文にちゃんと返す」実務で、ここが最も近い未固定ポイントだからです。
+
+
+service_id -> service-pack root の明示的な接続点を registry か薄い manifest に置く。
+なぜ先か: runtime の読む順は決まっているのに、入口 lookup が暗黙のままだと将来の混線源になるからです。
+
+
+bugfix の same/different 曖昧境界ケースを regression に 2〜3 本だけ足す。
+なぜ先か: 今後のズレ源として最も起こりやすいのがここだからです。
+
+
+9. 今はやらない方がいいこと
+
+
+runtime が公開サービスページを毎回直接読む設計に戻すこと。
+なぜ今は不要か: prompt ノイズが増え、service-pack を作った意味が薄れるからです。
+
+
+seeds や tone-profile を増やし続けること。
+なぜ今は不要か: いまのボトルネックは style ではなく handoff の contract 接続だからです。
+
+
+self-check をさらに肥大化させること。
+なぜ今は不要か: Writer から切り離せている今の利点を、Reviewer 側の運用ノイズで削りやすいからです。
+
+
+state-schema に大量の新項目を足すこと。
+なぜ今は不要か: 今の問題は schema の量ではなく、handoff の route coverage と regression 接続だからです。
+
+
+handoff-25000 を公開前提でさらに商品化に寄せること。
+なぜ今は不要か: registry でも pack でもまだ private / ready 前提が明確で、まず内部 fidelity を締める方が先だからです。
+
+
+10. 最終判定
+
+
+この返信OSは: かなり良いです。
+ただし最終判定としては 「まだ構造修正を続けるべき」 です。理由は再設計が必要だからではなく、handoff の source-of-truth 整合とhandoff 監査接続に silent drift の種が残っているからです。直す量は薄くてよく、方向は monitoring 寄りで合っています。
+
+
+service-pack fidelity:
+bugfix-15000 は 高い、handoff-25000 は 良いが bugfix より一段弱い です。
+
+
+runtime 接続:
+読む順・writer/reviewer 分離は良いです。補強すべきは service-pack lookup と handoff purchased 進捗共有 route の2点です。
+
+
+運用負担:
+低めで耐えます。 いまは新しい層を足すより、薄い整合修正を入れて実運用モニタリングへ寄せるのが最も筋が良いです。
+
+
+必要なら次に、「最小修正だけに絞ったパッチ計画」 の形で、どのファイルをどう直すかまで repo 単位で落とします。

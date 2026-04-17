@@ -20,6 +20,8 @@
   - 見積り相談で、主質問より先に説明しすぎないための圧縮ルール
 - `writer-brief.ja.md`
   - Writer に渡す最小原則。`主質問に先に答える / buyer の語を拾う / 次の行動が分かる言葉で書く` を固定する
+- `self-check-core-always-on.ja.md`
+  - Reviewer が常時前面に置く 10 項目のコア。詳細は `coconala-reply-self-check.ja.md` へ降りる
 - `scorecard.ja.md`
   - 返信品質を 10項目で軽く数値化する採点表
 - `multi-turn-check.ja.md`
@@ -37,6 +39,8 @@
   - bugfix / handoff の service-pack で、v1 として固定してよい構成・優先順・未固定事項を短くまとめた基準点
 - `productization-foundation-v1-closure.ja.md`
   - service-pack の商品化基盤フェーズを v1 close として閉じ、ここからは実運用モニタリングへ戻るための区切り文書
+- `service-page-change-checklist.ja.md`
+  - サービスページや内部共有認識を変えた時に、返信OSのどこへ落とすかを10行で確認するチェックリスト
 - `self-check-layering-first-pass.ja.md`
   - `self-check` を `L1 / L2 / L3` に棚卸しし、runtime と service-pack を分けるための初期設計メモ
 - `self-check-l3-extraction-map.ja.md`
@@ -109,6 +113,7 @@
 - 現行ルールと矛盾する古い `gold replies` や test asset を放置しない。`主質問より先に価格を出す` のような旧パターンは、良い例として残さない。
 - overlap 整理では、新ルールを足す前に `正本 / 良い例 / 契約テスト` の3層で競合がないかを先に見る。
 - Writer に self-check 全文を読ませない。判定と lint は Reviewer で行い、本文生成は `writer-brief.ja.md` の最小原則へ圧縮する。
+- Reviewer も毎回 `self-check` 全文を前面に置かず、まず `self-check-core-always-on.ja.md` を使い、必要時だけ詳細へ降りる。
 
 ## いま固定してよいこと
 - prompt を増やすより、`gold replies + NG表現 + 仕上げ前チェック` を強くする

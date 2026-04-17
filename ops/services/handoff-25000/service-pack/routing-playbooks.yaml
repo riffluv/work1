@@ -49,6 +49,22 @@ playbooks:
         return_timing: next_reply
         owner: codex
 
+  purchased_handoff_progress_update:
+    trigger:
+      - "何か分かってきましたか"
+      - "進捗いかがでしょうか"
+      - "どこまで見えていますか"
+    objective: "確認できたこと、次に見る点、返却タイミングを buyer に見える形で返す"
+    must_say:
+      - "現時点で確認できた範囲を短く返す"
+      - "次にどこを見るかを1つに絞る"
+      - "次の返却タイミングを buyer に見える語で置く"
+    state_contract:
+      promised_next_action:
+        action: "確認できたことと次の着手順を返す"
+        return_timing: same_day_or_next_reply
+        owner: codex
+
   delivered_handoff_deeper_memo:
     trigger:
       - "もう少し詳しいメモを作ってほしい"

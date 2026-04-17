@@ -2,6 +2,7 @@
 
 目的:
 - 本番で Claude を毎回使わなくても、Codex が最低限の日本語品質チェックをできるようにする
+- 常時運用では `/home/hr-hm/Project/work/docs/reply-quality/self-check-core-always-on.ja.md` を先に使い、この文書はケース別リファレンスとして降りる
 
 ## 最小5項目
 - 相手の主質問に直接答えているか

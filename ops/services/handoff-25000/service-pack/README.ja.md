@@ -34,25 +34,30 @@
 ## source of truth
 - 公開準備文面:
   - `/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt`
-- 既存 facts:
+- service 理解の契約コア:
+  - `facts.yaml`
+  - `boundaries.yaml`
+  - `decision-contract.yaml`
+  - `evidence-contract.yaml`
+
+## 会話運用の補助
+- `routing-playbooks.yaml`
+- `state-schema.yaml`
+
+## runtime asset
+- `seeds.yaml`
+- `tone-profile.yaml`
+
+## pack lookup
+- registry からこの pack を引く正本は `/home/hr-hm/Project/work/os/core/service-registry.yaml`
+- runtime は `service_pack_root` を入口にして、共通 interface に従って読む
+
+## derivation input
+- 既存 structured file:
   - `/home/hr-hm/Project/work/ops/services/handoff-25000/service.yaml`
 - 既存 route / scope 判断:
   - `/home/hr-hm/Project/work/ops/services/handoff-25000/evidence-minimum.yaml`
   - `/home/hr-hm/Project/work/ops/services/handoff-25000/scope-matrix.md`
-
-## source-of-truth から外すもの
-- `decision-contract.yaml`
-  - 公開ページと scope matrix 由来の判断を構造化したもの。公開ページそのものの代替ではない
-- `evidence-contract.yaml`
-  - 購入お願い文と evidence minimum 由来の質問契約。公開ページそのものの代替ではない
-- `routing-playbooks.yaml`
-  - route ごとの返し方と state 初期値を持つが、公開契約そのものの正本ではない
-- `state-schema.yaml`
-  - multi-turn の保持項目を持つが、buyer 向けの契約本文ではない
-- `seeds.yaml`
-  - runtime asset
-- `tone-profile.yaml`
-  - runtime asset
 
 ## 運用方針
 - `handoff-25000` が live になるまでは、外向け案内の source にはしない

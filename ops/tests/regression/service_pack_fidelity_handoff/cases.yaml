@@ -20,30 +20,30 @@ cases:
     expected_contract_refs:
       - facts.public_facts.includes
       - facts.public_facts.excludes_core
-      - decision_contract.primary_goal_rules.handoff_first
+      - decision-contract.primary_goal_rules.handoff_first
 
   - id: handoff_faq_03_repo_wide_not_default
     source: faq
     public_clause_summary: "リポジトリ全体ではなく、優先度の高い処理の流れ1つを基本とし、全体整理は追加見積り"
     expected_contract_refs:
-      - decision_contract.scope_adjudication.one_flow_in_scope
-      - decision_contract.scope_adjudication.extra_flow_if_needed
+      - decision-contract.scope_adjudication.one_flow_in_scope
+      - decision-contract.scope_adjudication.extra_flow_if_needed
       - boundaries.out_of_scope
 
   - id: handoff_faq_04_same_or_separate_flow
     source: faq
     public_clause_summary: "複数フローをまとめて見られる場合もあるが、別の流れなら追加フローや対象範囲調整として扱う"
     expected_contract_refs:
-      - decision_contract.scope_adjudication.extra_flow_if_needed
-      - evidence_contract.handoff_first_class_evidence.extra_flow_or_repair_bundle
+      - decision-contract.scope_adjudication.extra_flow_if_needed
+      - evidence-contract.handoff_first_class_evidence.extra_flow_or_repair_bundle
       - facts.public_facts.addon_extra_flow
 
   - id: handoff_faq_05_repair_is_additional
     source: faq
     public_clause_summary: "修正は基本料金に含まれず、整理のあと必要になったら追加対応として続けられる"
     expected_contract_refs:
-      - decision_contract.scope_adjudication.repair_as_additional_work
-      - decision_contract.additional_work_policy
+      - decision-contract.scope_adjudication.repair_as_additional_work
+      - decision-contract.additional_work_policy
       - boundaries.out_of_scope
 
   - id: handoff_faq_06_ai_or_vendor_code_ok
@@ -51,37 +51,44 @@ cases:
     public_clause_summary: "AIコードでも外注コードでも、主要1フローの現状整理から進める"
     expected_contract_refs:
       - facts.buyer_anxieties.common
-      - decision_contract.primary_goal_rules.handoff_first
-      - evidence_contract.handoff_first_class_evidence.main_flow_identification
+      - decision-contract.primary_goal_rules.handoff_first
+      - evidence-contract.handoff_first_class_evidence.main_flow_identification
 
   - id: handoff_faq_07_bugfix_boundary
     source: faq
     public_clause_summary: "コードの中身が分からないだけでは handoff 固定ではなく、まず直したい不具合が明確なら bugfix の方が自然"
     expected_contract_refs:
-      - decision_contract.primary_goal_rules.bugfix_first
+      - decision-contract.primary_goal_rules.bugfix_first
       - boundaries.boundary_principles
-      - routing_playbooks.boundary_bugfix_vs_handoff
+      - routing-playbooks.boundary_bugfix_vs_handoff
 
   - id: handoff_purchase_note_01_minimum_prequote
     source: purchase_note
     public_clause_summary: "見積り相談では、一番困る操作や既存メモだけでもよく、コード一式はまだ不要"
     expected_contract_refs:
-      - evidence_contract.phase_minimums.prequote
-      - evidence_contract.attachment_policy.full_repo
-      - evidence_contract.buyer_facing_promises
+      - evidence-contract.phase_minimums.prequote
+      - evidence-contract.attachment_policy.full_repo
+      - evidence-contract.buyer_facing_promises
 
   - id: handoff_answer_example_01_first_flow_guess
     source: answer_example
     public_clause_summary: "前任者不在で決済周りが分からない時、最初に見る1フロー案を置き、購入後にコード共有を依頼する"
     expected_contract_refs:
-      - routing_playbooks.prequote_handoff_accept
-      - decision_contract.scope_adjudication.one_flow_in_scope
-      - evidence_contract.phase_minimums.prequote
+      - routing-playbooks.prequote_handoff_accept
+      - decision-contract.scope_adjudication.one_flow_in_scope
+      - evidence-contract.phase_minimums.prequote
+
+  - id: handoff_answer_example_02_progress_update
+    source: answer_example
+    public_clause_summary: "取引中の進捗確認では、どこまで確認できたか、次にどこを見るか、いつ返すかを短く返す"
+    expected_contract_refs:
+      - routing-playbooks.purchased_handoff_progress_update
+      - state-schema.promised_next_action
 
   - id: handoff_answer_example_03_repair_followup
     source: answer_example
     public_clause_summary: "整理のあと修正に進むことは可能だが、まず整理を行い、その後追加対応として案内する"
     expected_contract_refs:
-      - routing_playbooks.quote_sent_handoff_scope_confirm
-      - decision_contract.scope_adjudication.repair_as_additional_work
-      - decision_contract.additional_work_policy
+      - routing-playbooks.quote_sent_handoff_scope_confirm
+      - decision-contract.scope_adjudication.repair_as_additional_work
+      - decision-contract.additional_work_policy

@@ -1,0 +1,34 @@
+総評
+
+かなり惜しいです。
+GitHub 上の現在の正本を読む限り、まだ「handoff も v1 固定でよい」とは言いません。 ただし理由は大きな設計問題ではなく、silent drift を起こしやすい小さな未接続がまだ 3 系統残っているからです。少なくとも今読める repo 正本では、service-registry.yaml に service_pack_root はなく、handoff README は decision/evidence の位置づけがまだ曖昧で、購入後の進捗共有（回答例2）は routing / state / regression に繋がっていません。さらに、handoff 側 regression の contract ref 命名も bugfix 側と未統一のままです。
+
+残存リスク
+README の source-of-truth 記述がまだ二重基準 — 今すぐ直すべき。handoff README は「L3 では facts / boundaries の次に decision / evidence を優先参照」と書いている一方で、同じ README の source-of-truth から外すもの に decision-contract.yaml と evidence-contract.yaml を入れています。共通 policy と runtime interface では decision/evidence は service 理解の優先層なので、この表現は maintainer と reviewer の解釈を再び割りやすいです。
+service-pack lookup がまだ implicit — 今すぐ直すべき。現在の service-registry.yaml は各 service に facts_file と source_of_truth しか持っておらず、service_pack_root が見当たりません。runtime 側が pack root を暗黙規約で探す前提が残るので、repo 構造変更や service 増加時に silent drift の種になります。
+購入後の進捗共有が public contract から runtime / regression へ未接続 — 今すぐ直すべき。公開準備文面には トークルーム回答例2 として、確認中の範囲・危険箇所・次にいつ返すかを伝える purchased phase の返しが明示されていますが、routing-playbooks.yaml は prequote_* / boundary_* / quote_sent_* / delivered_* までで、state-schema.yaml の current_route enum も同じ並びです。さらに handoff regression は answer_example_01 から answer_example_03 へ飛んでおり、回答例2に対応する case がありません。
+handoff regression の contract ref 命名が bugfix と未統一 — 今すぐ直すべき。handoff 側は decision_contract / evidence_contract / routing_playbooks の underscore 形式ですが、bugfix 側は decision-contract / evidence-contract / routing-playbooks の hyphen 形式です。resolver が strict なら handoff 監査が静かに弱くなりますし、仮に両対応でも 2 方言を残すのは将来 drift の温床です。
+
+今回 repo 正本で確認できた残存リスクは、全部「運用監視」ではなく「今すぐ直す」寄りです。どれも low-cost で、しかも runtime fidelity に直結するからです。
+
+今すぐ直すべき最小パッチ（最大3件）
+os/core/service-registry.yaml に service_pack_root を追加する
+bugfix-15000 と handoff-25000 の両方に、pack root への明示パスを足してください。facts_file と source_of_truth は残してよいですが、pack lookup だけは暗黙にしない方が安全です。
+ops/services/handoff-25000/service-pack/README.ja.md の SoT 記述を 1 回で揃える
+最小修正で十分です。
+public page を最上位正本、facts/boundaries を pack 内の基礎層、decision/evidence を pack 内の判断正本、routing/state を運用補助、seeds/tone を runtime asset と明記し、decision-contract.yaml と evidence-contract.yaml は source-of-truth から外すもの から外してください。ここは文章修正だけで drift をかなり減らせます。
+handoff の purchased-progress / fidelity を 1 パッチで閉じる
+1 つの論点なので、まとめて直すのが最小です。
+対象は次の 3 ファイルです。
+ops/services/handoff-25000/service-pack/routing-playbooks.yaml に purchased_handoff_progress_update を追加、ops/services/handoff-25000/service-pack/state-schema.yaml の current_route enum に同 route を追加、ops/tests/regression/service_pack_fidelity_handoff/cases.yaml に 回答例2 case を追加したうえで、同 file の contract ref 命名を bugfix 側と同じ hyphen 形式へ統一してください。これで public example 2 と runtime / state / regression の 3 点が一度に揃います。
+今は触らない方がよいもの
+legacy upstream file の撤去や全面整理
+README にはまだ service.yaml / evidence-minimum.yaml / scope-matrix.md が upstream ref として残っていますが、runtime interface 自体は「runtime は pack を読む」前提です。今やるべきは upstream の撤去ではなく、pack 接続の明示と fidelity の穴埋めです。
+回答例2 以外の route 増殖
+今 GitHub 上で確認できる public gap は、購入後進捗共有の回答例2です。これ以上 route taxonomy を増やすと low-burden 運用を逆に壊しやすいので、まずは public contract に明示されている 1 本だけを回収すべきです。
+state-schema の項目追加
+現在の state は secondary_threads、unresolved_threads、promised_next_action、return_timing をすでに持っています。足りないのは schema の量ではなく、回答例2に対応する route 名の同期です。
+最終判定
+
+現時点の GitHub 正本ベースでは、まだ handoff も v1 固定でよい とは言いません。
+判定は 「まだ今すぐ直すべき最小パッチが 3 件ある」 です。ただし全部 small sync で、再設計は不要です。この 3 件が入れば、その時点で初めて handoff も v1 固定、以後は実運用モニタリング中心 と言ってよい状態になります。
