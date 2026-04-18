@@ -5,7 +5,8 @@
 - 今回の原因: `customer.subscription.created` を Webhook で処理しておらず、`/api/stripe/checkout` に戻れなかった時に初回反映が止まっていました
 - 修正した内容: `customer.subscription.created` でも同期するようにし、一時障害時は `500` を返して Stripe の再送で回復できる形に整理しました
 - お送りするもの: `00_結論と確認方法.md` と修正済みファイル一式、必要に応じて `02_修正差分.patch`
-- ご確認いただきたいこと: テスト購読を 1 件実行し、`/dashboard` の `Current Plan` と `subscriptionStatus` が更新されるかご確認ください
+- 最低限のご確認: テスト購読を 1 件実行し、`/dashboard` の `Current Plan` と `subscriptionStatus` が更新されるかご確認ください
+- 追加確認: 可能であれば Stripe ダッシュボードや DB 側の更新もご確認ください
 - 適用方法: 通常は修正済みファイルを差し替えてください（patch は Git 運用の方向け補助です）
 
 内容をご確認いただき、問題なければ「承諾」をお願いします。
