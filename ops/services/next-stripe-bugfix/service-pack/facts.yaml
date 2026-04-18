@@ -77,7 +77,7 @@ phase_rules:
       - 未解決 secondary symptom の放置
   closed:
     can_offer:
-      - 再発か新規かの切り分け
+      - 再発か新規かの確認
       - 値引き不可の事実
       - 今回の続きとして扱えるかの判断
     can_ask_for:

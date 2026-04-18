@@ -11,3 +11,7 @@
 - 納品物そのものの品質基準は `/home/hr-hm/Project/work/docs/internal-quality-samples/`
 - 購入前に見せる見本ファイルは `/home/hr-hm/Project/work/サービスページ/購入前見本/`
 - 相手にコピペする文は `/home/hr-hm/Project/work/サービスページ/送付文/`
+
+補足:
+- `送付文/購入前見本/` には案内文だけを置きます
+- 見本ファイル本体は入れません

@@ -5,7 +5,7 @@ in_scope:
   - "本番のみ再現する500系や反映漏れ"
   - "Stripe Webhook の署名検証、不達、重複処理"
   - "Checkout / Billing Portal / Subscriptions 周辺の不具合"
-  - "対象不具合の原因を切り分けるための最小整理"
+  - "対象不具合の原因を確認するための最小整理"
 
 out_of_scope:
   - "新機能開発"

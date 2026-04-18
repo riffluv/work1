@@ -1,34 +1,33 @@
 総評
 
-かなり惜しいです。
-GitHub 上の現在の正本を読む限り、まだ「handoff も v1 固定でよい」とは言いません。 ただし理由は大きな設計問題ではなく、silent drift を起こしやすい小さな未接続がまだ 3 系統残っているからです。少なくとも今読める repo 正本では、service-registry.yaml に service_pack_root はなく、handoff README は decision/evidence の位置づけがまだ曖昧で、購入後の進捗共有（回答例2）は routing / state / regression に繋がっていません。さらに、handoff 側 regression の contract ref 命名も bugfix 側と未統一のままです。
+最新コミット後の GitHub 上の repo を読み直した結論です。
+前回指摘した修正のうち、handoff README の SoT 整列、service-registry.yaml の service_pack_root 追加、handoff routing への purchased_handoff_progress_update 追加、handoff regression の hyphen 命名統一、回答例2の regression case 追加は、いずれも反映を確認できました。README の整理も、共通 policy の page -> facts/boundaries -> decision/evidence -> routing/state -> seeds/tone に揃っています。
+
+そのうえで、まだ今すぐ直すべき最小パッチは 1 件だけ残っています。
+残っているのは handoff の purchased progress route についての route-state 同期の取りこぼしで、設計追加ではなく同期漏れです。大きな再設計は不要です。
 
 残存リスク
-README の source-of-truth 記述がまだ二重基準 — 今すぐ直すべき。handoff README は「L3 では facts / boundaries の次に decision / evidence を優先参照」と書いている一方で、同じ README の source-of-truth から外すもの に decision-contract.yaml と evidence-contract.yaml を入れています。共通 policy と runtime interface では decision/evidence は service 理解の優先層なので、この表現は maintainer と reviewer の解釈を再び割りやすいです。
-service-pack lookup がまだ implicit — 今すぐ直すべき。現在の service-registry.yaml は各 service に facts_file と source_of_truth しか持っておらず、service_pack_root が見当たりません。runtime 側が pack root を暗黙規約で探す前提が残るので、repo 構造変更や service 増加時に silent drift の種になります。
-購入後の進捗共有が public contract から runtime / regression へ未接続 — 今すぐ直すべき。公開準備文面には トークルーム回答例2 として、確認中の範囲・危険箇所・次にいつ返すかを伝える purchased phase の返しが明示されていますが、routing-playbooks.yaml は prequote_* / boundary_* / quote_sent_* / delivered_* までで、state-schema.yaml の current_route enum も同じ並びです。さらに handoff regression は answer_example_01 から answer_example_03 へ飛んでおり、回答例2に対応する case がありません。
-handoff regression の contract ref 命名が bugfix と未統一 — 今すぐ直すべき。handoff 側は decision_contract / evidence_contract / routing_playbooks の underscore 形式ですが、bugfix 側は decision-contract / evidence-contract / routing-playbooks の hyphen 形式です。resolver が strict なら handoff 監査が静かに弱くなりますし、仮に両対応でも 2 方言を残すのは将来 drift の温床です。
-
-今回 repo 正本で確認できた残存リスクは、全部「運用監視」ではなく「今すぐ直す」寄りです。どれも low-cost で、しかも runtime fidelity に直結するからです。
-
+purchased_handoff_progress_update が state 側に閉じていない — 今すぐ直すべき。 routing-playbooks.yaml には purchased_handoff_progress_update があり、regression もその route を参照していますが、state-schema.yaml の current_route.values にはまだその route が入っていません。つまり routing と regression では存在するのに、state continuity の正本では未登録です。これは silent drift になりやすいです。
+その route の return_timing が schema 外の語彙 — 今すぐ直すべき。 purchased_handoff_progress_update.state_contract.promised_next_action.return_timing は same_day_or_next_reply ですが、state-schema.yaml の promised_next_action.return_timing は immediate|next_reply|before_delivery|with_delivery|before_close|with_close で、共通 runtime interface もその閉じた timing vocabulary 前提で書かれています。今のままだと route が state 契約の外側に 1 個だけはみ出しています。
+回答例2の「危険箇所」ニュアンスは少し弱く圧縮されている — 運用監視で十分。 公開文面の回答例2は、どこまで確認できたか / どこが危険箇所になりそうか / 次にどこを見るか / いつ返すか まで含みますが、現在の route と regression は主に 確認範囲 / 次に見る点 / 返却タイミング に寄せています。実運用で進捗共有がやや平板になるならここを must_say 化すればよいですが、現時点では即修正必須までは言いません。
 今すぐ直すべき最小パッチ（最大3件）
-os/core/service-registry.yaml に service_pack_root を追加する
-bugfix-15000 と handoff-25000 の両方に、pack root への明示パスを足してください。facts_file と source_of_truth は残してよいですが、pack lookup だけは暗黙にしない方が安全です。
-ops/services/handoff-25000/service-pack/README.ja.md の SoT 記述を 1 回で揃える
-最小修正で十分です。
-public page を最上位正本、facts/boundaries を pack 内の基礎層、decision/evidence を pack 内の判断正本、routing/state を運用補助、seeds/tone を runtime asset と明記し、decision-contract.yaml と evidence-contract.yaml は source-of-truth から外すもの から外してください。ここは文章修正だけで drift をかなり減らせます。
-handoff の purchased-progress / fidelity を 1 パッチで閉じる
-1 つの論点なので、まとめて直すのが最小です。
-対象は次の 3 ファイルです。
-ops/services/handoff-25000/service-pack/routing-playbooks.yaml に purchased_handoff_progress_update を追加、ops/services/handoff-25000/service-pack/state-schema.yaml の current_route enum に同 route を追加、ops/tests/regression/service_pack_fidelity_handoff/cases.yaml に 回答例2 case を追加したうえで、同 file の contract ref 命名を bugfix 側と同じ hyphen 形式へ統一してください。これで public example 2 と runtime / state / regression の 3 点が一度に揃います。
+
+handoff の purchased progress route-state 同期パッチ
+直す対象は実質これ 1 件です。
+
+ops/services/handoff-25000/service-pack/state-schema.yaml
+current_route.values に purchased_handoff_progress_update を追加する。
+ops/services/handoff-25000/service-pack/routing-playbooks.yaml
+purchased_handoff_progress_update.state_contract.promised_next_action.return_timing を、新語彙追加ではなく既存 enum の next_reply に正規化する。
+
+これを推す理由は、今ある silent drift を閉じつつ、timing 語彙を増やさず v1 fixed の low-burden 方針を保てるからです。same_day_or_next_reply を新しい共通 enum として広げるより、今は 1 route だけ既存語彙へ寄せる方が軽くて安全です。
+
 今は触らない方がよいもの
-legacy upstream file の撤去や全面整理
-README にはまだ service.yaml / evidence-minimum.yaml / scope-matrix.md が upstream ref として残っていますが、runtime interface 自体は「runtime は pack を読む」前提です。今やるべきは upstream の撤去ではなく、pack 接続の明示と fidelity の穴埋めです。
-回答例2 以外の route 増殖
-今 GitHub 上で確認できる public gap は、購入後進捗共有の回答例2です。これ以上 route taxonomy を増やすと low-burden 運用を逆に壊しやすいので、まずは public contract に明示されている 1 本だけを回収すべきです。
-state-schema の項目追加
-現在の state は secondary_threads、unresolved_threads、promised_next_action、return_timing をすでに持っています。足りないのは schema の量ではなく、回答例2に対応する route 名の同期です。
+same_day_or_next_reply を共通 timing enum として docs / schema 全体に増やすこと。 これは今回の残件を直す方法としては重すぎます。共通 runtime interface と state-schema の語彙を増やすより、今回の 1 route を既存の next_reply に寄せる方が v1 fixed に合います。
+facts_file など legacy metadata を今すぐ registry から消すこと。 service_pack_root はすでに入口として入り、README も runtime がそこから読む前提に揃っています。ここで legacy cleanup まで進めると、未知の参照先を壊す可能性の方が高いです。今は fidelity 直結ではありません。
+回答例2の「危険箇所」まで今すぐ first-class contract 化すること。 たしかに公開文面にはありますが、今の route でも progress update の骨格は保持できています。ここは実返信で薄さが再発したら上げればよく、先に直すべきは route-state の未同期です。
+route/state 整合専用の新しい lint や仕組みを足すこと。 役には立ちますが、いま必要なのは設計追加ではなく 1 箇所の同期修正です。v1 後は monitoring 主軸という repo の方針にも、その方が合っています。
 最終判定
 
-現時点の GitHub 正本ベースでは、まだ handoff も v1 固定でよい とは言いません。
-判定は 「まだ今すぐ直すべき最小パッチが 3 件ある」 です。ただし全部 small sync で、再設計は不要です。この 3 件が入れば、その時点で初めて handoff も v1 固定、以後は実運用モニタリング中心 と言ってよい状態になります。
+まだ今すぐ直すべき最小パッチは 1 件残っています。
+なので、現時点ではまだ「handoff も v1 固定でよい」とは言いません。 ただし残件は handoff purchased progress の route-state 同期だけで、再設計や追加レイヤーは不要です。これを入れたら、その時点で handoff も v1 固定・以後は実運用監視中心 と言ってよい状態です。

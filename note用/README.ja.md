@@ -1,6 +1,6 @@
 # note用 README
 
-更新日: 2026-04-13
+更新日: 2026-04-18
 
 ## 目的
 
@@ -21,8 +21,9 @@
 1. [時系列メモ.md](/home/hr-hm/Project/work/note用/時系列メモ.md)
 2. [返信システム構築記録.md](/home/hr-hm/Project/work/note用/返信システム構築記録.md)
 3. [2026-04-13_返信システム開発日記_50件監査で見えた現在地.md](/home/hr-hm/Project/work/note用/2026-04-13_返信システム開発日記_50件監査で見えた現在地.md)
-4. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
-5. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
+4. [2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md](/home/hr-hm/Project/work/note用/2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md)
+5. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
+6. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
 
 ## 各ファイルの位置づけ
 
@@ -71,6 +72,21 @@
 
 ### 4. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
 
+### 4. [2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md](/home/hr-hm/Project/work/note用/2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md)
+
+- 役割: 後期の構造固定、軽量化、buyer語彙修正、商品化の輪郭が見えた日の記録
+- 主な内容:
+  - service-pack v1 固定
+  - decision / evidence / source-of-truth の整理
+  - monitoring フェーズ移行
+  - `切り分け` / `前回もご依頼...` のような buyer 違和感の修正
+- 時期感:
+  - 2026-04-18 時点の後期記録
+- 用途:
+  - 「構造が固まり、日本語の細部まで buyer 側へ寄った日」を追う
+
+### 5. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
+
 - 役割: この返信システムの moat と、公開しすぎない方がよい部分の整理
 - 主な内容:
   - 何が価値か
@@ -81,7 +97,7 @@
 - 用途:
   - 情報公開の境界確認
 
-### 5. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
+### 6. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
 
 - 役割: この資産をどう売るかの方向性メモ
 - 主な内容:

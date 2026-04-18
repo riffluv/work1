@@ -37,7 +37,7 @@ phase_minimums:
       - generic_reintake
       - full_repo_zip
   purchased:
-    goal: "切り分けと修正可否判断に必要な一次証跡をそろえる"
+    goal: "原因の確認と修正可否判断に必要な一次証跡をそろえる"
     preferred_order:
       - expected_behavior
       - actual_behavior

@@ -62,7 +62,7 @@ playbooks:
     state_contract:
       promised_next_action:
         action: "確認できたことと次の着手順を返す"
-        return_timing: same_day_or_next_reply
+        return_timing: next_reply
         owner: codex
 
   delivered_handoff_deeper_memo:

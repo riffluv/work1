@@ -27,6 +27,7 @@ thread_state:
       - prequote_handoff_non_engineer
       - boundary_bugfix_vs_handoff
       - quote_sent_handoff_scope_confirm
+      - purchased_handoff_progress_update
       - delivered_handoff_deeper_memo
   unresolved_threads:
     type: list

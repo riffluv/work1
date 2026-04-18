@@ -25,7 +25,7 @@ scope_unit:
 customer_facing_adjudication:
   same_likely: "同じ原因の可能性が高いため、まず今回の続きとして扱えるかを確認します"
   different_likely: "今回の不具合とは別の原因で起きていそうなので、新しい依頼になると先にお伝えします"
-  undecidable: "この時点では同じ原因か別原因かを断定せず、まず切り分け結果を返します"
+  undecidable: "この時点では同じ原因か別原因かを断定せず、まず確認結果を返します"
 
 unknown_cause_gate:
   formal_delivery_blockers:

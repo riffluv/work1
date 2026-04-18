@@ -8,7 +8,7 @@ playbooks:
       - "本番だけ失敗する"
     objective: "対応可否と15,000円の範囲を返し、最小情報だけ聞く"
     must_say:
-      - "15,000円には原因の切り分けと修正可否の確認を含む"
+      - "15,000円には原因の確認と修正可否の確認を含む"
       - "追加料金は自動で発生しない"
     ask_shape:
       - "画面"
@@ -30,7 +30,7 @@ playbooks:
       - "原因がWebhookではなく別層でも見てもらえるか"
     objective: "範囲確認と追加対応境界を返す"
     must_say:
-      - "切り分けと修正可否の確認までは15,000円の範囲"
+      - "原因の確認と修正可否の確認までは15,000円の範囲"
       - "別の大きい改修が必要なら、その時点で追加対応を相談"
     state_contract:
       promised_next_action:
@@ -55,7 +55,7 @@ playbooks:
           - "画面"
           - "文言"
       promised_next_action:
-        action: "primary symptom を優先して切り分け、secondary symptom の同一原因可否を返す"
+        action: "primary symptom を優先して原因を確認し、secondary symptom の同一原因可否を返す"
         return_timing: with_delivery
         owner: codex
 

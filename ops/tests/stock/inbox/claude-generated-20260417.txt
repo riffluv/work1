@@ -1,0 +1,251 @@
+[CASE-001]
+service: bugfix-15000
+phase: prequote
+urgency: high
+buyer_sentiment: anxious
+focus: 調べるだけ不安 + 追加料金不安
+相談文:
+Stripe決済で購入完了してるのに、会員ステータスが「未登録」のまま切り替わりません。前に別の人にも見てもらったんですが、「まず調べます」で止まって結局何も直らなかったので、今回も調査だけで終わるのが心配です。原因が想定と違ったら追加料金かかりますか？
+
+[CASE-002]
+service: bugfix-15000
+phase: prequote
+urgency: low
+buyer_sentiment: neutral
+focus: 非エンジニア + 症状だけ分かる
+相談文:
+お世話になります。ネットショップを運営しているのですが、月額プランの購入後にメールが届かないという問い合わせがお客様から来ています。自分では原因が分からないのですが、こちらで対応してもらえるものでしょうか。サイトはNext.jsで作ってもらったものです。
+
+[CASE-003]
+service: bugfix-15000
+phase: prequote
+urgency: medium
+buyer_sentiment: price_sensitive
+focus: 15,000円で収まるか不安
+相談文:
+Stripe webhook のエラーが出ていて、決済後の処理が途中で止まっています。ログを見ると checkout.session.completed は飛んでいるのですが、後続の DB 更新が走っていないようです。15,000円で対応可能ですか？もし原因が複数箇所にまたがる場合、別料金になりますか？
+
+[CASE-004]
+service: bugfix-15000
+phase: prequote
+urgency: high
+buyer_sentiment: frustrated
+focus: 本番で止まっている + 急ぎ
+相談文:
+本番環境で決済が通らなくなっています。昨日の夜から急にです。StripeのダッシュボードにはPayment Intentは立っているのですが、サイト側がsuccessに遷移しません。お客さんからも連絡来てるのですぐ見てほしいです。
+
+[CASE-005]
+service: bugfix-15000
+phase: prequote
+urgency: low
+buyer_sentiment: mixed
+focus: boundary - bugfix か handoff か不明
+相談文:
+前任のエンジニアが辞めてしまって、決済周りのコードがよく分かりません。最近お客さんから「購入したのに会員ページに反映されない」と言われたのですが、これが不具合なのか、そもそも実装が途中なのかも分からない状態です。どちらのサービスが合いますか？
+
+[CASE-006]
+service: bugfix-15000
+phase: prequote
+urgency: low
+buyer_sentiment: neutral
+focus: 確約を求める - 購入前に「直る保証」を聞く
+相談文:
+見積もり前の確認なのですが、このサービスでは15,000円で確実に直るという保証はありますか？もし直らなかった場合はどうなりますか？
+
+[CASE-007]
+service: bugfix-15000
+phase: quote_sent
+urgency: low
+buyer_sentiment: neutral
+focus: 原因が別箇所でもOKか
+相談文:
+見積もりありがとうございます。1点だけ確認なのですが、もし原因が Stripe 側ではなくて、うちの API Routes 側のバリデーション処理だった場合でも、今回の15,000円の範囲でお願いできますか？
+
+[CASE-008]
+service: bugfix-15000
+phase: quote_sent
+urgency: low
+buyer_sentiment: anxious
+focus: 購入前に作業範囲を細かく聞きたい
+相談文:
+見積もりいただきありがとうございます。購入する前にもう少し聞きたいのですが、「切り分けと修正可否の確認」って具体的にどこまでやってもらえるんですか？コードを修正して、動作確認まで含まれますか？
+
+[CASE-009]
+service: bugfix-15000
+phase: quote_sent
+urgency: low
+buyer_sentiment: price_sensitive
+focus: 値引き交渉
+相談文:
+お見積もりありがとうございます。正直なところ予算が厳しくて、10,000円くらいでお願いできないでしょうか。症状は1つだけなので、そこまで手間はかからないと思うのですが…。
+
+[CASE-010]
+service: bugfix-15000
+phase: purchased
+urgency: low
+buyer_sentiment: anxious
+focus: 調べるだけ不安 + 追加料金不安（購入後）
+相談文:
+購入しました。よろしくお願いします。念のため確認なのですが、もし見てもらった結果、想定していたStripeの問題じゃなかった場合でも、追加料金なしで対応してもらえますか？前に別の方に頼んだ時、途中で「これは別件です」と言われて追加費用を請求されたことがあるので…。
+
+[CASE-011]
+service: bugfix-15000
+phase: purchased
+urgency: medium
+buyer_sentiment: neutral
+focus: scope 揺れ - 購入後に別の症状も追加したい
+相談文:
+送ったコードで確認お願いします。あと、最初に伝えていたStripeの問題とは別なのですが、ユーザー登録時のメール送信も最近動いていないようです。もしついでに見てもらえるなら助かります。
+
+[CASE-012]
+service: bugfix-15000
+phase: purchased
+urgency: low
+buyer_sentiment: frustrated
+focus: 進捗が見えない不満
+相談文:
+購入してから2日経ったのですが、進捗はどうなっていますか？前の方にも同じように待たされた経験があるので、今どこまで見ていただけているか教えてもらえると安心します。
+
+[CASE-013]
+service: bugfix-15000
+phase: delivered
+urgency: low
+buyer_sentiment: neutral
+focus: 軽い追加症状 - 同一原因の可能性
+相談文:
+納品ありがとうございます。決済の件は直っていました！ただ1つだけ気になったのですが、決済完了メールの送信タイミングが以前より少し遅くなった気がします。今回の修正の影響ってありえますか？
+
+[CASE-014]
+service: bugfix-15000
+phase: delivered
+urgency: low
+buyer_sentiment: anxious
+focus: 本番反映の不安
+相談文:
+納品ありがとうございます。ローカルで確認して直っていることは分かりました。ただ、これを本番に出すのが少し怖いです。本番反映は自分でやる形ですよね？何か気をつけることはありますか？
+
+[CASE-015]
+service: bugfix-15000
+phase: delivered
+urgency: medium
+buyer_sentiment: frustrated
+focus: 納品後に直っていないと主張
+相談文:
+確認したのですが、まだ同じ症状が出ています。決済後にステータスが切り替わらないケースがまだあります。環境はVercelのプレビューです。もう一度見てもらえますか？
+
+[CASE-016]
+service: bugfix-15000
+phase: closed
+urgency: low
+buyer_sentiment: price_sensitive
+focus: リピーター値引き交渉
+相談文:
+前回はありがとうございました。決済の件は完全に直りました。今度は別の不具合なのですが、同じサイトの中の問題なので、前回の流れを分かってもらっている分、少し安くしてもらうことは可能ですか？
+
+[CASE-017]
+service: bugfix-15000
+phase: closed
+urgency: low
+buyer_sentiment: neutral
+focus: 同一原因を押してくる - 無料で見てほしい
+相談文:
+前回直してもらったStripeの決済反映の件なのですが、また同じような症状が出ています。前回と同じ原因だと思うのですが、これは前回の範囲でもう一度見てもらえますか？
+
+[CASE-018]
+service: bugfix-15000
+phase: closed
+urgency: medium
+buyer_sentiment: anxious
+focus: closed後に別件 + 急ぎ
+相談文:
+お世話になっております。前回の件とは別なのですが、今朝からStripeのwebhookが全く届かなくなっています。ダッシュボードを見ると送信は成功しているのですが、うちのエンドポイントに到達していないようです。急ぎで見てもらえますか？
+
+[CASE-019]
+service: handoff-25000
+phase: prequote
+urgency: low
+buyer_sentiment: confused
+focus: コード把握できない + 修正もしてほしい誤期待
+相談文:
+前任者が辞めてしまって、Next.jsで作られたサイトのコードが全く分かりません。決済周りに不具合も出ているのですが、まずコードを整理してもらって、ついでに不具合も直してもらえますか？25,000円でどこまでやってもらえますか？
+
+[CASE-020]
+service: handoff-25000
+phase: prequote
+urgency: low
+buyer_sentiment: neutral
+focus: 非エンジニア + 引き継ぎ目的
+相談文:
+外注で作ってもらったWebサービスがあるのですが、外注先との契約が終わって、次の担当者を探している状態です。次の人に引き継ぐ前に、今のコードがどうなっているか整理してもらうことはできますか？非エンジニアなので技術的なことは分からないのですが、読める形にしてもらえると助かります。
+
+[CASE-021]
+service: handoff-25000
+phase: prequote
+urgency: medium
+buyer_sentiment: anxious
+focus: AIで作ったコード + 怖くて触れない
+相談文:
+ChatGPTとCursorで作ったWebアプリがあるのですが、動いてはいるものの正直どこがどうなっているか自分でも分かりません。触ると壊れそうで怖いです。決済機能も入っているので、まずどこが危ないか知りたいのですが、対応してもらえますか？
+
+[CASE-022]
+service: handoff-25000
+phase: prequote
+urgency: low
+buyer_sentiment: price_sensitive
+focus: 25,000円の価値が分からない
+相談文:
+こちらのサービスに興味があるのですが、25,000円で具体的に何がもらえるのか教えてもらえますか？コードを整理するっていうのは、仕様書みたいなものを作ってもらえるということですか？修正は含まないんですよね？
+
+[CASE-023]
+service: handoff-25000
+phase: quote_sent
+urgency: low
+buyer_sentiment: neutral
+focus: 整理だけで止められるか確認
+相談文:
+見積もりありがとうございます。確認なのですが、もし整理してもらった結果、修正が必要だと分かった場合は、そのまま修正もお願いできますか？別料金になるのは構わないのですが、続けてお願いできるかだけ知りたいです。
+
+[CASE-024]
+service: handoff-25000
+phase: quote_sent
+urgency: low
+buyer_sentiment: anxious
+focus: 複数フローを聞きたいが予算が心配
+相談文:
+見積もりありがとうございます。実は決済だけじゃなくて、ユーザー登録の流れとメール通知の流れも気になっています。全部まとめて見てもらうと追加料金はいくらくらいですか？予算に限りがあるので先に知りたいです。
+
+[CASE-025]
+service: handoff-25000
+phase: purchased
+urgency: low
+buyer_sentiment: neutral
+focus: 購入後の進捗確認
+相談文:
+送ったファイルで何か分かりましたか？急ぎではないのですが、今どのあたりを見ていただいているか教えてもらえると助かります。
+
+[CASE-026]
+service: handoff-25000
+phase: purchased
+urgency: low
+buyer_sentiment: mixed
+focus: scope 揺れ - 購入後に修正を期待し始める
+相談文:
+整理を進めてもらっている中で恐縮なのですが、もし危険箇所が分かった時点で、軽い修正ならそのまま直してもらうことは可能ですか？別料金でもいいので、できれば整理と一緒にやってほしいです。
+
+[CASE-027]
+service: handoff-25000
+phase: delivered
+urgency: low
+buyer_sentiment: neutral
+focus: deeper memo - もう少し詳しいメモがほしい
+相談文:
+納品ありがとうございます。全体像は分かったのですが、次の外注先に渡す時に、もう少しファイルごとの役割を詳しく書いてもらえると助かります。追加費用がかかるなら教えてください。
+
+[CASE-028]
+service: handoff-25000
+phase: closed
+urgency: low
+buyer_sentiment: neutral
+focus: closed後 - 整理をもとに修正を依頼したい
+相談文:
+前回整理していただいたメモをもとに、次の担当者に相談したのですが、やはり修正が必要そうです。前回の整理の続きとして、修正もお願いすることはできますか？
