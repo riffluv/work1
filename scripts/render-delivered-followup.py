@@ -1465,7 +1465,7 @@ def build_case_from_source(source: dict) -> dict:
             {
                 "question_id": "q1",
                 "disposition": "answer_after_check",
-                "answer_brief": "今回のご連絡内容は確認しました。まず前回対応の続きとして扱える話かを確認します。",
+                "answer_brief": "はい、確認します。まず前回対応の続きとして扱える話かを確認します。",
                 "hold_reason": "納品後のご相談なので、今の確認ポイントを整理してからお返しします。",
                 "revisit_trigger": "必要な情報を受領したあとに、どの形で進めるかをお伝えします。",
             }
@@ -1628,7 +1628,7 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "same_cause_check":
         return "まず前回と同じ流れの話かを確認します。"
     if scenario == "generic_delivered":
-        return "まず前回対応の続きとして扱える話かを確認します。"
+        return None
     return None
 
 

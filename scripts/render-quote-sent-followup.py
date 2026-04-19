@@ -289,6 +289,8 @@ def subscription_scope_support_line(raw: str) -> str:
 def general_bugfix_direct_answer_line(raw: str) -> str:
     fit_level, _ = classify_capability_fit(raw)
     can_start = "まず確認できます" if fit_level == "cautious_fit" else "確認できます"
+    if any(marker in raw for marker in ["切り分けと修正可否", "動作確認まで含ま", "コードを修正して", "どこまでやってもらえる"]):
+        return f"{SERVICE_GROUNDING['fee_text']} の範囲で、原因確認からコード修正まで対応しています。"
     if any(marker in raw for marker in ["Stripe も見てもらえるんですよね", "Stripeも見てもらえるんですよね", "Stripe も見てもらえる", "Stripeも見てもらえる"]):
         return f"Stripe を含む決済導線も今回のサービスで{can_start}。"
     if any(marker in raw for marker in ["機会損失", "取りこぼして", "毎日だいたい", "注文が来る"]) and any(
@@ -352,6 +354,8 @@ def general_bugfix_direct_answer_line(raw: str) -> str:
 
 def general_bugfix_scope_detail_line(raw: str) -> str:
     priority = diagnostic_priority_line(raw)
+    if any(marker in raw for marker in ["切り分けと修正可否", "動作確認まで含ま", "コードを修正して", "どこまでやってもらえる"]):
+        return "動作確認も、こちらで確認できる範囲までは含めて進めます。"
     if any(marker in raw for marker in ["ぐるぐる", "先に進めない"]) and any(
         marker in raw for marker in ["カード", "クレジットカード", "Stripe"]
     ):
@@ -902,6 +906,8 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["購入後", "返事", "レスポンス", "キャンセル"])
     ):
         return "response_speed_anxiety"
+    if any(marker in combined for marker in ["切り分けと修正可否", "動作確認まで含ま", "コードを修正して", "どこまでやってもらえる"]):
+        return "general_bugfix_scope_question"
     if "直りますか" in combined and any(marker in combined for marker in ["で、結局", "結局これ"]):
         return "can_you_fix_direct"
     if has_bugfix_stack_context and any(marker in combined for marker in ["直せますか", "修正できますか"]):

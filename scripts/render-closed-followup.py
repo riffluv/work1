@@ -727,7 +727,7 @@ def build_case_from_source(source: dict) -> dict:
         return case
 
     if scenario == "price_discount_request":
-        has_new_issue = any(marker in raw for marker in ["別の箇所", "別の件", "また依頼したい", "また別", "不具合が見つかった"])
+        has_new_issue = any(marker in raw for marker in ["別の箇所", "別の件", "また依頼したい", "また別", "不具合が見つかった", "別の不具合"])
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [
@@ -1465,7 +1465,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 [direct_answer] + [item["answer_brief"] for item in secondary_now if item.get("answer_brief")]
             ),
         )
-        if blocking_missing_facts:
+        if ask_map:
             _append_unique(
                 paragraphs,
                 _paragraph_from_lines(

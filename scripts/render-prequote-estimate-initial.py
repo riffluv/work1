@@ -236,6 +236,8 @@ def detect_prequote_scenario(source: dict) -> str:
 
 
 def summarize_raw_message(raw: str) -> str:
+    if "月額プラン" in raw and any(marker in raw for marker in ["メールが届かない", "完了メールが届かない", "購入後にメール"]):
+        return "月額プラン購入後にメールが届かない"
     sentences = [part.strip(" 。！？") for part in re.split(r"[。！？]", raw) if part.strip(" 。！？")]
     generic_openers = {
         "はじめまして",
@@ -1198,8 +1200,10 @@ def scope_reason_for(case: dict) -> str:
         return "まずは Firestore 反映までの流れを確認して、timeout が出る箇所を切り分けます。"
     if "購入完了メール" in raw or "注文完了メール" in raw:
         return "まずは決済後のメール送信と反映処理のどちらで止まっているかを確認します。"
+    if any(marker in raw for marker in ["月額プラン", "購入後"]) and any(marker in raw for marker in ["メールが届かない", "完了メールが届かない", "メールが行かない"]):
+        return "まずは購入完了後のメール送信処理がどこで止まっているかを確認します。"
     if "メール" in summary:
-        return "まずは解約イベントを受けたあとのメール送信まわりを、1件の不具合として確認します。"
+        return "まずはメール送信処理がどこで止まっているかを、1件の不具合として確認します。"
     if "404" in summary or "完了ページ" in summary:
         return "まずは決済完了後の遷移先まわりを、1件の不具合として確認します。"
     return "まずはこの不具合がどこで止まっているかを確認します。"
