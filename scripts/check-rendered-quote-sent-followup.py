@@ -160,13 +160,13 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("dashboard scope case does not anchor the webhook scope")
 
     if scenario == "general_bugfix_scope_question":
-        if not has_any(rendered, ["このサービス", "確認できます"]):
+        if not has_any(rendered, ["対応できます", "確認できます", "まず確認できます"]):
             errors.append("general bugfix scope case does not answer service-fit directly")
         if "日本語が少し整理しきれていない" in rendered:
             errors.append("general bugfix scope case comments on the buyer's Japanese ability")
         if (
             has_any(raw, ["Checkout", "success ページ", "画面が真っ白", "Vercel", "500エラー", "見てもらうことって可能でしょうか", "見てもらえる感じですか", "昨日までは", "今朝から"])
-            and has_any(rendered, ["Stripeや決済まわりの不具合であれば、このサービスで確認できます。", "Stripeや決済まわりの不具合であれば、このサービスでまず確認できます。"])
+            and has_any(rendered, ["Stripeや決済まわりの不具合であれば、確認できます。", "Stripeや決済まわりの不具合であれば、まず確認できます。"])
         ):
             errors.append("general bugfix scope case still falls back to the old generic L3 despite concrete context")
         if ("http://" in raw or "https://" in raw) and has_any(raw, ["直せますか", "動かないです"]) and not has_any(rendered, ["どこで止まるか", "エラー表示", "教えてください"]):
@@ -236,7 +236,7 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("feature addition scope case is missing an alternative path after declining")
 
     if scenario == "outline_share_permission_question":
-        if not has_any(rendered, ["概要だけ", "今回の範囲", "問題ありません"]):
+        if not has_any(rendered, ["概要だけ", "15,000円の範囲", "15000円の範囲", "問題ありません"]):
             errors.append("outline share permission case does not answer permission directly")
         if not has_any(rendered, ["分かる範囲", "症状", "止まる"]):
             errors.append("outline share permission case does not invite a minimal outline naturally")

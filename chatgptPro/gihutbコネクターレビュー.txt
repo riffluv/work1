@@ -1,0 +1,346 @@
+読めた指定ファイル:
+
+
+scripts/render-prequote-estimate-initial.py
+
+
+scripts/render-quote-sent-followup.py
+
+
+scripts/render-post-purchase-quick.py
+
+
+scripts/render-delivered-followup.py
+
+
+scripts/render-closed-followup.py
+
+
+scripts/check-coconala-reply-full-regression.py
+
+
+scripts/check-coconala-reply-role-suites.py
+
+
+os/core/service-registry.yaml
+
+
+docs/external-research/2026-04-02-reply-system-stability-patterns-agent-reach.ja.md
+
+
+docs/external-research/2026-04-04-reply-structure-direction-validation-agent-reach.ja.md
+
+
+docs/external-research/2026-04-05-thought-preserving-design-agent-reach.ja.md
+
+
+docs/external-research/2026-04-05-reply-system-missed-points-agent-reach.ja.md
+
+
+docs/external-research/reasoning-preservation-research.md
+
+
+chatgptPro/返信システム完全性レビュー_思考保存設計.txt
+
+
+chatgptPro/返信文強化に何が足りないのか.txt
+
+
+chatgptPro/返信システム強化_実装前追加調査_2026-04-03.txt
+
+
+読めなかった指定ファイル:
+
+
+なし
+
+
+補足: この環境では「GitHub コネクター」専用ツールは利用可能ツールとして出ていなかったため、公開 GitHub / raw から実ファイルを取得して読みました。指定外ですが、評価精度を上げるために scripts/render-coconala-reply.py、scripts/reply_quality_lint_common.py、scripts/check-rendered-*.py、full regression から呼ばれる一部 checker も補助的に確認しています。service-pack 配下の個別 YAML は今回の指定対象ではないため、中身の詳細評価まではしていません。リポジトリ自体は公開 GitHub 上で確認でき、README でもココナラ用ワークスペースとして示されています。
+1. 総評
+結論から言うと、現行 repo は「かなり良い骨格に入っている」が、まだ “主質問未回答・不要な聞き返しを構造的に潰し切る” には一段足りないです。
+ただし、弱さの主因は scenario や renderer 分岐が足りないことではありません。むしろ分岐はすでにかなり増えています。いま残っている弱さは、主に次の層です。
+領域評価AI の思考を潰さないかなり改善済み。ただし renderer 側の文面分岐がまだ強く、decision が最終出力に必ず反映されたかの保証が弱いサービス内容を把握するservice-registry.yaml と service grounding は良い。ただし絶対パス依存と final policy validator の中央集約がやや弱い主質問に正面から答えるreply_contract / answer_map / response_decision_plan でかなり進んでいる。ただし全 renderer で同じ強さの coverage check にはまだなっていない
+特に重要なのは、quote_sent / post_purchase / delivered / closed では response_decision_plan が入り、primary_concern、facts_known、blocking_missing_facts、direct_answer_line、response_order のような「思考を潰さないための中間表現」がすでに実装されています。これは、参考資料で示されている「自由生成に寄せず、分類・判断・最終検証を分ける」方向と一致しています。
+一方で、prequote は reply_contract が強いものの response_decision_plan 形式としては他 renderer より薄く、delivered / closed は renderer 内の final validator が弱めです。ただし統合側の render-coconala-reply.py と lane validator / common lint では、direct_answer_first、buyer_questions、known_info_reask、template_leakage、hallucination などを見ており、repo 全体としては validator/eval の方向にかなり寄っています。
+なので今やるべきことは、大規模再設計ではなく、既存骨格を “decision-locked renderer” に少し寄せることです。つまり、「分類した」「答えるべき主質問を決めた」「直接回答文を作った」だけで終わらせず、その直接回答が実際に冒頭付近に出ているか、既知情報を聞き返していないか、公開サービス範囲を破っていないかを共通 property として落とすのが最小で効きます。
+
+2. 今の状態で強いところ
+2.1 reply_contract の骨格は正しい
+render-prequote-estimate-initial.py は、明示質問を explicit_questions に分解し、primary_question_id、answer_map、ask_map、issue_plan、required_moves、forbidden_moves を持たせています。これは「相手の文章から主質問を拾い、答える / 保留する / 最小限聞く」を renderer 前に固定する設計です。見積り初回では特に、この構造があることで、自由文生成が先に走って主質問を落とすリスクをかなり下げています。
+2.2 response_decision_plan が入っているのは大きい
+quote_sent、post_purchase、delivered、closed では、単なる scenario 分岐ではなく、build_response_decision_plan() があり、primary_concern、facts_known、blocking_missing_facts、direct_answer_line、response_order を持っています。これは、参考メモで言われていた「理解を renderer の前に保存する」方向そのものです。ここはかなり良いです。
+特に direct_answer_line があるのは重要です。文章を自然にする前に、「主質問へ最初に何と答えるか」を短い文として持てるため、後段で文章が丸まっても検証しやすくなります。
+2.3 service grounding が入っている
+os/core/service-registry.yaml では、bugfix-15000 が public: true、handoff-25000 が public: false になっており、public_reply_must_use_public_true_only / private_services_are_internal_reference_only のルールもあります。これは、公開範囲と内部参照を分けるうえで良い設計です。
+さらに shared 側では service registry から service record を解決し、facts.yaml、evidence-contract.yaml、routing-playbooks.yaml を読む形になっています。quote_sent では capability / diagnostic patterns も service pack から引く構造があり、「サービス内容を覚えたふりで答える」よりかなり安全です。
+2.4 統合 validator / common lint の方向が良い
+指定ファイル外ですが重要なので補足すると、render-coconala-reply.py の common validator はかなり良い方向です。buyer_questions、known_info_reask、template_leakage、hallucination、direct_answer_first、complaint_opening、closing_present などを見ています。これは「文章をうまくする」ではなく、「主質問未回答・聞き返し過多・テンプレ漏れ」を潰す方向です。
+reply_quality_lint_common.py も、内部用語漏れ、負担転嫁、価格アンカー、hard-no 行動、reasoning preservation などを拾っており、現行 repo の品質管理は単なる文体 lint ではなく、すでに policy / correctness 側に踏み込んでいます。
+2.5 regression / role suites の束ね方も良い
+check-coconala-reply-full-regression.py は、contract check、reply regression、quote_sent template regression、reply memory regression、service-pack fidelity regression を束ねています。さらに check-coconala-reply-role-suites.py は seed、renderer_seed、edge、eval、holdout、regression_seed を role ごとに回す構造です。これは、live 確認と stress/eval/holdout を分けて育てる土台として良いです。
+
+3. 今の状態でまだ弱いところ
+3.1 弱さは「scenario 不足」ではなく「decision → output の保証不足」
+いちばんの論点はここです。
+今の renderer 群は、かなり多くの scenario を持っています。quote_sent、post_purchase、delivered、closed は特に、scenario 分岐がすでに大きいです。なので、ここからさらに「このケースが抜けたから scenario を足す」を続けると、モグラたたきに戻るリスクが高いです。
+不足しているのは、scenario の数よりも、
+
+
+direct_answer_line が本当に出力冒頭に出たか
+
+
+answer_map の各 answer_now が実際に本文に反映されたか
+
+
+blocking_missing_facts がないのに聞き返していないか
+
+
+facts_known に入っている内容を再質問していないか
+
+
+private service / external contact / raw secret / refund promise などを最終文で破っていないか
+
+
+を 全 renderer 共通の property として必ず検査する層です。
+すでに common validator はありますが、まだ marker ベースの個別対策が多く、「contract coverage を共通仕様として機械的に見る」段階までは行き切っていません。
+3.2 prequote と他 renderer の中間表現が少し揃っていない
+prequote は reply_contract が強い一方、response_decision_plan 形式は他 renderer ほど前面に出ていません。逆に quote_sent 以降は response_decision_plan が強い。ここは揃えたほうがよいです。
+大きな再設計はいりません。prequote にも薄い response_decision_plan を追加して、
+primary_concern:facts_known:blocking_missing_facts:direct_answer_line:response_order:
+を持たせるだけで、validator 側を共通化しやすくなります。
+3.3 delivered / closed は renderer 内 final validation が弱い
+post_purchase には validate_render_payload() があり、違反時に rendered_reply_validator_mode = "guardrail_violation" を付けます。prequote にも payload validation があります。一方で、delivered / closed は renderer 内に同等の validate_render_payload() が見当たりません。もちろん統合側や lane validator では検査されていますが、renderer 単体の安全性はやや薄いです。
+ここは live を壊さないためにも、「renderer 内では記録だけ、regression では strict fail」という二段構えがよいです。
+3.4 service grounding は良いが、絶対パス依存が運用リスク
+service-registry.yaml の service_pack_root と facts_file は /home/hr-hm/Project/work/... の絶対パスです。実運用環境では問題ない可能性がありますが、repo を別環境で回す regression / 外部監査 / CI では壊れやすいです。
+さらに shared loader では routing-playbooks.yaml 読み込み失敗時に一部 RuntimeError を握りつぶして route lookup を続行する箇所があります。live 安全性としては理解できますが、eval では「service pack が読めていないのに generic に落ちた」ことを見逃す可能性があります。ここは --strict-service-grounding 的な eval 専用チェックを追加したほうがよいです。
+3.5 generic fallback はまだ危険域がある
+generic_quote_sent、generic_followup、generic_delivered、generic_closed のような fallback は必要です。ただし、「具体的な主質問があるのに generic fallback が生き残る」ことは、主質問未回答の温床になります。
+すでに check-rendered-quote-sent-followup.py では generic_quote_sent fallback survived a concrete quote_sent question のような発想が入っており、方向は良いです。これを全 lifecycle に広げると効きます。
+
+4. さらに良くするなら最小で触るべき順
+第1優先: 共通 property validator を薄く追加する
+新しい大規模層ではなく、既存の render-coconala-reply.py / reply_quality_lint_common.py の延長で十分です。
+追加したい property はこの5つです。
+property目的落とすべき失敗contract_answer_coverage主質問未回答を防ぐanswer_now / decline なのに本文に直接回答がないdirect_answer_before_ask聞き返し先行を防ぐask / 手順 / hold reason が direct answer より前に出るno_reask_known_facts不要な聞き返しを防ぐfacts_known にある内容をもう一度聞くask_only_if_blocking聞き返し過多を防ぐblocking_missing_facts なしに ask が出るpolicy_final_output公開範囲破りを防ぐraw secret、外部連絡、外部決済、直接 push、本番 deploy、返金約束、private service の公開案内
+すでに似た検査はあります。やるべきことは「散らばった marker 検査を置き換える」ではなく、共通の最後の門として足すことです。これなら live 系を壊しにくいです。
+第2優先: response_decision_plan の required fields を全 renderer で揃える
+対象はこの5 renderer です。
+
+
+render-prequote-estimate-initial.py
+
+
+render-quote-sent-followup.py
+
+
+render-post-purchase-quick.py
+
+
+render-delivered-followup.py
+
+
+render-closed-followup.py
+
+
+最低限、全 renderer で次を持たせるのがよいです。
+response_decision_plan:  primary_question_id:  primary_concern:  buyer_emotion:  facts_known:  blocking_missing_facts:  direct_answer_line:  response_order:
+quote_sent / post_purchase / delivered / closed はすでに近いので、主な追加対象は prequote の整合です。
+第3優先: strict mode を regression 側だけに入れる
+live でいきなり fail させると壊れます。なので、
+
+
+live render: warning / render_payload_violations / metadata 付与
+
+
+regression: --strict-validator で fail
+
+
+role suites: edge / eval / holdout から strict を強める
+
+
+seed / renderer_seed: まず既存合格維持
+
+
+がよいです。
+check-coconala-reply-full-regression.py はすでに複数 checker を束ねているので、ここに strict option を通すのが自然です。
+第4優先: generic fallback の生存条件を狭くする
+新 scenario を足す前に、次を eval で落とすべきです。
+具体質問が検出されているのに generic fallback のままbuyer_questions があるのに generic ask が出る価格・返金・追加料金質問なのに money anchor が冒頭にない対応可否質問なのに「確認します」だけで終わる
+これは scenario を増やさずに、未回答率を下げます。
+第5優先: service registry の path 解決を eval で厳格化する
+今すぐ live 実装を変える必要はないですが、eval では少なくとも、
+
+
+service_pack_root が読めない
+
+
+public service でないものを public reply に使っている
+
+
+hard_no が final output で破られている
+
+
+を fail にしたほうがよいです。
+
+5. やってはいけない方向
+5.1 scenario をさらに増やして解決しようとする
+これは一番危険です。現状でも scenario 分岐は十分大きいです。ここからケースごとに renderer 文面を増やすと、
+
+
+似た文の重複
+
+
+direct answer の重複
+
+
+generic fallback の見落とし
+
+
+policy 破りの局所修正
+
+
+既存 live ケースの破壊
+
+
+が増えます。
+新 scenario を足す条件は、新しい lifecycle / 公開範囲 / policy 境界 / 入力型が明確に違う場合だけでよいです。
+5.2 「文章を自然にする」後処理を強くする
+render-coconala-reply.py の apply_semantic_safe_naturalization() が identity-only になっているのは正しいです。意味を変えない typed naturalizer がない段階で自然化を強くすると、せっかく作った reply_contract / direct_answer_line を後段で壊します。
+5.3 外部AI監査を live 判定に直結する
+外部AI監査は有効ですが、live の送信可否を毎回 AI judge に委ねるのは危険です。使い方は、「失敗ケースを見つけて eval fixture に戻す」です。運用ループに入れるべきで、送信直前 gate の主役にしないほうがよいです。
+5.4 聞き返しを安全策として増やす
+このシステムの目標は「相手の文章に対して主質問へ正面から答えること」です。聞き返しは安全に見えますが、実際には主質問未回答の逃げ道になります。
+聞き返しは、
+blocking_missing_facts があるanswer_after_check の理由が明示されているask_text が最小である既知情報を再質問していない
+を満たす場合だけに寄せるべきです。
+
+6. 文章学習の運用方針
+6.1 live 確認用ケース
+live 確認用は、件数を増やしすぎないほうがよいです。目的は「本番で壊していないか」の確認です。
+見るべき項目は文体ではなく、次です。
+
+
+主質問に冒頭で答えているか
+
+
+価格 / 返金 / 追加料金 / 対応可否を逃げていないか
+
+
+不要な聞き返しがないか
+
+
+既知情報を再質問していないか
+
+
+公開サービス範囲を破っていないか
+
+
+ココナラ外誘導・raw secret・直接 push・本番 deploy を許可していないか
+
+
+complaint / anxiety の冒頭受け止めが崩れていないか
+
+
+live 確認用は seed / renderer_seed に近い役割で、少数・固定・毎回必ず通すがよいです。
+6.2 learning / stress test 用 batch
+learning / stress test は、ケース数を増やしてよい場所です。
+ここでは、
+
+
+価格不安
+
+
+返金質問
+
+
+追加料金不安
+
+
+「対応できますか」
+
+
+「このまま購入していいですか」
+
+
+「何を送ればいいですか」
+
+
+「前にも送ったのですが」
+
+
+「本番キーを貼っていいですか」
+
+
+「Zoom できますか」
+
+
+「外部で送っていいですか」
+
+
+「前回と同じ症状です」
+
+
+「別原因ならどうなりますか」
+
+
+のような、主質問未回答・不要な聞き返しが起きやすいケースを batch に寄せるべきです。
+現在の role suites は edge、eval、holdout を持っているので、このまま活かせます。edge は既知の地雷、eval は改善確認、holdout は過学習検出に使うのがよいです。
+6.3 外部AI監査
+外部AI監査に聞くべきことは、「この文章はうまいか」ではありません。
+監査プロンプトは、例えばこういう観点に固定するのがよいです。
+1. 相手の主質問は何か2. 返信はその主質問に最初の2段落以内で答えているか3. 答えていないなら、どの質問を落としているか4. 既に相手が出した情報を聞き返していないか5. 聞き返しは blocking missing facts に限られているか6. サービス範囲・公開範囲・運用ルールを破っていないか7. 価格・返金・追加料金への回答が曖昧に逃げていないか
+監査結果は、その場で prompt を増やすのではなく、fixture / expected marker / property validator に戻すのがよいです。参考資料でも、小さな curated set、golden set、post-check を育てる方向が推奨されています。
+6.4 classifiers / correctness / policy adherence / evals の使い方
+この repo では、次の分担にするときれいです。
+層役割具体化classifiers入力理解lifecycle、scenario、buyer_questions、known_facts、emotion、service_hint、riskcorrectness主質問回答primary_question_id、answer_map、direct_answer_line、coveragepolicy adherence破ってはいけない運用public only、no raw secret、no external contact、no direct push、no prod deploy、no refund promiseevals退行検出role suites、holdout、property buckets、failure report
+特に「主質問未回答や不要な聞き返しを減らす」なら、classifiers は scenario 名を当てるためだけではなく、buyer_questions と known_facts を抽出する層として使うべきです。そこから correctness validator が「答えたか」「聞き返していないか」を見るのが一番効きます。
+
+7. 現行骨格より良い案があるならその比較
+完全置き換え案は、いま採るべきではありません。現行骨格はかなり良いです。
+ただし、現行骨格の上に置くなら、明確に上回る最小案はあります。名前を付けるなら、Decision-locked renderer です。
+比較
+観点現行骨格Decision-locked renderer残すものservice grounding、scenario、reply_contract、response_decision_plan、renderer、validator、evalすべて残す置き換えるものrenderer ごとの局所 validator、scenario ごとの個別 marker 増殖共通 property validator を最後の門にする上回る理由すでに良いが、decision が最終文に反映された保証が不均一主質問回答・聞き返し・policy を lifecycle 横断で検査できる実装コスト既に実装済み低〜中。共通 validator 追加、5 renderer 接続、fixtures 追加運用リスクscenario 増殖でモグラたたき化しやすいfalse positive のリスクあり。ただし strict を eval 限定にすれば低いいま採るべきか現行は維持部分採用すべき
+この案は、現行骨格を壊しません。むしろ、今ある reply_contract / response_decision_plan を最大限活かします。
+実装イメージはこれです。
+errors.extend(validate_contract_answer_coverage(case, rendered))errors.extend(validate_direct_answer_order(case, rendered))errors.extend(validate_no_reask_known_facts(case, rendered))errors.extend(validate_ask_only_if_blocking(case, rendered))errors.extend(validate_policy_final_output(case, rendered))
+これを renderer 内に全部ベタ書きするのではなく、共通 lint に寄せる。live では warning、regression では fail。これが一番コスト対効果が高いです。
+Two-Step 生成や Self-Consistency も参考資料では候補になりますが、今の repo ではまだ主役にしなくてよいです。まずは plan-output integrity check のほうが安く、live を壊しにくく、目的に直結します。
+
+8. 返信システム強化メモに残すべき原則
+残すべき原則は、次の8つです。
+
+
+主質問は scenario より上位に置く。
+scenario が合っていても、主質問に答えていなければ失敗。
+
+
+聞き返しは blocking missing facts があるときだけ。
+不安だから聞く、ではなく、答えるために不可欠だから聞く。
+
+
+direct_answer_line は最終文に出るまで完了ではない。
+plan に存在するだけでは不十分。冒頭付近に出ていることを検査する。
+
+
+既知情報の再質問は品質事故として扱う。
+facts_known / reply_memory / buyer-provided context を再質問したら fail。
+
+
+service grounding は文面生成前ではなく、最終文でも検査する。
+public/private、価格、scope、hard-no は final output policy。
+
+
+scenario 追加より property 追加を優先する。
+新しい地雷は、まず coverage、ask_gating、policy、known_fact のどれで落とせるかを見る。
+
+
+live と learning を混ぜない。
+live は少数固定で退行検出。learning / stress / holdout は失敗を集めて育てる場所。
+
+
+外部AI監査は文章添削ではなく、未回答検出器として使う。
+「自然さ」ではなく、「主質問・既知情報・不要質問・policy」を判定させ、結果を eval に戻す。
+
+
+最終判断としては、現行骨格は捨てないほうがいいです。方向は合っています。次に触るべき最小点は、scenario 追加ではなく、reply_contract / response_decision_plan と final output を結ぶ共通 validator です。これがいちばん「AI の思考を潰さず、サービス内容と運用ルールを踏まえ、主質問に正面から答える」目的に効きます。

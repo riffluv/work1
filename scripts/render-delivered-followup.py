@@ -62,7 +62,7 @@ def load_service_grounding() -> dict:
         "scope_unit": facts.get("scope_unit") or "",
         "talkroom_only_rule": "必要なやり取りはこのトークルーム内で進めます。",
         "same_cause_rule": "同じ原因なら差し戻しの続きとして見ます。別の原因なら、その時点で切り分けて案内します。",
-        "deployment_boundary_rule": "本番反映の代行は前提にしていません。必要なら反映手順が分かる形で返します。",
+        "deployment_boundary_rule": "本番反映は、ご自身で進めていただく形です。必要なら反映手順が分かる形で返します。",
         "support_window_rule": "補足で答えられる範囲ならこのまま返します。",
         "hard_no": facts.get("hard_no") or [],
     }
@@ -567,7 +567,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
             blocking_missing_facts = ["missing_points"]
             direct_answer_line = "期待と違っていた点は確認しました。"
     elif scenario == "extra_scope_after_delivery":
-        direct_answer_line = "軽く確認することはできますが、Webhookとは別の話なら今回の範囲とは分けて案内します。"
+        direct_answer_line = "軽く確認することはできますが、Webhookとは別の話ならこの範囲とは分けて案内します。"
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "backup_diff_request":
         direct_answer_line = "修正前のファイルは別途保管していませんでした。"
@@ -1065,7 +1065,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "軽く確認することはできますが、Webhookとは別の話なら今回の範囲とは分けて案内します。",
+                    "answer_brief": "軽く確認することはできますが、Webhookとは別の話ならこの範囲とは分けて案内します。",
                 },
                 {
                     "question_id": "q2",
@@ -1236,7 +1236,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "ここでの「未確認」は、今回はそこまで確認していないという意味です。できなかったのか、今回の範囲外だったのかは必要なら補足します。",
+                    "answer_brief": "ここでの「未確認」は、今回はそこまで確認していないという意味です。できなかったのか、この範囲外だったのかは必要なら補足します。",
                 }
             ],
             "ask_map": [],
@@ -1311,7 +1311,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "本番反映の代行は前提にしていません。必要なら、このトークルーム内で反映手順が分かる形にして返します。",
+                    "answer_brief": "本番反映は、ご自身で進めていただく形です。必要なら、このトークルーム内で反映手順が分かる形にして返します。",
                 }
             ],
             "ask_map": [],

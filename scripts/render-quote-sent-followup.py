@@ -990,7 +990,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
                 response_order = ["reaction", "direct_answer", "next_action"]
             else:
                 blocking_missing_facts = ["change_points"]
-                direct_answer_line = "同じ提案で進められるかは、追加したい内容が今回の範囲に収まるかを確認してからお返しします。"
+                direct_answer_line = "同じ提案で進められるかは、追加したい内容が15,000円の範囲に収まるかを確認してからお返しします。"
                 response_order = ["reaction", "direct_answer", "ask", "next_action"]
     elif scenario == "purchase_timing":
         direct_answer_line = "来週の購入でも大丈夫です。"
@@ -1093,7 +1093,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "新しい機能追加は、今回の不具合修正の範囲ではありません。"
         response_order = ["reaction", "direct_answer", "answer_detail"]
     elif scenario == "outline_share_permission_question":
-        direct_answer_line = "概要だけでも、まず今回の範囲か確認できます。"
+        direct_answer_line = "概要だけでも、まず15,000円の範囲か確認できます。"
         response_order = ["reaction", "direct_answer", "answer_detail"]
     elif scenario == "auth_boundary_scope_question":
         direct_answer_line = "決済導線に関わる範囲として、まず確認できます。"
@@ -1179,7 +1179,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "同じ提案でいけるかは、追加された内容が今回の範囲に収まるかを見てからお返しします。",
+                    "answer_brief": "同じ提案でいけるかは、追加された内容が15,000円の範囲に収まるかを見てからお返しします。",
                     "hold_reason": "決済エラーとメール通知が同じ原因かどうかを先に切ります。",
                     "revisit_trigger": "変更点を受領したあとに、同じ提案で進めるかをお返しします。",
                 }
@@ -1587,7 +1587,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "Stripeの定期課金まわりの不具合であれば、このサービスでまず確認できます。",
+                    "answer_brief": "Stripeの定期課金まわりの不具合であれば、まず確認できます。",
                 }
             ],
             "ask_map": [],
@@ -1604,7 +1604,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "はい、Stripeや決済まわりの不具合であれば、このサービスでまず確認できます。",
+                    "answer_brief": "はい、Stripeや決済まわりの不具合であれば、まず確認できます。",
                 }
             ],
             "ask_map": [],
@@ -1621,7 +1621,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "Stripeのチェックアウトに進まない不具合であれば、このサービスでまず確認できます。",
+                    "answer_brief": "Stripeのチェックアウトに進まない不具合であれば、まず確認できます。",
                 }
             ],
             "ask_map": [],
@@ -1818,7 +1818,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "概要だけでも、まず今回の範囲か確認できます。",
+                    "answer_brief": "概要だけでも、まず15,000円の範囲か確認できます。",
                 }
             ],
             "ask_map": [],
@@ -2098,7 +2098,7 @@ def draft_opening_anchor(case: dict) -> str:
             return "決済エラーの件ですね。"
         return "決済まわりの不具合の件ですね。"
     if scenario == "scope_constraints_question":
-        return "今回の範囲や制約が気になっている件ですね。"
+        return "15,000円の範囲や制約が気になっている件ですね。"
     if scenario == "mixed_scope_fee_question":
         return "決済ボタンの件と別の不具合を一緒に相談したい件ですね。"
     if scenario == "browser_vs_code_question":

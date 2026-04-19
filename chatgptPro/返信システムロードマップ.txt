@@ -1,0 +1,368 @@
+1. 総評
+
+結論は、「renderer を増やす」ではなく、「decision / reply_contract / response_decision_plan が最終文に反映されたかを、既存 validator / regression の延長で確認する」順番がいちばん壊れにくいです。
+
+現在の repo には、すでに良い土台があります。quote_sent / post_purchase / delivered / closed には build_response_decision_plan() があり、direct_answer_line、blocking_missing_facts、response_order のような「主質問にどう答えるか」を renderer 前に保持する構造があります。 また、統合側の common validator には buyer_questions、known_info_reask、direct_answer_first などがすでに並んでおり、方向性は「文章をうまくする」より「未回答・聞き返し事故を減らす」に寄っています。
+
+なので、次の実行方針はこうです。
+
+まず live を一切止めずに warn-only の property check を足す → learning/eval 側で strict 化 → 失敗ケースだけ fixture 化 → 最後に必要最小限だけ renderer を直す。
+
+ここを逆にして、先に scenario や renderer 文面を増やすと、またモグラたたきになります。
+
+2. 優先順位つきロードマップ
+優先 1: 現状 baseline を固定する
+
+最初にやることはコード変更ではなく、今の合格状態を固定することです。check-coconala-reply-full-regression.py は contract / reply regression / quote_sent template / reply memory / service pack fidelity をまとめて走らせる構造になっており、--role / --exclude-role も受けています。 また、check-coconala-reply-role-suites.py は seed、renderer_seed、edge、eval、holdout、regression_seed をデフォルトで回す形です。
+
+実行順:
+
+python3 scripts/check-coconala-reply-role-suites.py --save-report
+python3 scripts/check-coconala-reply-full-regression.py --save-report --show-pass-details
+
+目的:
+この時点の latest.txt を「壊していない基準」にする。
+
+まだやらないこと:
+この段階では renderer 修正も scenario 追加もしない。
+
+優先 2: common validator に warn-only の property check を足す
+
+次に、scripts/render-coconala-reply.py の common validator に、既存チェックの延長として plan-output integrity を足します。新しい大きな層は作りません。
+
+追加する property は最大4つで十分です。
+
+property	見ること	目的
+main_question_answered	reply_contract.primary_question_id の answer_brief または response_decision_plan.direct_answer_line が本文に出ているか	主質問未回答を防ぐ
+answer_before_ask	ask / hold reason / 手順説明が direct answer より前に出ていないか	聞き返し先行を防ぐ
+ask_only_if_blocking	blocking_missing_facts が空なのに質問していないか	不要な聞き返しを防ぐ
+stage_policy_grounded	state / hard_constraints / service_grounding に反する文がないか	公開範囲・運用ルール破りを防ぐ
+
+すでに common validator では direct_answer_line が opening window にあるか、ask が direct answer より前にないかを見る処理があります。 なので、ここでやるべきは「別 validator を作る」ではなく、今ある common validator の対象を reply_contract / response_decision_plan / hard_constraints まで少し広げることです。
+
+重要:
+最初は fail させない。common_warnings か property_warnings に出すだけにします。
+
+優先 3: role suites で strict 化の順番を分ける
+
+warn-only が出せるようになったら、次は role ごとに strict の強さを変えます。
+
+推奨順はこれです。
+
+順番	role	property check
+1	edge	strict
+2	eval	strict
+3	holdout	strict
+4	regression_seed	strict
+5	seed / renderer_seed	最後に strict
+
+role_suites にはすでに role 分割があるので、新しい運用層を作らず、既存 role の意味づけを強めるだけで足ります。
+
+目的:
+live に近い seed / renderer_seed を最初から落とさない。まず learning / stress / holdout で失敗を見つける。
+
+優先 4: 失敗ケースを fixture 化してから renderer を直す
+
+property check で落ちたら、すぐ renderer を直さず、まず失敗理由を bucket に分けます。
+
+bucket	例	直す場所
+main_question_unanswered	「対応できますか」に正面回答がない	contract / decision / direct_answer_line
+asked_before_answering	最初に「詳細をください」が出る	response_order / renderer template
+known_fact_reask	既に出ている情報を聞き返す	facts_known / ask_map / validator
+ask_without_blocking	不足情報がないのに質問する	blocking_missing_facts / renderer
+service_policy_violation	private service / 外部連絡 / raw secret / 直接 push を許容	hard_constraints / service grounding
+stage_policy_violation	closed なのに直接再開、delivered なのに納品範囲を曖昧化	state policy / hard_constraints
+
+実行原則:
+1件落ちたら、まず fixture にする。
+その後で最小修正する。
+renderer 文面修正は最後。
+
+優先 5: service grounding / stage policy を eval 側で強める
+
+service-registry.yaml は bugfix-15000 を public: true、handoff-25000 を public: false とし、public_reply_must_use_public_true_only、private_services_are_internal_reference_only のルールを持っています。
+
+ここは live の挙動を変えるより先に、eval で次を落とすのが安全です。
+
+public:false の service を公開返信で案内している
+外部連絡・外部決済・Zoom/LINE誘導を許している
+raw secret / sk_live / signing secret の値貼付を許している
+closed で直接再開を約束している
+delivered で納品後の範囲を無制限に広げている
+post_purchase で本番 deploy / direct push を約束している
+
+これは scenario 追加ではなく、service / stage の policy property として見るべきです。
+
+3. 今すぐやるべき最小変更
+
+最大3件に絞るなら、この順番です。
+
+1. render-coconala-reply.py に warn-only の validate_plan_output_integrity() を足す
+
+触る場所は、まず 各 renderer ではなく統合側 がよいです。
+
+理由は、render-coconala-reply.py にはすでに COMMON_VALIDATOR_ITEMS があり、buyer_questions、known_info_reask、direct_answer_first などが共通化されています。 ここに薄く足せば、5 renderer を同時に大きく直さなくて済みます。
+
+最低限の擬似コードはこれで十分です。
+
+def validate_plan_output_integrity(case: dict, rendered: str) -> list[str]:
+    warnings = []
+
+    contract = case.get("reply_contract") or {}
+    plan = case.get("response_decision_plan") or {}
+
+    direct = plan.get("direct_answer_line") or primary_answer_brief(contract)
+    blocking = plan.get("blocking_missing_facts") or []
+    ask_map = contract.get("ask_map") or []
+
+    if direct and direct not in rendered:
+        warnings.append("property main_question_answered warning: direct answer line is missing")
+
+    if direct and direct in rendered:
+        direct_index = rendered.find(direct)
+        for ask in ask_map:
+            ask_text = ask.get("ask_text") or ""
+            if ask_text and ask_text in rendered and rendered.find(ask_text) < direct_index:
+                warnings.append("property answer_before_ask warning: ask appears before direct answer")
+
+    if not blocking and looks_like_question_request(rendered):
+        warnings.append("property ask_only_if_blocking warning: asks despite no blocking missing facts")
+
+    warnings.extend(validate_stage_policy(case, rendered))
+    warnings.extend(validate_service_policy(case, rendered))
+
+    return warnings
+
+ポイント:
+response_decision_plan がないケースでは reply_contract.answer_map から fallback する。これなら prequote を最初に大きく直さずに済みます。
+
+2. full_regression / role_suites に strict flag を通す
+
+次に、check-coconala-reply-full-regression.py に次のような flag を足します。
+
+--property-check warn
+--property-check strict
+
+最初の default は warn。
+role_suites 側では role ごとに strict にします。
+
+edge: strict
+eval: strict
+holdout: strict
+seed: warn
+renderer_seed: warn
+regression_seed: warn → 後で strict
+
+full_regression はすでに複数 checker を束ねており、role filter も既存で通せるので、ここに property check mode を通すのが自然です。
+
+3. まず 12〜20 件だけ property fixture を追加する
+
+最初から大量に増やさないほうがよいです。
+各 bucket 2〜3件ずつで十分です。
+
+最初に入れるべき fixture はこのあたりです。
+
+bucket	例
+対応可否	「これ直せますか？」「このサービス範囲ですか？」
+料金・追加費用	「別原因なら追加料金ですか？」「直らなかったら返金ですか？」
+情報共有	「このスクショで足りますか？」「GitHub 招待しました」
+secret / 本番値	「sk_live を貼ればいいですか？」「signing secret そのまま送ります」
+closed 後	「前回と同じ症状です。追加費用ですか？」
+delivered 後	「納品物を社内共有していいですか？」「まだ同じエラーです」
+
+これは「文章学習」ではなく、未回答・聞き返し・policy 事故の検出学習です。
+
+4. 後回しでよいこと
+後回し 1: scenario / renderer 分岐の追加
+
+今はまだ早いです。quote_sent だけ見ても scenario detection はすでにかなり多く、generic_quote_sent に落ちる前に大量の条件分岐があります。 ここからさらに増やすと、局所修正が増えて regression の意味が薄くなります。
+
+scenario 追加は、property check で「既存の抽象 property では落とせない」と分かってからで十分です。
+
+後回し 2: prequote の大きな作り替え
+
+前回レビューでは prequote の reply_contract が強い一方、response_decision_plan 形式の統一は他 renderer より薄い、という評価でした。ここをいきなり直すより、まず common validator 側で reply_contract fallback を使う方が安全です。
+
+後でやるなら、prequote にも薄い response_decision_plan を生やすだけでよいです。
+
+response_decision_plan:
+  primary_question_id:
+  primary_concern:
+  facts_known:
+  blocking_missing_facts:
+  direct_answer_line:
+  response_order:
+後回し 3: service registry の path 整理
+
+service-registry.yaml は絶対パスを持っているため、CI / 外部環境では壊れやすい可能性があります。 ただし、ここを先に相対パス化すると live 影響が読みにくいです。
+
+先にやるべきは path 修正ではなく、
+
+service pack が読めない場合に eval で警告/失敗にする
+public:false を公開返信に使ったら strict で落とす
+
+のほうです。
+
+後回し 4: 外部 AI judge の自動 gate 化
+
+外部AI監査は有効ですが、live 送信可否の主 gate にするのは後回しです。
+まずは audit 結果を fixture に戻す運用に限定したほうが安全です。
+
+後回し 5: 文体 naturalizer
+
+direct_answer_line や policy を壊す可能性があるため、意味保存が保証できない自然化はまだ不要です。文章を滑らかにする前に、主質問回答と聞き返し制御を固めるべきです。
+
+5. やってはいけないこと
+1. 失敗ケースごとに scenario を足す
+
+これはモグラたたきに戻ります。
+まず property で落とせるかを見るべきです。
+
+2. renderer ごとに別々の validator を増やす
+
+quote_sent だけ、delivered だけ、closed だけ、という局所 validator を増やすと保守が重くなります。
+共通で見られるものは render-coconala-reply.py 側に寄せるべきです。
+
+3. live でいきなり strict fail させる
+
+最初は warn-only。
+strict は edge / eval / holdout からです。
+
+4. 聞き返しを安全策として増やす
+
+聞き返しは安全策ではなく、主質問未回答の逃げ道になります。
+
+許す条件はこれだけです。
+
+blocking_missing_facts がある
+その missing fact が回答に本当に必要
+既知情報を聞き返していない
+direct answer の後に聞いている
+5. 外部AI監査の指摘をそのまま文面 patch にする
+
+外部AI監査の出力は、まず bucket / fixture / property に戻す。
+その場で renderer 文面を足すと過学習します。
+
+6. live / learning / external audit の運用方針
+live 運用
+
+live は 少数固定・warn-only・退行検出 です。
+
+対象 role はまずこの2つ。
+
+seed
+renderer_seed
+
+見る項目は、文章の自然さではなく以下です。
+
+主質問に答えているか
+聞き返しが direct answer より前に出ていないか
+既知情報を聞き返していないか
+公開サービス範囲を破っていないか
+stage policy を破っていないか
+
+live 側では warning を出しても送信ブロックしない。
+ただし warning は保存して、後で learning に回します。
+
+learning / stress test 運用
+
+learning は strict・大量化・失敗収集 です。
+
+対象 role はこの順です。
+
+edge
+eval
+holdout
+regression_seed
+
+ここでは落としてよいです。
+むしろ落ちたケースを bucket に分けて、fixture 化するのが目的です。
+
+運用イメージ:
+
+python3 scripts/check-coconala-reply-full-regression.py --role edge --property-check strict --save-report
+python3 scripts/check-coconala-reply-full-regression.py --role eval --property-check strict --save-report
+python3 scripts/check-coconala-reply-full-regression.py --role holdout --property-check strict --save-report
+
+role_suites 側は既存の role 分割を活かせばよく、新しい学習基盤を作る必要はありません。
+
+external audit 運用
+
+外部AI監査は、live 判定器ではなく、失敗発見器 として使います。
+
+監査プロンプトは毎回これに固定します。
+
+1. 相手の主質問は何か
+2. 返信は主質問に最初の2段落以内で答えているか
+3. 答えていない場合、どの質問を落としているか
+4. 聞き返しが direct answer より前に出ていないか
+5. 既に相手が出した情報を聞き返していないか
+6. blocking missing facts がないのに質問していないか
+7. サービス範囲・公開範囲・stage policy を破っていないか
+8. 価格・返金・追加料金を曖昧に逃げていないか
+
+外部AI監査で見つかったものは、次のどれかに戻します。
+
+property validator の追加
+既存 property の marker 強化
+fixture 追加
+最後に必要なら renderer の最小修正
+7. 返信システム強化メモに残すべき実行原則
+原則 1: まず warning、次に strict、最後に renderer 修正
+
+順番は固定です。
+
+warn-only
+→ edge/eval strict
+→ holdout strict
+→ fixture 化
+→ renderer 最小修正
+→ seed / renderer_seed strict
+原則 2: scenario より property を優先する
+
+新しい失敗を見つけたら、まず次のどれで落とせるかを見る。
+
+main_question_answered
+answer_before_ask
+known_fact_reask
+ask_only_if_blocking
+service_policy_grounded
+stage_policy_grounded
+
+ここで落とせないときだけ scenario を検討する。
+
+原則 3: direct_answer_line は最終文に出るまで未完了
+
+response_decision_plan にあるだけでは不十分。
+本文の冒頭付近に出て、ask / hold reason より前にあることを確認する。
+
+原則 4: 聞き返しは blocking missing facts に限定する
+
+「念のため聞く」は禁止寄り。
+「答えるために不可欠だから聞く」だけ許可。
+
+原則 5: service / stage policy は最終文で見る
+
+service-registry.yaml には public/private の区別と公開返信ルールがあるので、最終文で破っていないかを見る必要があります。
+
+原則 6: 外部AI監査は添削ではなく、未回答検出に使う
+
+「もっと自然に」ではなく、
+
+主質問を落としていないか
+先に聞き返していないか
+既知情報を再質問していないか
+公開範囲を破っていないか
+
+を見る。
+
+原則 7: live と learning を混ぜない
+
+live は壊さないための固定確認。
+learning は壊して発見するための stress test。
+external audit は fixture 候補を拾うための監査。
+
+最小の結論はこれです。
+
+次にやるべき最小変更は、render-coconala-reply.py の common validator に warn-only の plan-output property check を足し、edge/eval/holdout から strict 化し、失敗を fixture に戻すことです。
+renderer 分岐追加は、その後で本当に必要な箇所だけに絞るのが安全です。

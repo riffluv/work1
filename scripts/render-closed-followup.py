@@ -284,7 +284,7 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
             return "別の不具合を見てもらうときに割引があるかと、今回の見積り入口を知りたい"
         return "次回以降の値下げ可否を知りたい"
     if scenario == "same_ticket_scope_question":
-        return "今回の範囲に入るか知りたい"
+        return "この範囲に入るか知りたい"
     if scenario == "repeat_handoff_request":
         return "別フローの引き継ぎ整理を相談したい"
     if scenario == "memo_addendum_request":
@@ -347,7 +347,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "追加で詳しくする相談はできます。"
     elif scenario == "same_ticket_scope_question":
         blocking_missing_facts = ["extra_issue_details"]
-        direct_answer_line = "今回の範囲に入るかは、まず前回と同じ原因かどうかを確認してからお返しします。"
+        direct_answer_line = "この範囲に入るかは、まず前回と同じ原因かどうかを確認してからお返しします。"
     elif scenario == "refund_request":
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "返金をここでお約束する形ではありません。追加でまた15,000円と決まっているわけでもありません。"
@@ -388,7 +388,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
             direct_answer_line = "前回と同じ原因かどうかは、まず今の症状を見てからお返しします。"
     elif scenario == "recur_uncertainty":
         blocking_missing_facts = ["current_frequency_or_display"]
-        direct_answer_line = "前回の修正でカバーしきれていたかは、今回の出方を見てからお返しします。"
+        direct_answer_line = "前回の修正でカバーしきれていたかは、今回の状況を見てからお返しします。"
     elif scenario == "feedback_for_next_time":
         direct_answer_line = "修正自体は問題なかったとのこと、ありがとうございます。次回は、もう少し噛み砕いた説明になるよう意識します。"
     elif scenario == "generic_closed":
@@ -558,9 +558,9 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "今回の範囲に入るかは、まず前回の続きとして同じ原因かを確認します。そのうえでお返しします。",
+                    "answer_brief": "この範囲に入るかは、まず前回の続きとして同じ原因かを確認します。そのうえでお返しします。",
                     "hold_reason": "トークルームは閉じているため、追加の1点でも前回と同じ話かを先に見ます。",
-                    "revisit_trigger": "追加で出ている箇所を受領したあとに、今回の範囲で扱えるかをお返しします。",
+                    "revisit_trigger": "追加で出ている箇所を受領したあとに、この範囲で扱えるかをお返しします。",
                 },
             ],
             "ask_map": [
@@ -1097,7 +1097,7 @@ def build_case_from_source(source: dict) -> dict:
                     "disposition": "answer_after_check",
                     "answer_brief": "時々決済が通らない状態が残っているとのこと、承知しました。前回の修正範囲でカバーできていたかも含めて確認します。",
                     "hold_reason": "前回のトークルームは閉じているため、新しいご依頼として今回の状況を確認してから進めます。",
-                    "revisit_trigger": "症状の出方を受領したあとに、見立てをお返しします。",
+                    "revisit_trigger": "症状の状況を受領したあとに、見立てをお返しします。",
                 },
             ],
             "ask_map": [
