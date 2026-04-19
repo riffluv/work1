@@ -853,10 +853,7 @@ def detect_scenario(source: dict) -> str:
         and "Stripe" in combined
     ):
         return "general_bugfix_scope_question"
-    if (
-        any(marker in combined for marker in ["10,000円", "10000円", "予算が厳しくて", "難しいですかね", "値引き"])
-        and has_bugfix_stack_context
-    ):
+    if any(marker in combined for marker in ["10,000円", "10000円", "予算が厳しくて", "難しいですかね", "値引き"]):
         return "discount_request"
     if (
         any(marker in combined for marker in ["まだ購入はしてない", "自分でも試してから", "自分で直せなかったら", "またここから連絡"])

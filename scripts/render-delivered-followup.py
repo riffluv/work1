@@ -272,7 +272,13 @@ def detect_scenario(source: dict) -> str:
         and "Webhook" in combined
     ):
         return "future_risk_question"
-    if "本番に反映作業まで" in combined or "Vercelへの上げ方がわかりません" in combined:
+    if (
+        "本番に反映作業まで" in combined
+        or "Vercelへの上げ方がわかりません" in combined
+        or "本番反映は自分でやる形" in combined
+        or "本番に出すのが少し怖い" in combined
+        or "気をつけること" in combined
+    ):
         return "deployment_help_request"
     if "全体の構成見直し" in combined or "おいくらくらい" in combined:
         return "future_architecture_question"
@@ -304,7 +310,13 @@ def detect_scenario(source: dict) -> str:
         marker in combined for marker in ["全部問題なく動きました", "問題なく動きました", "嘘みたい"]
     ):
         return "workload_reflection_question"
-    if "Vercelにデプロイすると500エラー" in combined or "差し戻しというか" in combined or "また違うエラー" in combined:
+    if (
+        "Vercelにデプロイすると500エラー" in combined
+        or "差し戻しというか" in combined
+        or "また違うエラー" in combined
+        or ("Vercel" in combined and "ステータスが切り替わらない" in combined)
+        or ("まだ同じ症状" in combined and "もう一度見てもらえますか" in combined)
+    ):
         return "redelivery_same_error"
     if (
         "影響ですか" in combined
@@ -1314,13 +1326,21 @@ def build_case_from_source(source: dict) -> dict:
     if scenario == "deployment_help_request":
         case["reply_contract"] = {
             "primary_question_id": "q1",
-            "explicit_questions": [{"id": "q1", "text": "本番反映までやってもらえるか", "priority": "primary"}],
+            "explicit_questions": [
+                {"id": "q1", "text": "本番反映は自分でやる形か", "priority": "primary"},
+                {"id": "q2", "text": "反映前に気をつけることはあるか", "priority": "secondary"},
+            ],
             "answer_map": [
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "本番反映は、ご自身で進めていただく形です。必要なら、このトークルーム内で反映手順が分かる形にして返します。",
-                }
+                    "answer_brief": "本番反映は、ご自身で進めていただく形です。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "気をつける点としては、反映前に環境変数の差分がないかを先に確認するのが大事です。必要なら、このトークルーム内で反映手順が分かる形にして返します。",
+                },
             ],
             "ask_map": [],
             "required_moves": ["react_briefly_first", "answer_directly_now"],
@@ -1492,6 +1512,8 @@ def reaction_line(case: dict) -> str:
     if scenario == "price_complaint":
         return "率直に伝えていただいてありがとうございます。高く感じられた点は受け止めています。"
     if scenario == "redelivery_same_error":
+        if "Vercel" in raw and "ステータス" in raw and "切り替わら" in raw:
+            return "Vercelのプレビュー環境でステータスが切り替わらないとのこと、確認しました。"
         return "デプロイ後に別のエラーが出ているとのこと、確認しました。"
     if opening_move == "action_first":
         if scenario in {"redelivery_same_error", "side_effect_question"}:
@@ -1664,6 +1686,8 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "prevention_question":
         return "動作確認ありがとうございます。再発予防についてのご質問、確認しました。"
     if scenario == "redelivery_same_error":
+        if "Vercel" in raw and "ステータス" in raw and "切り替わら" in raw:
+            return "Vercelのプレビュー環境でステータスが切り替わらないとのこと、確認しました。"
         if "Vercel" in raw:
             return "Vercelにデプロイすると500エラーが残るとのこと、確認しました。"
         return "まずデプロイ後に変わる条件から確認します。"
@@ -1716,7 +1740,7 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "future_risk_question":
         return "予防的に見ておきたい点があるとのこと、確認しました。"
     if scenario == "deployment_help_request":
-        return "反映のところで止まっている件、確認しました。"
+        return "本番反映のところで不安がある件、確認しました。"
     if scenario == "future_architecture_question":
         return "次のご相談も考えていただいている件、ありがとうございます。"
     if scenario == "doc_explanation_request":
@@ -2100,7 +2124,16 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             _paragraph_from_lines(
                 [
                     focus_line or "",
-                    "デプロイ後に出ているエラーの画面かメッセージを送ってください。",
+                    (
+                        "前回の修正が反映されている状態かと、Vercelのプレビュー環境だけで差が出ていないかを確認します。"
+                        if ("Vercel" in raw and "ステータス" in raw and "切り替わら" in raw)
+                        else ""
+                    ),
+                    (
+                        "ステータスが切り替わらない場面のスクショがあれば、そのまま送ってください。"
+                        if ("Vercel" in raw and "ステータス" in raw and "切り替わら" in raw)
+                        else "デプロイ後に出ているエラーの画面かメッセージを送ってください。"
+                    ),
                 ]
             ),
         )

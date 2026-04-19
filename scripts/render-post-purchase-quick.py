@@ -434,7 +434,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
 
     if scenario == "progress_anxiety":
-        if any(marker in raw for marker in ["対応するかしないか", "どうなってるんですか", "まだ何も返事"]):
+        if any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
+            direct_answer_line = "いまは、今回の不具合がどこで止まっているかを確認している段階です。"
+        elif any(marker in raw for marker in ["対応するかしないか", "どうなってるんですか", "まだ何も返事"]):
             direct_answer_line = "対応可否も含めて確認に入っており、まず今の状況を整理してお返しします。"
         else:
             direct_answer_line = "いまは原因の切り分け中で、まだ断定には至っていません。"
@@ -567,6 +569,7 @@ def detect_scenario(source: dict) -> str:
         marker in combined
         for marker in [
             "進捗どう",
+            "進捗はどう",
             "どんな感じ",
             "まだ何も連絡",
             "まだ何も返事",
@@ -580,9 +583,12 @@ def detect_scenario(source: dict) -> str:
             "対応するかしないか",
             "今どのあたりまで進んでますか",
             "今どのあたりまで",
+            "今どこまで見て",
+            "今どこまで見ていただけ",
             "確認って進んでますか",
             "状況だけでも教えて",
             "心配になってきまして",
+            "待たされた経験",
         ]
     ):
         return "progress_anxiety"
@@ -1974,6 +1980,8 @@ def reaction_line(case: dict) -> str:
             return "連絡が足りず不安にさせてしまいすみません。急ぎで確認したい状況とのこと、まず今見えているところから整理します。"
         if any(marker in case.get("raw_message", "") for marker in ["どうなってるんですか", "対応するかしないか", "まだ何も返事"]):
             return "お待たせしてすみません。連絡が止まってしまっていて、申し訳ありません。"
+        if any(marker in case.get("raw_message", "") for marker in ["待たされた経験", "安心します", "2日経って", "進捗はどう", "今どこまで見て"]):
+            return "お待たせしてすみません。心配になりますよね。"
         if any(marker in case.get("raw_message", "") for marker in ["心配になってきまして", "心配になってきた", "状況だけでも教えて", "安心します"]):
             return "お待たせしてすみません。心配になりますよね。"
         return "連絡が足りず不安にさせてしまいすみません。まず今見えているところから整理します。"
@@ -2092,6 +2100,8 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "progress_anxiety":
         if any(marker in raw for marker in ["売上が立ってない", "売上が立っていない", "クライアント", "決済エラーのせいで売上"]):
             return "いまは、決済が止まっている箇所の切り分けを進めています。"
+        if any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
+            return "確認できているところから順に整理しています。"
         if any(marker in raw for marker in ["昨日お送りした件", "昨日送った件", "状況だけでも教えて", "心配になってきまして"]):
             return "いまは、昨日いただいた内容をもとに原因の切り分けを進めています。"
         return "いまは、原因の切り分けを進めています。"

@@ -210,6 +210,8 @@ def detect_prequote_scenario(source: dict) -> str:
 
     if "不正アクセス" in combined:
         return "security_fear"
+    if any(marker in combined for marker in ["保証はあります", "確実に直る", "直らなかった場合", "直らなかったら"]):
+        return "guarantee_or_refund_question"
     if is_multi_symptom_case(source):
         return "multi_symptom"
     if any(marker in combined for marker in repair_primary_markers) and any(
@@ -454,10 +456,12 @@ def is_scope_confusion_case(source: dict) -> bool:
     combined = f"{raw}\n{note}"
     markers = [
         "どっちのサービス",
+        "どちらのサービス",
         "何を選んでいいか",
         "25,000円の方が安全",
         "修正含まない",
         "コードも分からない",
+        "実装が途中",
         "両方です",
         "返金",
         "直接会って",
@@ -513,6 +517,10 @@ def split_explicit_questions(raw: str) -> list[str]:
 
 def classify_question_type(question_text: str) -> str:
     text = compact_text(question_text)
+    if "追加料金" in text or "別料金" in text:
+        return "refund_policy"
+    if "保証" in text or "確実に直る" in text or "直らなかった" in text:
+        return "guarantee"
     if ".env" in text or "APIキー" in text:
         return "secret_sharing"
     if "スクショ" in text or ("画面" in text and any(marker in text for marker in ["送", "見せ", "撮"])):
@@ -546,6 +554,7 @@ def classify_question_type(question_text: str) -> str:
         or "25000円" in text
         or "2万5千円" in text
         or "どっちのサービス" in text
+        or "どちらのサービス" in text
         or "どっちを買" in text
         or "どっちを依頼" in text
         or "どっちですか" in text
@@ -588,7 +597,7 @@ def infer_explicit_questions(source: dict) -> list[dict]:
     needs_implicit_primary = True
     for question in extracted:
         qtype = classify_question_type(question)
-        if qtype in {"price_acceptance", "price_general", "can_handle"}:
+        if qtype in {"price_acceptance", "price_general", "can_handle", "service_selection", "guarantee", "refund_policy"}:
             needs_implicit_primary = False
             break
 
@@ -600,7 +609,7 @@ def infer_explicit_questions(source: dict) -> list[dict]:
     for idx, question in enumerate(extracted):
         qtype = classify_question_type(question)
         score = 0
-        if qtype in {"price_acceptance", "can_handle", "price_general"}:
+        if qtype in {"price_acceptance", "can_handle", "price_general", "service_selection", "guarantee", "refund_policy"}:
             score = 30
         elif qtype in {"security", "cause_owner", "timeline", "impact"}:
             score = 20
@@ -647,7 +656,11 @@ def answer_brief_for_question(question_type: str, primary_now: bool) -> str:
     if question_type == "price_acceptance":
         return "この不具合なら15,000円で進められます。"
     if question_type == "service_selection":
-        return "この不具合なら15,000円で進められます。"
+        return "今の症状なら、まずこの不具合対応から入るのが近いです。"
+    if question_type == "guarantee":
+        return "必ず直ると断定してご案内することはしていません。"
+    if question_type == "refund_policy":
+        return "必ず返金になると先に決めるのではなく、まず原因の切り分けと修正できるかの確認から進めます。"
     if primary_now:
         return "この不具合なら15,000円で進められます。"
     return "確認対象ではあるが、今の情報ではまだ断定しない。"
@@ -687,6 +700,11 @@ def secondary_after_check_reason(question_type: str) -> tuple[str, str]:
     if question_type == "refund_policy":
         return (
             "返金だけを先に断定するより、まず原因の切り分けと修正できるかの確認から進めます。",
+            "確認できたところまでと、次にどう進めるかをお返しします。",
+        )
+    if question_type == "guarantee":
+        return (
+            "必ず直ると断定してご案内するのではなく、まず原因の切り分けと修正できるかの確認から進めます。",
             "確認できたところまでと、次にどう進めるかをお返しします。",
         )
     return (
@@ -746,7 +764,6 @@ def derive_disposition(source: dict) -> str:
 
     if scenario in {
         "boundary_bugfix_first",
-        "service_selection_confusion",
         "service_value_uncertain",
         "followon_fix_question",
         "no_meeting_request",
@@ -755,6 +772,8 @@ def derive_disposition(source: dict) -> str:
         "security_fear",
     }:
         return "answer_after_check"
+    if scenario == "service_selection_confusion":
+        return "answer_now"
     if scenario == "multi_symptom":
         return "answer_after_check"
     if len(strip_period(raw)) <= 20:
@@ -1066,13 +1085,11 @@ def build_case_from_source(source: dict) -> dict:
                 "id": item["id"],
                 "text": item["text"],
                 "priority": item["priority"],
+                "question_type": item.get("question_type"),
             }
             for item in explicit_questions
         ],
-        "answer_map": [
-            {k: v for k, v in item.items() if k != "question_type"}
-            for item in answer_map
-        ],
+        "answer_map": answer_map,
         "ask_map": ask_map,
         "issue_plan": issue_plan,
         "required_moves": required_moves,
@@ -1102,6 +1119,10 @@ def acknowledge_for(case: dict) -> str:
     opening_move = temperature_plan.get("opening_move")
 
     if opening_move == "action_first":
+        if "checkout.session.completed" in raw and any(marker in raw for marker in ["DB 更新", "DB更新"]):
+            return "checkout.session.completed までは来ているとのこと、確認しました。"
+        if any(marker in raw for marker in ["急ぎ", "すぐ見てほしい", "お客さんからも連絡"]):
+            return "お急ぎの状況は承知しました。"
         if any(marker in raw for marker in ["調査だけで終わる", "まず調べます", "何も直らなかった"]):
             return "同じように調査だけで終わらないか心配ですよね。"
         return "まず必要なところから確認します。"
@@ -1121,6 +1142,8 @@ def acknowledge_for(case: dict) -> str:
         if user_signal == "hesitation":
             return "先に結論からお返しします。"
         return ""
+    if any(marker in raw for marker in ["保証はあります", "確実に直る", "直らなかった場合", "直らなかったら"]):
+        return "見積もり前に確認しておきたい点、ありがとうございます。"
     if not summary:
         return "内容ありがとうございます。"
     if "進め方" in summary:
@@ -1164,8 +1187,12 @@ def promoted_answer_now_lines(case: dict) -> list[str] | None:
                 "調べるだけでも大丈夫です。",
                 "原因の調査から対応するので、直し方が分からない状態でも問題ありません。",
             ]
-        if qtype in {"service_selection", "price_acceptance"}:
+        if qtype == "service_selection":
+            return ["今の症状なら、まずこの不具合対応から入るのが近いです。"]
+        if qtype == "price_acceptance":
             return ["この不具合なら15,000円で進められます。"]
+        if qtype in {"guarantee", "refund_policy"}:
+            return ["必ず直ると断定してご案内することはしていません。"]
     return None
 
 
@@ -1179,8 +1206,11 @@ def answer_now_lines(case: dict, question: dict, answer: dict) -> list[str]:
         lines.append("切り分けと修正可否の確認を含めて、15,000円で進められます。")
         return lines
 
-    if question_type in {"can_handle", "price_acceptance", "service_selection"}:
+    if question_type in {"can_handle", "price_acceptance"}:
         lines.append("この不具合なら15,000円で進められます。")
+        return lines
+    if question_type == "service_selection":
+        lines.append("今の症状なら、まずこの不具合対応から入るのが近いです。")
         return lines
 
     if "15,000円" in brief:
@@ -1197,6 +1227,14 @@ def answer_now_lines(case: dict, question: dict, answer: dict) -> list[str]:
 def scope_reason_for(case: dict) -> str:
     summary = case.get("summary", "")
     raw = case.get("raw_message", "")
+    if any(marker in raw for marker in ["保証はあります", "確実に直る", "直らなかった場合", "直らなかったら"]):
+        return "まずは原因の切り分けと、修正まで進められるかを確認します。"
+    if "checkout.session.completed" in raw and any(marker in raw for marker in ["DB 更新", "DB更新"]):
+        return "まずは checkout.session.completed のあとで DB 更新が止まっている箇所を確認します。"
+    if "会員ページ" in raw and "反映されない" in raw:
+        return "まずは購入後の反映がどこで止まっているかを確認します。"
+    if "Payment Intent" in raw and "success" in raw:
+        return "まずは Payment Intent が立っている状態で、success に遷移しない箇所を優先して確認します。"
     if any(marker in raw for marker in ["調査だけで終わる", "まず調べます", "何も直らなかった"]):
         return "調査だけで止める形ではなく、まずこの不具合がどこで止まっているかを確認します。"
     if "会員状態" in summary or "無料へ戻って" in summary:
@@ -1225,14 +1263,17 @@ def next_action_now_for(case: dict) -> str:
 
 def secondary_lines(case: dict) -> list[str]:
     lines: list[str] = []
+    raw = case.get("raw_message", "")
+    added_refund_policy = False
     for question, answer in secondary_answer_items(case):
         disposition = answer.get("disposition")
         qtext = question.get("text", "")
         qtype = answer.get("question_type") or question.get("question_type")
         brief = answer.get("answer_brief", "")
-        if "追加料金" in qtext:
+        if qtype == "refund_policy" or "追加料金" in qtext or "別料金" in qtext:
             lines.append("原因が想定と違っても、勝手に追加料金が発生することはありません。")
             lines.append("別対応が必要そうな場合だけ、その時点で先にお伝えします。")
+            added_refund_policy = True
             continue
         if disposition == "answer_now":
             if qtype == "procedure_only":
@@ -1242,11 +1283,14 @@ def secondary_lines(case: dict) -> list[str]:
                 lines.append("調べるだけでも大丈夫です。")
                 lines.append("原因の調査から対応するので、直し方が分からない状態でも問題ありません。")
             elif qtype == "service_selection":
-                lines.append("この不具合なら15,000円で進められます。")
+                lines.append("今の症状なら、まずこの不具合対応から入るのが近いです。")
+            elif qtype in {"guarantee", "refund_policy"}:
+                lines.append("原因が分からないまま調べて終わる進め方ではなく、修正まで進められる内容ならそこまで対応します。")
+                lines.append("今回の範囲で収まらない内容が見えた場合だけ、その時点で先にお伝えします。")
             else:
                 lines.append(brief)
         elif disposition == "answer_after_check":
-            if qtype == "refund_policy":
+            if qtype in {"refund_policy", "guarantee"}:
                 lines.append("原因の切り分けと、修正できるかの確認は基本料金の中で進めます。")
                 lines.append("修正できない状態のまま正式納品へ進めることはありません。")
             if "cause_owner" in qtext or "Stripeの問題" in qtext or "コードの問題" in qtext:
@@ -1257,6 +1301,9 @@ def secondary_lines(case: dict) -> list[str]:
                 lines.append("不正アクセスかどうかは、今の時点ではまだ断定しません。")
             elif brief and qtype != "refund_policy":
                 lines.append(brief)
+    if not added_refund_policy and ("追加料金" in raw or "別料金" in raw):
+        lines.append("原因が想定と違っても、勝手に追加料金が発生することはありません。")
+        lines.append("別対応が必要そうな場合だけ、その時点で先にお伝えします。")
     deduped: list[str] = []
     seen: set[str] = set()
     for line in lines:

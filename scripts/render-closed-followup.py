@@ -188,6 +188,9 @@ def detect_scenario(source: dict) -> str:
         return "repeat_bugfix_price_check"
     if (
         "別の件" in combined
+        or "別件" in combined
+        or "前回の件とは別" in combined
+        or "前回とは別" in combined
         or "別のエンドポイント" in combined
         or "またお願いしたい" in combined
         or "お願いできるものなんでしょうか" in combined
@@ -356,7 +359,12 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "new_issue_repeat_client":
         blocking_missing_facts = ["current_symptom"]
-        direct_answer_line = "はい、見積りできます。"
+        if any(marker in raw.lower() for marker in ["webhook"]) and any(
+            marker in raw for marker in ["届かなく", "届いていない", "到達していない"]
+        ):
+            direct_answer_line = "前回とは別の内容でも、今の症状であれば見積りできます。"
+        else:
+            direct_answer_line = "はい、見積りできます。"
         response_order = ["opening", "direct_answer", "ask", "next_action"]
     elif scenario == "repeat_bugfix_price_check":
         blocking_missing_facts = ["current_symptom"]
@@ -830,6 +838,7 @@ def build_case_from_source(source: dict) -> dict:
         return case
 
     if scenario == "new_issue_repeat_client":
+        webhook_issue = "webhook" in raw.lower() and any(marker in raw for marker in ["届かなく", "届いていない", "到達していない"])
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [
@@ -846,7 +855,11 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "id": "a1",
                     "question_ids": ["q1"],
-                    "ask_text": "今出ている症状か、見たい流れをそのまま送ってください。",
+                    "ask_text": (
+                        "Webhook の送信結果が分かる表示や、エンドポイント側の反応があればそのまま送ってください。"
+                        if webhook_issue
+                        else "今出ている症状か、見たい流れをそのまま送ってください。"
+                    ),
                     "why_needed": "新しい内容の入口を切るため",
                 }
             ],
@@ -1272,6 +1285,8 @@ def current_focus_line(case: dict) -> str | None:
             return "トークルームは閉じていますが、PayPay対応で加えた変更とStripe側の止まり方を確認します。"
         return "トークルームは閉じていますが、触った箇所と前の修正のつながりを確認します。"
     if scenario in {"new_issue_repeat_client", "repeat_bugfix_price_check"}:
+        if "webhook" in raw.lower() and any(marker in raw for marker in ["送信は成功", "到達していない", "届かなく", "届いていない"]):
+            return "送信は成功しているとのことなので、まず受信側でどこまで届いているかを確認します。"
         return "いまの症状が分かると、見積りをお返ししやすくなります。"
     if scenario == "price_discount_request" and "new_issue_followup_present" in (case.get("response_decision_plan") or {}).get("facts_known", []):
         return "トークルームは閉じているので、今回見たい不具合の内容が分かれば見積りの入口を整えられます。"
@@ -1328,6 +1343,10 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "new_issue_repeat_client":
         if "よかった" in raw:
             return "前回の対応がよかったとのこと、ありがとうございます。"
+        if "webhook" in raw.lower() and any(marker in raw for marker in ["送信は成功", "到達していない", "届かなく", "届いていない"]):
+            if any(marker in raw for marker in ["急ぎ", "今朝から"]):
+                return "急ぎの状況とのこと、確認しました。"
+            return "Webhook が届かなくなっている件、確認しました。"
         if "API Route" in raw and ("メールが送れなく" in raw or "メール" in raw):
             return "API Routeからメールが送れない件でお困りとのこと、確認しました。"
         return "前回とは別の内容でまたご相談いただいた件、確認しました。"
