@@ -153,6 +153,12 @@ def _normalized_text(text: str) -> str:
     return re.sub(r"[\s。、，,.！？?「」『』（）()・:：/／\-]+", "", text)
 
 
+def _has_repeated_mazuha_opening(rendered: str) -> bool:
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n", rendered) if part.strip()]
+    starts = [paragraph for paragraph in paragraphs if paragraph.startswith("まずは")]
+    return len(starts) >= 2
+
+
 def _contains_money_anchor(text: str) -> bool:
     return any(
         marker in text
@@ -577,6 +583,8 @@ def collect_quality_style_errors(rendered: str) -> list[str]:
     for pattern, message in STYLE_RULES:
         if pattern.search(rendered):
             errors.append(message)
+    if _has_repeated_mazuha_opening(rendered):
+        errors.append("rendered text still repeats `まずは` at paragraph openings")
     if _has_adjacent_near_echo(rendered):
         errors.append("rendered text still has near-echo across adjacent sections")
     return errors

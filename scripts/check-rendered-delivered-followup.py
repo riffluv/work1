@@ -168,7 +168,7 @@ def lint_case(module, source: dict) -> list[str]:
     if scenario == "formal_thanks_only":
         if not has_any(rendered, ["ご丁寧にありがとうございます", "何よりです"]):
             errors.append("formal thanks case does not return the buyer's polite tone naturally")
-        if not has_any(rendered, ["また何かあれば", "ご相談ください"]):
+        if not has_any(rendered, ["また何かあれば", "ご相談ください", "送ってください"]):
             errors.append("formal thanks case does not close politely after the thank-you")
     if scenario == "pending_webhook_events":
         if "保留中" not in rendered:

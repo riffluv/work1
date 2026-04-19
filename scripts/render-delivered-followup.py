@@ -488,7 +488,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "はい、今回見ているのはWebhookの受信側です。"
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "approval_complete_thanks":
-        direct_answer_line = "承諾の件もありがとうございます。また何かあればご相談ください。"
+        direct_answer_line = "承諾の件もありがとうございます。また何かあれば、その時の状況を送ってください。"
         response_order = ["opening", "direct_answer"]
     elif scenario == "dry_complete_close":
         direct_answer_line = "ありがとうございます。承知しました。"
@@ -891,7 +891,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "承諾の件もありがとうございます。また何かあればご相談ください。",
+                    "answer_brief": "承諾の件もありがとうございます。また何かあれば、その時の状況を送ってください。",
                 }
             ],
             "ask_map": [],
@@ -1785,7 +1785,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             _paragraph_from_lines(
                 [
                     direct_answer,
-                    "もし後でやはり気になるようなら、その時点でまたご相談ください。",
+                    "もし後でやはり気になるようなら、その時点の状況を送ってください。",
                 ]
             ),
         )
@@ -1873,7 +1873,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             _paragraph_from_lines(
                 [
                     direct_answer,
-                    "また何かあればご相談ください。",
+                    "また何かあれば、その時の状況を送ってください。",
                 ]
             ),
         )
@@ -1884,7 +1884,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             _paragraph_from_lines(
                 [
                     direct_answer,
-                    "また何かあればご相談ください。",
+                    "また何かあれば、その時の状況を送ってください。",
                 ]
             ),
         )
