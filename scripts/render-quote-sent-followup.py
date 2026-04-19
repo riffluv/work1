@@ -76,6 +76,62 @@ def load_service_grounding() -> dict:
 SERVICE_GROUNDING = load_service_grounding()
 
 
+def is_handoff_source(source: dict) -> bool:
+    service_hint = source.get("service_hint")
+    service_id = source.get("service") or source.get("service_id")
+    return service_hint == "handoff" or service_id == "handoff-25000"
+
+
+def detect_handoff_quote_sent_scenario(raw: str) -> str:
+    if any(marker in raw for marker in ["修正が必要だと分かった場合", "そのまま修正もお願い", "続けてお願いできるか"]):
+        return "handoff_followon_fix"
+    if any(marker in raw for marker in ["追加料金はいくら", "全部まとめて見てもらう", "ユーザー登録", "メール通知"]):
+        return "handoff_extra_flow_fee"
+    return "handoff_generic_followup"
+
+
+def build_handoff_quote_sent_reply(source: dict) -> str:
+    raw = source.get("raw_message", "")
+    scenario = detect_handoff_quote_sent_scenario(raw)
+
+    if scenario == "handoff_followon_fix":
+        paragraphs = [
+            "\n".join(
+                [
+                    "ご連絡ありがとうございます。",
+                    "はい、整理のあとに修正が必要と分かった場合も、続けてご相談いただけます。",
+                ]
+            ),
+            "25,000円の基本料金では、まず主要1フローの構造・危険箇所・次の着手順を整理します。修正そのものは含みませんが、必要になった場合は同じトークルーム内で別対応として続けてご案内できます。",
+            "この前提で問題なければ、そのまま進めて大丈夫です。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    if scenario == "handoff_extra_flow_fee":
+        paragraphs = [
+            "\n".join(
+                [
+                    "ご連絡ありがとうございます。",
+                    "基本は主要1フローごとのご案内なので、別の流れに分かれる場合は追加1フロー 15,000円 の調整になります。",
+                ]
+            ),
+            "同じ起点でつながる1つの流れとして整理できるなら、まずは25,000円の範囲でまとめて見られるかをこちらで確認します。",
+            "いま挙がっている内容なら、まずはどこを優先して整理するかをそろえて進めるのが近いです。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    paragraphs = [
+        "\n".join(
+            [
+                "ご連絡ありがとうございます。",
+                "はい、整理後の次の進め方も続けてご相談いただけます。",
+            ]
+        ),
+        "基本料金では主要1フローの整理と引き継ぎメモ作成までで、修正そのものは含みません。必要になった場合は、その時点で別対応としてご案内します。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
 def classify_capability_fit(raw: str) -> tuple[str, str | None]:
     capability = SERVICE_GROUNDING.get("capability") or {}
 
@@ -1159,6 +1215,44 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
 
 
 def build_case_from_source(source: dict) -> dict:
+    if is_handoff_source(source):
+        raw = source.get("raw_message", "")
+        return {
+            "id": source.get("case_id") or source.get("id"),
+            "src": source.get("route", "service"),
+            "state": "quote_sent",
+            "raw_message": raw,
+            "summary": shared.derive_summary(source),
+            "scenario": detect_handoff_quote_sent_scenario(raw),
+            "temperature_plan": build_temperature_plan_for_case(source, "proposal_change"),
+            "service_grounding": {
+                "service_id": "handoff-25000",
+                "public_service": False,
+                "display_name": "AI/外注コードの主要1フロー整理・引き継ぎメモ作成",
+                "fee_text": "25,000円",
+            },
+            "hard_constraints": {
+                "service_id": "handoff-25000",
+                "public_service_only": False,
+                "answer_before_procedure": True,
+                "ask_only_if_blocking": True,
+            },
+            "reply_stance": {
+                "burden_owner": "us",
+                "empathy_first": False,
+                "reply_skeleton": "estimate_followup",
+            },
+            "reply_contract": {
+                "primary_question_id": "q1",
+                "explicit_questions": [{"id": "q1", "text": "handoff後に修正も続けて頼めるか", "priority": "primary"}],
+                "answer_map": [{"question_id": "q1", "disposition": "answer_now", "answer_brief": "handoff continuation"}],
+                "ask_map": [],
+                "required_moves": ["react_briefly_first", "answer_directly_now"],
+            },
+            "response_decision_plan": {"direct_answer_line": "はい、整理のあとに修正が必要と分かった場合も、続けてご相談いただけます。"},
+            "custom_rendered_reply": build_handoff_quote_sent_reply(source),
+        }
+
     raw = source.get("raw_message", "")
     scenario = detect_scenario(source)
     case = {
@@ -2522,6 +2616,10 @@ def draft_body_paragraphs(case: dict) -> list[str]:
 
 
 def render_case(case: dict) -> str:
+    custom_rendered_reply = case.get("custom_rendered_reply")
+    if custom_rendered_reply:
+        return custom_rendered_reply
+
     decision_plan = case.get("response_decision_plan") or {}
     first_lines = [opener_for(case)]
     reaction = draft_opening_anchor(case)

@@ -168,6 +168,7 @@ def parse_text_case_file(path: Path) -> list[dict]:
 def classify_case_type(source: dict) -> str:
     state = source.get("state")
     service_hint = source.get("service_hint")
+    service_id = source.get("service") or source.get("service_id")
     note = source.get("note", "")
     raw = source.get("raw_message", "")
 
@@ -175,7 +176,7 @@ def classify_case_type(source: dict) -> str:
         return "after_purchase"
     if state == "closed":
         return "after_close"
-    if service_hint == "handoff":
+    if service_hint == "handoff" or service_id == "handoff-25000":
         return "handoff"
     if service_hint == "boundary":
         return "boundary"
@@ -191,6 +192,7 @@ def detect_prequote_scenario(source: dict) -> str:
     note = source.get("note", "")
     combined = f"{raw}\n{note}"
     service_hint = source.get("service_hint")
+    service_id = source.get("service") or source.get("service_id")
 
     repair_primary_markers = [
         "直してほしい",
@@ -226,7 +228,7 @@ def detect_prequote_scenario(source: dict) -> str:
         if "修正までやってもらえますか" in combined or "合計でいくら" in combined:
             return "followon_fix_question"
         return "service_selection_confusion"
-    if service_hint == "handoff":
+    if service_hint == "handoff" or service_id == "handoff-25000":
         return "service_value_uncertain"
     if "設定変更だけ" in combined or "もっと安く" in combined:
         return "price_discount_expectation"
@@ -235,6 +237,133 @@ def detect_prequote_scenario(source: dict) -> str:
     if "表示速度が遅い" in combined or "サイト全体が重い" in combined:
         return "performance_boundary"
     return "default_bugfix"
+
+
+def is_handoff_source(source: dict) -> bool:
+    service_hint = source.get("service_hint")
+    service_id = source.get("service") or source.get("service_id")
+    return service_hint == "handoff" or service_id == "handoff-25000"
+
+
+def detect_handoff_prequote_scenario(raw: str) -> str:
+    if any(marker in raw for marker in ["ついでに不具合も直して", "修正もしてもらえ", "不具合も直して", "どこまでやってもらえますか"]):
+        return "handoff_fix_boundary"
+    if any(marker in raw for marker in ["引き継ぐ前に", "次の担当者", "読める形", "非エンジニア", "引き継ぎ"]):
+        return "handoff_readable_handoff"
+    if any(marker in raw for marker in ["どこが危ない", "触ると壊れそう", "壊れそうで怖い", "まずどこが危ないか"]):
+        return "handoff_risk_mapping"
+    if any(marker in raw for marker in ["25,000円で具体的に何がもらえる", "仕様書みたい", "修正は含まない", "修正は含まないんですよね"]):
+        return "handoff_scope_explanation"
+    return "handoff_general"
+
+
+def build_handoff_prequote_reply(source: dict) -> str:
+    raw = source.get("raw_message", "")
+    scenario = detect_handoff_prequote_scenario(raw)
+    opener = "ご相談ありがとうございます。"
+
+    if scenario == "handoff_fix_boundary":
+        paragraphs = [
+            "\n".join(
+                [
+                    opener,
+                    "はい、25,000円ではまずコード整理と引き継ぎメモ作成まで対応しています。",
+                ]
+            ),
+            "返るのは、主要1フローについての危険箇所・関連ファイル・次の着手順が分かる整理結果です。修正は基本料金に含まないので、必要なら整理後に別対応として続けてご案内できます。",
+            "今回の内容なら、まずは決済まわりの流れを1つ対象にするのが近いです。この前提でよければ、そのままご購入いただいて大丈夫です。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    if scenario == "handoff_readable_handoff":
+        paragraphs = [
+            "\n".join(
+                [
+                    opener,
+                    "はい、引き継ぎ前の整理として対応できます。",
+                ]
+            ),
+            "25,000円では、主要1フローについて危険箇所・関連ファイル・次の着手順が分かる引き継ぎメモを作ります。非エンジニアの方でも追いやすいように、技術用語だけを並べず要点から読める形でまとめます。",
+            "正式な仕様書作成やコード修正は含みませんが、次の担当者へ渡せる状態までは整理します。この内容でよければ、そのままご購入いただいて大丈夫です。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    if scenario == "handoff_risk_mapping":
+        paragraphs = [
+            "\n".join(
+                [
+                    opener,
+                    "はい、まずどこが危ないかを整理する形で対応できます。",
+                ]
+            ),
+            "25,000円では、主要1フローを読んで、どこを触ると影響が広がりやすいか・関連ファイルがどこか・次にどこから着手すべきかを引き継ぎメモとしてまとめます。",
+            "修正は基本料金に含まないので、まず壊しやすい場所を把握したい段階に向いています。この内容でよければ、そのままご購入いただいて大丈夫です。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    if scenario == "handoff_scope_explanation":
+        paragraphs = [
+            "\n".join(
+                [
+                    opener,
+                    "25,000円でお返しするのは、主要1フローについての結論と引き継ぎメモです。",
+                ]
+            ),
+            "中身は、危険箇所・関連ファイル・次の着手順が分かる整理結果で、次の担当者が迷わず触り始められる状態を目指します。正式な仕様書作成ではなく、現状コードを読んで実務向けにまとめるイメージです。",
+            "修正は基本料金に含みません。整理のあとに修正が必要になった場合は、別対応として続けてご案内できます。この内容で問題なければ、そのままご購入いただいて大丈夫です。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    paragraphs = [
+        "\n".join(
+            [
+                opener,
+                "はい、コードの中身が分からない状態からでも対応できます。",
+            ]
+        ),
+        "25,000円では、主要1フローについて危険箇所・関連ファイル・次の着手順が分かる引き継ぎメモを作ります。修正そのものではなく、次の担当者が迷わず触れる状態に整理するサービスです。",
+        "この内容で問題なければ、そのままご購入いただいて大丈夫です。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
+def build_handoff_prequote_case(source: dict) -> dict:
+    raw = source.get("raw_message", "")
+    return {
+        "id": source.get("case_id") or source.get("id"),
+        "title": source.get("category") or source.get("title") or source.get("case_id") or "handoff",
+        "service_id": "handoff-25000",
+        "src": source.get("route", source.get("src", "service")),
+        "state": source.get("state", "prequote"),
+        "raw_message": raw,
+        "summary": derive_summary(source),
+        "user_intent": "handoff の価値と範囲確認",
+        "case_type": "handoff",
+        "certainty": "high",
+        "service_fit": "high",
+        "risk_level": "medium" if source.get("emotional_tone") in {"anxious", "mixed", "frustrated"} else "low",
+        "risk_flags": [],
+        "scope_judgement": "same_cause_likely",
+        "known_facts": extract_known_facts(source),
+        "routing_meta": {"scenario": detect_handoff_prequote_scenario(raw), "service_lane": "handoff"},
+        "reply_stance": {
+            "burden_owner": "us",
+            "empathy_first": source.get("emotional_tone") in {"anxious", "mixed", "frustrated"},
+            "reply_skeleton": "estimate_initial",
+            "answer_timing": "now",
+        },
+        "temperature_plan": build_temperature_plan(source, case_type="handoff"),
+        "reply_contract": {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "handoff-25000 の範囲と価値", "priority": "primary"}],
+            "answer_map": [{"question_id": "q1", "disposition": "answer_now", "answer_brief": "handoff の範囲を直答する"}],
+            "ask_map": [],
+            "issue_plan": [{"issue": "handoff の範囲説明", "disposition": "answer_now", "reason": "service grounding"}],
+            "required_moves": ["answer_directly_now", "give_purchase_path"],
+            "forbidden_moves": ["generic_bugfix_fallback", "repair_scope_blur", "internal_term_exposure"],
+        },
+        "custom_rendered_reply": build_handoff_prequote_reply(source),
+    }
 
 
 def summarize_raw_message(raw: str) -> str:
@@ -874,6 +1003,9 @@ def derive_ask(source: dict) -> tuple[str, str, str | None, str | None]:
 
 
 def build_case_from_source(source: dict) -> dict:
+    if is_handoff_source(source):
+        return build_handoff_prequote_case(source)
+
     state = source.get("state", "prequote")
     raw = source.get("raw_message", "")
     disposition = derive_disposition(source)
@@ -1515,6 +1647,10 @@ def build_estimate_render_payload(case: dict) -> dict:
 
 
 def render_case(case: dict) -> str:
+    custom_rendered_reply = case.get("custom_rendered_reply")
+    if custom_rendered_reply:
+        return custom_rendered_reply
+
     if case.get("state") != "prequote":
         raise ValueError(f"{case.get('id')}: only prequote is supported")
     reply_stance = case.get("reply_stance") or {}

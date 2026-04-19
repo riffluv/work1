@@ -2,8 +2,9 @@
 目的は「見積り相談 -> 返信文作成 -> 購入後の実装 -> 納品」を、mode を切り替えながら破綻なく進めることです。
 
 【現在の最優先 handoff】
-- 返信システムの現状と次の一手は `/home/hr-hm/Project/work/docs/reply-quality/2026-04-05-next-codex-handoff-reply-system.md` を先に読むこと
-- 今回の handoff では、`slot-filling renderer` を延命せず、`quote_sent` を起点に `guardrail-centered` へ寄せる判断が最優先
+- 返信システムの現状と次の一手は `/home/hr-hm/Project/work/docs/reply-quality/live-review-session-summary-20260419.ja.md` を先に読むこと
+- 返信システムの恒久原則は `/home/hr-hm/Project/work/docs/reply-quality/reply-system-strengthening-memo.ja.md` を正本として扱う
+- 今回の優先は「広く作り直すこと」ではなく、`live 5件監査 -> 再発タグ整理 -> archetype fix が必要な時だけ最小修正` を守ること
 
 【起動前（ローカルskills固定）】
 - このプロジェクトは `CODEX_HOME=/home/hr-hm/Project/work/.codex` を前提にする。
@@ -44,7 +45,7 @@ mode の正本:
 - 公開状態の正本は `/home/hr-hm/Project/work/os/core/service-registry.yaml`
 - 外向けに案内してよいのは `public: true` のサービスだけ
 - 現時点の外向け live は `bugfix-15000` のみ
-- `handoff-25000` は内部準備用の参照にとどめ、外向け返信でサービス名・価格・購入導線を出さない
+- `handoff-25000` は公開準備が近い前提で参照してよいが、`service-registry.yaml` が `public: true` に変わるまでは外向け返信でサービス名・価格・購入導線を出さない
 - サービスページ文面の正本は `service-registry.yaml` の `source_of_truth` を使う
 - `bugfix-15000` の正本は `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
 - `handoff-25000` の正本は `/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt`
@@ -71,6 +72,7 @@ mode の正本:
 - 反映前に、その改善が `reply-only` / `common` / `delivery-only` のどれかを必ず判定する
 - `reply-only` は返信文系正本だけ、`delivery-only` は納品物系正本だけへ反映し、`common` 判定なしで相互流用しない
 - 恒久反映の採用基準は `再発性がある / 実務ノイズを増やさない / 要点を薄めない / 既存ルールと衝突しない / 1回限りの好みではない`
+- 直近の監査で有効だった恒久観点は、少なくとも `fact_alignment / semantic_echo / closing_complete / urgency_symmetry / unanswered_secondary / technical_explanation_safety` を含む
 - `#CL` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Claude 向け監査プロンプトを作る
 - `#GE` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Gemini 向け監査プロンプトを作る
 - `#R / #A / #D / #P` を優先し、相手文だけなら分析のみ
@@ -83,6 +85,7 @@ mode の正本:
 - inbox の stock が追加された時は、「返信文を書く」ではなく「取り込み -> seed / eval / holdout / edge 仕分け -> eval-sources 接続 -> contract / renderer / lint / role suite 回帰」までを標準処理として行う
 - stock 処理の結果は、単発の文面修正で止めず、再発パターンを `rule / renderer / lint` のいずれかへ戻す
 - 実ストックを優先し、Claude / Gemini の生成 stock は不足領域の補完として使う
+- random 5件で荒れた時は、その case だけ直さず、`case fix` か `archetype fix` かを先に切る
 
 【Implementation OS】
 - 購入後のコード分析・修正では `/home/hr-hm/Project/work/os/implementation/boot.md` を主モードにする
