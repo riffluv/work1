@@ -43,6 +43,40 @@ STYLE_RULES: list[tuple[re.Pattern[str], str]] = [
     ),
 ]
 
+TECHNICAL_CONTEXT_MARKERS = [
+    "Stripe",
+    "Webhook",
+    "webhook",
+    "API",
+    "API Routes",
+    "endpoint",
+    "エンドポイント",
+    "Vercel",
+    "Firestore",
+    "Checkout",
+    "会員ステータス",
+    "バリデーション",
+    "環境変数",
+    "環境差",
+    "ログ",
+    "受信",
+]
+
+TECHNICAL_SPECULATION_RULES: list[tuple[re.Pattern[str], str]] = [
+    (
+        re.compile(r"可能性が高い"),
+        "technical line uses strong speculation wording `可能性が高い`",
+    ),
+    (
+        re.compile(r"おそらく"),
+        "technical line uses speculation wording `おそらく`",
+    ),
+    (
+        re.compile(r"思われます"),
+        "technical line uses speculation wording `思われます`",
+    ),
+]
+
 INTERNAL_TERM_RULES: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(r"公開サービス"),
@@ -588,6 +622,18 @@ def collect_quality_style_errors(rendered: str) -> list[str]:
     if _has_adjacent_near_echo(rendered):
         errors.append("rendered text still has near-echo across adjacent sections")
     return errors
+
+
+def collect_technical_explanation_warnings(rendered: str) -> list[str]:
+    warnings: list[str] = []
+    segments = [segment.strip() for segment in re.split(r"[。\n]+", rendered) if segment.strip()]
+    for segment in segments:
+        if not any(marker in segment for marker in TECHNICAL_CONTEXT_MARKERS):
+            continue
+        for pattern, message in TECHNICAL_SPECULATION_RULES:
+            if pattern.search(segment):
+                warnings.append(f"{message}: {segment}")
+    return list(dict.fromkeys(warnings))
 
 
 def collect_temperature_constraint_errors(

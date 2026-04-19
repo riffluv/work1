@@ -1,0 +1,25 @@
+cases:
+  - case_id: TSAFE-001
+    text: |
+      Stripe 側では送信成功になっているので、Webhook の受け口側の可能性が高いです。
+    expect_warning: true
+
+  - case_id: TSAFE-002
+    text: |
+      おそらく API Routes 側のバリデーションで止まっています。
+    expect_warning: true
+
+  - case_id: TSAFE-003
+    text: |
+      いまの症状だと、原因は環境差と思われます。
+    expect_warning: true
+
+  - case_id: TSAFE-004
+    text: |
+      Stripe 側で送信成功になっているとのことなので、まずは受信側でどこまで届いているかを確認します。
+    expect_warning: false
+
+  - case_id: TSAFE-005
+    text: |
+      いまの時点ではまだ原因は断定しません。まずは受信側のログや反応を確認するのが近いです。
+    expect_warning: false
