@@ -1097,10 +1097,13 @@ def opener_for(case: dict) -> str:
 def acknowledge_for(case: dict) -> str:
     temperature_plan = ensure_temperature_plan(case)
     summary = case.get("summary")
+    raw = case.get("raw_message", "")
     user_signal = temperature_plan.get("user_signal")
     opening_move = temperature_plan.get("opening_move")
 
     if opening_move == "action_first":
+        if any(marker in raw for marker in ["調査だけで終わる", "まず調べます", "何も直らなかった"]):
+            return "同じように調査だけで終わらないか心配ですよね。"
         return "まず必要なところから確認します。"
     if opening_move == "pressure_release":
         return "相談だけでも大丈夫です。"
@@ -1194,6 +1197,8 @@ def answer_now_lines(case: dict, question: dict, answer: dict) -> list[str]:
 def scope_reason_for(case: dict) -> str:
     summary = case.get("summary", "")
     raw = case.get("raw_message", "")
+    if any(marker in raw for marker in ["調査だけで終わる", "まず調べます", "何も直らなかった"]):
+        return "調査だけで止める形ではなく、まずこの不具合がどこで止まっているかを確認します。"
     if "会員状態" in summary or "無料へ戻って" in summary:
         return "まずは会員状態の反映まわりを、1件の不具合として確認します。"
     if "Firestore" in summary or "timeout" in summary:
@@ -1225,6 +1230,10 @@ def secondary_lines(case: dict) -> list[str]:
         qtext = question.get("text", "")
         qtype = answer.get("question_type") or question.get("question_type")
         brief = answer.get("answer_brief", "")
+        if "追加料金" in qtext:
+            lines.append("原因が想定と違っても、勝手に追加料金が発生することはありません。")
+            lines.append("別対応が必要そうな場合だけ、その時点で先にお伝えします。")
+            continue
         if disposition == "answer_now":
             if qtype == "procedure_only":
                 lines.append("手順書だけを別で作る形ではなく、15,000円で原因調査から修正まで対応しています。")

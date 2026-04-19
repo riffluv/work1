@@ -191,7 +191,7 @@ def extra_scope_subject(raw: str) -> str:
         return "その画面の件"
     if "ページ" in raw:
         return "そのページの件"
-    return "別の件"
+    return "別件"
 
 
 def quote_progress_line(raw: str) -> str:
@@ -2238,7 +2238,10 @@ def draft_opening_anchor(case: dict) -> str:
             return "Webhook secret 周りの手がかり共有ありがとうございます。"
         return "原因らしき手がかりを見つけていただいてありがとうございます。"
     if scenario == "extra_scope_question":
-        return f"{extra_scope_subject(raw)}の件、確認しました。"
+        subject = extra_scope_subject(raw)
+        if subject == "別件":
+            return "別件、確認しました。"
+        return f"{subject}の件、確認しました。"
     if scenario == "extra_fee_anxiety":
         return "追加料金のご不安、確認しました。"
     if scenario == "which_environment_screen":

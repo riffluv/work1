@@ -289,6 +289,8 @@ def subscription_scope_support_line(raw: str) -> str:
 def general_bugfix_direct_answer_line(raw: str) -> str:
     fit_level, _ = classify_capability_fit(raw)
     can_start = "まず確認できます" if fit_level == "cautious_fit" else "確認できます"
+    if "API Routes" in raw and any(marker in raw for marker in ["バリデーション", "15,000円", "15000円"]):
+        return f"はい、原因が API Routes 側のバリデーションでも、決済まわりの不具合として {SERVICE_GROUNDING['fee_text']} の範囲で進めます。"
     if any(marker in raw for marker in ["切り分けと修正可否", "動作確認まで含ま", "コードを修正して", "どこまでやってもらえる"]):
         return f"{SERVICE_GROUNDING['fee_text']} の範囲で、原因確認からコード修正まで対応しています。"
     if any(marker in raw for marker in ["Stripe も見てもらえるんですよね", "Stripeも見てもらえるんですよね", "Stripe も見てもらえる", "Stripeも見てもらえる"]):
@@ -354,6 +356,8 @@ def general_bugfix_direct_answer_line(raw: str) -> str:
 
 def general_bugfix_scope_detail_line(raw: str) -> str:
     priority = diagnostic_priority_line(raw)
+    if "API Routes" in raw and "バリデーション" in raw:
+        return "購入後にまず状況を確認して、どこで止まっているかを見ます。"
     if any(marker in raw for marker in ["切り分けと修正可否", "動作確認まで含ま", "コードを修正して", "どこまでやってもらえる"]):
         return "動作確認も、こちらで確認できる範囲までは含めて進めます。"
     if any(marker in raw for marker in ["ぐるぐる", "先に進めない"]) and any(

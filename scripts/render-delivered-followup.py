@@ -682,14 +682,18 @@ def build_case_from_source(source: dict) -> dict:
                         else "今の時点では、今回の修正の影響かどうかはまだ言い切れません。"
                     ),
                     "hold_reason": "修正後の差分と、メール送信が止まった流れを先に確認します。"
-                    if has_post_fix_regression
+                    if has_post_fix_regression and not has_mail_delay
                     else (
+                        "修正箇所と、メールのタイミング変化に関係がありそうかを先に確認します。"
+                        if has_post_fix_regression and has_mail_delay
+                        else (
                         ""
                         if has_soft_probe and has_approval_question
                         else (
                             "修正箇所と、メールのタイミング変化に関係がありそうかを先に確認します。"
                             if has_mail_delay
                             else "修正箇所と、止まっているメール送信のつながりを先に確認します。"
+                        )
                         )
                     ),
                     "revisit_trigger": "状況を受領したあとに、今回の修正との関係をお返しします。"
@@ -715,11 +719,15 @@ def build_case_from_source(source: dict) -> dict:
                     "id": "a1",
                     "question_ids": ["q1"],
                     "ask_text": "メール送信が止まっていることが分かる画面か、操作手順を送ってください。"
-                    if has_post_fix_regression
+                    if has_post_fix_regression and not has_mail_delay
                     else (
+                        "前より遅く感じた場面か、どのタイミングでそう見えたかが分かるものをそのまま送ってください。"
+                        if has_post_fix_regression and has_mail_delay
+                        else (
                         "前より遅く感じた場面か、どのタイミングでそう見えたかが分かるものをそのまま送ってください。"
                         if has_mail_delay
                         else "メール送信が止まっていることが分かる画面か、操作手順を送ってください。"
+                        )
                     ),
                     "why_needed": "今回の修正とのつながりが強いかを先に見るため",
                 }
@@ -1646,6 +1654,8 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "side_effect_question":
         if "Webhook" in raw and ("出なくなりました" in raw or "問題なく動" in raw):
             return "Webhookのエラーが出なくなったとのこと、よかったです。"
+        if "メール" in raw and ("遅く" in raw or "タイミング" in raw):
+            return "決済の件は直っていたとのこと、確認しました。"
         if any(marker in raw for marker in ["修正前は問題なかった", "今回の修正が影響", "今回の修正の影響", "修正後に別の問題"]):
             return "Webhookの受信は直ったとのこと、確認しました。"
         if "メール" in raw:
@@ -1993,7 +2003,11 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 _paragraph_from_lines(
                     [
                         focus_line or "",
-                        "メール送信が止まっていることが分かる画面か、操作手順を送ってください。",
+                        (
+                            "前より遅く感じた場面か、どのタイミングでそう見えたかが分かるものをそのまま送ってください。"
+                            if ("メール" in raw and ("遅く" in raw or "タイミング" in raw))
+                            else "メール送信が止まっていることが分かる画面か、操作手順を送ってください。"
+                        ),
                     ]
                 ),
             )
