@@ -11,6 +11,8 @@
 - 骨格はかなり良い。全面再設計は不要。
 - 弱さの主因は `scenario 不足` ではなく、`decision / reply_contract / response_decision_plan` が最終文に反映されたかの保証不足。
 - 次に強くする場所は、renderer 増殖ではなく、`contract -> output` の共通 property check。
+- `bugfix-15000` は live 運用として十分安定している。
+- `handoff-25000` は internal learning として十分安定しており、both-public shadow rehearsal でも mixed / boundary ケースを通過している。
 
 ## 3. このシステムで守ること
 - 相手の主質問に先に答える。
@@ -159,6 +161,16 @@
 - 技術説明は、buyer が書いた事実から自然に言える確認方針までに留め、未確認の原因推定は warning 対象として扱う。
 - 軽微だが再発性のある違和感は `再発タグ` として管理する。
 - 1回限りの違和感はすぐ恒久化せず、`再発性 × buyer視点 × 修正一方向` の3条件で上げる。
+
+### both-public shadow rehearsal
+- `bugfix-15000` と `handoff-25000` をどちらも公開している前提の mixed / boundary ケースは、live へ切り替える前に shadow batch で確認する。
+- ここで見るのは
+  - `buyer の主目的` に沿った route 判定
+  - `service_mismatch` の有無
+  - 価格分離
+  - handoff / bugfix の接続
+  - 進行中切替
+  であり、live の `#R` には直接混ぜない。
 
 ## 10. いま採るべき最小方針
 - 新しい大規模再設計はしない。

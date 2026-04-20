@@ -21,6 +21,17 @@
 - `reply_contract / decision / validator / eval で支える`
 - この骨格自体は維持でよい
 
+### 1.5. 両公開前提の boundary rehearsal も通過した
+- `bugfix-15000` と `handoff-25000` をどちらも公開している前提の shadow batch を実施した
+- mixed / boundary ケースで
+  - `buyer の主目的` に沿った route 判定
+  - `service_mismatch` の不発
+  - 価格分離
+  - handoff -> bugfix 接続
+  - handoff 進行中の bugfix 切替
+  が成立することを確認した
+- これは `handoff-25000` を public にする前の公開判断の証跡として扱ってよい
+
 ### 2. 返信システム本体は「広く作り直す」段階ではない
 - 新しい層追加
 - scenario 増殖
@@ -150,3 +161,4 @@
 ### 今の判断
 - 現在の reply system は、破壊前より「監査精度」と「再発防止」の面で強い
 - ただし土台の良さは元の骨格に依存しており、今後も「広げるより締める」を優先する
+- `handoff-25000` は internal learning として十分安定しており、both-public rehearsal も通過したため、公開判断は routing 不安ではなく運用タイミングの問題として扱える

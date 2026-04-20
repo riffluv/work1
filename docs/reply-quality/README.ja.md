@@ -41,6 +41,8 @@
   - service-pack の商品化基盤フェーズを v1 close として閉じ、ここからは実運用モニタリングへ戻るための区切り文書
 - `service-page-change-checklist.ja.md`
   - サービスページや内部共有認識を変えた時に、返信OSのどこへ落とすかを10行で確認するチェックリスト
+- `seller-initiated-lane-minimal.ja.md`
+  - buyer の文章への返信とは別に、こちら起点の進捗共有・補足・完了報告をどう最小構成で扱うかのメモ
 - `self-check-layering-first-pass.ja.md`
   - `self-check` を `L1 / L2 / L3` に棚卸しし、runtime と service-pack を分けるための初期設計メモ
 - `self-check-l3-extraction-map.ja.md`
