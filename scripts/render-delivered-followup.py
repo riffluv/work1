@@ -1256,7 +1256,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "ここでの「未確認」は、今回はそこまで確認していないという意味です。できなかったのか、この範囲外だったのかは必要なら補足します。",
+                    "answer_brief": "ここでの「未確認」は、今回の対象フローには含めず確認の範囲に入れていないという意味です。確認しようとしてできなかった、という意味ではありません。",
                 }
             ],
             "ask_map": [],

@@ -242,10 +242,21 @@ def detect_prequote_scenario(source: dict) -> str:
 def is_handoff_source(source: dict) -> bool:
     service_hint = source.get("service_hint")
     service_id = source.get("service") or source.get("service_id")
+    raw = source.get("raw_message", "")
+    if service_hint == "boundary" and any(
+        marker in raw for marker in ["25,000円", "25000円", "整理をスキップ", "修正だけお願い", "修正は不要"]
+    ):
+        return True
     return service_hint == "handoff" or service_id == "handoff-25000"
 
 
 def detect_handoff_prequote_scenario(raw: str) -> str:
+    if "主要1フロー" in raw and any(marker in raw for marker in ["どう決める", "どうやって決める", "具体的にどう"]):
+        return "handoff_main_flow_selection"
+    if any(marker in raw for marker in ["整理をスキップ", "修正だけお願い", "修正だけ", "修正は不要"]) and any(
+        marker in raw for marker in ["25,000円", "25000円"]
+    ):
+        return "handoff_boundary_service_choice"
     if any(marker in raw for marker in ["ついでに不具合も直して", "修正もしてもらえ", "不具合も直して", "どこまでやってもらえますか"]):
         return "handoff_fix_boundary"
     if any(marker in raw for marker in ["引き継ぐ前に", "次の担当者", "読める形", "非エンジニア", "引き継ぎ"]):
@@ -262,6 +273,33 @@ def build_handoff_prequote_reply(source: dict) -> str:
     scenario = detect_handoff_prequote_scenario(raw)
     opener = "ご相談ありがとうございます。"
 
+    if scenario == "handoff_boundary_service_choice":
+        paragraphs = [
+            "\n".join(
+                [
+                    opener,
+                    "常に 25,000円 と 15,000円 が両方かかる形ではありません。",
+                ]
+            ),
+            "いま直したい不具合がはっきりしていて、その修正だけで進められるなら bugfix-15000 から入れます。どこを直すべきか整理自体が必要なら、先に handoff-25000 から入る方が安全です。",
+            "handoff-25000 は、主要1フローの構造・危険箇所・次の着手順を整理するサービスなので、整理した結果「今回は修正不要」と分かった場合でも、引き継ぎメモ作成まで進めた時点で 25,000円 の範囲で成立します。",
+            "いまの内容なら、まず一番困っている不具合が明確かどうかで入口を切るのが近いです。この前提でよければ、そのままご購入いただいて大丈夫です。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    if scenario == "handoff_main_flow_selection":
+        paragraphs = [
+            "\n".join(
+                [
+                    opener,
+                    "主要1フローは、購入後にコードを見て、一番影響範囲が広い処理か、次の担当者が最初に把握すべき処理からこちらで決めます。",
+                ]
+            ),
+            "判断の軸は、実際に困っている動きに近いか、関連ファイルがどこまで広がるか、そこを押さえると全体像が追いやすくなるかです。",
+            "今のご相談内容なら、まず動いている中でも把握しにくくなっている主要な処理を1つ選んで、関連ファイルと次の着手順が分かる形で整理します。この内容で問題なければ、そのままご購入いただいて大丈夫です。",
+        ]
+        return "\n\n".join(paragraphs)
+
     if scenario == "handoff_fix_boundary":
         paragraphs = [
             "\n".join(
@@ -276,6 +314,9 @@ def build_handoff_prequote_reply(source: dict) -> str:
         return "\n\n".join(paragraphs)
 
     if scenario == "handoff_readable_handoff":
+        timing_line = ""
+        if any(marker in raw for marker in ["間に合いますか", "契約終了前", "来月で契約終了"]):
+            timing_line = "現時点の内容なら、契約終了前に主要1フローを整理して引き継ぎ用の形までまとめる進め方は取りやすいです。"
         paragraphs = [
             "\n".join(
                 [
@@ -283,10 +324,11 @@ def build_handoff_prequote_reply(source: dict) -> str:
                     "はい、引き継ぎ前の整理として対応できます。",
                 ]
             ),
+            timing_line,
             "25,000円では、主要1フローについて危険箇所・関連ファイル・次の着手順が分かる引き継ぎメモを作ります。非エンジニアの方でも追いやすいように、技術用語だけを並べず要点から読める形でまとめます。",
             "正式な仕様書作成やコード修正は含みませんが、次の担当者へ渡せる状態までは整理します。この内容でよければ、そのままご購入いただいて大丈夫です。",
         ]
-        return "\n\n".join(paragraphs)
+        return "\n\n".join([p for p in paragraphs if p])
 
     if scenario == "handoff_risk_mapping":
         paragraphs = [
