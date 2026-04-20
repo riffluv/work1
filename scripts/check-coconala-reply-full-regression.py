@@ -13,6 +13,7 @@ CONTRACT_CHECKER = ROOT_DIR / "scripts/check-inferred-prequote-contracts.py"
 REPLY_REGRESSION = ROOT_DIR / "scripts/check-coconala-reply-regression.py"
 QUOTE_SENT_TEMPLATE_CHECKER = ROOT_DIR / "scripts/check-quote-sent-template-regression.py"
 REPLY_MEMORY_CHECKER = ROOT_DIR / "scripts/check-reply-memory-regression.py"
+PROJECTION_WARNINGS_CHECKER = ROOT_DIR / "scripts/check-reply-projection-warnings.py"
 REPORT_DIR = ROOT_DIR / "runtime/regression/coconala-reply/full"
 JST = ZoneInfo("Asia/Tokyo")
 
@@ -33,6 +34,7 @@ def build_report_text(
     template_output: str,
     reply_memory_status: int,
     reply_memory_output: str,
+    projection_warning_output: str,
 ) -> str:
     overall_ok = (
         contract_status == 0
@@ -58,6 +60,9 @@ def build_report_text(
         "",
         "[reply_memory_regression]",
         reply_memory_output or "<no output>",
+        "",
+        "[projection_warnings]",
+        projection_warning_output or "<no output>",
         "",
         "[status]",
         "[OK] coconala reply full regression passed" if overall_ok else "[NG] coconala reply full regression failed",
@@ -88,20 +93,24 @@ def main() -> int:
     reply_cmd = ["python3", str(REPLY_REGRESSION)]
     template_cmd = ["python3", str(QUOTE_SENT_TEMPLATE_CHECKER)]
     reply_memory_cmd = ["python3", str(REPLY_MEMORY_CHECKER)]
+    projection_warning_cmd = ["python3", str(PROJECTION_WARNINGS_CHECKER)]
     if args.show_pass_details:
         contract_cmd.append("--show-passes")
         reply_cmd.append("--show-passes")
     for role in args.role or []:
         contract_cmd.extend(["--role", role])
         reply_cmd.extend(["--role", role])
+        projection_warning_cmd.extend(["--role", role])
     for role in args.exclude_role or []:
         contract_cmd.extend(["--exclude-role", role])
         reply_cmd.extend(["--exclude-role", role])
+        projection_warning_cmd.extend(["--exclude-role", role])
 
     contract_status, contract_output = run_command(contract_cmd)
     reply_status, reply_output = run_command(reply_cmd)
     template_status, template_output = run_command(template_cmd)
     reply_memory_status, reply_memory_output = run_command(reply_memory_cmd)
+    _projection_warning_status, projection_warning_output = run_command(projection_warning_cmd)
 
     report_text = build_report_text(
         started_at=started_at,
@@ -113,6 +122,7 @@ def main() -> int:
         template_output=template_output,
         reply_memory_status=reply_memory_status,
         reply_memory_output=reply_memory_output,
+        projection_warning_output=projection_warning_output,
     )
 
     if args.save_report:

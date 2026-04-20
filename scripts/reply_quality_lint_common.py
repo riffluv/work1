@@ -64,8 +64,8 @@ TECHNICAL_CONTEXT_MARKERS = [
 
 TECHNICAL_SPECULATION_RULES: list[tuple[re.Pattern[str], str]] = [
     (
-        re.compile(r"可能性が高い"),
-        "technical line uses strong speculation wording `可能性が高い`",
+        re.compile(r"可能性が高(?:い|く|そう)"),
+        "technical line uses strong speculation wording around `可能性が高い`",
     ),
     (
         re.compile(r"おそらく"),
@@ -74,6 +74,18 @@ TECHNICAL_SPECULATION_RULES: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(r"思われます"),
         "technical line uses speculation wording `思われます`",
+    ),
+    (
+        re.compile(r"線が濃い"),
+        "technical line uses speculation wording `線が濃い`",
+    ),
+    (
+        re.compile(r"っぽいです"),
+        "technical line uses speculation wording `っぽいです`",
+    ),
+    (
+        re.compile(r"原因(?:は|が)[^。\n]{0,24}です"),
+        "technical line states a likely cause too directly",
     ),
 ]
 
@@ -147,6 +159,63 @@ EMPTY_PROMISE_MARKERS = [
     "先にお伝えします",
     "確認できているところから",
     "見えているところから",
+]
+SECONDARY_PROJECTION_MARKER_GROUPS: list[tuple[list[str], list[str]]] = [
+    (
+        ["追加料金", "別料金", "料金", "金額", "返金", "値引"],
+        ["追加料金", "料金", "金額", "返金", "値引", "固定", "別対応", "先にお伝え"],
+    ),
+    (
+        ["今日中", "いつ", "進捗", "目安", "いつまで"],
+        ["本日", "明日", "までに", "進捗", "見通し", "いまは", "現時点", "切り分け"],
+    ),
+    (
+        ["本番反映", "手順", "気をつけ"],
+        ["本番反映", "手順", "環境変数", "差分", "確認"],
+    ),
+    (
+        ["修正", "続けて", "頼め", "含ま", "別対応"],
+        ["修正", "続けて", "別対応", "含み"],
+    ),
+    (
+        ["どちらのサービス", "どちらが合"],
+        ["この不具合対応", "引き継ぎ", "整理", "近い"],
+    ),
+]
+REPORT_VERB_PATTERNS: list[re.Pattern[str]] = [
+    re.compile(r"(?:整理|確認|共有|案内|ご案内)(?:して)?お返しします"),
+    re.compile(r"(?:整理|確認)(?:して)?お送りします"),
+    re.compile(r"まとめます"),
+]
+REPORT_ANCHOR_MARKERS = [
+    "本日",
+    "明日",
+    "までに",
+    "いまは",
+    "現時点",
+    "見通し",
+    "原因の方向性",
+    "箇条書き",
+    "見えている点",
+    "整理した内容",
+    "危険箇所",
+    "関連ファイル",
+    "次の着手順",
+    "手順",
+    "進捗",
+    "状況",
+    "確認結果",
+    "どこまで",
+    "どこで",
+    "何を",
+    "何が",
+    "見るポイント",
+    "反映前",
+    "差分",
+    "結論",
+    "要点",
+    "一覧",
+    "箇条書き",
 ]
 PRICE_QUESTION_MARKERS = [
     "15,000",
@@ -633,6 +702,64 @@ def collect_technical_explanation_warnings(rendered: str) -> list[str]:
         for pattern, message in TECHNICAL_SPECULATION_RULES:
             if pattern.search(segment):
                 warnings.append(f"{message}: {segment}")
+    return list(dict.fromkeys(warnings))
+
+
+def collect_secondary_answer_projection_warnings(rendered: str, contract: dict | None = None) -> list[str]:
+    if not contract:
+        return []
+
+    warnings: list[str] = []
+    primary_id = contract.get("primary_question_id")
+    questions_by_id = {
+        item.get("id"): item.get("text", "")
+        for item in (contract.get("explicit_questions") or [])
+        if item.get("id")
+    }
+
+    for answer in contract.get("answer_map") or []:
+        question_id = answer.get("question_id")
+        if not question_id or question_id == primary_id:
+            continue
+        if answer.get("disposition") not in {"answer_now", "decline"}:
+            continue
+
+        question_text = questions_by_id.get(question_id, "")
+        answer_brief = (answer.get("answer_brief") or "").strip()
+        if answer_brief and answer_brief in rendered:
+            continue
+
+        combined = f"{question_text} {answer_brief}"
+        expected_markers: list[str] = []
+        for triggers, anchors in SECONDARY_PROJECTION_MARKER_GROUPS:
+            if any(trigger in combined for trigger in triggers):
+                expected_markers.extend(anchors)
+
+        if not expected_markers:
+            continue
+        if any(marker in rendered for marker in expected_markers):
+            continue
+
+        warnings.append(
+            f"secondary_answers_projected warning: `{question_text}` may not be reflected in the rendered text"
+        )
+
+    return list(dict.fromkeys(warnings))
+
+
+def collect_report_anchor_warnings(rendered: str) -> list[str]:
+    warnings: list[str] = []
+    segments = [segment.strip() for segment in re.split(r"[。\n]+", rendered) if segment.strip()]
+    for segment in segments:
+        if not any(pattern.search(segment) for pattern in REPORT_VERB_PATTERNS):
+            continue
+        if not any(token in segment for token in ["お返し", "お送り", "まとめ"]):
+            continue
+        if any(marker in segment for marker in REPORT_ANCHOR_MARKERS):
+            continue
+        warnings.append(
+            f"report_verb_has_concrete_anchor warning: `{segment}`"
+        )
     return list(dict.fromkeys(warnings))
 
 

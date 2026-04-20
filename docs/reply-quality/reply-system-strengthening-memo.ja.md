@@ -119,6 +119,10 @@
   - 値引き拒否や範囲説明で終わる場合も、buyer の次の入口や次アクションが残っているか
 - `urgency_symmetry`
   - buyer が急ぎ・不安・過去の嫌な経験を明示している場合、冒頭2文以内でそれに触れているか
+- `secondary_answers_projected`
+  - `answer_map` の副質問回答が、自然化後の最終文でも落ちていないか
+- `report_verb_has_concrete_anchor`
+  - `整理します / お返しします / まとめます` が出る場合、何を・いつ・どこまで返すかが一緒にあるか
 - `service_grounded`
   - `service-registry` と service pack に反しないか
 - `stage_policy_ok`

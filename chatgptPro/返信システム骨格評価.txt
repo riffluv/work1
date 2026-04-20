@@ -1,0 +1,245 @@
+1. 読めたファイル
+公開 GitHub URL から、指定ファイルのうち以下は実際に開いて確認できました。大型 renderer は、全行逐語レビューではなく、返信システムの骨格に関わる定義・分岐・contract / decision plan / validator / regression / service grounding を中心に読みました。
+読めたファイル
+
+
+docs/reply-quality/reply-system-strengthening-memo.ja.md
+
+
+.codex/skills/reply-review-prompt-ja/SKILL.md
+
+
+scripts/render-prequote-estimate-initial.py
+
+
+scripts/render-quote-sent-followup.py
+
+
+scripts/render-post-purchase-quick.py
+
+
+scripts/render-delivered-followup.py
+
+
+scripts/render-closed-followup.py
+
+
+scripts/reply_quality_lint_common.py
+
+
+scripts/check-coconala-reply-full-regression.py
+
+
+scripts/check-coconala-reply-role-suites.py
+
+
+os/core/service-registry.yaml
+
+
+サービスページ/bugfix-15000.live.txt
+
+
+サービスページ/handoff-25000.ready.txt
+
+
+読めなかったファイル
+
+
+docs/reply-quality/live-review-session-summary-20260419.ja.md
+
+
+指定パスでは見つかりませんでした。docs/reply-quality のディレクトリ一覧には reply-system-strengthening-memo.ja.md や reply-archetype-worklist-20260419.ja.md はありますが、live-review-session-summary-20260419.ja.md は出ていませんでした。検索でも該当ファイル名は見つかりませんでした。
+
+2. 総評
+結論から言うと、今の骨格はかなり強いです。大改修ではなく、最後の詰めは「contract / decision plan が最終文に本当に出たか」を共通 validator で保証する方向で合っています。
+特に、あなたが言っている reply_contract / decision / validator / eval の骨格は妥当です。むしろここで renderer や scenario を増やしすぎると、今の良さを壊しやすいです。
+読んだ範囲では、この system の本質は次の4層です。
+層役割評価reply_contract主質問・副質問・答える義務・聞く義務を構造化する強いresponse_decision_plan返信順序、直答行、既知事実、blocking missing facts を決める強いrendererその判断を日本語の返信に落とすまだ揺れるvalidator / regression / role suites判断が最終文に反映されたかを検査する最後の伸びしろ
+強いのは、「返信品質」を単なる自然文の綺麗さではなく、主質問への回答義務を最終文で履行したかとして管理しようとしている点です。強化メモでも、目的は「文章のその場しのぎ修正」ではなく「主質問に正面から答える構造」と明記され、現状判断としても全面再設計不要、次に強くする場所は renderer 増殖ではなく contract -> output の共通 property check とされています。
+いちばん危ないのは、内部構造では正しい判断ができているのに、最終文で薄まることです。これはあなたの認識どおりで、メモにも「plan があるだけでは不十分で、最終文に出たまで見る」とあります。
+
+3. 今の骨格で強いところ
+3.1 reply_contract / response_decision_plan の役割分担がかなり良い
+prequote は reply_contract を中心に、primary_question_id / answer_map / ask_map / required_moves / forbidden_moves を主質問回答の正本として扱う設計になっています。一方で、quote_sent / post_purchase / delivered / closed は response_decision_plan を中心に、primary_concern / facts_known / blocking_missing_facts / direct_answer_line / response_order を重要 field として扱う方針です。これは妥当です。
+理由はシンプルで、prequote は「相手の質問をどう読むか」が主戦場で、購入後・納品後・クローズ後は「すでにある文脈に対して、どう返すか」が主戦場だからです。つまり、入口では contract が強く、進行中では decision plan が強い。
+さらに良いのは、reply_contract と response_decision_plan を二重正本にしない、と明記されている点です。ここを二重化すると、後から必ず「どちらが正なのか」が壊れます。validator が両方から fallback で読む方針は、横展開の観点でも正しいです。
+3.2 「主質問直答」を最上位 property にしている
+この system は scenario を上位に置かず、「主質問」を上位に置こうとしています。実行原則でも scenario より 主質問 を上位に置く、聞き返しは blocking missing facts がある時だけ、既出情報の再質問は品質事故、と整理されています。
+これはかなり重要です。返信システムで失敗しやすいのは、「このケースは○○シナリオだからテンプレA」となり、相手が本当に聞いていることから外れることです。今の設計はそこを避けようとしているので、横展開しても思想が崩れにくいです。
+3.3 blocking_missing_facts があるので、聞き返し逃げを抑えられる
+聞き返しを禁止するのではなく、聞いてよい条件を限定しているのが良いです。
+answer_before_ask と ask_only_if_blocking を hard constraint / validator 側に寄せているので、「答えられることを答える前に質問する」事故を減らせます。
+実装側でも、post_purchase / delivered / closed の build_hard_constraints に answer_before_procedure: True や ask_only_if_blocking: True が入っています。
+3.4 サービス内容・公開範囲の grounding が明示されている
+service-registry.yaml では bugfix-15000 が public: true / operational、handoff-25000 が public: false / registered_private と分けられ、public reply は public true のみ、private service は internal reference only という rule が置かれています。
+これは商品化・横展開にかなり効きます。
+返信 system は日本語品質だけではなく、「今この相手に、外向けに言ってよいサービス内容だけを使っているか」が重要なので、registry を核にするのは正しいです。
+bugfix-15000 の公開サービスページも、15,000円、不具合1件、原因確認・修正内容作成・確認手順・修正済みファイル返却、標準範囲外は通話・直接 push・本番デプロイ・新機能追加、という境界が明確です。
+handoff-25000 も、25,000円、主要な処理の流れ1つ、危険箇所・関連ファイル・次の着手順・引き継ぎメモ、修正は含まない、という境界が明確です。
+3.5 外部AI監査の使い方が健全
+.codex/skills/reply-review-prompt-ja/SKILL.md では、外部AIは新しい設計者ではなくレビュー担当、主軸は Codex、採用判断は Codex と明記するルールになっています。これはかなり良いです。
+さらに、外部監査の出力に「恒久観点にしてよいもの」「好み差として流してよいもの」「再発タグ」を含め、reviewer の指摘をそのまま採用せず、再発性・実務ノイズ・要点維持・既存ルールとの衝突・好み差を見て恒久反映する方針になっています。
+これは、モグラたたきに戻らないための重要な防波堤です。
+
+4. 今の骨格でまだ危ないところ
+4.1 contract / decision plan と最終文の距離がまだ一番危ない
+強化メモ自体が正しく指摘している通り、弱さの主因は scenario 不足ではなく、decision / reply_contract / response_decision_plan が最終文に反映されたかの保証不足です。
+実装を見ると、post_purchase / delivered / closed では response_decision_plan が作られ、direct_answer_line や response_order を持っています。
+ただし、最後に renderer が自然化した結果、直答が弱くなる、報告語に戻る、内部プロセス語が出る、既知情報を再質問する、という事故はまだ起きえます。
+ここは大改修ではなく、共通 validator の property 名と実装検査を揃えるのが最後の詰めです。
+4.2 技術説明 safety は伸ばせるが、正規表現だけだと漏れが出る
+reply_quality_lint_common.py には、Stripe / Webhook / API / endpoint / Vercel / Firestore / Checkout などの technical context markers と、可能性が高い、おそらく、思われます を警告する technical speculation rules があります。
+方向性は正しいです。
+ただし、正規表現が 可能性が高い に固定されているので、たとえば「可能性が高く」「可能性は高め」「〜の線が濃いです」のような変化形は漏れる可能性があります。
+これは新しい層を作る話ではなく、technical_line_is_confirmation_plan の property を、単語一致だけでなく次の2段で見るのがよいです。
+
+
+未確認断定・強推定の表現があるか
+
+
+それが原因断定ではなく確認方針に着地しているか
+
+
+強化メモでも、技術説明は未確認の原因推定ではなく、「まずどこを見るか」の確認方針として書くべき、とされています。
+4.3 整理します / 確認して返します 系の残り香がまだ危ない
+メモでは、不安や過去の嫌な体験がある場合に 整理してお返しします や 確認して返します のような報告語で逃げず、対応します 進めます 側に着地させる、と明記されています。
+一方、実装上の contract / revisit_trigger / hold_reason には、進捗不安系で「確認できているところから先にお返しします」「現時点で見えている範囲を整理してお返しします」のような表現が残っています。
+これ自体が必ず悪いわけではありません。内部 plan や revisit trigger なら許容できます。危ないのは、それが buyer-facing の結論として出ることです。
+つまり、問題は phrase そのものより、着地点として出ているか / 補助説明として出ているかです。
+4.4 prequote の内部プロセス語が buyer-facing に漏れないか要注意
+prequote の derive_ask では、「先に切る」「切り分ける」などの内部プロセス語が ask reason に出ています。
+これが内部 reasoning 用なら問題ありません。
+ただし buyer-facing にそのまま出るなら、強化メモで禁止している「作業者側の内部プロセス語を buyer 向けには結果説明へ言い換える」に抵触しやすいです。
+ここも大改修不要です。ask_reason や hold_reason が最終文に出るときだけ、internal process term -> buyer result の変換 validator を通せばよいです。
+4.5 handoff-25000 の内部学習と public 非公開の境界
+handoff-25000 は registry 上 public: false で、private services are internal reference only です。
+ただし service page 自体は ready file として読め、内容もかなり具体化されています。
+ここは商品化前の重要リスクです。
+内部学習対象としては評価してよいが、bugfix-15000 の live 返信に handoff の価格・納品物・サービス名・導線が混ざると public 範囲違反になります。
+したがって、横展開時は service_id と public の gating を validator の最上段に残すべきです。
+
+5. 学習ループとして強いところ / 弱いところ
+強いところ
+今の学習ループはかなり良いです。
+少数 live 監査→ 外部AI監査→ 未回答・違和感・再発タグ抽出→ archetype fix→ fixture / property bucket へ戻す→ common validator / role suites で退行検出
+この流れは、返信文の個別 patch ではなく、失敗の型を property に戻すループになっています。
+強化メモでも、live は少数固定で退行検出、learning / stress test は弱点発見、external audit は文章添削者ではなく未回答検出器、失敗は prompt patch に直結させず fixture / property / validator に戻す、と整理されています。
+check-coconala-reply-full-regression.py は contract checker、reply regression、quote_sent template checker、reply memory regression をまとめて走らせる構成です。
+check-coconala-reply-role-suites.py は seed / renderer_seed / edge / eval / holdout の role ごとに full regression を走らせる作りになっています。
+この分離は良いです。
+特に edge / eval / holdout を先に strict、seed / renderer_seed を最後にする方針は、live 近傍を壊さずに強化する順番として妥当です。
+弱いところ
+弱いところは、学習ループそのものではなく、監査結果をどの粒度で恒久化するかです。
+危ない恒久化はこの3つです。
+危ない恒久化なぜ危ないか1回の外部AI指摘をそのまま prompt patch好み差が system rule になる個別ケースをすぐ renderer 分岐に追加scenario モグラたたきに戻る自然さ指摘を主質問回答より上位に置く返信は自然だが答えていない状態になる
+逆に、強い恒久化は次です。
+外部AI指摘→ 本当に buyer 視点で再発するか→ 既存 property に吸収できるか→ できなければ最小 property 名を追加→ fixture bucket に代表例だけ入れる→ renderer 修正は最後
+この方針は .codex/skills/reply-review-prompt-ja/SKILL.md の「reviewer の指摘をそのまま採用しない」「再発性があり、実務ノイズを増やさず、要点を薄めず、既存ルールと衝突せず、1回限りの好みではないものだけ恒久反映」とも一致しています。
+
+6. サービス化・横展開に向けて残すべき核
+横展開しても残すべき核は、次の7つです。
+6.1 service-registry による public / private gating
+これは絶対に残した方がいいです。
+横展開すると、サービスごとに「内部学習中」「公開済み」「公開停止」「一部だけ参照可」が混ざります。ここを prompt 文面だけで管理すると必ず漏れます。
+今の registry は bugfix-15000 を public true、handoff-25000 を public false として分け、public reply must use public true only としています。
+この構造は商品化に向いています。
+6.2 primary_question_id
+これは核です。
+サービスが変わっても、「相手の主質問は何か」を固定しない返信システムは不安定になります。
+6.3 answer_map
+これも核です。
+主質問・副質問それぞれに、answer_now / answer_after_check / decline のような disposition と answer_brief がある構造は、返信品質を監査可能にします。
+6.4 blocking_missing_facts
+横展開で特に大事です。
+サービスが増えると、必要情報も増えます。だからこそ、「聞いていい情報」と「聞かずに答えるべき情報」の境界をここで管理するべきです。
+6.5 direct_answer_line
+これがあると、Codex の reasoning を潰さずに、最終文の責任だけ固定できます。
+「この一文相当の意味が冒頭2段落以内にあるか」を validator が見るだけで、返信の安定性がかなり上がります。
+6.6 response_order
+返信の自然さを template 固定で作るのではなく、opening -> direct_answer -> answer_detail -> ask -> next_action のような順序制約で作るのは良いです。
+これは横展開しても使えます。
+6.7 property bucket
+最後に強いのはここです。
+main_question_unanswered、asked_before_answering、known_fact_reask、ask_without_blocking、service_policy_violation、stage_policy_violation のような bucket へ戻す方針は、scenario 増殖より強いです。
+
+7. 抽象化してよい部分 / しすぎると壊れる部分
+抽象化してよい部分
+以下は横展開で抽象化してよいです。
+抽象化してよい理由主質問検出どのサービスでも必要副質問回収どのサービスでも必要answer_before_ask普遍的ask_only_if_blocking普遍的no_reask_known_facts普遍的fact_alignment普遍的urgency_symmetry普遍的technical_line_is_confirmation_plan技術系サービス全般で有効service_grounded商品化では必須stage_policy_okprequote / quote_sent / purchased / delivered / closed で必須
+強化メモにある property 群は、かなりそのまま共通核にできます。
+抽象化しすぎると壊れる部分
+逆に、抽象化しすぎると壊れるのはここです。
+抽象化しすぎ注意理由サービス範囲bugfix と handoff で商品責任が違う価格・追加料金サービス個別の source of truth が必要納品物bugfix は修正ファイル、handoff は引き継ぎメモ標準範囲外サービスごとに違う技術説明の深さbugfix と handoff で期待値が違うstage ごとの距離感prequote と delivered/closed では別物buyer に見せる語彙整理 が自然な場面と、逃げに見える場面がある
+特に 整理 は危険です。
+handoff-25000 では「整理」はサービス価値そのものに近い語ですが、bugfix-15000 の不安対応では「整理して返します」が行動コミット不足に見えることがあります。つまり、語彙ルールは完全共通化しすぎると誤爆します。
+
+8. ほぼ完成に近づくための最後の詰め
+大改修はいらないです。最後の詰めはこの順番がよいです。
+8.1 property 名と linter 実装名を揃える
+強化メモでは main_question_answered / answer_before_ask / ask_only_if_blocking / stage_policy_grounded を最初の warn-only property としています。
+一方で、reply_quality_lint_common.py にはすでに近い検査があります。
+たとえば、direct-answer contract があるのに early answer がない場合の error、既出 symptom/context の再質問検出、decision plan の direct_answer_line / response_order / buyer_emotion を見た reasoning preservation check、service binding check、technical speculation warning、temperature constraint check があります。
+なので、追加で大きく作るより、まずは report 上の property 名をメモと揃えるのが良いです。
+現在の検査名→ memo の property 名→ role 別 warning / strict
+この対応表を作るだけで、監査結果の学習効率が上がります。
+8.2 direct_answer_line の意味一致チェックを少し強くする
+単純に文字列一致を求めると自然化で落ちます。
+ただし、「意味が残っているか」は見るべきです。
+最小なら次の3段で十分です。
+1. direct_answer_line がある2. 冒頭2段落以内に direct answer marker がある3. money / scope / anxiety / refund 系では、金額・可否・次アクションの anchor がある
+すでに linter には direct answer marker や money-sensitive concern の考え方があります。
+ここを memo property に寄せるのが最後の詰めです。
+8.3 technical speculation regex を少しだけ広げる
+これは小修正で効きます。
+今は 可能性が高い / おそらく / 思われます が中心です。
+追加するなら、巨大な分類器ではなく、以下程度で十分です。
+可能性が高く可能性は高い可能性が高そう〜の線が濃い〜っぽいです原因は〜です  ※未確認文脈で
+ただし、delivered / closed で実際に確認済みの内容を説明している場面まで潰さないよう、facts_known や stage と一緒に見るべきです。
+8.4 report verb landing を「位置」で見る
+整理します や 確認します を全面禁止すると壊れます。
+見るべきは、主質問への結論がそれだけで終わっていないかです。
+良い検査はこれです。
+buyer_emotion in {anxiety, urgency, complaint}かつdirect_answer_line / first two sections が「確認します」「整理します」「お返しします」だけで終わる→ warning
+これは強化メモの no_report_verb_landing_for_anxiety と一致します。
+8.5 public/private service 混入チェックを hard にする
+handoff-25000 は内部学習中で public false です。
+だから bugfix live 返信では、handoff の価格・納品物・サービス名・「次の担当者が迷わず触れる」系の訴求が出ないことを hard にしてよいです。
+これは商品化に向けてかなり重要です。
+将来サービスが増えるほど、ここが壊れやすくなります。
+
+9. やってはいけない方向
+9.1 scenario を増やして安心しようとする
+これは避けた方がいいです。
+強化メモにも、失敗ケースごとに scenario を増やす、renderer をケース別に増やす、文面 patch を先にする、はやらないこととして書かれています。
+scenario は必要ですが、主質問より上に置くと壊れます。
+9.2 外部AI監査を送信可否の最終判断者にする
+これも避けるべきです。
+外部AIは「未回答検出器」「違和感検出器」としては強いですが、サービス公開範囲・運用ルール・内部学習状態までは正しく持っていません。
+.codex/skills でも、主軸は Codex、外部AIはレビュー担当、採用判断は Codex とされています。
+9.3 自然さを最上位に置く
+自然さは大事です。
+ただし、自然にするために主質問への回答義務や policy を弱めると、返信 system としては退化します。
+強化メモの一文どおり、返信品質は「文章の自然さ」より先に、「主質問に対する回答義務を最終文で履行したか」で管理するのが良いです。
+9.4 reply_contract と response_decision_plan を二重正本にする
+これは将来かなり危険です。
+今の方針どおり、prequote は reply_contract 中心、他 stage は response_decision_plan 中心、validator は両方から fallback、で十分です。
+9.5 サービス個別の境界を共通ルールへ潰す
+bugfix-15000 と handoff-25000 は似ていますが、商品責任が違います。
+
+
+bugfix-15000: 不具合1件、原因確認、修正内容、確認手順、修正済みファイル返却。
+
+
+handoff-25000: 主要な処理の流れ1つ、危険箇所、関連ファイル、次の着手順、引き継ぎメモ。修正は含まない。
+
+
+ここを抽象化しすぎると、「bugfix なのに整理サービスの返答をする」「handoff なのに修正できますと言う」事故が起きます。
+
+最終判断
+今の system は、ほぼ完成に近い骨格です。
+完成に近づける最後の詰めは、新しい設計ではなく、次の一点に集約できます。
+
+Codex が考えた 主質問 / 直答 / blocking missing facts / service grounding / stage policy が、最終返信文の冒頭・本文・次アクションに本当に残っているかを、共通 property と role suites で観測すること。
+
+つまり、本質は Codex の思考を縛ることではなく、思考の成果物が返信文で消えないようにすること です。
+この方向のまま進めるのが一番強いです。

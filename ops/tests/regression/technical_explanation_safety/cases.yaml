@@ -23,3 +23,18 @@ cases:
     text: |
       いまの時点ではまだ原因は断定しません。まずは受信側のログや反応を確認するのが近いです。
     expect_warning: false
+
+  - case_id: TSAFE-006
+    text: |
+      いまの状況だと、Webhook の受け口側の可能性が高く、まずは受信側ログを見ます。
+    expect_warning: true
+
+  - case_id: TSAFE-007
+    text: |
+      API Routes 側の線が濃いので、まずはその周辺を確認します。
+    expect_warning: true
+
+  - case_id: TSAFE-008
+    text: |
+      まだ断定はしません。まずは API Routes と受信ログのどこで止まっているかを確認します。
+    expect_warning: false
