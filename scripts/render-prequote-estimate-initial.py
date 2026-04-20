@@ -831,7 +831,7 @@ def answer_brief_for_question(question_type: str, primary_now: bool) -> str:
     if question_type == "guarantee":
         return "必ず直ると断定してご案内することはしていません。"
     if question_type == "refund_policy":
-        return "必ず返金になると先に決めるのではなく、まず原因の切り分けと修正できるかの確認から進めます。"
+        return "いいえ、原因不明のまま「調査だけで15,000円」として正式納品に進めることはありません。"
     if primary_now:
         return "この不具合なら15,000円で進められます。"
     return "確認対象ではあるが、今の情報ではまだ断定しない。"
@@ -870,8 +870,8 @@ def secondary_after_check_reason(question_type: str) -> tuple[str, str]:
         )
     if question_type == "refund_policy":
         return (
-            "返金だけを先に断定するより、まず原因の切り分けと修正できるかの確認から進めます。",
-            "確認できたところまでと、次にどう進めるかをお返しします。",
+            "15,000円は調査時間だけの料金ではなく、原因確認から修正内容・確認手順まで進める料金です。",
+            "原因を特定できず、修正方針にもつながらない場合は正式納品に進めず、キャンセルを含めてご相談します。",
         )
     if question_type == "guarantee":
         return (
@@ -1451,6 +1451,8 @@ def secondary_lines(case: dict) -> list[str]:
         qtype = answer.get("question_type") or question.get("question_type")
         brief = answer.get("answer_brief", "")
         if qtype == "refund_policy" or "追加料金" in qtext or "別料金" in qtext:
+            lines.append("いいえ、原因不明のまま「調査だけで15,000円」として正式納品に進めることはありません。")
+            lines.append("15,000円は調査時間だけの料金ではなく、不具合1件について原因確認から修正内容・確認手順まで進める料金です。")
             lines.append("原因が想定と違っても、勝手に追加料金が発生することはありません。")
             lines.append("別対応が必要そうな場合だけ、その時点で先にお伝えします。")
             added_refund_policy = True
@@ -1465,14 +1467,14 @@ def secondary_lines(case: dict) -> list[str]:
             elif qtype == "service_selection":
                 lines.append("今の症状なら、まずこの不具合対応から入るのが近いです。")
             elif qtype in {"guarantee", "refund_policy"}:
-                lines.append("原因が分からないまま調べて終わる進め方ではなく、修正まで進められる内容ならそこまで対応します。")
-                lines.append("今回の範囲で収まらない内容が見えた場合だけ、その時点で先にお伝えします。")
+                lines.append("原因が分からないまま調べて終わる形ではなく、修正まで進められる内容ならそこまで対応します。")
+                lines.append("原因を特定できず、修正方針にもつながらない場合は正式納品に進めず、キャンセルを含めてご相談します。")
             else:
                 lines.append(brief)
         elif disposition == "answer_after_check":
             if qtype in {"refund_policy", "guarantee"}:
                 lines.append("原因の切り分けと、修正できるかの確認は基本料金の中で進めます。")
-                lines.append("修正できない状態のまま正式納品へ進めることはありません。")
+                lines.append("原因を特定できず、修正方針にもつながらない場合は正式納品へ進めません。")
             if "cause_owner" in qtext or "Stripeの問題" in qtext or "コードの問題" in qtext:
                 lines.append("Stripe側かコード側かは、今の時点ではまだ断定しません。")
             elif "今週中" in qtext or "今日中" in qtext or "何日" in qtext or "いつ" in qtext:
@@ -1485,6 +1487,8 @@ def secondary_lines(case: dict) -> list[str]:
         lines.append("調査だけで止める形ではなく、原因の確認から修正まで含めて15,000円で進めます。")
         added_included_scope = True
     if not added_refund_policy and ("追加料金" in raw or "別料金" in raw):
+        lines.append("いいえ、原因不明のまま「調査だけで15,000円」として正式納品に進めることはありません。")
+        lines.append("15,000円は調査時間だけの料金ではなく、不具合1件について原因確認から修正内容・確認手順まで進める料金です。")
         lines.append("原因が想定と違っても、勝手に追加料金が発生することはありません。")
         lines.append("別対応が必要そうな場合だけ、その時点で先にお伝えします。")
     deduped: list[str] = []

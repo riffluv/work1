@@ -48,6 +48,25 @@ deliverables:
   - 00_結論と要点.md
   - 01_[対象フロー名]_引き継ぎメモ.md
 
+handoff_completion_policy:
+  pricing_basis: handoffable_state_not_fix_success
+  buyer_facing_rule: 主要1フローについて、確認できたこと・推定・未確認を分け、危険箇所・関連ファイル・次の着手順を引き継ぎメモとして返せたら成立
+  completion_requires:
+    - target_flow_defined
+    - related_files_listed
+    - flow_summary_present
+    - risk_points_present
+    - next_steps_present
+    - confirmed_inferred_unknown_separated
+  unconfirmed_is_allowed_when_actionable: true
+  code_fix_not_included: true
+  do_not_formal_deliver_when:
+    - target_flow_undefined
+    - related_files_unresolved
+    - risk_points_unavailable
+    - next_steps_unavailable
+  consult_scope_or_cancel_when_incomplete: true
+
 hard_no:
   - raw_secret_values
   - direct_push
@@ -62,5 +81,6 @@ human_review_when:
   - specification_document_expected
   - repair_bundle_requested
   - service_mismatch_but_feasible
+  - completion_readiness_unclear
   - pricing_change
   - formal_delivery

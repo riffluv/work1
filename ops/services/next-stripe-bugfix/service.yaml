@@ -241,6 +241,21 @@ deliverables:
   - fixed_zip_or_patch
   - verification_note
 
+bugfix_fee_policy:
+  pricing_basis: outcome_not_time_only
+  buyer_facing_rule: 15,000円は調査時間だけの料金ではなく、不具合1件について原因確認から修正内容・確認手順まで進める料金
+  do_not_formal_deliver_when:
+    - cause_unknown
+    - no_fix_direction
+    - no_concrete_next_action
+  can_complete_without_patch_when:
+    - cause_or_blocker_is_concrete
+    - why_patch_cannot_be_returned_is_explained
+    - buyer_next_action_is_clear
+    - explained_before_completion
+  extra_fee_requires_prior_consultation: true
+  cancel_consultation_when_unresolved: true
+
 hard_no:
   - raw_secret_values
   - direct_push

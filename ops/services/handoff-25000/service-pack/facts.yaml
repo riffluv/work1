@@ -24,6 +24,7 @@ public_facts:
   deliverables:
     - 00_結論と要点.md
     - 01_[対象フロー名]_引き継ぎメモ.md
+  completion_rule: "主要1フローについて、確認できたこと・推定・未確認を分け、危険箇所・関連ファイル・次の着手順を引き継ぎメモとして返せたら成立"
   reply_expectation:
     initial_reply: "24時間以内（通常数時間以内）"
 
@@ -93,6 +94,22 @@ buyer_anxieties:
     - "次の担当者へ渡せる形にしたい"
     - "非エンジニアでも読めるか不安"
     - "25,000円で何が返るのか分かりにくい"
+    - "未確認が残ったら失敗扱いになるのではないか"
+
+completion_guardrails:
+  completed_when:
+    - target_flow_defined
+    - related_files_listed
+    - flow_summary_present
+    - risk_points_present
+    - next_steps_present
+    - confirmed_inferred_unknown_separated
+  not_a_failure_when:
+    - unconfirmed_points_remain_but_next_steps_are_clear
+  do_not_formal_deliver_when:
+    - target_flow_undefined
+    - related_files_unresolved
+    - next_steps_unavailable
 
 source_refs:
   service_page: "/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt"
