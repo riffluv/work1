@@ -5,13 +5,12 @@
 - 読む資料を最小限に絞り、実装時に返信ノイズを混ぜない
 
 ## 最初に読む最小セット
-1. `/home/hr-hm/Project/work/次セッション用_起動プロンプト.txt`
-2. `/home/hr-hm/Project/work/docs/next-codex-prompt.txt`
-3. `/home/hr-hm/Project/work/AGENTS.md`
-4. `/home/hr-hm/Project/work/os/core/boot.md`
-5. `/home/hr-hm/Project/work/os/core/policy.yaml`
-6. `/home/hr-hm/Project/work/os/core/service-registry.yaml`
-7. `/home/hr-hm/Project/work/docs/code-comment-style.ja.md`
+1. `/home/hr-hm/Project/work/docs/next-codex-prompt.txt`
+2. `/home/hr-hm/Project/work/AGENTS.md`
+3. `/home/hr-hm/Project/work/os/core/boot.md`
+4. `/home/hr-hm/Project/work/os/core/policy.yaml`
+5. `/home/hr-hm/Project/work/os/core/service-registry.yaml`
+6. `/home/hr-hm/Project/work/docs/code-comment-style.ja.md`
 
 mode ごとに追加で読むもの:
 - `coconala`: `/home/hr-hm/Project/work/os/coconala/boot.md`

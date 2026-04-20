@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-START_PROMPT="$ROOT_DIR/次セッション用_起動プロンプト.txt"
 NEXT_PROMPT="$ROOT_DIR/docs/next-codex-prompt.txt"
 README_FILE="$ROOT_DIR/docs/README.ja.md"
 AGENTS_FILE="$ROOT_DIR/AGENTS.md"
@@ -57,7 +56,6 @@ require_not_contains() {
   fi
 }
 
-check_file "$START_PROMPT"
 check_file "$NEXT_PROMPT"
 check_file "$README_FILE"
 check_file "$AGENTS_FILE"
@@ -80,10 +78,6 @@ check_file "$STATUS_SCRIPT"
 if [[ $errors -ne 0 ]]; then
   exit 1
 fi
-
-require_contains "$START_PROMPT" "./scripts/check-work-skills.sh" "start prompt must run skill availability check"
-require_contains "$START_PROMPT" "./scripts/check-coconala-bootstrap.sh" "start prompt must run bootstrap guard"
-require_contains "$START_PROMPT" "/home/hr-hm/Project/work/docs/next-codex-prompt.txt" "start prompt must delegate to next-codex-prompt.txt as the single source of truth"
 
 require_contains "$NEXT_PROMPT" "./scripts/check-work-skills.sh" "next prompt must mention skill availability check"
 require_contains "$NEXT_PROMPT" "./scripts/check-coconala-bootstrap.sh" "next prompt must mention bootstrap guard"

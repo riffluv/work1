@@ -19,7 +19,7 @@
 - 返信保存先: `/home/hr-hm/Project/work/runtime/replies/latest.txt`
 - 案件管理（`ops/`）: `/home/hr-hm/Project/work/ops/`
 - handoff history: `/home/hr-hm/Project/work/HANDOFF_NEXT_CODEX.ja.md`（履歴専用）
-- operator guide: `/home/hr-hm/Project/work/Codex実運用ガイド.ja.md`
+- operator guide: `/home/hr-hm/Project/work/運用ガイド.md`
 
 ## まず見る（優先順）
 1. `docs/coconala-listing-final.ja.md`  
@@ -73,6 +73,9 @@ Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal
 1. 先に一次ソース（サービス正本 + プロフィール正本）を更新する
 2. `./scripts/check-coconala-listing-sync.sh` で同期/文字数を確認する
 3. 必要な `docs` 側へ同期反映する
+
+## 起動の正本
+- 起動の単一正本は `/home/hr-hm/Project/work/docs/next-codex-prompt.txt`
 
 ## 文章運用
 - `docs/writing-guideline.ja.md`  

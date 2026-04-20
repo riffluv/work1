@@ -19,7 +19,7 @@
 - 取引フロー/規約メモ: `docs/20260212-coconala-flow-deepresearch.clean.ja.md`
 - 文面ルール: `docs/writing-guideline.ja.md`
 - コメント規約: `docs/code-comment-style.ja.md`
-- 実運用最短ガイド: `Codex実運用ガイド.ja.md`
+- 実運用ガイド: `運用ガイド.md`
 
 ## 基本設定 / 案件管理 / いまの状態（最短）
 1. `./scripts/os-check.sh` を通す
@@ -39,14 +39,12 @@
 7. 一覧は `ops/case-log.csv`
 
 ## 補助ドキュメント
-- Claude用運用: `CLAUDE.md`
-- 案件運用ルール: `OPERATIONS.md`
+- 実運用ガイド: `運用ガイド.md`
 - 履歴ログ: `HANDOFF_NEXT_CODEX.ja.md`
 
 ## フォルダ構成（要点）
 - `AGENTS.md`: 全体ルール（最重要）
-- `CLAUDE.md`: Claudeの役割とレビュー手順
-- `OPERATIONS.md`: 案件運用ルール
+- `運用ガイド.md`: 実務の最短運用ガイド
 - `TEMPLATES/`: 提案・診断・納品テンプレ
 - `docs/`: 出品文、チェックリスト、調査Clean版
 - `scripts/`: チェックスクリプトや補助スクリプト
