@@ -188,9 +188,9 @@ def extra_scope_subject(raw: str) -> str:
     if "プラン変更" in raw and "金額" in raw:
         return "プラン変更時の金額表示の件"
     if "画面" in raw:
-        return "その画面の件"
+        return "その画面"
     if "ページ" in raw:
-        return "そのページの件"
+        return "そのページ"
     return "別件"
 
 

@@ -1250,6 +1250,9 @@ def acknowledge_for(case: dict) -> str:
     user_signal = temperature_plan.get("user_signal")
     opening_move = temperature_plan.get("opening_move")
 
+    if any(marker in raw for marker in ["すぐ対応", "すぐ見てほしい", "お客さんから", "連絡が3件", "連絡が６件", "連絡が6件"]):
+        return "お急ぎの状況は承知しました。"
+
     if opening_move == "action_first":
         if "checkout.session.completed" in raw and any(marker in raw for marker in ["DB 更新", "DB更新"]):
             return "checkout.session.completed までは来ているとのこと、確認しました。"
@@ -1361,6 +1364,8 @@ def scope_reason_for(case: dict) -> str:
     raw = case.get("raw_message", "")
     if any(marker in raw for marker in ["保証はあります", "確実に直る", "直らなかった場合", "直らなかったら"]):
         return "まずは原因の切り分けと、修正まで進められるかを確認します。"
+    if "ダッシュボード" in raw and "成功" in raw and any(marker in raw for marker in ["反映がなく", "何も反映", "表示されません"]):
+        return "まずは Stripe で成功になっている決済が、サイト側に反映されない箇所を優先して確認します。"
     if "checkout.session.completed" in raw and any(marker in raw for marker in ["DB 更新", "DB更新"]):
         return "まずは checkout.session.completed のあとで DB 更新が止まっている箇所を確認します。"
     if "会員ページ" in raw and "反映されない" in raw:
@@ -1397,6 +1402,7 @@ def secondary_lines(case: dict) -> list[str]:
     lines: list[str] = []
     raw = case.get("raw_message", "")
     added_refund_policy = False
+    added_included_scope = False
     for question, answer in secondary_answer_items(case):
         disposition = answer.get("disposition")
         qtext = question.get("text", "")
@@ -1433,6 +1439,9 @@ def secondary_lines(case: dict) -> list[str]:
                 lines.append("不正アクセスかどうかは、今の時点ではまだ断定しません。")
             elif brief and qtype != "refund_policy":
                 lines.append(brief)
+    if any(marker in raw for marker in ["調査だけで", "修正は別料金", "使い切ってしまって"]) and not added_included_scope:
+        lines.append("調査だけで止める形ではなく、原因の確認から修正まで含めて15,000円で進めます。")
+        added_included_scope = True
     if not added_refund_policy and ("追加料金" in raw or "別料金" in raw):
         lines.append("原因が想定と違っても、勝手に追加料金が発生することはありません。")
         lines.append("別対応が必要そうな場合だけ、その時点で先にお伝えします。")

@@ -1422,6 +1422,13 @@ def build_case_from_source(source: dict) -> dict:
         return case
 
     if scenario == "same_cause_check":
+        same_cause_brief = "同じ原因かどうかは、まず今回の症状を見てからお返しします。"
+        same_cause_hold = "納品後の追加確認なので、前回と同じ流れかを先に切ります。"
+        same_cause_ask = "気になっている画面か、前と違って見える点をそのまま送ってください。"
+        if "サンクスページ" in raw and any(marker in raw for marker in ["崩れ", "表示が崩れ", "表示崩れ"]):
+            same_cause_brief = "同じ原因かどうかは、サンクスページの表示崩れも含めて見てからお返しします。"
+            same_cause_hold = "前回の修正と同じ流れにつながるか、サンクスページ側も含めて確認します。"
+            same_cause_ask = "サンクスページが崩れて見える画面か、前と違って見える点をそのまま送ってください。"
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [{"id": "q1", "text": "これも同じ原因か", "priority": "primary"}],
@@ -1429,8 +1436,8 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "同じ原因かどうかは、まず今回の症状を見てからお返しします。",
-                    "hold_reason": "納品後の追加確認なので、前回と同じ流れかを先に切ります。",
+                    "answer_brief": same_cause_brief,
+                    "hold_reason": same_cause_hold,
                     "revisit_trigger": "症状が分かるものを受領したあとに、前回とのつながりをお返しします。",
                 }
             ],
@@ -1438,7 +1445,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "id": "a1",
                     "question_ids": ["q1"],
-                    "ask_text": "気になっている画面か、前と違って見える点をそのまま送ってください。",
+                    "ask_text": same_cause_ask,
                     "why_needed": "同じ原因かを先に切るため",
                 }
             ],
@@ -1570,6 +1577,8 @@ def reaction_line(case: dict) -> str:
     if scenario == "postdelivery_question_window":
         return "後から出た質問の扱いについての確認ありがとうございます。"
     if scenario == "same_cause_check":
+        if "サンクスページ" in raw and any(marker in raw for marker in ["崩れ", "表示が崩れ", "表示崩れ"]):
+            return "サンクスページの表示が崩れているとのこと、確認しました。"
         return "追加で気になる点が出ている件、確認しました。"
     if scenario == "price_complaint":
         return "率直に伝えていただいてありがとうございます。"
@@ -1656,6 +1665,8 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "doc_explanation_request":
         return "まず分かりにくかった箇所を見て、補足で足りるかを確認します。"
     if scenario == "same_cause_check":
+        if "サンクスページ" in raw and any(marker in raw for marker in ["崩れ", "表示が崩れ", "表示崩れ"]):
+            return "まず前回の修正が反映されている状態かと、サンクスページ側だけで崩れが出ていないかを確認します。"
         return "まず前回と同じ流れの話かを確認します。"
     if scenario == "generic_delivered":
         return None
