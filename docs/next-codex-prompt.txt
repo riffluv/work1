@@ -6,6 +6,18 @@
 - 返信システムの恒久原則は `/home/hr-hm/Project/work/docs/reply-quality/reply-system-strengthening-memo.ja.md` を正本として扱う
 - 今回の優先は「広く作り直すこと」ではなく、`live 5件監査 -> 再発タグ整理 -> archetype fix が必要な時だけ最小修正` を守ること
 
+【返信システム anti-drift】
+- 今の返信システムは、live監査・少数case監査・外部レビュー・archetype fix を経て鍛えられた現行ベストであり、暫定のたたき台ではない
+- `coconala` mode では、今の理想の返信システムを壊す方向へ動かないこと
+- 初見の印象やレビュー1回だけで骨格を再設計しない
+- 単発の違和感に引っ張られて `scenario` や `renderer` を増殖させない
+- buyer 起点 (`#R`) と seller 起点 (`#P`) を混ぜない
+- 改善は、まず `reply-only / common / delivery-only` のどれかを切ってから正本へ戻す
+- その場の好みより、`主質問直答 / secondary回収 / fact drift防止 / technical explanation safety / scope境界維持` を優先する
+- 改善は否定しないが、導入するのは `再発性 / 実務ノイズ / 要点維持 / 既存ルールとの整合` で妥当性が確認できるものに限る
+- 新しい観点や有効な方法が見つかった場合は取り入れてよいが、既存骨格の意味を理解せずに rule / layer / renderer を足して悪化させない
+- 「広げる」より「締める」。既存骨格を壊す変更は、明確な再発証拠がある時だけ行う
+
 【起動前（ローカルskills固定）】
 - このプロジェクトは `CODEX_HOME=/home/hr-hm/Project/work/.codex` を前提にする。
 - custom skill は `/home/hr-hm/Project/work/.codex/skills` だけを使う。`/home/hr-hm/.codex/skills` の同名 custom skill は使わない。
