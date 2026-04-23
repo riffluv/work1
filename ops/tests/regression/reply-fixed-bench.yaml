@@ -1,0 +1,120 @@
+version: 1
+updated: 2026-04-23
+purpose: >
+  返信生成本体を変えた時に、毎回必ず通す最小固定ベンチ。
+  まずは drift の増減を見るための代表ケースだけに絞る。
+
+how_to_use:
+  - まずこの6カテゴリを毎回確認する
+  - 各カテゴリで 1〜2件の代表 stock を選ぶ
+  - 変更後に nonanswer / redundant_ask / premature_progress / hidden_rule が増えたら止める
+  - 送信可否だけでなく、どの drift が増減したかを記録する
+
+bench_cases:
+  - bench_id: BENCH-01
+    name: urgent_prequote
+    goal: >
+      急ぎ相談で、主質問に直答しつつ、納期確約や premature_progress に滑らないかを見る。
+    watch_tags:
+      - nonanswer
+      - premature_progress
+      - oversell
+    scoring_focus:
+      - 直答
+      - scope順守
+      - 次アクション明確さ
+    example_refs:
+      - STK-033
+      - STK-001
+
+  - bench_id: BENCH-02
+    name: price_anxiety
+    goal: >
+      価格・追加料金・15,000円の中身への不安に、主質問直答できているかを見る。
+    watch_tags:
+      - nonanswer
+      - hidden_rule
+      - oversell
+    scoring_focus:
+      - 直答
+      - 情報節約
+      - 自然さ
+    example_refs:
+      - STK-003
+      - STK-022
+
+  - bench_id: BENCH-03
+    name: unresolved_risk
+    goal: >
+      原因不明時や、修正済みファイル返却まで進められない時の説明が、
+      buyer 不安を増やさずに返せているかを見る。
+    watch_tags:
+      - nonanswer
+      - hidden_rule
+      - ai_tone
+    scoring_focus:
+      - 直答
+      - scope順守
+      - 次アクション明確さ
+    example_refs:
+      - GMN-015
+      - STK-019
+
+  - bench_id: BENCH-04
+    name: purchased_extra_scope
+    goal: >
+      購入後の「ついでに見て」や、同一原因の押し込みに流されず、
+      same cause / heavy / different cause の境界を崩さないかを見る。
+    watch_tags:
+      - hidden_rule
+      - oversell
+      - premature_progress
+    scoring_focus:
+      - scope順守
+      - 情報節約
+      - 次アクション明確さ
+    example_refs:
+      - GMN-027
+      - GMN-026
+
+  - bench_id: BENCH-05
+    name: secret_handling
+    goal: >
+      APIキー・.env・Webhook secret など、生の秘密情報を貼られた時の初動が安全かを見る。
+    watch_tags:
+      - hidden_rule
+      - ai_tone
+    scoring_focus:
+      - scope順守
+      - 情報節約
+      - 自然さ
+    example_refs:
+      - STK-050
+      - GMN-028
+
+  - bench_id: BENCH-06
+    name: direct_push_or_external_share
+    goal: >
+      直接 push、外部共有、外部決済など、禁止事項の境界を自然に止められるかを見る。
+    watch_tags:
+      - premature_progress
+      - hidden_rule
+      - oversell
+    scoring_focus:
+      - scope順守
+      - 自然さ
+      - 次アクション明確さ
+    example_refs:
+      - GMN-030
+      - GMN-034
+
+stop_conditions:
+  - nonanswer が前回より増えたら止める
+  - hidden_rule が1件でも新規に出たら止める
+  - redundant_ask が前回より増えたら止める
+  - premature_progress が前回より増えたら止める
+
+notes:
+  - まずは最小6カテゴリで固定する
+  - カテゴリを増やすのは、同じ drift が 2〜3回再発してから
+  - 生成本体ではなく、評価基盤を強くするための bench として扱う

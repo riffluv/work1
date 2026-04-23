@@ -92,6 +92,17 @@
 11. 悪い再発を `ng-expressions.ja.md` に追加する
 12. 実案件の微修正も、月次で `good / bad` として戻す
 
+## `#RE` の扱い
+
+- `#RE` は、返信学習用 batch を current rules で更新するショートカット
+- デフォルト対象は `bugfix-15000`
+- `#RE handoff` のように補足がある時だけ `handoff-25000` を対象にする
+- 出力は 1 ファイルだけに絞る
+  - `bugfix`: `/home/hr-hm/Project/work/サービスページ/rehearsal/bugfix-15000-返信学習/返信監査_batch-01.md`
+  - `handoff`: `/home/hr-hm/Project/work/サービスページ/rehearsal/handoff-25000-返信学習/返信監査_batch-01.md`
+- `#RE` では生成本体の再設計を行わない
+- 目的は「返信を書くこと」ではなく、「外部監査に回すための batch を current rules で組み直すこと」
+
 ## 監査の固定 rubric
 1. 相手の質問や不安に正面から返しているか
 2. 次アクションが明確か

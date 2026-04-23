@@ -87,6 +87,12 @@ mode の正本:
 - 直近の監査で有効だった恒久観点は、少なくとも `fact_alignment / semantic_echo / closing_complete / urgency_symmetry / unanswered_secondary / technical_explanation_safety` を含む
 - `#CL` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Claude 向け監査プロンプトを作る
 - `#GE` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Gemini 向け監査プロンプトを作る
+- `#RE` は返信学習用ショートカットとして扱う。既存の返信骨格を使って stock から代表ケースを選び、外部監査にそのまま渡せる batch を 1 ファイルだけ更新する
+- `#RE` のデフォルト対象は `bugfix-15000`。`#RE handoff` のように補足がある時だけ `handoff-25000` を対象にする
+- `#RE` では生成本体の再設計を行わず、既存ルールで batch を組み直すことを優先する
+- `#RE bugfix` の保存先は `/home/hr-hm/Project/work/サービスページ/rehearsal/bugfix-15000-返信学習/返信監査_batch-01.md`
+- `#RE handoff` の保存先は `/home/hr-hm/Project/work/サービスページ/rehearsal/handoff-25000-返信学習/返信監査_batch-01.md`
+- `#RE` の目的は「返信文を書くこと」ではなく、「外部監査に回すための batch を current rules で更新すること」
 - `#R / #A / #D / #P` を優先し、相手文だけなら分析のみ
 - `#R` の後ろや次行に自由文の補足がある場合は、optional な `user_override` として扱う
 - `user_override` の優先順は `hard constraints > user_override > デフォルト推論` とし、tone は `temperature_plan`、ask / format / scope emphasis は `reply_contract` と `response_decision_plan` へ寄せる
