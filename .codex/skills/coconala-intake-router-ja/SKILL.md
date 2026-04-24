@@ -12,6 +12,12 @@ description: "ココナラ相談文の入口判定専用。相手文を、経路
 - `何を返すか` だけでなく、`どう向き合って返すか` も前段で固定する。
 - 返信姿勢だけでなく、下流が勝手に骨格を戻しにくい実行契約も前段で固定する。
 
+## 思考保全モード
+- この skill は Codex の代わりに考える層ではなく、入口を薄く構造化する層として使う。
+- ここで決めるのは `state / primary_question / answer_map / ask_map / next_action` までに留め、本文 phrasing は下流へ残す。
+- reference は必要なものだけを読み、長い template 群を入口判定に持ち込まない。
+- 優先順は `/home/hr-hm/Project/work/docs/reply-quality/skill-thought-preservation-minimal.ja.md` に従う。
+
 ## このskillを使う場面
 - 相手文を貼られて、まず何を返すべきか整理したいとき
 - `#A` で分析のみ返したいとき

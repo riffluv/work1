@@ -1,6 +1,6 @@
 # note用 README
 
-更新日: 2026-04-23
+更新日: 2026-04-24
 
 ## 目的
 
@@ -22,8 +22,9 @@
 2. [返信システム構築記録.md](/home/hr-hm/Project/work/note用/返信システム構築記録.md)
 3. [2026-04-13_返信システム開発日記_50件監査で見えた現在地.md](/home/hr-hm/Project/work/note用/2026-04-13_返信システム開発日記_50件監査で見えた現在地.md)
 4. [2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md](/home/hr-hm/Project/work/note用/2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md)
-5. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
-6. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
+5. [2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md](/home/hr-hm/Project/work/note用/2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md)
+6. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
+7. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
 
 ## 各ファイルの位置づけ
 
@@ -71,8 +72,6 @@
 - 用途:
   - 「今どこまで来たか」を短く把握する
 
-### 4. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
-
 ### 4. [2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md](/home/hr-hm/Project/work/note用/2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md)
 
 - 役割: 後期の構造固定、軽量化、buyer語彙修正、商品化の輪郭が見えた日の記録
@@ -86,7 +85,21 @@
 - 用途:
   - 「構造が固まり、日本語の細部まで buyer 側へ寄った日」を追う
 
-### 5. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
+### 5. [2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md](/home/hr-hm/Project/work/note用/2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md)
+
+- 役割: 骨格維持を最優先にしながら、service page 同期・fidelity 配線・`#RE` 運用・GPT-5.5 reviewer 導入まで進んだ日の記録
+- 主な内容:
+  - 返信システム骨格を壊さない運用固定
+  - service page と reply system の広範囲同期
+  - `service_pack_fidelity` の未配線解消
+  - `#RE -> reviewer監査 -> 再発だけ rule 戻し` の固定
+  - GPT-5.5 主軸移行前の整理
+- 時期感:
+  - 2026-04-24 時点の後期記録
+- 用途:
+  - 「改善の仕方そのものが成熟した日」を追う
+
+### 6. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
 
 - 役割: この返信システムの moat と、公開しすぎない方がよい部分の整理
 - 主な内容:
@@ -98,7 +111,7 @@
 - 用途:
   - 情報公開の境界確認
 
-### 6. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
+### 7. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
 
 - 役割: この資産をどう売るかの方向性メモ
 - 主な内容:

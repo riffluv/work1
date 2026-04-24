@@ -1,4 +1,6 @@
 version: 1
+service_id: bugfix-15000
+kind: service_pack_fidelity_regression
 description: "bugfix-15000 の公開ページ・FAQ・回答例が、decision/evidence contract に落ちているかを見る回帰ケース"
 
 cases:

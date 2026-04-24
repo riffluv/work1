@@ -18,6 +18,7 @@ UNIFIED_RENDERER = ROOT_DIR / "scripts/render-coconala-reply.py"
 REGRESSION_DIR = ROOT_DIR / "runtime/regression/coconala-reply"
 FAILURE_DIR = REGRESSION_DIR / "failures"
 JST = ZoneInfo("Asia/Tokyo")
+DEFAULT_EXCLUDED_ROLES = {"regression_seed"}
 SUMMARY_RE = re.compile(
     r"^(?P<name>[^:]+): pass=(?P<pass>\d+) fail=(?P<fail>\d+) skip=(?P<skip>\d+) "
     r"\(prequote=(?P<pass_prequote>\d+)/(?P<fail_prequote>\d+) "
@@ -96,6 +97,16 @@ def classify_skip_reason(case: dict, lane: str | None) -> str:
     if state in {"predelivery"}:
         return "skip_unimplemented_state"
     return "skip_out_of_scope_state"
+
+
+def is_private_service_case(case: dict) -> bool:
+    service_id = case.get("service_id") or ((case.get("service_grounding") or {}).get("service_id"))
+    public_service = (case.get("service_grounding") or {}).get("public_service")
+    if service_id == "bugfix-15000":
+        return False
+    if service_id == "handoff-25000":
+        return True if public_service is False or public_service is None else False
+    return False
 
 
 def build_report_text(
@@ -331,6 +342,8 @@ def main() -> int:
     estimate_renderer = tools["prequote"]["renderer"]
     roles = set(args.role or [])
     exclude_roles = set(args.exclude_role or [])
+    if "regression_seed" not in roles:
+        exclude_roles.update(DEFAULT_EXCLUDED_ROLES)
     sources = load_active_sources(Path(args.config), args.include_secondary, roles=roles or None, exclude_roles=exclude_roles or None)
 
     if args.source:
@@ -375,6 +388,13 @@ def main() -> int:
                 continue
 
             tool = tools[lane]
+            prepared_case = tool["prepare_case_fn"](tool["drafter"], case)
+            if is_private_service_case(prepared_case):
+                totals["skip"] += 1
+                source_counters[path.name]["skip"] += 1
+                source_counters[path.name]["skip_out_of_scope_state"] += 1
+                skip_details.append(f"[SKIP] {key}: skip_out_of_scope_state")
+                continue
             reply = tool["render_fn"](tool["renderer"], case)
             errors = tool["lint_fn"](case)
             if errors:

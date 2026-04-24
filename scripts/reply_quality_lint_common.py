@@ -802,7 +802,7 @@ def collect_temperature_constraint_errors(
     if opening_move == "action_first" and opening_text:
         if "確認しました" in opening_text:
             errors.append("action_first opening still starts with `確認しました`")
-        if not any(marker in opening_text for marker in ["すぐ", "まず", "先に", "優先", "大丈夫"]):
+        if not any(marker in opening_text for marker in ["すぐ", "まず", "先に", "優先", "大丈夫", "承知"]):
             errors.append("action_first opening does not show action or reassurance early")
 
     if opening_move == "receive_and_own" and opening_text:

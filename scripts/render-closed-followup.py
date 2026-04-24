@@ -1195,7 +1195,7 @@ def reaction_line(case: dict) -> str:
     if scenario == "memo_rewrite":
         return "前回メモで伝わりにくかった部分があったとのこと、承知しました。"
     if scenario == "new_issue_repeat_client":
-        return "前回とは別の内容でまたご相談いただいた件、確認しました。"
+        return "前回とは別の内容とのことなので、まず今回の症状から確認します。"
     if scenario == "referral_and_soft_new_issue":
         return "ご紹介のお申し出と、メルマガ配信機能の件、ありがとうございます。"
     if scenario == "dashboard_login_issue":
@@ -1349,11 +1349,11 @@ def draft_opening_anchor(case: dict) -> str:
             return "Webhook が届かなくなっている件、確認しました。"
         if "API Route" in raw and ("メールが送れなく" in raw or "メール" in raw):
             return "API Routeからメールが送れない件でお困りとのこと、確認しました。"
-        return "前回とは別の内容でまたご相談いただいた件、確認しました。"
+        return "前回とは別の内容とのことなので、まず今回の症状から確認します。"
     if scenario == "referral_and_soft_new_issue":
         return "本当に助かったとのこと、ありがとうございます。"
     if scenario == "repeat_bugfix_price_check":
-        return "前回とは別の内容でまたご相談いただいた件、確認しました。"
+        return "前回とは別の内容とのことなので、まず今回の症状から確認します。"
     if scenario == "self_edit_regression":
         raw = case.get("raw_message", "")
         if "PayPay" in raw and "Stripe" in raw and "動かなく" in raw:

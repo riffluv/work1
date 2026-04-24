@@ -10,6 +10,12 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
 - `service / phase / scope / forbidden_moves` を前段で固める
 - 本文生成では Codex の自然な文章力を残し、事故防止は Reviewer 側で担保する
 
+## 思考保全モード
+- この skill は `見積りの主判断を補助する` ために使い、Codex 本体の reasoning を置き換えない。
+- Writer に渡すのは最小 facts packet までに留め、長い self-check や template 群を前段で混ぜない。
+- service page と facts の取り出し口を整えることを優先し、skill 側で新しい判断ルールを増やさない。
+- 共通原則は `/home/hr-hm/Project/work/docs/reply-quality/skill-thought-preservation-minimal.ja.md` を参照する。
+
 ## この skill を使う場面
 - `state: prequote` の見積り相談
 - サービス経由 / プロフィール経由 / メッセージ経由の購入前返信

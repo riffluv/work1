@@ -10,6 +10,12 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 重複質問を減らし、購入者の不信感を防ぐ。
 - 固定条件（価格 / 範囲 / 規約）を崩さない。
 
+## 思考保全モード
+- この skill は Codex 本体の判断を置き換えず、bugfix 固有の正本と guardrail を最小限で引くために使う。
+- renderer / reviewer は section order と facts 保全の guardrail として使い、本文の主生成は Codex の freeform draft を優先する。
+- references は条件付きで読み、scene template や edge-case 集を常時前面に置かない。
+- 共通原則は `/home/hr-hm/Project/work/docs/reply-quality/skill-thought-preservation-minimal.ja.md` を参照する。
+
 ## 固定条件（変更禁止）
 - 価格・追加料金・公開状態・基本範囲は hardcode せず、毎回 `service-registry.yaml` で `bugfix-15000` を解決して `facts_file` を正本にする
 - 確認範囲の説明は `estimate-decision.yaml` と `source_of_truth` を正本にする

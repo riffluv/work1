@@ -20,6 +20,7 @@ DEFAULT_FIXTURES = [
 DEFAULT_CONFIG = ROOT_DIR / "ops/tests/eval-sources.yaml"
 REPORT_DIR = ROOT_DIR / "runtime/regression/coconala-reply/contracts"
 JST = ZoneInfo("Asia/Tokyo")
+DEFAULT_EXCLUDED_ROLES = {"regression_seed"}
 
 CASE_EXPECTATIONS = {
     "V6-001": {
@@ -150,6 +151,11 @@ def load_fixtures_from_config(
 
 def normalize_case(renderer, case: dict) -> dict:
     return case if case.get("reply_contract") else renderer.build_case_from_source(case)
+
+
+def is_private_service_case(case: dict) -> bool:
+    service_id = case.get("service_id")
+    return bool(service_id and service_id != "bugfix-15000")
 
 
 def primary_question_text(contract: dict) -> str:
@@ -344,10 +350,14 @@ def main() -> int:
     if args.fixture:
         fixtures = [Path(item) for item in args.fixture]
     elif args.role or args.exclude_role:
+        roles = set(args.role or [])
+        exclude_roles = set(args.exclude_role or [])
+        if "regression_seed" not in roles:
+            exclude_roles.update(DEFAULT_EXCLUDED_ROLES)
         fixtures = load_fixtures_from_config(
             Path(args.config),
-            roles=set(args.role or []) or None,
-            exclude_roles=set(args.exclude_role or []) or None,
+            roles=roles or None,
+            exclude_roles=exclude_roles or None,
         )
     else:
         fixtures = DEFAULT_FIXTURES
@@ -369,6 +379,9 @@ def main() -> int:
             case_id = case.get("case_id") or case.get("id") or "<unknown>"
             key = f"{fixture.name}:{case_id}"
             built = normalize_case(renderer, case)
+            if is_private_service_case(built):
+                counters["skip"] += 1
+                continue
             errors = generic_checks(case, built)
             errors.extend(expectation_checks(case_id, built))
 

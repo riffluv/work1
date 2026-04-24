@@ -479,7 +479,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "はい、その状態でも大丈夫です。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "unfixable_fee_question":
-        direct_answer_line = "今回のご購入分は、調査と切り分けを含む作業として発生します。"
+        direct_answer_line = "原因不明のまま終わる場合や、修正済みファイルを返せない場合は、そのまま正式納品には進めません。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "unrelated_build_error_scope":
         direct_answer_line = "Stripeと直接関係ないNext.jsのビルドエラーなら、今回とは別の話になる可能性が高いです。"
@@ -1113,7 +1113,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "今回のご購入分は、調査と切り分けを含む作業として発生します。",
+                    "answer_brief": "原因不明のまま終わる場合や、修正済みファイルを返せない場合は、そのまま正式納品には進めません。",
                 },
             ],
             "ask_map": [],
@@ -2554,8 +2554,8 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             _paragraph_from_lines(
                 [
                     direct_answer,
-                    "万が一修正が難しい場合も、その時点で確認できた内容と理由は整理してお返しします。",
-                    "返金については、ココナラの規定に沿う形になります。",
+                    "分かった内容や、どこが詰まっているかは整理してお返しします。",
+                    "そのうえで、正式納品ではなくキャンセルを含めてご相談します。",
                 ]
             ),
         )

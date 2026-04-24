@@ -18,6 +18,7 @@ from reply_quality_lint_common import (
 ROOT_DIR = Path(__file__).resolve().parents[1]
 EVAL_SOURCES = ROOT_DIR / "ops/tests/eval-sources.yaml"
 UNIFIED_RENDERER = ROOT_DIR / "scripts/render-coconala-reply.py"
+DEFAULT_EXCLUDED_ROLES = {"regression_seed"}
 
 
 def load_module(name: str, path: Path):
@@ -68,10 +69,14 @@ def main() -> int:
 
     module = load_module("render_coconala_reply", UNIFIED_RENDERER)
     tools = module.load_tools()
+    roles = set(args.role or [])
+    exclude_roles = set(args.exclude_role or [])
+    if "regression_seed" not in roles:
+        exclude_roles.update(DEFAULT_EXCLUDED_ROLES)
     sources = load_active_sources(
         EVAL_SOURCES,
-        roles=set(args.role or []) or None,
-        exclude_roles=set(args.exclude_role or []) or None,
+        roles=roles or None,
+        exclude_roles=exclude_roles or None,
     )
 
     tag_counter: Counter[str] = Counter()

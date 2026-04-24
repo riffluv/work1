@@ -102,8 +102,7 @@ def build_handoff_quote_sent_reply(source: dict) -> str:
                     "はい、整理のあとに修正が必要と分かった場合も、続けてご相談いただけます。",
                 ]
             ),
-            "25,000円の基本料金では、まず主要1フローの構造・危険箇所・次の着手順を整理します。修正そのものは含みませんが、必要になった場合は同じトークルーム内で別対応として続けてご案内できます。",
-            "この前提で問題なければ、そのまま進めて大丈夫です。",
+            "今回の整理では、まず主要1フローの構造・危険箇所・次の着手順をまとめます。修正そのものは含みませんが、必要になった場合は同じトークルーム内で別対応をご相談いただけます。",
         ]
         return "\n\n".join(paragraphs)
 
@@ -112,10 +111,10 @@ def build_handoff_quote_sent_reply(source: dict) -> str:
             "\n".join(
                 [
                     "ご連絡ありがとうございます。",
-                    "基本は主要1フローごとのご案内なので、別の流れに分かれる場合は追加1フロー 15,000円 の調整になります。",
+                    "基本は主要1フローごとの整理なので、別の流れに分かれる場合はその時点で範囲を分けてご相談します。",
                 ]
             ),
-            "同じ起点でつながる1つの流れとして整理できるなら、まずは25,000円の範囲でまとめて見られるかをこちらで確認します。",
+            "同じ起点でつながる1つの流れとして整理できるなら、まずはまとめて見られるかをこちらで確認します。",
             "いま挙がっている内容なら、まずはどこを優先して整理するかをそろえて進めるのが近いです。",
         ]
         return "\n\n".join(paragraphs)
@@ -1141,7 +1140,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = f"{fee_text}でも、今回の不具合1件の範囲で原因確認と修正判断まで見ます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "discount_request":
-        direct_answer_line = f"現在の公開範囲は{fee_text}固定で、10,000円への変更はしていません。"
+        direct_answer_line = f"今お出ししているご提案は{fee_text}固定で、10,000円への変更はしていません。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "self_try_webhook_test_question":
         direct_answer_line = "Stripe ダッシュボードに Webhook の送信テスト機能自体はあります。"
@@ -1775,7 +1774,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": f"現在の公開範囲は{SERVICE_GROUNDING['fee_text']}固定で、10,000円への変更はしていません。",
+                    "answer_brief": f"今お出ししているご提案は{SERVICE_GROUNDING['fee_text']}固定で、10,000円への変更はしていません。",
                 }
             ],
             "ask_map": [],
@@ -2375,7 +2374,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "self_apply_support":
         return [
             f"{direct_answer}\n{grounding.get('same_cause_followup_rule', '')}".strip(),
-            purchase_closing(scenario, raw),
+            "ほかに気になる点があれば、そのまま聞いてください。",
         ]
 
     if scenario == "private_repo_share_question":
