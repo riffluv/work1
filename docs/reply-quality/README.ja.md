@@ -102,6 +102,16 @@
   - `handoff`: `/home/hr-hm/Project/work/サービスページ/rehearsal/handoff-25000-返信学習/返信監査_batch-01.md`
 - `#RE` では生成本体の再設計を行わない
 - 目的は「返信を書くこと」ではなく、「外部監査に回すための batch を current rules で組み直すこと」
+- batch 冒頭には短い `batch_manifest` を置く
+  - `batch_id / 目的 / 件数 / 選定 / state_mix / risk_axes / 今回の方針`
+  - これは生成ルールではなく、何を検査した batch かを後から追うための記録
+- reviewer の指摘では、必要な場合だけ次の4項目で学習判定を添える
+  - `直す単位`: `case_fix / pattern_candidate / rule_return_candidate / preference / reject`
+  - `再発根拠`: `なし / 同batch内 / 過去batch同型 / 既存rule未反映疑い`
+  - `既存rule hit`: `あり / なし / 不明`
+  - `戻し先候補`: `batch / reviewer_prompt / gold / rule / service_facts / validator / none`
+- 必須修正は、そのまま rule 化候補とは扱わない
+- rule に戻さなかった指摘も、再発しそうなら learning log に `戻さなかった理由` を1行で残す
 
 ## 監査の固定 rubric
 1. 相手の質問や不安に正面から返しているか
@@ -113,6 +123,7 @@
 - 監査コメントは、まず `failure-taxonomy.ja.md` の主ラベル1つで整理する。
 - 学習メモは `/home/hr-hm/Project/work/ops/tests/stock/learning-log/` に残す。
 - 学習メモのひな形は `learning-log-template.yaml` を使う。
+- 学習メモには、採用した修正だけでなく `rule に戻さなかった理由` も短く残す。
 - 1件の違和感は、`現象 -> パターン -> 層` の3段で抽象化する。
 - 恒久反映の前に、`guidance-scoping.ja.md` で `reply-only / route / state / service` を切る。
 - 恒久反映の前に、`adoption-policy.ja.md` で `即反映 / 観察保留 / 却下` を判定する。

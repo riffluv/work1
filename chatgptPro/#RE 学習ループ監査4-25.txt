@@ -1,0 +1,422 @@
+前提として、この実行環境では ChatGPT コネクター用の repo 直結ツールが露出していなかったため、公開 repo 側を参照しました。見た範囲では、現行方針は「骨格を壊さず、#RE → reviewer 監査 → 再発だけ戻す」にかなり明確に寄っています。公開中サービスは bugfix-15000、handoff-25000 は private / 非公開として扱う前提も、repo 側で一貫して確認できます。
+1. 結論
+今の #RE は学習ループとして成立しているか
+成立しています。
+ただし、「自動で賢くなる仕組み」ではなく、人間が gate を握る、監査型の学習ループとして成立しています。
+成立している理由は明確です。
+
+
+#RE の目的が「良い返信を1通作る」ではなく、既存 stock から batch を作り、外部監査で弱点を見つけ、再発するものだけ戻す運用になっている。
+
+
+reviewer prompt 側でも、全面改稿ではなく、既存骨格を保ったまま監査する役割が明示されている。
+
+
+batch 側に nonanswer / redundant_ask / premature_progress / hidden_rule / oversell / ai_tone の監査ラベルと、直答・scope・情報節約・自然さ・次アクションの採点軸がある。
+
+
+直近の運用でも、必須修正を batch 上で潰し、再監査して、rule / renderer / 骨格には戻さず閉じた。この動きは、現行 adoption policy とかなり整合しています。
+
+
+厳しめに言うと、今の #RE の価値は「返信生成の改善」よりも、「どの違和感を rule に戻さないかを判定する訓練」にあります。
+ここを守れている限り、モグラたたきではありません。
+モグラたたき化のリスク
+一番危ないのは、reviewer の 必須修正 をそのまま rule 追加候補 と誤読することです。
+必須修正 は「この返信は直すべき」という意味であって、「恒久ルールを増やすべき」という意味ではありません。
+モグラたたき化の主な入口はこの5つです。
+リスク起きること何が壊れるかlint 通過を品質通過と誤認文法・禁止語は通るが、主質問未回答を見逃すreviewer の存在意義が薄れるreviewer の趣味を rule 化自然さ・語感の好みがルールへ混入Writer が萎縮するrandom だけで batch を組む弱点軸が偶然に依存する再発判定が鈍る既存 rule hit を確認せず rule 追加同じ趣旨の rule が重複するself-check / skill が肥大化service facts と common core を混ぜるbugfix 固有の境界が汎用ルール化されるhandoff / common へ漏れる
+現行 repo には「Writer に長い self-check を読ませない」「renderer は guardrail に留める」「自然化で意味・価格・禁止事項を変えない」という抑制線が既にあります。ここを崩さないことが、#RE を学習ループとして保つ条件です。
+
+2. #RE の学習効率を上げる改善案 Top 5
+Top 5 一覧
+優先改善案何を変えるか骨格を壊さない理由期待効果副作用リスクSbatch manifest を追加batch 冒頭に state / risk axis / 期待して見る弱点 / random or curated を数行で記録生成系・rule・renderer に触らない何を検査した batch か後で分かる選定が作為的になりすぎるSreviewer 出力に rule 戻し判断用の最小欄を追加直す単位 / 再発根拠 / 既存rule hit / 戻し先候補 だけ足す監査結果の metadata 追加に留まるcase fix と rule 候補の混同が減るreviewer が形式埋めに寄るSlearning log に “戻さなかった理由” を残す指摘ごとに なぜ rule に戻さないか を1行記録ルール追加ではなく判断ログ将来の重複議論を防げる記録が長文化するA既存 rule hit check を必須化rule 追加前に「既にどこにあるか / ないか」を確認新 rule を増やす前の gate既存ルールの重複・上書きを防ぐ探す手間が少し増えるAsentinel case を1件だけ混ぜる前回直した弱点を、次 batch に1件だけ再投入新 scenario 追加ではなく regression 確認ぶり返しを早く検出できる同じ失敗ばかり見る危険
+それぞれの詳細
+1. batch manifest を追加する
+何を変えるか
+返信監査_batch-XX.md の冒頭に、次のような短い manifest を置きます。
+batch_id: RE-2026-04-XX-01目的: 主質問直答 / scope 境界 / secret handling の再確認件数: 6選定: curated 4 / random 2state_mix: prequote 2 / quote_sent 1 / purchased 2 / delivered_or_closed 1risk_axes: nonanswer, scope, secret, external-share, price-anxiety今回 rule 追加は原則しない。P0 safety / service facts mismatch のみ例外。
+骨格を壊さない理由
+batch の説明を増やすだけで、Writer・renderer・validator・service facts に触りません。
+期待効果
+reviewer の指摘が「この batch の狙いに対して重要か」を判断しやすくなります。後で「この batch は何を検査したのか」が残るので、学習ログとしての価値も上がります。
+副作用リスク
+curated 意図が強すぎると、未知のズレを拾いにくくなります。対策として、各 batch に random を1〜2件残します。
+導入優先度: S
+
+2. reviewer 出力に rule 戻し判断用の最小欄を足す
+何を変えるか
+現在の出力形式は大きくは良いです。足すなら、各 issue に次の4項目だけで十分です。
+- 直す単位: case_fix / pattern_candidate / rule_return_candidate / preference / reject- 再発根拠: なし / 同 batch 内2件以上 / 過去 batch と同型 / 既存rule未実装疑い- 既存rule hit: あり（場所）/ なし / 不明- 戻し先候補: batch / reviewer_prompt / gold / rule / service_facts / validator / none
+骨格を壊さない理由
+reviewer prompt の出力形式に metadata を足すだけです。新しい layer でも self-check 追加でもありません。
+期待効果
+必須修正 = rule 化 の誤変換を防げます。特に今回の B02〜B05 のように、「既存 rule にあるが最終文に出なかった」タイプを切り分けやすくなります。
+副作用リスク
+reviewer が分類に意識を取られて、日本語の違和感検出が弱くなる可能性があります。項目は4つで止めるべきです。
+導入優先度: S
+
+3. learning log に “戻さなかった理由” を残す
+何を変えるか
+採用した修正だけでなく、採用しなかった reviewer 指摘も短く残します。
+case_id: B04label: premature_progress修正: case fixrule戻し: なし理由: 既存 rule で quote_sent の押し感は既に扱われている。今回は文面上の適用漏れ。次回確認: quote_sent deadline / approval 待ち case を sentinel に1件入れる。
+骨格を壊さない理由
+学習ログの情報量を増やすだけです。生成系には触りません。
+期待効果
+「前も同じ話をした気がする」が可視化されます。将来、rule 化すべきだったかを再判定する時に、過去の保留理由が資産になります。
+副作用リスク
+ログが日記化すると重くなります。1 issue 5行以内を上限にした方がよいです。
+導入優先度: S
+
+4. 既存 rule hit check を必須化する
+何を変えるか
+rule に戻す前に、必ず次を確認します。
+既存rule確認:- 同趣旨の rule はあるか- あるなら、今回の失敗は rule 不在ではなく適用漏れか- どこで落ちたか: classifier / writer / naturalizer / reviewer / batch facts
+骨格を壊さない理由
+新規 rule を増やす前のブレーキです。むしろ骨格肥大化を防ぎます。
+期待効果
+今回のような「既存 rule にある内容は新規 rule 追加しない」判断を再現しやすくなります。これはかなり重要です。
+副作用リスク
+毎回 rule 探索が重くなると #RE の回転数が落ちます。既存rule hit: あり / なし / 不明 の粗い分類から始めれば十分です。
+導入優先度: A
+
+5. sentinel case を1件だけ混ぜる
+何を変えるか
+前 batch で必須修正が出た archetype を、次 batch に1件だけ再投入します。
+例:
+
+
+B02 系: 不具合未発生の確認だけ
+
+
+B03 系: 新規 Stripe 導入
+
+
+B04 系: quote_sent の返答期限
+
+
+B05 系: purchased の完了見込み
+
+
+secret 系: .env / API key / GitHub / 外部共有
+
+
+骨格を壊さない理由
+case 選定の工夫だけです。scenario 追加でも renderer 追加でもありません。
+期待効果
+「直したはずのズレが戻っていないか」を早く検知できます。
+副作用リスク
+sentinel を増やしすぎると、新規弱点探索ではなく過去問演習になります。1 batch 1件までが上限です。
+導入優先度: A
+
+3. batch 選定の改善案
+1 batch 何件がよいか
+標準は5件、探索期だけ6件までがよいです。
+repo 側では、返信品質の固定ループとして5件 batch が明示されています。一方、直近の note では stock から6件前後を選ぶ #RE 運用も出ています。したがって、基本は5件、5.5移行前の探索や state coverage を取りたい時だけ6件が妥当です。
+おすすめはこれです。
+目的件数通常の #RE5件5.5 移行前の探索6件月次の広め calibration10件まで。ただし普段はやらない
+state 比率
+5件 batch の標準
+state件数狙いprequote2受注可否、価格、scope、購入前の圧quote_sent1押し感、期限、購入促しすぎpurchased1進捗、完了見込み、追加確認delivered / closed1納品後トラブル、再相談、close 後の境界
+6件 batch の探索型
+state件数狙いprequote2主質問直答・scopequote_sent1購入前後の圧purchased2進捗・不安・二次質問delivered / closed1交互に入れる
+delivered と closed は毎回両方入れなくてよいです。代わりに、batch 1 は delivered、batch 2 は closed、batch 3 は delivered + closed のどちらか重要な方のように回します。
+混ぜるべきケースタイプ
+1 batch に全部を入れようとすると薄まります。
+各 batch では、最低4軸、3 batch で全軸を踏む設計がよいです。
+観点入れるべきケース見たい失敗price15,000円、追加料金、自動加算、原因不明時hidden_rule / oversellscope同一原因、別原因、新規実装、確認だけscope 断定 / 範囲拡張secret.env、API key、Webhook secret、evt ID秘密情報要求 / 技術安全性external-shareGitHub、Drive、Zoom、メール、PayPay外部共有・外部決済・導線逸脱nonanswer「できますか？」「いつまで？」「必要ですか？」説明から入る / 主質問未回答anxiety急ぎ、社内説明、返金不安、過去の嫌な経験温度不足 / 防御説明boundaryhandoff 的相談、仕様書、新機能、直接 push、本番反映private 混入 / hard no 後の次アクション欠落
+random と curated の比率
+今のフェーズでは、**curated 70% / random 30%**がよいです。
+フェーズ比率5.5移行前・弱点探索curated 4 / random 2安定後の通常運用curated 3 / random 2regression 確認sentinel 1 / curated 3 / random 1
+random をゼロにしない理由は、curated だけだと「分かっている弱点」しか見なくなるからです。
+逆に random だけにしない理由は、今回のような PayPay / GitHub / .env / 主質問未直答 のような危険軸を偶然任せにすると、学習効率が落ちるからです。
+
+4. reviewer 出力形式の改善案
+現在の出力形式は、かなり良いです。
+特に、採用可 / 条件付き採用 / 要修正、共通 drift、ケース単位修正、rule に戻すべき再発パターン、採点を分けている点は維持でよいです。
+足すなら、rule 戻し判断に効く最小項目だけです。
+追加する最小項目
+各ケースの必須修正・軽微修正の末尾に、これだけ足します。
+学習判定:- 直す単位:- 再発根拠:- 既存rule hit:- 戻し先候補:
+記入例
+B05必須: 完了時期への直答が少し遅い。冒頭で「本日18時までに現在地を共有します」と先に答える。学習判定:- 直す単位: case_fix- 再発根拠: 同 batch 内では単発。ただし purchased の進捗不安として sentinel 候補。- 既存rule hit: あり。進捗不安は短い直接回答を先に置くルールで既に扱える。- 戻し先候補: batch / learning_log。rule 追加なし。
+reviewer に足さない方がよいもの
+これは足さない方がよいです。
+
+
+長い自己採点理由
+
+
+10項目以上の check list
+
+
+改稿案を複数パターン出す形式
+
+
+「理想返信」を毎回全文作る形式
+
+
+product 化・抽象化コメント
+
+
+理由は、reviewer の役割が「作家」へ寄ると、#RE が reply 改稿会になってしまうからです。
+
+5. rule に戻す / 戻さない判定 gate
+ここはかなり重要です。
+必須修正 と rule 反映 を切り離す gate にします。
+gate 一覧
+判定入る条件反映先やらないこと即反映P0 safety / service facts / public-private 境界違反、または同型が2回以上service facts / rule / reviewer prompt好みの自然さを混ぜない観察保留1件だけだが再発しそう、または副作用不明learning log / 次 batch sentinelその場で rule 化しないcase fixその返信だけ明確にまずいが、既存 rule で説明できるbatch 修正 / gold 候補新 rule を足さない好み差意味・scope・安全性は問題なく、語感や温度の差gold 参考、または何もしないself-check に入れない却下reviewer 提案が正本と衝突、範囲拡張、実務ノイズ増、骨格変更なし「せっかく指摘されたから」で採用しない
+即反映
+次のどれかに当たる場合だけ、即反映を検討します。
+
+
+bugfix-15000 と handoff-25000 の公開境界を誤る。
+
+
+.env 値、API key、Webhook secret を求める。
+
+
+外部連絡、外部共有、外部決済、直接 push、本番デプロイを促す。
+
+
+価格、追加料金、原因不明時の扱いが service facts と矛盾する。
+
+
+同じ root cause が同 batch 内で2件以上、または過去 batch と合わせて再発している。
+
+
+反映先が明確で、副作用が小さい。
+
+
+bugfix service page でも、.env はキー名のみ、APIキーや Webhook secret の値は不要、本番反映はこちらでは行わない、追加料金は自動発生しない、という境界が明示されています。ここを破るものは好み差ではなく事故候補です。
+観察保留
+次の場合は観察保留です。
+
+
+1件だけだが、再発しそうな匂いがある。
+
+
+reviewer の指摘は分かるが、rule 化すると広く効きすぎる。
+
+
+日本語としては改善余地があるが、buyer の誤解や実務事故には直結しない。
+
+
+既存 rule との関係がまだ確認できていない。
+
+
+観察保留は「放置」ではありません。
+次 batch に sentinel として1件入れるのが正しい扱いです。
+case fix
+次の場合は case fix で止めます。
+
+
+その文面は直すべき。
+
+
+ただし root cause は既存 rule で説明できる。
+
+
+同型の失敗がまだ見えていない。
+
+
+rule に戻すと、むしろ Writer にノイズが増える。
+
+
+今回の B02〜B05 は、多くがこの扱いでよかったと思います。
+特に「既存 rule にある内容は新規 rule 追加しなかった」は、かなり健全です。
+好み差
+次は好み差です。
+
+
+この言い方の方が柔らかい
+
+
+こちらの方が自然
+
+
+少し事務的
+
+
+やや AI っぽい
+
+
+ただし、以下に当たるなら好み差ではありません。
+
+
+主質問が遅れる。
+
+
+scope がぼやける。
+
+
+価格・追加料金・秘密情報の扱いが弱まる。
+
+
+buyer が「聞いていないことを言われた」と感じる可能性が高い。
+
+
+却下
+次は明確に却下です。
+
+
+reviewer 提案が handoff-25000 の外向け導線を出す。
+
+
+bugfix 固有のルールを common core に混ぜようとする。
+
+
+「丁寧にする」ために質問数や説明量を増やす。
+
+
+hard no を弱めて、外部共有・本番作業・直接 push の余地を作る。
+
+
+product 化を理由に、現行ココナラ返信OSへ抽象 layer を混ぜる。
+
+
+
+6. 触ってよい場所 / 触らない場所
+場所変更可否条件今の推奨batch触ってよいmanifest、case 選定、必須修正の反映積極的に触るreviewer prompt少し触ってよい出力欄の最小追加、ぶり返し防止語の追加4項目だけ足すlearning log触ってよいcase fix / 保留 / 却下理由を残す強化するgold reply条件付きで触ってよい再監査済み、送信可、代表性あり増やしすぎないruleかなり制限再発性・低ノイズ・既存 rule 非重複・scope 明確次の数 batch は原則触らないvalidator原則触らない客観判定できる文字列・事実・禁止事項だけsemantic 好みを入れないrenderer触らない複数 batch で renderer 起因と確定した時のみ次の3 batch では触らないservice facts必要なら触るservice page / registry との不整合がある時だけbugfix / handoff を絶対混ぜない
+特に renderer は、今いちばん触らない方がよいです。repo 側でも renderer は section order・question coverage・ask gating の guardrail に留め、Writer を slot 埋めに閉じ込めない方針が明示されています。
+validator も同様です。secret 値を求めない、handoff を外向けに出さない、価格を誤らない のような客観チェックならよいですが、もっと自然 系を validator に入れると、すぐ self-check 肥大化になります。
+
+7. 次に回すべき #RE 3 batch 案
+batch 1: 主質問直答 / price / scope
+項目内容狙い「答える前に説明する」「聞かれていない価格・範囲を前に出す」を検出件数5〜6含めるケースprequote urgent can-handle、価格不安、確認だけ依頼、新規Stripe導入、quote_sent返答期限、purchased完了見込み期待される発見nonanswer、frontload price、scope断定、oversell、premature_progress通過条件主質問への答えが冒頭にある。価格は聞かれた時だけ先に出る。確認だけ・新規実装を bugfix に吸収しない。handoff を外向けに出さない。
+おすすめ構成:
+
+
+prequote: 急ぎで「見てもらえますか？」
+
+
+prequote: 「15,000円で原因不明だったら？」
+
+
+prequote: 「まだ不具合はないが確認だけ」
+
+
+prequote or boundary: 「Stripe 新規導入できますか？」
+
+
+quote_sent: 「いつまでに返事すれば？」
+
+
+purchased: 「完了時期をざっくり教えて」
+
+
+batch 2: secret / external-share / technical safety
+項目内容狙いGitHub / .env / API key / 外部共有 / PayPay などの安全境界を見る件数5〜6含めるケースGitHub招待、Drive共有、Zoom希望、API key共有、Webhook secret、PayPay対応、直接push、本番反映期待される発見secret handling、external-share、scope range expansion、hard no 後の次アクション欠落通過条件秘密値を求めない。外部共有へ誘導しない。GitHub 共有前提にしない。PayPay 等をサービス範囲として広げない。hard no の後に buyer の次の一手が残る。
+おすすめ構成:
+
+
+prequote: 「GitHub 招待します」
+
+
+prequote: 「.env を全部送ればいいですか？」
+
+
+prequote: 「PayPay も含めて決済全体を見られますか？」
+
+
+purchased: 「本番に push してもらえますか？」
+
+
+purchased: 「Zoom で画面共有できますか？」
+
+
+delivered: 「反映で詰まったので本番触ってほしい」
+
+
+batch 3: purchased / delivered / closed の phase 境界
+項目内容狙い購入後に prequote へ戻る、納品後に責任範囲を断定する、closed 後に無料対応を言い切るズレを見る件数5〜6含めるケースpurchased進捗不安、副質問あり、deliveredビルド失敗、delivered副作用疑い、closed再発相談、closed新規相談期待される発見phase leak、unanswered_secondary、premature_progress、scope断定、初回ヒアリングへの逆戻り通過条件state に合う返答になっている。購入後に受付テンプレへ戻らない。closed 後に同一原因を即断しない。次アクションが1つ見える。
+おすすめ構成:
+
+
+purchased: 「いつ完了しそうですか？」
+
+
+purchased: 「追加でこれも見られますか？」
+
+
+delivered: 「ビルドが通らなくなりました」
+
+
+delivered: 「別画面が崩れた気がします」
+
+
+closed: 「同じ症状がまた出ました」
+
+
+closed: 「前回を活かして別件もお願いできますか？」
+
+
+
+8. マネタイズを見据えて今から残すべきログ
+ここは、現行ココナラ返信OSに混ぜず、別の learning asset として保存するのが前提です。
+今の商品を賢く見せるために抽象化を混ぜると、返信OSが濁ります。
+core
+汎用資産になるログです。
+残すもの価値before / after / reviewer 指摘 / 最終採否改善プロセスの証跡failure label横断的な弱点 taxonomy になるcase fix / pattern / preference / reject 判定人間の判断 gate が商品価値になるrule に戻さなかった理由過剰ルール化を防ぐ知見になるrecurrence count再発性の根拠になるside-effect memoなぜ小さく直したかを説明できる
+platform
+ココナラ固有の資産です。common core に混ぜない方がよいです。
+残すもの価値prequote / quote_sent / purchased / delivered / closed の状態差platform 運用の再現性外部連絡・外部共有・外部決済の扱い規約事故予防正式納品・キャンセル・追加相談の言い方実務導線の assetトークルーム内での次アクション設計platform 固有の buyer 体験
+service
+bugfix-15000 固有の資産です。
+残すもの価値15,000円 / 不具合1件 / 同一原因の判断例service facts の中核原因不明・修正済みファイル返却不可時の扱い信頼の根拠追加料金が自動発生しない説明例価格不安対応.env キー名のみ、秘密値不要の説明例安全運用handoff を出さない境界例public / private 分離の証跡
+domain
+Next.js / Stripe / API 連携の技術領域として残す資産です。
+残すもの価値Webhook / Checkout / DB反映 / 500 error などの症状分類初動判断の精度どの証跡を聞くと進むか最小質問設計推定を断定しない言い方技術説明の安全性PayPay / Square など非Stripe境界scope 拡張防止API key / whsec / evt ID の扱い差secret handling の教材化
+personal
+りふさん固有の判断資産です。
+ここは rule ではなく、preference profile として分けるのがよいです。
+残すもの価値好きな温度感gold reply 選定に効く避けたい言い回しnaturalizer / reviewer prompt に効く「これは好み差」と判断した例rule 化防止reviewer ごとの癖監査結果の読み方に効く外向けに出したくない導線service 境界の保護
+マネタイズ上いちばん価値があるのは、「返信例」そのものより、before → 指摘 → gate 判定 → 最小修正 → 再監査 → 戻す/戻さない理由の連なりです。これは、単なる文例集ではなく、運用品質を作る判断体系になります。
+
+9. 最後に
+今すぐやること ✅
+
+
+次の #RE から batch manifest を付ける。
+
+
+reviewer 出力に 直す単位 / 再発根拠 / 既存rule hit / 戻し先候補 だけ足す。
+
+
+learning log に「rule に戻さなかった理由」を残す。
+
+
+次の3 batch は、主質問直答、secret / external-share、phase 境界の順で回す。
+
+
+rule / renderer / validator は、P0 safety または service facts 不整合以外では触らない。
+
+
+まだやらないこと 🧊
+
+
+新 layer 追加。
+
+
+scenario 増殖。
+
+
+renderer 増殖。
+
+
+self-check 項目追加。
+
+
+handoff-25000 の外向け導線化。
+
+
+ココナラ固有ルールの common core 化。
+
+
+商品化のための抽象化を現行返信OSに混ぜること。
+
+
+危険な誘惑 ⚠️
+一番危ない誘惑は、**「reviewer が賢いから、指摘を全部 rule にすればもっと良くなる」**です。
+それをやると、前回壊れた方向に戻ります。
+今の正解は、広げることではなく、弱点を見つける精度と、戻さない判断の精度を上げることです。
+今回の #RE は、その方向にかなり近いです。骨格は触らず、batch・reviewer 出力・learning log の3点だけ締めるのが、いちばん強い改善です。

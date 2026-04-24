@@ -1,0 +1,31 @@
+# 返信OS 学習メモ
+
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-02-r3 / B01"
+
+# --- 文脈 ---
+consultation_type: "coconala bugfix prequote"
+buyer_decision_stage: "prequote"
+service: "bugfix-15000"
+state: "prequote"
+
+# --- 診断 ---
+symptom: "主質問への直答を速くするために `対応できます。` を独立文で置いた結果、直後の `15,000円で進められます` と意味が重なり、ぶつ切りの bot 感が出た。"
+failure_label: "ai_tone"
+failure_layer: "reviewer_prompt"
+
+# --- 投資判断 ---
+generalizability: "medium"
+reason: "可否・価格・対応方針を別文に分けすぎる崩れは prequote で再発しうる。ただし短い独立文が有効な場面もあるため、硬い rule にはしない。"
+return_target: "reviewer_prompt"
+decision: "adopt"
+decision_reason: "Codex と Claude の見立てが一致し、reviewer 観点として追加する価値がある。"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内"
+existing_rule_hit: "なし"
+not_returned_reason: "短い独立文が自然な場面まで縛らないため、rule ではなく reviewer_prompt の観点に留める。"
+next_sentinel: "prequote で `対応できます` と価格・範囲回答が近接するとき、一息で自然に言えるかを見る"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "直答を速くする目的で可否だけを独立文にしすぎていないか。可否・価格・対応方針が同じ答えの一部なら、一息でまとめた方が自然かを見る。"
+upstream_fix: "監査プロンプト_codex-xhigh.md / 監査プロンプト_claude.md に reviewer 観点として追加"

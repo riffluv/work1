@@ -1,0 +1,31 @@
+# 返信OS 学習メモ
+
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-02-r2"
+
+# --- 文脈 ---
+consultation_type: "coconala bugfix reply rehearsal batch"
+buyer_decision_stage: "mixed: prequote / quote_sent / purchased"
+service: "bugfix-15000"
+state: "batch"
+
+# --- 診断 ---
+symptom: "current rules の初回出力は lint を通過したが、B03 FAQ返金質問への nonanswer と B05 購入後進捗返信の同義反復が reviewer で検出された。"
+failure_label: "nonanswer / ai_tone"
+failure_layer: "renderer / reviewer-gated batch"
+
+# --- 投資判断 ---
+generalizability: "medium_observe"
+reason: "FAQ返金質問と購入後進捗不安は再発しうるが、r2 で Codex / Claude の両監査が採用可と判断し、rule に戻すべき新規パターンはなしとしたため。"
+return_target: "none"
+decision: "observe"
+decision_reason: "今回は batch 内の最小修正で収束した。骨格・rule・renderer・validator は変更しない。"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: "r2で再発パターンではなくbatch修正として収束し、Codex/Claude両監査でrule戻しなしとなったため。"
+next_sentinel: "FAQ返金質問 / 購入後進捗不安で同型再発するか次回#REで観察"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: ""
+upstream_fix: ""

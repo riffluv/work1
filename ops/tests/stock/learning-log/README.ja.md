@@ -8,6 +8,7 @@
 - 1件の指摘ごとに、`docs/reply-quality/learning-log-template.yaml` を元に1ファイル作る
 - ファイル名は `YYYY-MM-DD-<short-topic>.yaml` を基本にする
 - `adopt / observe / reject` の判定も残す
+- rule に戻さなかった指摘も、再発しそうなら `not_returned_reason` に1行で理由を残す
 
 見るポイント:
 - `consultation_type`
@@ -16,6 +17,10 @@
 - `failure_layer`
 - `generalizability`
 - `return_target`
+- `fix_unit`
+- `recurrence_evidence`
+- `existing_rule_hit`
+- `not_returned_reason`
 
 判断基準:
 - 共通化できるかは、`service facts` を入れ替えても再発するかで切る

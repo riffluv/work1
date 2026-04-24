@@ -27,6 +27,11 @@ reason: ""
 return_target: ""
 decision: ""
 decision_reason: ""
+fix_unit: "" # case_fix / pattern_candidate / rule_return_candidate / preference / reject
+recurrence_evidence: "" # なし / 同batch内 / 過去batch同型 / 既存rule未反映疑い
+existing_rule_hit: "" # あり / なし / 不明
+not_returned_reason: "" # rule に戻さなかった場合だけ短く書く
+next_sentinel: "" # 観察保留なら次回 batch で見る case / archetype
 
 # --- 抽象化（adopt の場合のみ） ---
 pattern: ""
