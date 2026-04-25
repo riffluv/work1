@@ -104,6 +104,7 @@ def buyer_word_pickup_ok(rendered: str, raw: str, scenario: str | None) -> bool:
         "external_channel_request": ["トークルーム", "電話", "Slack", "LINE", "Zoom"],
         "direct_push_request": ["push", "トークルーム", "修正内容"],
         "deployment_help_request": ["本番反映", "手順"],
+        "admin_login_direct_operation_request": ["本番管理画面", "ログイン情報", "直接作業", "反映手順"],
         "live_secrets_pasted": [".env", "キー名", "秘密", "ログイン", "パスワード", "URL"],
         "secret_handling_question": [".env", "キー名", "秘密"],
         "external_api_shift": ["外部API", "料金", "依頼側"],
@@ -131,9 +132,20 @@ def has_negation_only_answer(rendered: str, scenario: str | None) -> bool:
     if scenario == "external_channel_request":
         return has_any(answer_window, ["切り替えず", "しません"]) and "トークルーム" not in answer_window
     if scenario == "direct_push_request":
-        return has_any(answer_window, ["前提にしていません", "できません"]) and not has_any(answer_window, ["トークルーム", "返します"])
+        return has_any(answer_window, ["前提にしていません", "できません", "行っていません"]) and not has_any(
+            answer_window,
+            ["トークルーム", "返します", "お返しします", "修正済みファイル", "差分", "適用手順"],
+        )
     if scenario == "deployment_help_request":
-        return has_any(answer_window, ["前提にしていません", "できません"]) and not has_any(answer_window, ["手順", "トークルーム"])
+        return has_any(answer_window, ["前提にしていません", "できません", "行っていません"]) and not has_any(
+            answer_window,
+            ["手順", "トークルーム", "お返しします", "画面操作", "コマンド"],
+        )
+    if scenario == "admin_login_direct_operation_request":
+        return has_any(answer_window, ["できません", "行っていません", "受け取っていません"]) and not has_any(
+            answer_window,
+            ["送らないでください", "修正済みファイル", "反映手順", "手順"],
+        )
     if scenario in {"live_secrets_pasted", "secret_handling_question"}:
         return has_any(answer_window, ["扱わない", "送らず"]) and not has_any(answer_window, ["キー名", "ログイン情報", "URL", "項目名"])
     return False
@@ -273,6 +285,15 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("late info share does not acknowledge the defer-to-tomorrow and product-specific info")
     if scenario == "live_secrets_pasted" and not looks_like_actual_secret_paste(raw):
         errors.append("live_secrets_pasted triggered without an actual secret-paste signal")
+    if has_any(raw, ["本番管理画面", "管理画面のURL", "ログイン情報"]) and has_any(raw, ["直接作業", "直接やって", "ログインして作業"]):
+        if scenario != "admin_login_direct_operation_request":
+            errors.append("admin login direct-operation source did not trigger the boundary scenario")
+        if not has_any(rendered, ["直接作業することはできません", "直接操作", "行っていません"]):
+            errors.append("admin login direct-operation request is not declined directly")
+        if not has_any(rendered, ["ログイン情報の値も送らないでください", "ログイン情報", "送らないでください"]):
+            errors.append("admin login direct-operation request does not block login information sharing")
+        if not has_any(rendered, ["修正済みファイル", "反映手順", "手順"]):
+            errors.append("admin login direct-operation request does not provide a safe alternative")
     if has_any(raw, ["他のお客さん", "他のお客さま", "個人情報"]) and has_any(raw, ["ログ", "送ったログ", "さっき送った"]) and not has_any(rendered, ["広げず", "伏せた", "大丈夫です"]):
         errors.append("privacy concern case does not explain safe handling of the shared log")
     if "STRIPE_SECRET_KEY" in raw and "Vercel" in raw and has_any(raw, ["セットしておきました", "これで直るはず"]) and not has_any(rendered, ["直る可能性", "他の要因", "設定反映後"]):
@@ -327,6 +348,9 @@ def lint_case(module, source: dict) -> list[str]:
             if ask_text and ask_text in rendered and rendered.find(ask_text) < direct_index:
                 errors.append("direct answer appears after ask")
                 break
+
+    if has_any(rendered, ["の件の件", "のことのこと", "についてについて"]):
+        errors.append("rendered text has duplicated topic particles")
 
     if not decision_plan.get("blocking_missing_facts") and case.get("scenario") != "evidence_offer_question":
         for ask in contract.get("ask_map") or []:

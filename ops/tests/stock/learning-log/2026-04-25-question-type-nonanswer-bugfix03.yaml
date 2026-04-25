@@ -1,0 +1,31 @@
+# 返信OS 学習メモ
+
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-03-r1"
+
+# --- 文脈 ---
+consultation_type: "coconala bugfix reply rehearsal batch"
+buyer_decision_stage: "mixed: prequote / purchased"
+service: "bugfix-15000"
+state: "batch"
+
+# --- 診断 ---
+symptom: "current rules の初回出力は lint を通過したが、価格・復旧時間・対象可否・保証期間の主質問に対して、汎用の確認テンプレートへ流れる nonanswer が複数出た。B02/B05 では同義文の重複も出た。"
+failure_label: "nonanswer / redundant_ask / ai_tone"
+failure_layer: "renderer / reviewer-gated batch"
+
+# --- 投資判断 ---
+generalizability: "high_observe"
+reason: "buyer がサービス仕様や可否を聞いている時に、不具合対応テンプレートや情報収集テンプレートへ流れる崩れは再発可能性が高い。ただし batch 修正後の再監査結果を見てから rule / renderer / validator への恒久反映を判断する。"
+return_target: "observe"
+decision: "observe"
+decision_reason: "Codex / Claude の監査で B04/B05 は rule_return_candidate とされたが、現時点では batch r1 の再監査前。骨格を守るため、まず観察メモに残す。"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: "r1再監査前のため、rule / renderer / validator へ即反映せず、batch修正で収束するか確認する。"
+next_sentinel: "価格質問 / 対象ですか質問 / 復旧時間質問 / 保証期間質問で、主質問へ直答せず汎用確認テンプレートへ流れるかを見る"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: ""
+upstream_fix: ""

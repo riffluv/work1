@@ -1,0 +1,29 @@
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-04-question-type-spec / B01,B02,B04,B05,B06"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / service spec questions"
+buyer_decision_stage: "prequote / quote_sent / purchased"
+service: "bugfix-15000"
+state: "mixed"
+
+# --- 診断 ---
+symptom: "buyer が納期・価格・コード/設定・原因不明時の料金・保証を聞いているのに、r0 が汎用の不具合確認テンプレートへ流れた"
+failure_label: "question_type_miss / nonanswer / ai_tone"
+failure_layer: "reply-only / prequote wording rule"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "batch-02, batch-03, batch-04 で同型の主質問タイプ取り違えが再発。service facts に答えがある質問でも本文へ出ていない"
+return_target: "prequote-compression-rules.ja.md"
+decision: "adopt"
+decision_reason: "質問タイプ router や renderer は増やさず、prequote の既存圧縮ルールにサービス仕様質問の直答条件だけを小さく追加する"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "過去batch同型"
+existing_rule_hit: "あり"
+not_returned_reason: ""
+next_sentinel: "RE-2026-04-25-bugfix-05 以降で、サービス仕様質問が汎用不具合テンプレへ流れないかを見る"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "価格固定・復旧時間・原因不明時の料金/返金・保証・対象可否・コード/設定質問では、まず仕様上いま答えられる事実を返し、その後で必要なら確認範囲や次アクションを置く"
+upstream_fix: "docs/reply-quality/prequote-compression-rules.ja.md に `サービス仕様` 質問の直答条件を追加"

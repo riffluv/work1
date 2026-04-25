@@ -109,6 +109,12 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("missing brief reaction at the top")
     if has_near_echo(rendered):
         errors.append("near_echo_check failed: adjacent sections still overlap too much")
+    if "公開範囲" in rendered:
+        errors.append("closed follow-up still exposes internal `公開範囲` wording")
+    if "形になります" in rendered:
+        errors.append("closed follow-up still uses banned `形になります` wording")
+    if "お約束する形" in rendered:
+        errors.append("closed follow-up still uses banned `お約束する形` wording")
     if (primary["disposition"] == "answer_after_check" or (contract.get("ask_map") and decision_plan.get("blocking_missing_facts"))) and ("本日" not in rendered or "までに" not in rendered):
         errors.append("missing time commitment")
     if scenario not in {"price_complaint", "price_discount_request", "repeat_bugfix_price_check", "refund_request"} and has_any(rendered, ["15,000円", "25000円", "25,000円"]):
@@ -153,10 +159,22 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("rendered text asks for symptom details already present in the buyer message")
 
     if "返金" in raw:
+        if "Stripe 管理画面" in rendered:
+            errors.append("closed refund request confuses coconala transaction refund with Stripe customer refund")
+        if "キャンセルを含めて" in rendered:
+            errors.append("closed refund request still says `キャンセルを含めて` too vaguely")
         if has_any(rendered, ["返金します", "返金できます"]):
             errors.append("refund request was answered too definitively")
         if not has_any(rendered, ["返金", "状況確認", "つながり"]):
             errors.append("refund request is not acknowledged clearly")
+        if not ("トークルーム" in rendered and "閉じ" in rendered):
+            errors.append("closed refund request does not mention the closed-room boundary")
+        if not has_any(rendered, ["断定できません", "断定せず", "とは言えません"]):
+            errors.append("closed refund request does not avoid deciding refund/cancel too early")
+
+    if scenario == "similar_but_not_same" and "トークルーム" in raw:
+        if not has_any(rendered, ["メッセージ上", "見積り提案", "新規依頼"]):
+            errors.append("closed similar-event case does not explain the post-close path clearly")
 
     if "新しい機能" in raw or "クーポン機能" in raw or "Invoice" in raw or "請求書" in raw:
         if not has_any(rendered, ["範囲ではありません", "機能追加"]):

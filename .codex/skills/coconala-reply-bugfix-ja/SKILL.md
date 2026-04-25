@@ -44,6 +44,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 公開状態と外向け自然文の参照は、`service-registry.yaml` の `public` と `source_of_truth` を使う。
 - サービスページ本文は外向け自然文の正本として参照してよいが、価格・追加料金・公開状態の機械判定は `service.yaml` を優先する。
 - 古いテンプレや過去の返信例に旧確認プラン前提の文面が残っていても、外向け bugfix では採用しない。
+- `#RE` や外部調査の最新知見は、正本 rule ではなく観察メモとして読む。採用済みの最小 rule / guard は `docs/reply-quality` と `os/coconala/platform-contract.yaml` 側を優先する。
 
 ## 先に見るファイル
 - `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml`
@@ -56,10 +57,21 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - `/home/hr-hm/Project/work/docs/coconala-japanese-banlist.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-japanese-must-rules.ja.md`
 - `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md`
+- `/home/hr-hm/Project/work/docs/reply-quality/self-check-core-always-on.ja.md`
 - `/home/hr-hm/Project/work/docs/reply-quality/writer-brief.ja.md`
+- `/home/hr-hm/Project/work/docs/reply-quality/prequote-compression-rules.ja.md`
 - `/home/hr-hm/Project/work/docs/reply-quality/ng-expressions.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-golden-replies.ja.md`
 - `/home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md`
+
+## 最新 #RE メモの扱い
+- `/home/hr-hm/Project/work/docs/reply-quality/question-type-batch-plan-20260425.ja.md`
+  - buyer 質問タイプの観察計画。通常返信の router / rule として直接使わない。
+- `/home/hr-hm/Project/work/docs/reply-quality/external-research-observation-plan-20260425.ja.md`
+  - Deep Research の観察メモ。stock / archetype / reviewer 観点として使い、本文生成 rule へ直投入しない。
+- `/home/hr-hm/Project/work/ops/tests/stock/learning-log/`
+  - `#RE` の再発証拠。`adopt` は反映済み guard の確認、`observe` は次 batch の監査観点として扱う。
+- closed 後のやり取りは `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml` の `closed_talkroom_locked` を優先し、旧トークルームでの継続作業・ファイル送付・追加購入を前提にしない。
 
 ## Writer / Reviewer 分離
 - この skill は `Classifier -> Writer -> Reviewer` を前提に使う。

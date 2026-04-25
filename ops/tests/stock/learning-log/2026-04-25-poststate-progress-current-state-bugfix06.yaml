@@ -1,0 +1,29 @@
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-06-poststate-aftercare / B01,B02,B05"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / poststate aftercare"
+buyer_decision_stage: "purchased / delivered / closed"
+service: "bugfix-15000"
+state: "mixed"
+
+# --- 診断 ---
+symptom: "購入後の進捗返信で `原因の切り分け中` と `切り分けを進めています` の同義反復が出て、いま何を見ているかが buyer に見えなかった。B02 では diff 希望への回答も落ちた"
+failure_label: "ai_tone / missing_current_state / poststate_nonanswer"
+failure_layer: "reply-only / post-purchase wording"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "B01/B02 で同batch内再発し、過去 batch でも同義反復が複数回確認されている。購入後進捗は buyer の不安に直結するため、現在地の可視化が必要"
+return_target: "validator-warn / gold / reviewer_prompt"
+decision: "observe"
+decision_reason: "r1/r2 で batch は採用可。既存 self-check に近い観点があり、現時点では validator 実装に進めず、warn-only 候補として記録する"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内 / 過去batch同型"
+existing_rule_hit: "あり"
+not_returned_reason: "validator 化は false positive を見てから判断する。まず次 batch で購入後進捗の同義反復が続くかを見る"
+next_sentinel: "購入後の進捗確認で、同じ意味の `確認中 / 切り分け中 / 進めています` が2文以上並ぶか。副質問がある時に進捗テンプレへ吸収されないか"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "購入後の進捗返信では、`確認中です` だけで閉じず、現在地 / 未確定点 / 次に見る点 / 返答時刻 のうち最低3点を入れる。副質問がある時は1文で答える"
+upstream_fix: "保留。batch r2 と learning-log に止め、生成本体・renderer・validator へはまだ入れない"

@@ -81,6 +81,10 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("missing brief reaction at the top")
     if "確認しました" in rendered:
         errors.append("quote_sent reply still uses semantic-overclaim `確認しました`")
+    if "ご了解" in rendered:
+        errors.append("quote_sent reply uses unnatural `ご了解` wording")
+    if "形になります" in rendered:
+        errors.append("quote_sent reply still uses banned `形になります` wording")
     if primary["answer_brief"] not in rendered and direct_answer_line != primary["answer_brief"]:
         pass
     elif primary["answer_brief"] not in rendered:
@@ -131,8 +135,12 @@ def lint_case(module, source: dict) -> list[str]:
     if scenario == "risk_refund_question":
         if has_any(rendered, ["返金します", "返金できます", "返金をお約束"]):
             errors.append("risk/refund case answers refund too definitively")
-        if not has_any(rendered, ["ココナラ", "手続き"]):
-            errors.append("risk/refund case does not place refund on coconala-side procedure")
+        if not has_any(rendered, ["全額返金になるかどうか", "返金について", "返金額"]):
+            errors.append("risk/refund case does not address refund handling")
+        if not has_any(rendered, ["断定できません", "正式納品として進めることはありません"]):
+            errors.append("risk/refund case does not separate delivery blocking from refund non-commitment")
+        if not has_any(rendered, ["修正済みファイル", "修正ファイル", "返却"]):
+            errors.append("risk/refund case does not mention the fixed-file return gate")
         if not has_any(direct_answer_line, ["15,000", "15000", "提案"]):
             errors.append("risk/refund case direct answer does not anchor the quoted fee clearly")
 
@@ -263,10 +271,10 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("quote_sent case dropped the buyer's extra-file follow-up")
 
     if scenario == "self_apply_support":
-        if not has_any(rendered, ["依頼者様", "確認手順"]):
+        if not has_any(rendered, ["依頼者様", "本番反映", "確認手順", "デプロイ手順"]):
             errors.append("self-apply support case does not state the client-side apply boundary")
-        if not has_any(rendered, ["同じ原因", "基本料金内"]):
-            errors.append("self-apply support case does not explain same-cause follow-up support")
+        if has_any(raw, ["Vercel", "デプロイ", "手順"]) and not has_any(rendered, ["Vercel", "デプロイ手順", "手順"]):
+            errors.append("self-apply support case does not answer the deployment-step request")
 
     if scenario == "secret_share_reassurance":
         if not has_any(rendered, ["本番のURL", "evt_"]):

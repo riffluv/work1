@@ -1,0 +1,29 @@
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-07-script-boundary-regression / B02-B06"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / script boundary regression"
+buyer_decision_stage: "quote_sent / purchased / closed"
+service: "bugfix-15000"
+state: "mixed"
+
+# --- 診断 ---
+symptom: "CHG-029 後の r0 で古い固定文は消えたが、B02 の本番反映/手順質問、B04 の Vercel 手順不安、B05 の本番管理画面ログイン情報/直接操作依頼が汎用テンプレや代替不足へ戻った。B06 では closed 後の再依頼に `今の公開範囲` という内部語が残った"
+failure_label: "nonanswer / boundary_miss / missing_safe_alternative / internal_wording"
+failure_layer: "reply-only / renderer-guard / validator"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "STK-063 は batch-05 r0 と batch-07 r0 で同一 stock の boundary_miss が再発。デプロイ手順系も過去 batch と同型で、reviewer が r0 で複数回止めた"
+return_target: "renderer / validator / learning-log"
+decision: "adopt"
+decision_reason: "再発性があり、戻し先が明確で、副作用が低い境界文の補修に限れるため、骨格は触らず scenario 検出・直接回答・安全代替・validator warn を最小追加した"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "過去batch同型 / 同一stock再発"
+existing_rule_hit: "あり"
+not_returned_reason: ""
+next_sentinel: "ログイン情報・本番管理画面・直接作業の依頼で `できません` だけ、または汎用の `確認します` に逃げないか。本番反映/デプロイ手順質問で Yes/No と手順提供が先に出るか"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "境界質問は、可否を直答し、ログイン情報や直接操作を受けない理由を短く置き、修正済みファイル・差分・反映手順・画面操作/コマンド分離など安全代替へ着地させる"
+upstream_fix: "scripts/render-post-purchase-quick.py / scripts/render-quote-sent-followup.py / scripts/render-closed-followup.py と対応 validator に最小反映"

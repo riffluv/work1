@@ -1690,7 +1690,11 @@ def draft_opening_anchor(case: dict) -> str:
         if "メール" in raw and ("遅く" in raw or "タイミング" in raw):
             return "決済の件は直っていたとのこと、確認しました。"
         if any(marker in raw for marker in ["修正前は問題なかった", "今回の修正が影響", "今回の修正の影響", "修正後に別の問題"]):
-            return "Webhookの受信は直ったとのこと、確認しました。"
+            if "Webhook" in raw:
+                return "Webhookの受信は直ったとのこと、確認しました。"
+            if any(marker in raw for marker in ["修正いただいた箇所は動いて", "修正した箇所は動いて", "修正箇所は動いて"]):
+                return "修正した箇所は動いているとのこと、確認しました。"
+            return "修正後に別の機能が気になっている件ですね。"
         if "メール" in raw:
             return "まずメール送信の件から見ます。"
         return "まず別の機能で出ている症状から確認します。"
@@ -1955,7 +1959,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 [
                     direct_answer,
                     "将来の仕様変更まではここで言い切れませんが、現状が安定しているなら承諾いただいて大丈夫です。",
-                    "保証を先にお約束する形ではありませんが、今回の動作が安定しているかを基準に見てもらえれば大丈夫です。",
+                    "固定の保証期間としてはお伝えしていませんが、今回の動作が安定しているかを基準に見てもらえれば大丈夫です。",
                 ]
             ),
         )

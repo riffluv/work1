@@ -5,6 +5,7 @@
 - `service page -> service-pack -> reply` で意味が落ちた時に、どこを直すべきか切り分けやすくする
 
 ## 優先順位
+0. `service-registry.yaml` の `public` と `source_of_truth`
 1. 公開サービスページ
 2. `facts.yaml` / `boundaries.yaml`
 3. `decision-contract.yaml` / `evidence-contract.yaml`
@@ -12,6 +13,11 @@
 5. `seeds.yaml` / `tone-profile.yaml`
 
 ## 層ごとの役割
+
+### 0. service-registry
+- 外向けに出してよい service かどうかの最上位
+- `public:false` の service は、source_of_truth が存在しても外向け返信で service 名・価格・購入導線を出さない
+- 価格、納品物、FAQ、公開約束に疑義がある時は、`service-registry.yaml` の `source_of_truth` をたどって確認する
 
 ### 1. 公開サービスページ
 - buyer に公開している契約本文の正本

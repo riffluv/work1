@@ -1,0 +1,29 @@
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-05-boundary-secure-share / B01-B05"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / boundary secure share"
+buyer_decision_stage: "purchased / quote_sent"
+service: "bugfix-15000"
+state: "mixed"
+
+# --- 診断 ---
+symptom: "GitHub共有・直接push・本番反映・ログイン情報・ZIP納品不安への返答で、境界の直答または安全な代替提示が不足した"
+failure_label: "boundary_miss / missing_safe_alternative / unsafe_secret_handling"
+failure_layer: "reply-only / boundary wording"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "同batch内で B01-B05 に境界質問が集中し、B05 は本番ログイン情報と直接操作の質問へ答えず汎用テンプレへ流れた"
+return_target: "self-check / gold / future renderer-or-validator consideration"
+decision: "observe"
+decision_reason: "docs/coconala-reply-self-check.ja.md と gold replies には既に近い観点があるため、今回は batch r1 と learning-log に止め、生成本体・renderer・validator へはまだ入れない"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: "既存 self-check / gold に同型がある。まず次 batch で既存rule未反映が続くかを見る"
+next_sentinel: "GitHub共有、直接push、本番直接操作、ログイン情報、ZIP納品不安で `拒否 + 安全代替` が同じ文中に出るか"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "境界質問では、できないことだけで閉じず、ZIP/修正済みファイル/差分/適用手順/画面操作ベースの補足など、安全な代替を同じ返信で示す"
+upstream_fix: "保留。既存 self-check / gold の再利用で r1 を修正"

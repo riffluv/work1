@@ -299,7 +299,18 @@ def _affirmative_hard_no_violation(rendered: str, key: str) -> bool:
             next_segments.extend(part.strip() for part in segment.split(delim))
         segments = [segment for segment in next_segments if segment]
 
-    negative_markers = ["使わず", "使わない", "切り替えず", "しません", "前提にしていません", "送らず", "避けて"]
+    negative_markers = [
+        "使わず",
+        "使わない",
+        "切り替えず",
+        "しません",
+        "前提にしていません",
+        "行っていません",
+        "行いません",
+        "行っておりません",
+        "送らず",
+        "避けて",
+    ]
     pattern_by_key: dict[str, list[re.Pattern[str]]] = {
         "external_share": [
             re.compile(r"(?:Google ?ドライブ|Dropbox|外部リンク).*(?:共有|リンク|ダウンロード).*(?:大丈夫|お願いします|ください)"),

@@ -20,3 +20,5 @@ services:
 rules:
   - public_reply_must_use_public_true_only
   - private_services_are_internal_reference_only
+  - public_false_must_not_emit_service_name_price_or_purchase_cta
+  - registry_source_of_truth_overrides_pack_assets_for_public_contract

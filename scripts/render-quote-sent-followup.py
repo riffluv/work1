@@ -59,9 +59,9 @@ def load_service_grounding() -> dict:
         "scope_unit": facts.get("scope_unit") or "",
         "proposal_scope": f"今回は、原因確認と修正判断を含めた{fee_text}の提案です。",
         "same_cause_rule": "同じ原因なら基本料金内、別原因なら追加対応は事前にご相談します。",
-        "refund_policy": "返金については、ココナラの規定に沿う形になります。",
+        "refund_policy": "全額返金になるかどうかは、この時点でこちらから断定できません。",
         "reissue_support": "期限が切れた場合も、必要なら同内容で再提案できます。",
-        "payment_platform_rule": "購入画面に表示されている方法の中で進めていただく形になります。",
+        "payment_platform_rule": "購入画面に表示されている方法の中から選んで進めてください。",
         "dashboard_scope_rule": "Webhook受信口に関係する範囲であれば、Stripeダッシュボード側の設定も確認対象です。",
         "self_apply_support_rule": "本番への反映自体は依頼者様でお願いします。確認手順はお渡しします。",
         "same_cause_followup_rule": "トークルームが開いている間に同じ原因の範囲で詰まる点があれば、その範囲は基本料金内で確認します。",
@@ -253,7 +253,7 @@ def purchase_closing(scenario: str, raw: str) -> str:
     if scenario == "service_comparison_strength_question":
         return "内容が合いそうなら、そのままご購入をご検討ください。"
     if scenario == "risk_refund_question":
-        return "この条件で進める形でもよければ、ご購入をご検討ください。"
+        return "この条件で問題なければ、ご購入をご検討ください。"
     if scenario == "general_bugfix_scope_question":
         if any(marker in raw for marker in ["機会損失", "取りこぼして", "毎日だいたい", "注文が来る"]):
             return "急ぎの前提でよければ、そのままご購入へ進めてください。"
@@ -805,7 +805,14 @@ def detect_scenario(source: dict) -> str:
         return "no_meeting_request"
     if "evt_" in combined or "本番のURL" in combined or "見せなくても本当に大丈夫" in combined:
         return "secret_share_reassurance"
-    if "納品された修正コード" in combined or "自分で反映" in combined:
+    if (
+        "納品された修正コード" in combined
+        or "自分で反映" in combined
+        or (
+            any(marker in combined for marker in ["修正ファイル", "修正してもらったファイル"])
+            and any(marker in combined for marker in ["自分でVercelにデプロイ", "自分でデプロイ", "デプロイする形", "手順も教えて", "デプロイのやり方"])
+        )
+    ):
         return "self_apply_support"
     if (
         any(marker in combined for marker in ["先ほどメッセージ送った", "追記", "念のためお伝え", "追加でお伝え"])
@@ -1070,7 +1077,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "はい、同じ内容で再提案できます。"
         response_order = ["reaction", "direct_answer"]
     elif scenario == "risk_refund_question":
-        direct_answer_line = "原因が特定できなかった場合でも、調査と切り分けの作業分として15,000円は発生します。"
+        direct_answer_line = "原因を特定できない場合や、修正済みファイルの返却まで進められない場合は、15,000円の正式納品として進めることはありません。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "payment_method":
         direct_answer_line = "支払い方法の表示はココナラ側の仕様によるため、こちらで選択肢を増やすことはできません。"
@@ -1085,7 +1092,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "その場合でもまず今の状態を見て対応可否を確認できます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "self_apply_support":
-        direct_answer_line = "今回の提案では、本番への反映自体は依頼者様でお願いしていますが、確認手順はお渡しします。"
+        direct_answer_line = "はい、今回の提案では、修正済みファイルをお渡しし、本番反映は依頼者様側で行っていただく形です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "private_repo_share_question":
         direct_answer_line = "必ずリポジトリ全体を共有いただく必要はなく、不具合に関係する範囲からで大丈夫です。"
@@ -1364,7 +1371,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q2",
                     "disposition": "answer_now",
-                    "answer_brief": "購入前の段階で全額返金を先に断定する形ではなく、返金についてはココナラの規定に沿う形になります。",
+                    "answer_brief": "購入前の段階で、全額返金になるかどうかをこちらから断定することはできません。",
                 },
             ],
             "ask_map": [],
@@ -1400,7 +1407,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "原因が特定できなかった場合でも、調査と切り分けの作業分として15,000円は発生します。返金についてはココナラの規定に沿う形になります。",
+                    "answer_brief": "原因を特定できない場合や、修正済みファイルの返却まで進められない場合は、15,000円の正式納品として進めることはありません。全額返金になるかどうかは、この時点でこちらから断定できません。",
                 }
             ],
             "ask_map": [],
@@ -1418,7 +1425,7 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q1",
                     "disposition": "answer_after_check",
                     "answer_brief": "支払い方法の表示はココナラ側の仕様によるため、こちらで選択肢を増やすことはできません。",
-                    "hold_reason": "まず表示されている支払い画面に沿って進めていただく形になります。",
+                    "hold_reason": "まず購入画面に表示されている支払い方法の中から選んで進めてください。",
                     "revisit_trigger": "購入画面で進めにくい点があれば、その状況を教えてください。",
                 }
             ],
@@ -1482,13 +1489,21 @@ def build_case_from_source(source: dict) -> dict:
     if scenario == "self_apply_support":
         case["reply_contract"] = {
             "primary_question_id": "q1",
-            "explicit_questions": [{"id": "q1", "text": "自分で反映した場合のサポート範囲はどこまでか", "priority": "primary"}],
+            "explicit_questions": [
+                {"id": "q1", "text": "修正済みファイルは自分で本番反映する形か", "priority": "primary"},
+                {"id": "q2", "text": "デプロイ手順も教えてもらえるか", "priority": "secondary"},
+            ],
             "answer_map": [
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "今回の提案では、本番への反映自体は依頼者様でお願いしていますが、確認手順はお渡しします。",
-                }
+                    "answer_brief": "はい、今回の提案では、修正済みファイルをお渡しし、本番反映は依頼者様側で行っていただく形です。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "Vercelのデプロイ手順も、修正ファイルと一緒に分かる形でお渡しします。",
+                },
             ],
             "ask_map": [],
             "required_moves": ["react_briefly_first", "answer_directly_now"],
@@ -1601,7 +1616,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q2",
                     "disposition": "answer_now",
-                    "answer_brief": "画像アップロードの件は、決済と別原因なら別の相談としてご案内する形になります。",
+                    "answer_brief": "画像アップロードの件は、決済と別原因なら別の相談として切り分けます。",
                 },
             ],
             "ask_map": [],
@@ -2110,10 +2125,10 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "service_comparison_strength_question":
         return "比較中で、サービスの違いも気になっているのですね。"
     if scenario == "risk_refund_question":
+        if any(marker in raw for marker in ["返金", "原因が分からなかった", "直らなかった", "うまくいかなかった"]):
+            return "直らなかった場合の扱いについてですね。"
         if "了解" in raw:
-            return f"{SERVICE_GROUNDING['fee_text']}でのご了解、ありがとうございます。"
-        if any(marker in raw for marker in ["返金", "原因が分からなかった", "直らなかった"]):
-            return "直らなかった場合の扱いが気になるのですね。"
+            return "金額の件、承知しました。"
         if "不安" in raw:
             return "即決のご不安、ごもっともです。"
         return "料金面のご心配ですね。"
@@ -2331,7 +2346,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "service_comparison_refund_question":
         return [
             f"{direct_answer}\n価格だけで作業内容を削っているわけではありません。".strip(),
-            "ただ、購入前の段階で「必ず直る」や全額返金までは先に断定せず、返金についてはココナラの規定に沿う形になります。",
+            "ただ、購入前の段階で「必ず直る」や全額返金までは先に断定できません。原因を特定できず、修正方針にもつながらない状態のまま正式納品として進めることはありません。",
             purchase_closing(scenario, raw),
         ]
     if scenario == "service_comparison_strength_question":
@@ -2344,6 +2359,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "risk_refund_question":
         paragraphs = [
             f"{direct_answer}\n{grounding.get('proposal_scope', '')}".strip(),
+            "その場合は、分かった範囲をお伝えし、キャンセルを含めてご相談します。",
             grounding.get("refund_policy", ""),
         ]
         paragraphs.append(purchase_closing(scenario, raw))
@@ -2361,7 +2377,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "extra_fee_fear":
         return [
             f"{direct_answer}\nその場合は状況を共有し、追加対応に進まずそこで止める形も含めて事前にご相談します。".strip(),
-            "キャンセルの扱いは、ココナラ上の案内に沿う形になります。",
+            "キャンセルの扱いが必要になった場合は、その時点でご相談します。",
             purchase_closing(scenario, raw),
         ]
 
@@ -2373,8 +2389,8 @@ def draft_body_paragraphs(case: dict) -> list[str]:
 
     if scenario == "self_apply_support":
         return [
-            f"{direct_answer}\n{grounding.get('same_cause_followup_rule', '')}".strip(),
-            "ほかに気になる点があれば、そのまま聞いてください。",
+            f"{direct_answer}\nVercelのデプロイ手順も、修正ファイルと一緒に分かる形でお渡しします。".strip(),
+            "この内容で問題なければ、そのままご購入いただいて大丈夫です。",
         ]
 
     if scenario == "private_repo_share_question":
@@ -2490,14 +2506,14 @@ def draft_body_paragraphs(case: dict) -> list[str]:
 
     if scenario == "stage_only_before_fix_question":
         return [
-            f"{direct_answer}\nまず整理した内容を見て、そのあとで追加対応が必要かを判断いただく形で大丈夫です。".strip(),
+            f"{direct_answer}\nまず整理した内容を見て、そのあとで追加対応が必要かを判断いただければ大丈夫です。".strip(),
         ]
 
     if scenario == "feature_addition_scope_question":
         return [
             f"{direct_answer}\n今の決済自体が動いているなら、今回は既存不具合の修正ではなく新しい実装の相談になります。".strip(),
-            "現在の公開範囲では、この内容だけでの購入案内はしていません。",
-            "必要であれば、実装したい内容を別の相談として整理する形になります。",
+            "この不具合修正サービスでは、この内容だけでの購入案内はしていません。",
+            "必要であれば、実装したい内容を別の相談として整理します。",
         ]
 
     if scenario == "auth_boundary_scope_question":
@@ -2520,7 +2536,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         return [
             direct_answer,
             "画像アップロードの件は、同じ原因でつながっている場合だけ今回の流れで見ます。",
-            "決済とは別原因なら、別の相談としてご案内する形になります。",
+            "決済とは別原因なら、別の相談として切り分けます。",
             purchase_closing(scenario, raw),
         ]
 

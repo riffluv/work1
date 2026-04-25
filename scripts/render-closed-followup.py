@@ -353,7 +353,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "この範囲に入るかは、まず前回と同じ原因かどうかを確認してからお返しします。"
     elif scenario == "refund_request":
         blocking_missing_facts = ["current_symptom"]
-        direct_answer_line = "返金をここでお約束する形ではありません。追加でまた15,000円と決まっているわけでもありません。"
+        direct_answer_line = "返金可否はここで断定できません。トークルームは閉じているため、この場でキャンセルや返金手続きを進めるとは言えません。まず前回の修正と今回の再発がつながっているか確認します。"
     elif scenario == "memo_rewrite":
         blocking_missing_facts = ["blocked_sections"]
         response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
@@ -368,7 +368,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "ask", "next_action"]
     elif scenario == "repeat_bugfix_price_check":
         blocking_missing_facts = ["current_symptom"]
-        direct_answer_line = "はい、今の公開範囲では今回も 15,000円 です。今回の内容も確認できます。"
+        direct_answer_line = "前回とは別の不具合として新規で見る場合は、基本は15,000円です。内容を確認して、見積り提案をお送りします。"
         response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "self_edit_regression":
         blocking_missing_facts = ["edited_area"]
@@ -380,11 +380,11 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "price_discount_request":
         if "new_issue_followup_present" in facts_known:
             blocking_missing_facts = ["current_symptom"]
-            direct_answer_line = "割引前提でのご案内はしておらず、今の公開範囲は15,000円固定です。今回の内容を見て見積りをお返しすることはできます。"
+            direct_answer_line = "割引前提でのご案内はしておらず、この不具合修正サービスは15,000円固定です。今回の内容を見て見積りをお返しすることはできます。"
             response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "similar_but_not_same":
         blocking_missing_facts = ["current_symptom"]
-        direct_answer_line = "このまま今のエラー内容を送ってもらえれば大丈夫です。"
+        direct_answer_line = "トークルームは閉じていますが、まずこのメッセージ上でエラー内容を見て、前回の修正とつながるか確認します。"
     elif scenario == "price_complaint":
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "追加でまた15,000円と決まっているわけではありません。いまの症状を見てから、前の件とのつながりを確認します。"
@@ -665,7 +665,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "decline",
-                    "answer_brief": "CSSの変更や月額の保守対応は、今の公開範囲では受けていません。",
+                    "answer_brief": "CSSの変更や月額の保守対応は、この不具合修正サービスでは受けていません。",
                 },
             ],
             "ask_map": [],
@@ -719,7 +719,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "はい、今の公開範囲では今回も 15,000円 です。今回の内容も確認できます。",
+                    "answer_brief": "前回とは別の不具合として新規で見る場合は、基本は15,000円です。内容を確認して、見積り提案をお送りします。",
                 },
             ],
             "ask_map": [
@@ -746,7 +746,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "次回以降も、内容を見て 5,000円 や 10,000円 に下げる形では受けていません。今の公開範囲は 15,000円 固定です。",
+                    "answer_brief": "次回以降も、内容を見て 5,000円 や 10,000円 に下げる形では受けていません。この不具合修正サービスは 15,000円 固定です。",
                 },
                 *(
                     [
@@ -1275,11 +1275,11 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "price_complaint":
         return "トークルームは閉じていますが、いまの症状が分かれば前の件とのつながりを切りやすくなります。"
     if scenario == "refund_request":
-        return "トークルームは閉じていますが、まず今の症状を見て前の件とのつながりを確認します。"
+        return "短期間で再発しているとのことなので、まず今の症状を見て前の件とのつながりを確認します。"
     if scenario == "similar_but_not_same":
         if "invoice.payment_failed" in raw:
-            return "トークルームは閉じていますが、invoice.payment_failed 側の症状が前の修正範囲とどうつながるか確認します。"
-        return "トークルームは閉じていますが、今回のイベントが前の修正範囲とどうつながるか確認します。"
+            return "実作業が必要な場合は、見積り提案または新規依頼としてご案内します。"
+        return "実作業が必要な場合は、見積り提案または新規依頼としてご案内します。"
     if scenario == "self_edit_regression":
         if "PayPay" in raw and "Stripe" in raw:
             return "トークルームは閉じていますが、PayPay対応で加えた変更とStripe側の止まり方を確認します。"
@@ -1329,7 +1329,7 @@ def draft_opening_anchor(case: dict) -> str:
         if scenario == "self_edit_regression":
             return "まず触った箇所から確認します。"
     if scenario == "refund_request":
-        return "返金のご希望と、また費用がかかるのではというご不安、確認しました。"
+        return "返金のご希望、確認しました。"
     if scenario == "price_complaint":
         if "納得いかない" in raw:
             return "率直に伝えていただきありがとうございます。納得いかないお気持ち、ごもっともです。"
@@ -1457,8 +1457,8 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             _paragraph_from_lines(
                 [
                     direct_answer,
-                    "いまの公開範囲では、この内容だけをそのまま進める形にはしていません。",
-                    "必要であれば、実装したい内容を別の相談として整理する形になります。",
+                    "この不具合修正サービスでは、この内容だけをそのまま進められません。",
+                    "必要であれば、実装したい内容を別の相談として整理します。",
                 ]
             ),
         )

@@ -65,8 +65,8 @@ def load_service_grounding() -> dict:
         "scope_unit": facts.get("scope_unit") or "",
         "same_cause_rule": "同じ原因なら今回の件として見ます。別の原因や別の流れなら、その時点で切り分けて事前にご相談します。",
         "talkroom_only_rule": "電話や外部チャネルには切り替えず、このトークルーム内で進めます。",
-        "direct_push_rule": "依頼者側リポジトリへの直接 push は前提にしていません。修正内容はこのトークルームで返します。",
-        "deploy_boundary_rule": "本番反映の代行は前提にしていません。必要なら反映手順が分かる形で返します。",
+        "direct_push_rule": "依頼者側リポジトリへの直接 push は行っていません。修正内容は、修正済みファイルまたは差分と適用手順が分かる形でこのトークルーム内にお返しします。",
+        "deploy_boundary_rule": "本番反映はこちらでは行っていません。反映手順は、画面操作で確認できる範囲とコマンドが必要な場合を分けて分かる形でお返しします。",
         "secret_boundary_rule": ".envや秘密値は送らず、必要ならキー名だけで大丈夫です。",
         "same_cause_followup_rule": "同じ原因の範囲で詰まる点があれば、その範囲は今回の件として確認します。",
         "hard_no": facts.get("hard_no") or [],
@@ -184,9 +184,9 @@ def extra_scope_subject(raw: str) -> str:
     if "リダイレクト" in raw:
         return "フォーム送信後のリダイレクト"
     if "読み込み" in raw and any(marker in raw for marker in ["遅い", "重い", "遅く"]):
-        return "読み込みの件"
+        return "読み込み"
     if "プラン変更" in raw and "金額" in raw:
-        return "プラン変更時の金額表示の件"
+        return "プラン変更時の金額表示"
     if "画面" in raw:
         return "その画面"
     if "ページ" in raw:
@@ -375,6 +375,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "依頼者リポジトリへ直接 push してもらえるか確認したい"
     if scenario == "deployment_help_request":
         return "本番反映まで頼めるか、無理なら代替手段があるか知りたい"
+    if scenario == "admin_login_direct_operation_request":
+        return "本番管理画面のログイン情報を渡して直接作業してもらえるか確認したい"
     if scenario == "test_support_question":
         return "今回の対応にテスト追加まで含まれるか知りたい"
     if scenario == "live_secrets_pasted":
@@ -419,9 +421,9 @@ def build_hard_constraints(scenario: str, grounding: dict) -> dict:
         "answer_before_procedure": True,
         "ask_only_if_blocking": True,
         "no_external_contact": scenario in {"external_channel_request", "external_share_env_change"},
-        "no_raw_secrets": scenario in {"live_secrets_pasted", "secret_handling_question", "keys_shared"},
+        "no_raw_secrets": scenario in {"live_secrets_pasted", "secret_handling_question", "keys_shared", "admin_login_direct_operation_request"},
         "no_direct_push": scenario == "direct_push_request",
-        "no_prod_deploy": scenario == "deployment_help_request",
+        "no_prod_deploy": scenario in {"deployment_help_request", "admin_login_direct_operation_request"},
     }
 
 
@@ -737,6 +739,11 @@ def detect_scenario(source: dict) -> str:
     if "キー名だけ共有" in combined or "値は送らなくて大丈夫" in combined:
         return "keys_shared"
     if (
+        any(marker in combined for marker in ["本番管理画面", "管理画面のURL", "ログイン情報を渡", "ログイン情報"])
+        and any(marker in combined for marker in ["直接作業", "直接やって", "ログインして作業", "代わりに作業"])
+    ):
+        return "admin_login_direct_operation_request"
+    if (
         any(marker in raw for marker in ["sk_live_", "whsec_", "DATABASE_URL="])
         or (
             "STRIPE_SECRET_KEY" in raw
@@ -860,6 +867,7 @@ def build_case_from_source(source: dict) -> dict:
                 "external_channel_request",
                 "direct_push_request",
                 "deployment_help_request",
+                "admin_login_direct_operation_request",
             }
             else "after_purchase",
         ),
@@ -1582,7 +1590,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "依頼者側リポジトリへの直接 push は前提にしていません。修正内容はこのトークルームで返します。",
+                    "answer_brief": "GitHubの招待は不要です。依頼者側リポジトリへの直接 push は行っていません。修正内容は、修正済みファイルまたは差分と適用手順が分かる形でこのトークルーム内にお返しします。",
                 },
             ],
             "ask_map": [],
@@ -1601,12 +1609,36 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "本番反映の代行は前提にしていません。",
+                    "answer_brief": "本番反映はこちらでは行っていません。",
                 },
                 {
                     "question_id": "q2",
                     "disposition": "answer_now",
-                    "answer_brief": "必要なら、このトークルーム内で反映手順が分かる形にして返します。",
+                    "answer_brief": "Vercelをお使いの場合は、画面操作で確認できる範囲と、コマンドが必要な場合の手順を分けて書きます。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "admin_login_direct_operation_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "本番管理画面のURLやログイン情報を渡して直接作業してもらえるか", "priority": "primary"},
+                {"id": "q2", "text": "直接作業できない場合に代わりの進め方はあるか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "本番管理画面のURLやログイン情報をいただいて、こちらで直接作業することはできません。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "代わりに、修正済みファイルと反映手順を分かる形でお渡しします。",
                 },
             ],
             "ask_map": [],
@@ -1829,7 +1861,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q2",
                     "disposition": "answer_after_check",
-                    "answer_brief": "別原因なら追加見積りになる可能性があります。",
+                    "answer_brief": "別の原因と分かった場合だけ、追加対応として先にご相談します。勝手に追加料金が発生することはありません。",
                     "hold_reason": "",
                     "revisit_trigger": "確認できたところまでを見て、追加扱いになるかどうかをお返しします。",
                 },
@@ -2059,6 +2091,8 @@ def reaction_line(case: dict) -> str:
         return "作業の進め方についての確認ありがとうございます。"
     if scenario == "deployment_help_request":
         return "反映まわりが不安とのこと、確認しました。"
+    if scenario == "admin_login_direct_operation_request":
+        return "直接作業のご相談、確認しました。"
     if scenario == "test_support_question":
         return "確認ありがとうございます。"
     if scenario == "secret_handling_question":
@@ -2402,7 +2436,11 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         return paragraphs
 
     if scenario == "extra_scope_question":
-        extra_scope_fee_line = next((item["answer_brief"] for item in secondary_after if item.get("answer_brief")), "")
+        extra_scope_fee_line = ""
+        if "追加料金" in raw or "料金" in raw:
+            extra_scope_fee_line = next((item["answer_brief"] for item in secondary_after if item.get("answer_brief")), "")
+        elif "お問い合わせフォーム" not in raw and "Resend" not in raw:
+            extra_scope_fee_line = "別の原因と分かった場合は、追加対応が必要かどうかを先にご相談します。"
         if "お問い合わせフォーム" in raw or "Resend" in raw:
             extra_scope_fee_line = "作業時間の長短にかかわらず、今回と別原因なら別の相談としてご案内します。"
         _append_unique(paragraphs, _paragraph_from_lines([direct_answer, extra_scope_fee_line]))
@@ -2622,6 +2660,27 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                     direct_answer,
                     "該当メッセージを編集や削除できる状態なら、先にそうしてください。",
                     "必要なら、キーやパスワードは後で再設定しておくのが安全です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "admin_login_direct_operation_request":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "ログイン情報の値も送らないでください。",
+                ]
+            ),
+        )
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "代わりに、修正済みファイルと反映手順を分かる形でお渡しします。",
+                    "手順書で不安な箇所があれば、その画面や操作ごとに補足して返します。",
                 ]
             ),
         )

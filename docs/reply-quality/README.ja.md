@@ -41,6 +41,8 @@
   - service-pack の商品化基盤フェーズを v1 close として閉じ、ここからは実運用モニタリングへ戻るための区切り文書
 - `service-page-change-checklist.ja.md`
   - サービスページや内部共有認識を変えた時に、返信OSのどこへ落とすかを10行で確認するチェックリスト
+- `external-research-observation-plan-20260425.ja.md`
+  - Deep Research の外部調査結果を、`#RE` の観察候補と batch archetype へ変換したメモ。正本 rule ではなく、外部調査レーンからの材料として扱う
 - `seller-initiated-lane-minimal.ja.md`
   - buyer の文章への返信とは別に、こちら起点の進捗共有・補足・完了報告をどう最小構成で扱うかのメモ
 - `self-check-layering-first-pass.ja.md`
@@ -105,6 +107,9 @@
 - batch 冒頭には短い `batch_manifest` を置く
   - `batch_id / 目的 / 件数 / 選定 / state_mix / risk_axes / 今回の方針`
   - これは生成ルールではなく、何を検査した batch かを後から追うための記録
+- `batch_manifest` には必要に応じて `主質問タイプ` と `最初に答えるべき問い` を短く添える
+  - これは質問タイプ router ではなく、#RE の検査目的を明確にするための観察ラベル
+  - 詳細は `question-type-batch-plan-20260425.ja.md` を参照する
 - reviewer の指摘では、必要な場合だけ次の4項目で学習判定を添える
   - `直す単位`: `case_fix / pattern_candidate / rule_return_candidate / preference / reject`
   - `再発根拠`: `なし / 同batch内 / 過去batch同型 / 既存rule未反映疑い`
@@ -112,6 +117,11 @@
   - `戻し先候補`: `batch / reviewer_prompt / gold / rule / service_facts / validator / none`
 - 必須修正は、そのまま rule 化候補とは扱わない
 - rule に戻さなかった指摘も、再発しそうなら learning log に `戻さなかった理由` を1行で残す
+- 次の重点観察は、buyer が不具合相談に見えて実際には価格・対象可否・納期・保証などのサービス仕様を聞いているケース
+  - 汎用不具合テンプレへ逃げず、主質問に最初に答えられているかを見る
+  - ただし、質問タイプ router の大規模追加や renderer 刷新はしない
+- Deep Research など外部調査の結果は、`external-research-observation-plan-20260425.ja.md` のように観察メモへ分離し、次の `#RE` の stock / archetype / reviewer 観点として使う
+  - 外部調査結果をそのまま rule / renderer / validator へ入れない
 
 ## 監査の固定 rubric
 1. 相手の質問や不安に正面から返しているか

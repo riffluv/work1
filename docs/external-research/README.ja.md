@@ -29,6 +29,8 @@
   - `bugfix-15000` の需要・痛み表現・サービスページ訴求の外部調査
 - `2026-04-02-reply-system-stability-patterns-agent-reach.ja.md`
   - 返信生成 system の安定化、gold replies、NG 表現、回帰監査の育て方に関する外部調査
+- `2026-04-25-coconala-phase-contract-agent-reach.ja.md`
+  - ココナラの `prequote / quote_sent / purchased / delivered / closed` ごとの実務導線を整理するための外部調査素材
 
 現在の prompt:
 - `prompts/2026-04-04-agent-reach-buyability-prompts.ja.md`

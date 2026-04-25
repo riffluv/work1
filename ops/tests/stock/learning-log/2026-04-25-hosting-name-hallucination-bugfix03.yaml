@@ -1,0 +1,31 @@
+# 返信OS 学習メモ
+
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-03-r2 / B01"
+
+# --- 文脈 ---
+consultation_type: "coconala bugfix prequote"
+buyer_decision_stage: "prequote"
+service: "bugfix-15000"
+state: "prequote"
+
+# --- 診断 ---
+symptom: "buyer がホスティング先を書いていないのに、返信候補で `Vercel本番設定` と具体サービス名を補った。"
+failure_label: "hallucination / hidden_rule"
+failure_layer: "reviewer-gated batch"
+
+# --- 投資判断 ---
+generalizability: "low_observe"
+reason: "Next.js 案件では Vercel を連想しやすく、具体サービス名の補完は再発しうる。ただし今回は1件のみで、batch修正で収束見込み。"
+return_target: "observe"
+decision: "observe"
+decision_reason: "B01 は `本番環境の設定` に最小修正。rule / validator には戻さない。"
+fix_unit: "case_fix"
+recurrence_evidence: "なし"
+existing_rule_hit: "あり"
+not_returned_reason: "1件のみで、既存の相手文にない事実を持ち込まない原則に含まれるため。"
+next_sentinel: "buyer が Vercel 等を書いていない時に、具体ホスティング名を補っていないか次回#REで観察"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: ""
+upstream_fix: ""

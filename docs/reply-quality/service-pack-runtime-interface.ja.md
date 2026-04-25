@@ -21,6 +21,7 @@
 - 公開サービスページは runtime が毎回直接読む前提ではない
 - 公開ページを基準に pack を保守し、runtime は pack を読む
 - 公開ページとの整合は fidelity 監査と regression source で確認する
+- ただし、価格・公開状態・納品物・FAQ・公開約束に疑義がある場合は、`service-registry.yaml` の `public` と `source_of_truth` を最上位として確認する
 
 ## 層ごとの責務
 
@@ -37,6 +38,7 @@ runtime の使い方:
 - `この相談をここで止めるべきか`
 - `外向けに出してよい内容か`
 を判定する
+- `public:false` の service は、内部比較には使えても、外向け返信で service 名・価格・購入導線を出さない
 
 ### 2. decision / evidence
 - same / different / undecidable

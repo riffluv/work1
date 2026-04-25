@@ -137,6 +137,10 @@ def lint_case(module, source: dict) -> list[str]:
             and direct_answer_line == primary.get("answer_brief", "")
         ):
             errors.append("direct primary answer is missing from rendered text")
+    if "形になります" in rendered:
+        errors.append("delivered follow-up still uses banned `形になります` wording")
+    if "お約束する形" in rendered:
+        errors.append("delivered follow-up still uses banned `お約束する形` wording")
 
     if not decision_plan.get("blocking_missing_facts"):
         for ask in contract.get("ask_map") or []:
@@ -211,8 +215,14 @@ def lint_case(module, source: dict) -> list[str]:
     if scenario == "side_effect_question" and has_any(raw, ["修正前は問題なかった", "今回の修正が影響", "今回の修正の影響", "修正後に別の問題"]):
         if not has_any(rendered, ["今回の修正の影響も含めて確認します", "修正後の差分", "今回の修正との関係"]):
             errors.append("post-fix regression report does not show ownership of checking our own change")
-        if not has_any(rendered, ["Webhookの受信は直った", "Webhookの受信は確認でき", "Webhookのエラーが出なくなった"]):
-            errors.append("post-fix regression report dropped the acknowledgment that the original fix worked")
+        if "Webhook" in raw:
+            if not has_any(rendered, ["Webhookの受信は直った", "Webhookの受信は確認でき", "Webhookのエラーが出なくなった"]):
+                errors.append("post-fix regression report dropped the acknowledgment that the original fix worked")
+        elif has_any(raw, ["修正いただいた箇所は動いて", "修正した箇所は動いて", "修正箇所は動いて"]) and not has_any(
+            rendered,
+            ["修正いただいた箇所は動いて", "修正した箇所は動いて", "修正箇所は動いて"],
+        ):
+            errors.append("post-fix regression report rewrote the original fixed area to an unmentioned target")
     if scenario == "delivery_scope_mismatch" and not has_any(rendered, ["期待と違っていた", "認識差", "差し戻し"]):
         errors.append("delivery mismatch complaint is not acknowledged clearly")
     if scenario == "delivery_scope_mismatch" and "診断レポートだけ" in raw and "診断レポート" not in rendered:

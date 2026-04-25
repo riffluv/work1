@@ -1,0 +1,29 @@
+date: 2026-04-25
+case_ref: "RE-2026-04-25-bugfix-06-poststate-aftercare / B06"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / closed repeat"
+buyer_decision_stage: "closed"
+service: "bugfix-15000"
+state: "closed"
+
+# --- 診断 ---
+symptom: "クローズ後の再発相談で、前回とのつながり確認はできていたが、旧トークルームでそのまま続きを進めるように読める文面になった"
+failure_label: "closed_channel_miss / state_regression"
+failure_layer: "platform-state / reply-only"
+
+# --- 投資判断 ---
+generalizability: "medium"
+reason: "closed 後は公式仕様上、旧トークルームでメッセージ投稿・ファイル投稿・追加購入ができない。再発相談では、まずメッセージ上で前回との関係を確認し、実作業が必要なら見積り提案または新規依頼へ戻す必要がある"
+return_target: "platform-contract / self-check / batch"
+decision: "adopt"
+decision_reason: "既存 self-check に近い観点はあったが、今回 B06 で見落としたため、platform-contract と self-check core に最小ガードを追加する"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "既存rule未反映疑い"
+existing_rule_hit: "あり"
+not_returned_reason: ""
+next_sentinel: "closed 後の再発・追加確認で、旧トークルーム内の継続作業、ファイル送付、おひねり、追加購入を前提にしていないか"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "closed 後は旧トークルームでの継続作業を前提にせず、メッセージ上で前回との関係だけ確認する。作業が必要なら見積り提案または新規依頼へ戻す"
+upstream_fix: "os/coconala/platform-contract.yaml と docs/reply-quality/self-check-core-always-on.ja.md に closed channel guard を追加"

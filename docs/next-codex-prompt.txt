@@ -96,6 +96,8 @@ mode の正本:
 - `#RE bugfix` の保存先は `/home/hr-hm/Project/work/サービスページ/rehearsal/bugfix-15000-返信学習/返信監査_batch-01.md`
 - `#RE handoff` の保存先は `/home/hr-hm/Project/work/サービスページ/rehearsal/handoff-25000-返信学習/返信監査_batch-01.md`
 - `#RE` の目的は「返信文を書くこと」ではなく、「外部監査に回すための batch を current rules で更新すること」
+- `#RE` の直近運用メモは `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md` の `#RE` 節と `/home/hr-hm/Project/work/docs/reply-quality/question-type-batch-plan-20260425.ja.md` を参照する。質問タイプは観察ラベルであり、router / rule / renderer の新設根拠にしない
+- Deep Research など外部調査結果は `/home/hr-hm/Project/work/docs/reply-quality/external-research-observation-plan-20260425.ja.md` のような観察メモへ分離し、`#RE` の stock / archetype / reviewer 観点としてだけ使う。外部調査をそのまま rule / renderer / validator へ入れない
 - `#R / #A / #D / #P` を優先し、相手文だけなら分析のみ
 - `#R` の後ろや次行に自由文の補足がある場合は、optional な `user_override` として扱う
 - `user_override` の優先順は `hard constraints > user_override > デフォルト推論` とし、tone は `temperature_plan`、ask / format / scope emphasis は `reply_contract` と `response_decision_plan` へ寄せる

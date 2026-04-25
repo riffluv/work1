@@ -1,0 +1,819 @@
+1. 結論
+判定: かなり良い。
+現行のサービス状態・記憶領域管理は、骨格としてかなり強いです。service-registry.yaml を公開状態の正本にし、外向け案内は public: true のみ、現時点の live は bugfix-15000 のみ、handoff-25000 は内部準備用という線引きが Core / AGENTS / Coconala boot / next prompt に重複して入っています。
+ただし、事故入口はあります。最大の入口は、handoff-25000.ready.txt 自体が外向けサービスページ文面として完成度が高く、25,000円・追加1フロー15,000円・見積り回答例まで含む点です。public: false のガードを踏み外すと、そのまま外向け返信に混ざります。
+広い再設計は不要です。
+必要なのは、router / renderer / layer 追加ではなく、既存の service-registry → source_of_truth → service-pack → Writer / Reviewer の流れに、数個の最小ガードを足すことだけです。
+
+2. 現行構造の強い点
+公開状態管理
+強いです。AGENTS.md と next-codex-prompt.txt の両方で、公開状態の正本は os/core/service-registry.yaml、外向け案内は public: true のみ、現時点の live は bugfix-15000 のみ、handoff-25000 は外向けでサービス名・価格・購入導線を出さない、と明記されています。
+service-registry.yaml 側でも、bugfix-15000 は public: true、handoff-25000 は public: false、さらに public_reply_must_use_public_true_only と private_services_are_internal_reference_only が rules として置かれています。これはかなり良い正本配置です。
+source_of_truth 管理
+service-registry.yaml に source_of_truth があり、bugfix-15000 は bugfix-15000.live.txt、handoff-25000 は handoff-25000.ready.txt に紐づいています。AGENTS.md では、mirror / 同期用ファイルは補助にとどめ、公開判断や文言監査の基準にしない、と明記されています。
+また、service-pack 内の source-of-truth policy では、公開サービスページを最上位、次に facts.yaml / boundaries.yaml、その下に decision / evidence / routing / seeds を置く優先順位が定義されています。これは「契約事実」と「返信運用」の分離として妥当です。
+Core OS / mode 分離
+強いです。Core OS では常時読むものを policy.yaml、service-registry.yaml、code-comment-style に絞り、mode ごとに coconala、implementation、delivery へ分岐しています。
+Implementation OS は、購入後のコード分析・修正・実装専用で、返信系 docs を読まない、未公開サービス情報を参照しない、実装判断の正本は case README と一次証跡、と明記されています。これは返信文脈が実装判断に混ざる事故をかなり抑えています。
+reply-only / common / delivery-only 分離
+かなり良いです。next-codex-prompt.txt では、改善反映前に reply-only / common / delivery-only を必ず判定し、common 判定なしで相互流用しない、と固定されています。
+guidance-scoping.ja.md でも、反映レーン、route、state、service / case_type の4軸で切れない改善は恒久反映しない、という判断基準があります。これは「よい改善が別サービスや別状態へ漏れる」事故に強いです。
+#RE 学習ループ
+かなり良いです。#RE は「返信を書く」ではなく、外部監査に回す batch を current rules で更新するショートカットとして定義され、デフォルトは bugfix-15000、handoff-25000 は #RE handoff のような明示時のみです。
+さらに、reviewer 指摘は case_fix / pattern_candidate / rule_return_candidate / preference / reject などに分類し、必須修正をそのまま rule 化候補にしない、という導線があります。これは外部AIレビューの過剰採用を抑えています。
+外部AI / Deep Research の扱い
+強いです。外部調査ツールの取得情報はそのまま正本へ入れず、要約・選別した調査メモ経由で持ち込む、最終判断と正本反映は Codex が行う、という線引きがあります。
+adoption-policy.ja.md でも、監査で見つかった違和感を毎回 rules に昇格させず、再発性・戻し先・副作用を見て採用する方針になっています。
+Codex の推論保全
+良いです。writer-brief.ja.md は、Writer に渡す既定をまず10行に絞り、self-check や ban list、platform 契約全文、監査議論を Writer に渡さないとしています。Reviewer は phase、public / private 境界、価格 / scope facts、forbidden moves などを見る役割に分離されています。
+つまり、service facts は強く、本文生成は自由という設計になっています。これはかなり良いです。
+
+3. Critical Risks
+1. 未公開 handoff-25000 の外向け混入
+
+
+関係するファイル・構造
+service-registry.yaml、AGENTS.md、next-codex-prompt.txt、handoff-25000.ready.txt、#RE handoff batch。handoff-25000.ready.txt には、25,000円、追加1フロー15,000円、購入前案内、FAQ、見積り回答例が含まれています。
+
+
+事故
+外向け返信で、未公開サービス名・25,000円・追加導線・購入誘導が出る。
+
+
+重大度
+High
+
+
+発生確率
+Medium
+
+
+最小対策
+service-registry.yaml または self-check-core-always-on.ja.md に、次の1行相当を追加するだけでよいです。
+public:false の service は、外向け返信で service_name / price / option_price / purchase CTA を出さない。内部比較に使う場合も一般化して言う。
+
+
+やってはいけない過剰対策
+handoff-25000.ready.txt を削除する、別 router を作る、private service 専用 renderer を作る、#RE handoff を完全禁止する。必要なのは出力ガードであり、骨格変更ではありません。
+
+
+
+2. handoff-25000.ready.txt が「外向け文面として完成しすぎている」
+
+
+関係するファイル・構造
+handoff-25000.ready.txt、サービスページ/README.ja.md、prequote-compression-rules.ja.md。サービスページ/README.ja.md は bugfix-15000.live.txt と handoff-25000.ready.txt を現在の前面ファイルとして並べています。
+
+
+事故
+Codex が “ready” を “public” に近い状態と誤読し、外向けに案内できるサービスとして扱う。
+
+
+重大度
+High
+
+
+発生確率
+Medium
+
+
+最小対策
+handoff-25000.ready.txt の冒頭に、本文とは別の内部コメントとして INTERNAL_READY_ONLY / public:false until registry change / no outward price or CTA を置く。正本文面そのものは変えなくてよいです。
+
+
+やってはいけない過剰対策
+ready ファイルを別ディレクトリへ大移動する、サービスページ構造を刷新する、handoff 用の新規大規模ルール群を作る。
+
+
+
+3. source_of_truth と service-pack runtime の優先順位が二重に見える
+
+
+関係するファイル・構造
+service-registry.yaml は source_of_truth を持ちます。一方、service-pack-runtime-interface.ja.md は runtime が毎回直接公開ページを読む前提ではなく、facts / boundaries から読むとしています。
+
+
+事故
+service-pack が古くなった時に、公開ページの 15,000円・不具合1件・正式納品 gate より、古い pack / seeds / gold replies が勝つ。
+
+
+重大度
+High
+
+
+発生確率
+Low〜Medium
+
+
+最小対策
+service-pack-runtime-interface.ja.md に、既存方針を壊さず次の確認文を足す。
+runtime は pack を読む。ただし価格・公開状態・納品物・FAQ・公開約束に疑義がある場合、registry.source_of_truth が最上位。
+
+
+やってはいけない過剰対策
+runtime に毎回全文サービスページを読ませる。Writer の入力が重くなり、自然文判断が鈍ります。
+
+
+
+4. 古い gold replies / rehearsal / future candidate が現行ルールを上書きする
+
+
+関係するファイル・構造
+サービスページ/rehearsal/、gold-replies/、reply-quality README。現行 README では、現行ルールと矛盾する古い gold replies や test asset を放置しない、と明記されています。
+
+
+事故
+主質問より先に価格を出す、古い原因不明納品パターンを使う、未公開 handoff の案内例が混ざる。
+
+
+重大度
+Medium〜High
+
+
+発生確率
+Medium
+
+
+最小対策
+gold / rehearsal asset に current / eval_only / superseded の軽い状態タグを付ける。削除ではなく、参照資格を明示するだけで十分です。
+
+
+やってはいけない過剰対策
+gold replies を大量追加する、古い資産を全削除する、AI tone validator で良し悪しを自動判定する。
+
+
+
+5. Writer が詳細ルールを読みすぎる
+
+
+関係するファイル・構造
+writer-brief.ja.md、coconala-reply-self-check.ja.md、self-check-core-always-on.ja.md。Writer brief は10行だけを既定にし、self-check 全文や ban list 全文を渡さないと定めています。
+
+
+事故
+返信がテンプレ化する。主質問より「ルールを満たす文章」になる。自然な判断が弱くなる。
+
+
+重大度
+Medium
+
+
+発生確率
+Medium
+
+
+最小対策
+Writer へ渡す情報は、現行どおり 10行 brief + service facts + required/forbidden moves + few-shot 2〜3件 に固定する。Reviewer / self-check は後段だけ。
+
+
+やってはいけない過剰対策
+Writer に self-check、forbidden matrix、platform contract、change log を常時全部読ませる。
+
+
+
+6. bugfix の正式納品 gate が古い返信例に負ける
+
+
+関係するファイル・構造
+bugfix-15000.live.txt、reply-change-log.ja.md、self-check。bugfix live は、原因を特定できず修正方針にもつながらない場合、原因不明のまま正式納品へ進めないと定めています。
+
+
+事故
+原因不明、修正ファイル返却なし、または設定変更だけ必要な状態で正式納品へ進めるように読める。
+
+
+重大度
+High
+
+
+発生確率
+Low〜Medium
+
+
+最小対策
+bugfix 用 Reviewer gate に formal delivery = fixed file or deliverable-equivalent result + confirmation path がある時だけ を1行追加する。
+
+
+やってはいけない過剰対策
+delivery docs 全体を作り直す、納品テンプレを巨大化する、毎回返金制度説明を入れる。
+
+
+
+7. .env / secret 周りの依頼文が ZIP 共有と混線する
+
+
+関係するファイル・構造
+bugfix-15000.live.txt、handoff-25000.ready.txt、policy.yaml。Core policy では no_raw_secret_values が always-on rule です。bugfix live でも .env はキー名のみとしています。
+
+
+事故
+「ZIPで添付してください」が、.env 値、APIキー、Webhook秘密値、ログイン情報の生値共有に読める。
+
+
+重大度
+High
+
+
+発生確率
+Low〜Medium
+
+
+最小対策
+購入後の依頼文・購入前案内の定型に 秘密値は除外 / マスク済みで大丈夫です を短く入れる。既に近い記述はあるので、増やしすぎない。
+
+
+やってはいけない過剰対策
+GitHub 共有を標準化する、外部ストレージ共有を導線化する、秘密値チェック用の大規模 validator を作る。
+
+
+
+8. platform facts が service facts より強くなる
+
+
+関係するファイル・構造
+platform-contract.yaml、service-registry.yaml、service source_of_truth。platform contract は共通取引仕様、価格・範囲・追加料金単位は service-registry / service.yaml 側という分担です。
+
+
+事故
+ココナラ上の一般仕様や外部調査結果に引っ張られて、bugfix の 15,000円固定、不具合1件、追加料金非自動、正式納品 gate が薄まる。
+
+
+重大度
+Medium〜High
+
+
+発生確率
+Low
+
+
+最小対策
+self-check core か reviewer prompt に、platform facts は取引手順の制約。service facts を拡張しない を1行追加する。
+
+
+やってはいけない過剰対策
+platform contract を Writer に常時全文投入する。これは情報過多になります。
+
+
+
+4. サービス記憶の配置診断
+情報の種類現在の置き場所種別常時読むべきか配置の妥当性最小変更公開状態os/core/service-registry.yamlhard factsCore で常時妥当。public:true/false が最上位にあるpublic:false の出力禁止を reviewer gate に1行足す価格source_of_truth、service-pack factshard facts対象 service の返信時のみ妥当。bugfix は live 文面に15,000円明記pack と page がズレた時は page 優先と明記サービス範囲bugfix-15000.live.txt、service-pack facts / boundarieshard facts対象 service の返信時のみ妥当。不具合1件・同一原因・修正済みファイル返却が明記されているbugfix 固有 facts を common へ混ぜない禁止事項policy.yaml、AGENTS.md、service pagehard constraintsCore で常時妥当。外部連絡、外部共有、外部決済、direct push、本番デプロイ、secret 生値が always-onWriter では短く、Reviewer では厳密に見るサービスページ本文サービスページ/*.live.txt / *.ready.txt、registry source_of_truthhard facts / contract監査・修正・返信該当時のみ妥当。ただし handoff ready は外向け混入リスクありready 冒頭に internal-only headerFAQ各サービスページ本文hard facts該当質問時のみ妥当service-pack 側に要約する場合も page 優先reply-quality rulesdocs/reply-quality/soft guidance必要時だけ妥当。返信改善専用で分離されているWriter 常時投入は禁止維持self-checkself-check-core-always-on、詳細 self-checkeval / reviewer assetcore だけ常時、詳細は必要時妥当。詳細 self-check 全文を毎回読まない設計public/private gate を core に1行追加gold repliesdocs/reply-quality/gold-replies/ などeval asset / few-shot2〜3件だけ妥当。ただし古い例の残存リスクありcurrent / superseded / eval_only タグlearning-logops/tests/stock/learning-log/、templatehistory / eval asset必要時だけ妥当。fix_unit と recurrence_evidence があるservice_facts_hit 欄を足すとさらに安全external research memo外部調査レーン、調査メモsoft guidance / observation必要時だけ妥当。直接 rule 化しない方針があるservice facts を上書きしない明記を維持reviewer prompt監査プロンプト群、reply-review prompteval asset#CL / #GE / #RE 時だけ妥当冒頭に service_id / public_state / source_of_truth を必須表示batch file返信監査_batch-01.mdeval asset#RE 時だけ妥当manifest に public_state と source_of_truth を足すruntime latest replyruntime/replies/latest.txt、latest-source.txtruntime state返信監査時のみ妥当。保存先が Core に明記最新文と相手文の紐づけを維持implementation case docsops/cases/open/{case_id}/README.md、受領コード、ログhard evidenceimplementation mode のみ妥当。返信 docs を読まない設計が強い実装中に返信 docs を常駐させないdelivery docsos/delivery/boot.md、delivery packhard / soft mixeddelivery mode のみ妥当。正式納品と通常メッセージを分離delivery 改善は delivery-only 判定後に戻す
+
+5. Codex の思考を殺していないか
+Writer に渡す情報量は適切か
+現行方針どおりなら適切です。
+writer-brief.ja.md は、Writer へ渡す既定を10行だけにし、service facts、required / forbidden moves、few-shot 2〜3件までに抑えています。self-check 全文、ban list 全文、platform 契約の細部全文、監査議論は渡さない設計です。
+危険なのは、運用で「念のため全部読ませる」に戻ることです。設計ではなく、実行時の読み込み過多がリスクです。
+self-check や reviewer 観点が Writer に混ざりすぎていないか
+混ざりすぎていません。Reviewer は phase、public / private 境界、価格 / scope facts、forbidden moves、ban 表現、closing、主質問への直答を見る役割として分離されています。
+ただし、coconala-reply-self-check.ja.md は詳細リファレンスとしてかなり重いので、Writer に直接読ませた瞬間に文体が固くなります。これは避けるべきです。
+ルールが文章をテンプレ化させる危険はどこか
+危険は次の3箇所です。
+
+
+forbidden-moves-matrix を Writer に強く持たせすぎる
+本来は「やってはいけない崩れを止める」ためのものですが、過度に持たせると文章が禁止事項回避ゲームになります。
+
+
+prequote-compression-rules を機械的に適用する
+「主質問に先に答える」は強い一方、毎回極端に短くすると温度や関係性を落とします。文書自体は「短くすることではなく、主質問に必要な情報だけを先に出す」と定義しており、この解釈を守るべきです。
+
+
+gold replies を増やしすぎる
+README でも gold replies は主要場面ごとに3〜5本ずつとし、増やしすぎない方針です。ここを破ると返信が例文寄せになります。
+
+
+Codex の自然な判断を残すために hard rule にしてはいけないもの
+以下は hard rule にしない方がよいです。
+
+
+冒頭の定型文
+
+
+文末表現
+
+
+「必ずこの順番で3文」
+
+
+受け止め文の固定フレーズ
+
+
+全ケースでの価格先出し / 価格後出し
+
+
+全ケースでの質問数固定
+
+
+すべての返信に同じ closing を置くこと
+
+
+外部AIが一度よいと言った言い換え
+
+
+これらは soft guidance または few-shot で十分です。
+逆に、絶対 hard rule にすべきもの
+以下は hard rule のままでよいです。
+
+
+外向け案内は public: true のサービスだけ
+
+
+handoff-25000 は public:false の間、サービス名・価格・購入導線を外向けに出さない
+
+
+bugfix-15000 は 15,000円、不具合1件、同一原因
+
+
+追加料金は自動発生しない
+
+
+原因不明で修正方針にもつながらない場合、正式納品へ進めない
+
+
+.env / APIキー / Webhook秘密値 / ログイン情報の生値を要求しない
+
+
+外部連絡、外部共有、外部決済へ誘導しない
+
+
+直接 push、本番デプロイ、新機能開発を勝手に含めない
+
+
+prequote / purchased / delivery / closed の phase を混ぜない
+
+
+
+6. #RE 運用への提案
+すぐやってよい
+
+
+batch_manifest に service_id / public_state / source_of_truth / service_facts_hit を追加
+既存の manifest は batch_id / 目的 / 件数 / 選定 / state_mix / risk_axes / 今回の方針 を置く設計なので、ここに service facts を少し足すだけで済みます。
+
+
+#RE handoff の batch 冒頭に public:false / audit-only / no outward CTA を明記
+これは新機構ではなく、manifest の1行追加です。
+
+
+reviewer prompt の最初に service facts を確認させる
+tone / naturalness より前に、public_state / price / scope / forbidden / delivery gate を見るだけで事故率が下がります。
+
+
+learning-log に service_facts_hit を足す
+現在の template には fix_unit、recurrence_evidence、existing_rule_hit、not_returned_reason があり、学習判断の型は良いです。そこに「service facts を踏んだ事故か」を足すだけで十分です。
+
+
+次の数 batch で観察
+
+
+主質問タイプごとの事故率
+価格質問、対応可否、購入後進捗、追加料金不安、正式納品前後で、どの事故が再発するかを見る。
+
+
+最初に答えるべき問いの取りこぼし
+primary answer integrity は self-check に厚く入っているので、#RE で再発を見る価値があります。
+
+
+rule_return_candidate と preference の比率
+外部AIレビューが tone preference に寄っていないかを見る。
+
+
+gold replies の副作用
+few-shot が自然化に効いているか、逆にテンプレ化していないかを観察する。
+
+
+今はやらない
+
+
+validator の大規模追加
+ただし、public:false サービス名・価格・CTA の grep 的な軽量 lint はありです。意味判定 validator は今は重いです。
+
+
+renderer の更新
+返信品質の問題を renderer に戻しすぎると、過去に避けたいとされている layer / scenario / renderer 増殖に戻ります。next-codex-prompt.txt でも、広い作り直しや renderer 増殖を避ける方針が明記されています。
+
+
+外部調査 observation の rule 直入れ
+まず observation / archetype / learning-log に留めるべきです。
+
+
+絶対やらない
+
+
+#RE を返信生成ショートカットにする
+
+
+#RE handoff を外向け公開準備の導線にする
+
+
+handoff-25000 を public:true 前提で書く
+
+
+Deep Research 結果を service facts より上位に置く
+
+
+renderer 刷新
+
+
+大規模 router 追加
+
+
+self-check 肥大化
+
+
+gold replies の大量投入
+
+
+AI tone validator 化
+
+
+
+7. 複数サービス化への所感
+今の設計で再利用できる中核
+再利用できる中核はかなりあります。
+
+
+service-registry.yaml による public:true/false 管理
+
+
+source_of_truth によるサービスページ正本参照
+
+
+service-pack の facts / boundaries / decision / evidence / routing / state / seeds 分離
+
+
+Writer / Reviewer 分離
+
+
+reply-only / common / delivery-only の反映レーン
+
+
+#RE batch → reviewer監査 → learning-log → 再発だけ rule へ戻す学習ループ
+
+
+特に service-pack runtime interface は、今後追加する service-pack も同じ順序で読む、としており、複数サービス化の基盤として良いです。
+bugfix-15000 に閉じすぎている部分
+閉じていてよい部分と、切り出すべき部分があります。
+閉じていてよいもの
+
+
+15,000円
+
+
+不具合1件
+
+
+同一原因
+
+
+Next.js / Stripe / API連携
+
+
+修正済みファイル返却
+
+
+原因不明時の正式納品 gate
+
+
+追加修正1件 15,000円
+
+
+これらは汎用 reply core へ混ぜない方がよいです。
+切り出すべきもの
+
+
+price
+
+
+scope_unit
+
+
+deliverables
+
+
+hard_no
+
+
+formal_delivery_gate
+
+
+minimum_ask
+
+
+option_price
+
+
+public_state
+
+
+これらは service pack 化の中心です。
+service pack 化すべき部分
+最小 service pack は、次の項目だけで十分です。
+
+
+service_id
+
+
+public_state
+
+
+source_of_truth
+
+
+price
+
+
+scope_unit
+
+
+deliverables
+
+
+included
+
+
+excluded
+
+
+additional_policy
+
+
+formal_delivery_gate
+
+
+secret_handling
+
+
+prequote_minimum_ask
+
+
+postpurchase_minimum_ask
+
+
+faq_facts
+
+
+few_shot_current
+
+
+大事なのは、reply core を賢くすることではなく、service facts を差し替えれば core が同じまま動くかを検証することです。
+productization の前に検証すべきこと
+
+
+新しい service facts を入れた時、Writer brief を変えずに返信できるか
+
+
+public:false サービスが絶対に外向け出力されないか
+
+
+service-specific facts が common rules へ漏れないか
+
+
+gold replies が bugfix に寄りすぎていないか
+
+
+external research memo が service facts を上書きしないか
+
+
+5件 batch で 価格 / scope / phase / secret / delivery gate の事故が出ないか
+
+
+SaaS化するなら最初に作るべき最小機能
+最初に作るべきは renderer ではありません。
+最小機能は、Service Facts Packet + Public-State Gate + Reviewer Gate です。
+具体的には、
+
+
+service registry
+
+
+source_of_truth path
+
+
+facts / boundaries
+
+
+public/private gate
+
+
+Writer brief 10行
+
+
+Reviewer core 10項目
+
+
+#RE batch manifest
+
+
+regression log
+
+
+この8点で十分です。SaaS化の最初のボトルネックは、自然文生成ではなく、サービス事実の正本性と公開状態の事故防止です。
+
+8. 最小改善案
+1. public:false 出力禁止ガード
+
+
+目的
+handoff-25000 の価格・導線・サービス名混入を止める。
+
+
+反映先候補ファイル名
+service-registry.yaml、self-check-core-always-on.ja.md
+
+
+なぜ最小変更か
+既存の public_reply_must_use_public_true_only を1行具体化するだけ。
+
+
+骨格を壊さない理由
+registry / reviewer の既存責務に収まる。
+
+
+副作用
+内部比較で handoff を使う時、表現が少し慎重になる。
+
+
+優先度
+High
+
+
+
+2. source_of_truth 優先順位の一文補強
+
+
+目的
+service-pack / seeds / gold replies がサービスページ正本を上書きしないようにする。
+
+
+反映先候補ファイル名
+service-pack-runtime-interface.ja.md、service-pack-source-of-truth-policy.ja.md
+
+
+なぜ最小変更か
+既存の source-of-truth policy を補強するだけ。
+
+
+骨格を壊さない理由
+runtime が毎回 page を読む設計にはしない。疑義がある時だけ page 優先。
+
+
+副作用
+pack 保守時に source page との照合が少し増える。
+
+
+優先度
+High
+
+
+
+3. #RE handoff manifest guard
+
+
+目的
+handoff batch が外部監査や後続学習で public 扱いされる事故を防ぐ。
+
+
+反映先候補ファイル名
+返信監査_batch-01.md、reply-quality/README.ja.md
+
+
+なぜ最小変更か
+batch manifest に public_state:false / audit-only / no outward CTA を入れるだけ。
+
+
+骨格を壊さない理由
+#RE の役割はそのまま。batch 更新の記録項目を少し増やすだけ。
+
+
+副作用
+manifest が数行長くなる。
+
+
+優先度
+High
+
+
+
+4. gold / rehearsal asset の状態タグ
+
+
+目的
+古い良例・監査資産が current rule を上書きしないようにする。
+
+
+反映先候補ファイル名
+gold-replies/README 相当、サービスページ/rehearsal/README 相当
+
+
+なぜ最小変更か
+current / eval_only / superseded のタグ付けだけ。本文削除不要。
+
+
+骨格を壊さない理由
+gold replies の運用を増やすのではなく、参照資格だけを明確にする。
+
+
+副作用
+棚卸しの手間が少し発生する。
+
+
+優先度
+Medium
+
+
+
+5. bugfix 正式納品 gate の reviewer 1行追加
+
+
+目的
+原因不明・修正ファイル返却なしで正式納品へ進むように読める事故を止める。
+
+
+反映先候補ファイル名
+self-check-core-always-on.ja.md、coconala-reply-self-check.ja.md
+
+
+なぜ最小変更か
+既存の formal delivery gate 参照に、bugfix 固有の1行を足すだけ。
+
+
+骨格を壊さない理由
+delivery OS や納品テンプレの刷新ではなく、Reviewer gate の補強。
+
+
+副作用
+納品前文面で少し慎重になる。
+
+
+優先度
+High
+
+
+
+9. やらないこと
+現行骨格を壊さないため、以下はやらない方がよいです。
+
+
+大規模 router 追加
+
+
+renderer 刷新
+
+
+scenario / layer の増殖
+
+
+self-check のさらなる肥大化
+
+
+Writer に self-check 全文を読ませる
+
+
+gold replies の大量追加
+
+
+Deep Research 結果の直 rule 化
+
+
+外部AIレビューをそのまま正本化
+
+
+AI tone validator 化
+
+
+全サービス共通ルール化しすぎること
+
+
+bugfix 固有 facts を common reply core に混ぜること
+
+
+handoff-25000 の外向け化前提の記述追加
+
+
+handoff-25000.ready.txt を公開サービスのように扱うこと
+
+
+GitHub共有、外部共有、外部連絡、外部決済を標準導線化すること
+
+
+本番デプロイ代行や直接 push を返信で約束すること
+
+
+購入前なのに作業開始したように書くこと
+
+
+購入後なのに見積り相談の初回テンプレへ戻ること
+
+
+
+10. 最後に
+次の Codex は、まず service-registry.yaml を見て public:true/false を確定する。
+外向けに出せる live service は、registry が許可したものだけ。
+handoff-25000 は ready でも public ではない。価格・導線・サービス名を外へ出さない。
+価格、範囲、納品物、FAQ、公開約束は source_of_truth が最上位。
+Writer には最小 facts と短い brief だけを渡し、Reviewer で強く止める。
+#RE は返信を書く運用ではなく、current rules で監査 batch を組み直す運用。
+外部AIの指摘は、即 rule 化せず、case / pattern / rule / preference に分ける。
+改善は大きく作り直さず、再発した事故だけを最小単位で戻す。
+現行骨格は十分強い。壊さず、公開状態ガードだけをさらに硬くするのが正解です。
