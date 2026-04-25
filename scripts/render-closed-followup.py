@@ -129,6 +129,29 @@ def detect_scenario(source: dict) -> str:
     combined = f"{raw}\n{note}"
     service_hint = source.get("service_hint", "")
 
+    if "Google Drive" in combined or "Googleドライブ" in combined or "Dropbox" in combined:
+        return "closed_external_large_share"
+    if any(marker in combined for marker in [".env", "envファイル", "Stripeのキー", "APIキー", "秘密鍵"]):
+        if any(marker in combined for marker in ["そのまま送", "一緒に送", "値", "キーも入って"]):
+            return "closed_secret_send_question"
+    if any(marker in combined for marker in ["ZIPでコード", "コード一式", "直して返して", "修正して返"]):
+        return "closed_zip_fix_return"
+    if any(marker in combined for marker in ["ログとスクショ", "ログやスクショ", "関係あるかだけ", "関係があるかだけ"]):
+        return "closed_materials_check"
+    if any(marker in combined for marker in ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
+        return "closed_free_followup_price"
+    if any(marker in combined for marker in ["先に原因だけ", "原因だけ見てもら", "見積り前", "お願いするか決めたい"]):
+        return "closed_pre_estimate_cause_check"
+    if any(marker in combined for marker in ["useEffect", "依存配列"]) or (
+        "userId" in combined and any(marker in combined for marker in ["入れなくて", "よかった", "本当"])
+    ):
+        return "closed_technical_followup_question"
+    if any(marker in combined for marker in ["知り合い", "エンジニア", "開発者"]) and any(
+        marker in combined
+        for marker in ["前回の修正範囲", "元のお値段", "予防的", "直しておいた方", "別のところに影響", "ここもおかしい"]
+    ):
+        return "closed_third_party_scope_concern"
+
     if service_hint == "handoff" and (
         "そのまま購入" in combined
         or "同じように整理" in combined
@@ -262,6 +285,22 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "前回と同じ症状が再発したので続きとして見てもらえるか知りたい"
     if scenario == "similar_but_not_same":
         return "似たエラーが前回と同じ原因か知りたい"
+    if scenario == "closed_materials_check":
+        return "ログやスクショを送れば前回の修正と関係があるか確認してもらえるか知りたい"
+    if scenario == "closed_zip_fix_return":
+        return "ZIPでコードを送れば修正して返してもらえるか知りたい"
+    if scenario == "closed_external_large_share":
+        return "大容量コードを外部共有で送ってよいか知りたい"
+    if scenario == "closed_secret_send_question":
+        return ".env や Stripe キーの値を送った方がよいか知りたい"
+    if scenario == "closed_free_followup_price":
+        return "前回の続きなら無料で見てもらえるのか、また15,000円かかるのか不安"
+    if scenario == "closed_pre_estimate_cause_check":
+        return "新規見積り前に原因だけ先に見てもらえるか知りたい"
+    if scenario == "closed_technical_followup_question":
+        return "クローズ後に前回修正の技術的な意図を確認できるか知りたい"
+    if scenario == "closed_third_party_scope_concern":
+        return "第三者の指摘が前回の修正範囲に含まれるか知りたい"
     if scenario == "new_issue_repeat_client":
         if "api_route_context_present" in facts_known and "mail_send_issue_present" in facts_known:
             return "API Route からメールが送れない件もお願いできるか知りたい"
@@ -385,6 +424,33 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "similar_but_not_same":
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "トークルームは閉じていますが、まずこのメッセージ上でエラー内容を見て、前回の修正とつながるか確認します。"
+    elif scenario == "closed_materials_check":
+        blocking_missing_facts = ["log_or_screenshot"]
+        direct_answer_line = "はい、ログやスクショで、前回の修正と関係があるかをこのメッセージ上で確認します。"
+    elif scenario == "closed_zip_fix_return":
+        blocking_missing_facts = ["relevant_files_or_symptom"]
+        direct_answer_line = "閉じたトークルームの続きとして、このままコード一式を受け取って修正済みファイルを返すことはできません。"
+    elif scenario == "closed_external_large_share":
+        direct_answer_line = "申し訳ありませんが、Google Drive などの外部共有は使っていません。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "closed_secret_send_question":
+        direct_answer_line = ".env や Stripe キーの値は送らないでください。値は扱いません。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "closed_free_followup_price":
+        blocking_missing_facts = ["current_error_or_log"]
+        direct_answer_line = "その場合は、まず前回の修正とつながる症状かを確認するのが先です。同じ原因として扱える内容であれば、あらためて通常料金をいただく前提では進めません。"
+    elif scenario == "closed_pre_estimate_cause_check":
+        blocking_missing_facts = ["symptom_summary"]
+        direct_answer_line = "見積り前の段階で、コードを見て原因調査まで進めることはしていません。"
+    elif scenario == "closed_technical_followup_question":
+        blocking_missing_facts = ["relevant_code_excerpt"]
+        direct_answer_line = "トークルームは閉じていますが、考え方の確認であれば、このメッセージ上で確認できます。"
+    elif scenario == "closed_third_party_scope_concern":
+        blocking_missing_facts = ["third_party_comment"]
+        if "問題ない" in raw or "予防的" in raw:
+            direct_answer_line = "現時点で問題が出ていない予防的な修正を前回分として扱えるかは、指摘内容を確認してからでないとまだ判断できません。"
+        else:
+            direct_answer_line = "元のお値段の中で直せるかは、指摘内容を確認してからでないとまだ判断できません。"
     elif scenario == "price_complaint":
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "追加でまた15,000円と決まっているわけではありません。いまの症状を見てから、前の件とのつながりを確認します。"
@@ -1125,6 +1191,198 @@ def build_case_from_source(source: dict) -> dict:
         }
         return case
 
+    if scenario == "closed_materials_check":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "ログやスクショを送れば前回との関係を見てもらえるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "はい、ログやスクショで、前回の修正と関係があるかをこのメッセージ上で確認します。",
+                    "hold_reason": "トークルームは閉じているため、ここで修正作業や修正済みファイルの返却までは進めません。",
+                    "revisit_trigger": "確認後、実作業が必要な場合は見積り提案または新規依頼としてご案内します。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "ログやスクショを送ってください。",
+                    "why_needed": "前回の修正との関係を確認するため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "closed_zip_fix_return":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "ZIPでコードを送れば修正して返してもらえるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "閉じたトークルームの続きとして、このままコード一式を受け取って修正済みファイルを返すことはできません。",
+                    "hold_reason": "まずはこのメッセージ上で、前回の修正と関係がありそうかを確認します。",
+                    "revisit_trigger": "実作業が必要な場合は、見積り提案または新規依頼としてご案内します。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "必要であれば、不具合に関係する箇所だけ分かる範囲で送ってください。",
+                    "why_needed": "前回の修正との関係を見るため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "closed_external_large_share":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "Google Drive など外部共有で送ってよいか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "decline",
+                    "answer_brief": "申し訳ありませんが、Google Drive などの外部共有は使っていません。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "ファイルはココナラのメッセージ添付で送れる範囲でお願いします。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "closed_secret_send_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": ".env や Stripe キーの値を送ってよいか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "decline",
+                    "answer_brief": ".env や Stripe キーの値は送らないでください。値は扱いません。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "確認には、必要なキー名だけ分かれば大丈夫です。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "closed_free_followup_price":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "無料対応か、また15,000円かかるのか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "その場合は、まず前回の修正とつながる症状かを確認するのが先です。同じ原因として扱える内容であれば、あらためて通常料金をいただく前提では進めません。",
+                    "hold_reason": "トークルームは閉じているため、この場でそのまま修正作業に入ることはできません。",
+                    "revisit_trigger": "まずはエラー内容やログ、スクショを見て、前回対応として扱える内容か、別の原因として追加の作業が必要な内容かをお返しします。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "今出ているエラー内容、ログ、または画面スクショを送ってください。",
+                    "why_needed": "前回の修正とのつながりを見るため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "closed_pre_estimate_cause_check":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "新規見積り前に原因だけ先に見てもらえるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "見積り前の段階で、コードを見て原因調査まで進めることはしていません。",
+                    "hold_reason": "ただ、症状の概要やエラー内容をこのメッセージ上で送っていただければ、前回の修正と関係がありそうかの見立てはお返しできます。",
+                    "revisit_trigger": "その見立てをもとに、見積り提案に進むかどうかをご判断いただけます。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "症状の概要やエラー内容を送ってください。",
+                    "why_needed": "見積り前に返せる見立てを作るため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "closed_technical_followup_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "クローズ後に前回修正の技術的な意図を確認できるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "トークルームは閉じていますが、考え方の確認であれば、このメッセージ上で確認できます。",
+                    "hold_reason": "ただ、コードを見直して修正する実作業になる場合は、見積り提案または新規依頼としてご案内します。",
+                    "revisit_trigger": "該当箇所を確認して、説明で足りるか実作業が必要かをお返しします。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "該当する useEffect 周辺だけ送ってください。値や秘密情報は不要です。",
+                    "why_needed": "前回修正の考え方として説明できる範囲かを確認するため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "closed_third_party_scope_concern":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "第三者の指摘が前回の修正範囲に入るか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "元のお値段の中で直せるかは、指摘内容を確認してからでないとまだ判断できません。",
+                    "hold_reason": "トークルームは閉じていますが、まず第三者の方が指摘している内容が、前回の修正とつながる確認か、実作業が必要な新規見積りかを切り分けます。",
+                    "revisit_trigger": "指摘内容を見たうえで、前回の補足で済む確認か、新規の実作業になるかをお返しします。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "指摘された箇所や、具体的におかしいと言われた内容をそのまま送ってください。",
+                    "why_needed": "前回の修正範囲とのつながりを確認するため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
     case["reply_contract"] = {
         "primary_question_id": "q1",
         "explicit_questions": [{"id": "q1", "text": "今回どう進めるか", "priority": "primary"}],
@@ -1317,6 +1575,22 @@ def draft_opening_anchor(case: dict) -> str:
         return "テストモードと本番モードの件、確認しました。"
     if scenario == "webhook_secret_rotation_followup":
         return "前回の件が安定していたとのこと、ありがとうございます。"
+    if scenario == "closed_materials_check":
+        return "まず確認材料として見ます。"
+    if scenario == "closed_zip_fix_return":
+        return "コード一式を送る件、確認しました。"
+    if scenario == "closed_external_large_share":
+        return "ファイル容量についてのご相談、確認しました。"
+    if scenario == "closed_secret_send_question":
+        return "秘密情報の扱いについてのご相談、確認しました。"
+    if scenario == "closed_free_followup_price":
+        return "前回の修正後から同じようなエラーが残っていて、また費用がかかるのは納得できないとのこと、確認しました。"
+    if scenario == "closed_pre_estimate_cause_check":
+        return "まず症状の概要から見立てをお返しします。"
+    if scenario == "closed_technical_followup_question":
+        return "useEffect の依存配列についてのご質問、確認しました。"
+    if scenario == "closed_third_party_scope_concern":
+        return "第三者の方から指摘があった件、確認しました。"
     if temperature_plan.get("opening_move") == "action_first":
         if scenario == "recur_uncertainty":
             return "まず今の出方から確認します。"
@@ -1399,6 +1673,136 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     direct_answer = with_period(decision_plan.get("direct_answer_line") or primary["answer_brief"])
     focus_line = current_focus_line(case)
     paragraphs: list[str] = []
+
+    if scenario == "closed_materials_check":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    primary.get("hold_reason", ""),
+                    "ログやスクショを送ってください。",
+                    "実作業が必要と分かった場合は、見積り提案または新規依頼としてご案内します。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "closed_zip_fix_return":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "まずはこのメッセージ上で、前回の修正と関係がありそうかを確認します。",
+                    "必要であれば、不具合に関係する箇所だけ分かる範囲で送ってください。",
+                    "実作業が必要な場合は、見積り提案または新規依頼としてご案内します。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "closed_external_large_share":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "ファイルはココナラのメッセージ添付で送れる範囲でお願いします。",
+                ]
+            ),
+        )
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "100MBを超える場合は、まず不具合に関係するファイルやログ、スクショだけに絞ってください。",
+                    "その内容を見て、実作業が必要な場合は見積り提案または新規依頼としてご案内します。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "closed_secret_send_question":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "確認には、必要なキー名だけ分かれば大丈夫です。",
+                ]
+            ),
+        )
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "ログやスクショを送る場合も、キーの値や秘密情報は伏せてください。",
+                    "もし既に送ってしまった場合は、削除できるなら削除し、念のためキーの再発行も検討してください。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "closed_free_followup_price":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "恐れ入りますが、トークルームは閉じているため、この場でそのまま修正作業に入ることはできません。",
+                    "まずはエラー内容やログ、スクショを見て、前回対応として扱える内容か、別の原因として追加の作業が必要な内容かを確認します。",
+                    *(ask.get("ask_text", "") for ask in ask_map),
+                ]
+            ),
+        )
+        _append_unique(
+            paragraphs,
+            "コード修正などの作業が必要な場合は、ココナラ上で進められる形と費用の有無を先にご相談します。",
+        )
+        return paragraphs
+
+    if scenario == "closed_pre_estimate_cause_check":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "症状の概要やエラー内容を送ってください。",
+                    "トークルームは閉じていますが、その内容から前回の修正と関係がありそうかの見立てはお返しできます。",
+                    "その見立てをもとに、見積り提案に進むかどうかをご判断いただければ大丈夫です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "closed_technical_followup_question":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    primary.get("hold_reason", ""),
+                    *(ask.get("ask_text", "") for ask in ask_map),
+                    "確認して、説明で足りるか実作業が必要かをお返しします。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "closed_third_party_scope_concern":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    primary.get("hold_reason", ""),
+                    *(ask.get("ask_text", "") for ask in ask_map),
+                    "確認後に、前回の補足で済む確認か、新規の実作業になるかをお伝えします。",
+                ]
+            ),
+        )
+        return paragraphs
 
     if scenario in {"refund_request", "price_complaint", "same_symptom_recur", "similar_but_not_same", "self_edit_regression", "api_version_notice_question"}:
         _append_unique(paragraphs, direct_answer)

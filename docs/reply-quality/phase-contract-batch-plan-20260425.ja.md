@@ -32,18 +32,26 @@
 ### RE-2026-04-25-bugfix-09-phase-contract-edge
 
 - 目的: phase の誤認で導線が曖昧になるケースを検証する
-- 件数: 6
-- state_mix: quote_sent 1 / purchased 1 / delivered 2 / closed 2
+- 件数: 8
+- state_mix: quote_sent 2 / purchased 1 / delivered 2 / closed 3
 - risk_axes: phase_miss, closed_route_miss, delivered_closed_confusion, refund_overcommit, missing_next_path, external_share_escape
 
 入れる archetype:
 
 - `quote_sent`: 見積り提案に同意したが、まだ支払い前。`もう作業を始めてもらえますか？`
+- `quote_sent`: 提案後・支払い前。`直らなかったら返金ですか？`
 - `purchased`: 取引中にキャンセル希望。`やっぱりキャンセルしたいです。返金されますか？`
 - `delivered`: 正式納品後。`承諾したら、もう修正してもらえませんか？`
 - `delivered`: 二回目正式納品後か不明。`差し戻しできますか？`
 - `closed`: クローズ後の再発。`前のトークルームで続きできますか？`
+- `closed`: クローズ後の返金希望。`返金してください`
 - `closed`: クローズ後の追加作業。`おひねりで払えば直してもらえますか？`
+
+追加 edge stock 候補:
+
+- `delivered`: `承諾しましたが、まだ24時間経っていません。ここで直せますか？`
+- `closed/cancelled`: `キャンセル済みのトークルームで続けられますか？`
+- `quote_sent`: `決済エラーでトークルームが開いていませんが、先に見てもらえますか？`
 
 ### RE-2026-04-25-bugfix-10-closed-materials-and-work-boundary
 

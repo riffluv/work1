@@ -1,0 +1,29 @@
+date: 2026-04-26
+case_ref: "RE-2026-04-26-bugfix-10-closed-materials-work-boundary / B01-B06"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / closed 後の再相談"
+buyer_decision_stage: "closed"
+service: "bugfix-15000"
+state: "closed"
+
+# --- 診断 ---
+symptom: "closed 後の具体質問に対して、全件が `今回のご相談がどの種類かを見てから案内します` の generic fallback へ落ちた"
+failure_label: "nonanswer / phase_answer_gap / closed_work_boundary_miss"
+failure_layer: "reply-only / closed renderer / validator"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "ログ・スクショ、ZIP修正返却、外部共有、秘密情報、無料対応、見積り前原因調査の6種で、closed 後の確認材料受領と実作業境界が必要になる"
+return_target: "renderer / validator / gold"
+decision: "adopt"
+decision_reason: "同 batch 内で6件すべてが同一 generic fallback になり、Codex / Claude の両方が要修正。r1 は両方で採用可になったため、最小分岐と validator guard を戻す"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "同batch内"
+existing_rule_hit: "あり"
+next_sentinel: "closed state で `今回のご相談がどの種類か` や `前回の続きとして扱えるか` だけで閉じていないか"
+followup_sentinel: "無料対応や再見積りへの不満では、`前回の補足で済む確認` のような内部寄り表現を避ける。相手の主張は `購入したのに直っていない / また費用がかかるのは納得できない` なので、先に `前回の修正とつながる症状かを見るのが先` と返し、同じ原因なら通常料金を再度もらう前提では進めないこと、closed 後はこの場で修正作業には入れないこと、コード修正などの作業が必要な場合はココナラ上で進められる形と費用の有無を先に相談することを出す"
+
+# --- 抽象化 ---
+pattern: "closed 後は、確認材料として受け取れるものと、見積り後の実作業を分ける。外部共有・秘密値・ZIP修正返却・無料対応・見積り前原因調査は、それぞれ主質問へ直答してから安全な次導線へ落とす"
+upstream_fix: "closed renderer に6種の最小 scenario 分岐を追加。closed validator に generic fallback / external share / secret / zip fix return / pre-estimate cause check / free follow-up price complaint の warn を追加。Gold Reply 23 に採用型を保存。ユーザー監査を受け、無料対応不満型は `確認前に` のような作業開始前提の語を避け、未解決主張への直答、closed 後の作業境界、追加費用をいきなり進めない導線へ修正。さらにココナラの最低サービス価格制約を受け、無料実作業を約束せず `通常料金をいただく前提では進めない / ココナラ上で進められる形と費用の有無を先に相談` に更新"

@@ -4,6 +4,13 @@ base_price: 15000
 addons:
   extra_fix: 15000
 
+coconala_listing_category:
+  major: IT相談・システム開発
+  subcategory: プログラミング・ソフト開発
+  category_type: バグ修正・コード改修代行
+  minimum_service_price: 3000
+  source: https://coconala-support.zendesk.com/hc/ja/articles/360020963554-%E3%82%AB%E3%83%86%E3%82%B4%E3%83%AA%E3%81%94%E3%81%A8%E3%81%AE%E6%9C%80%E4%BD%8E%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E4%BE%A1%E6%A0%BC
+
 scope_unit: same_cause_and_same_flow_and_same_endpoint
 purchase_before_estimate_required: false
 proposal_binding_required_for_profile_or_message: true

@@ -1,0 +1,98 @@
+version: 1
+
+cases:
+  - id: PCE-001
+    stock_id: PCE-001
+    category: phase_contract_edge
+    route: estimate
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: quote_sent_before_payment_work_start
+    primary_question: 見積り提案には同意したが、支払い前に作業を始めてもらえるか。
+    raw_message: "提案ありがとうございます。内容はこのままで大丈夫です。ただ、支払いは今日の夜になりそうです。急いでいるので、先に原因だけでも見始めてもらえますか？"
+    note: quote_sent は入金完了前。購入前に実作業開始へ滑らないかを見る。
+
+  - id: PCE-002
+    stock_id: PCE-002
+    category: phase_contract_edge
+    route: estimate
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: quote_sent_refund_if_no_fix
+    primary_question: 提案後・支払い前に、直らなかった場合の料金や返金扱いを知りたい。
+    raw_message: "15,000円の提案は確認しました。購入前に確認したいのですが、もし直らなかった場合はどうなりますか？その場合は返金になるのでしょうか。"
+    note: quote_sent の返金不安。作業開始前提や返金断定へ進まないかを見る。
+
+  - id: PCE-003
+    stock_id: PCE-003
+    category: phase_contract_edge
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: purchased_cancel_refund
+    primary_question: 取引中にキャンセルしたい場合、返金されるのか。
+    raw_message: "すみません、やっぱり今回はキャンセルしたいです。まだ修正は終わっていないと思うのですが、この場合は返金されますか？"
+    note: purchased 中のキャンセル希望。返金可否を出品者側で断定しないかを見る。
+
+  - id: PCE-004
+    stock_id: PCE-004
+    category: phase_contract_edge
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: delivered_acceptance_after_support
+    primary_question: 正式納品後、承諾したらもう修正してもらえないのか。
+    raw_message: "正式納品ありがとうございます。いま軽く見た感じは大丈夫そうです。承諾ボタンを押したら、もしあとで同じところに不具合が残っていた場合でも、もう見てもらえないのでしょうか？"
+    note: delivered と closed の混同を見たい。承諾後の約束を広げすぎない。
+
+  - id: PCE-005
+    stock_id: PCE-005
+    category: phase_contract_edge
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: delivered_can_reject
+    primary_question: 正式納品後に差し戻しできるのか。
+    raw_message: "正式納品を確認しました。ただ、まだ本番で一部確認できていません。差し戻しってできますか？それとも承諾しないといけないのでしょうか。"
+    note: 一回目/二回目の正式納品を一般化せず、確認中の導線へできるかを見る。
+
+  - id: PCE-006
+    stock_id: PCE-006
+    category: phase_contract_edge
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: closed_old_talkroom_continue
+    primary_question: クローズ後に前のトークルームで続けられるのか。
+    raw_message: "前回の件でまた同じようなエラーが出ています。トークルームが閉じているみたいなのですが、前のトークルームで続きをお願いできますか？"
+    note: closed 後に旧トークルーム継続を前提にしないかを見る。
+
+  - id: PCE-007
+    stock_id: PCE-007
+    category: phase_contract_edge
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: complaint_like
+    question_type: closed_refund_request
+    primary_question: クローズ後に返金してほしいと言われた場合、どう返すか。
+    raw_message: "前回直してもらったはずなのに、また同じ決済エラーが出ています。正直、修正してもらった意味がありません。返金してください。"
+    note: closed 後の返金要求。返金可否断定・旧トークルーム内キャンセル相談・新規見積り即飛ばしを避ける。
+
+  - id: PCE-008
+    stock_id: PCE-008
+    category: phase_contract_edge
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_ohineri_extra_work
+    primary_question: クローズ後に、おひねりで払えば追加で直してもらえるか。
+    raw_message: "前回のトークルームは閉じていますが、追加で少し直してほしいところがあります。おひねりで追加分を払えば、そのまま直してもらえますか？"
+    note: closed 後におひねり・旧トークルーム内追加購入を案内しないかを見る。

@@ -33,6 +33,8 @@
   - ココナラの `prequote / quote_sent / purchased / delivered / closed` ごとの実務導線を整理するための外部調査素材
 - `2026-04-25-coconala-phase-contract-deepresearch-review.ja.md`
   - Agent-Reach の phase contract 調査を DeepResearch で厳密化したレビュー要約
+- `2026-04-25-coconala-phase-contract-pro-final-audit.ja.md`
+  - DeepResearch 反映後の phase contract を ChatGPT Pro で最終監査した要約
 
 現在の prompt:
 - `prompts/2026-04-04-agent-reach-buyability-prompts.ja.md`

@@ -72,12 +72,12 @@ facts:
     confidence: official
     outward_assertion: direct
     source_refs:
-      - /home/hr-hm/Project/work/docs/external-research/coconala-platform-complete-guide.md#3-メッセージ機能-vs-トークルーム
+      - https://coconala-support.zendesk.com/hc/ja/articles/218721057-%E3%83%A1%E3%83%83%E3%82%BB%E3%83%BC%E3%82%B8%E6%A9%9F%E8%83%BD%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
 
   closed_talkroom_locked:
     summary: >
       トークルームのクローズ後は、トークルーム内でのメッセージ投稿、ファイル投稿、おひねり等の追加購入ができない。
-      追加の質問や依頼はメッセージ機能を入口にし、実作業が必要な場合は見積り提案または新規依頼の形に戻す。
+      クローズ後の連絡窓口はメッセージ機能になる。
       一度クローズしたトークルームを取引中に戻すことや、承諾を取り消すことはできない。
     confidence: official
     outward_assertion: direct
@@ -91,7 +91,20 @@ facts:
     confidence: official
     outward_assertion: direct
     source_refs:
-      - /home/hr-hm/Project/work/docs/external-research/coconala-platform-complete-guide.md#4-見積もり提案の仕組み
+      - https://coconala-support.zendesk.com/hc/ja/articles/900004238843-%E8%A6%8B%E7%A9%8D%E3%82%8A%E6%A9%9F%E8%83%BD%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6-%E5%87%BA%E5%93%81%E8%80%85%E5%90%91%E3%81%91
+      - https://coconala-support.zendesk.com/hc/ja/articles/360004889793-%E8%A6%8B%E7%A9%8D%E3%82%8A%E6%8F%90%E6%A1%88%E3%81%AE%E8%B3%BC%E5%85%A5%E6%9C%9F%E9%99%90
+
+  category_minimum_price_exists:
+    summary: >
+      ココナラではカテゴリにより最低サービス価格が定められており、0円の見積り提案や0円の通常取引を前提にしない。
+      サービス固有の最低価格は service.yaml 側に置く。
+      closed 後に実際のコード修正・差し替えファイル作成・修正済みファイル返却が必要な場合は、
+      こちら起因の可能性があっても、ココナラ上で進められる新しい取引導線と費用を先に確認・相談する。
+    confidence: official
+    outward_assertion: cautious
+    source_refs:
+      - https://coconala-support.zendesk.com/hc/ja/articles/360020963554-%E3%82%AB%E3%83%86%E3%82%B4%E3%83%AA%E3%81%94%E3%81%A8%E3%81%AE%E6%9C%80%E4%BD%8E%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E4%BE%A1%E6%A0%BC
+      - /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml
 
   formal_delivery_exists:
     summary: >
@@ -102,7 +115,8 @@ facts:
     confidence: official
     outward_assertion: direct
     source_refs:
-      - /home/hr-hm/Project/work/docs/external-research/coconala-platform-complete-guide.md#5-正式な納品と納品確認
+      - https://coconala-support.zendesk.com/hc/ja/articles/4402957809049-%E7%B4%8D%E5%93%81%E7%A2%BA%E8%AA%8D%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6-%E8%B3%BC%E5%85%A5%E8%80%85%E5%90%91%E3%81%91
+      - https://coconala-support.zendesk.com/hc/ja/articles/4403291547417-%E3%83%88%E3%83%BC%E3%82%AF%E3%83%AB%E3%83%BC%E3%83%A0%E3%81%AE%E3%82%AF%E3%83%AD%E3%83%BC%E3%82%BA%E6%9D%A1%E4%BB%B6%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
 
   first_reply_after_purchase_deadline:
     summary: >
@@ -112,7 +126,6 @@ facts:
     outward_assertion: cautious
     source_refs:
       - https://coconala-support.zendesk.com/hc/ja/articles/218722887-%E5%87%BA%E5%93%81%E8%80%85%E3%81%8B%E3%82%89%E9%80%A3%E7%B5%A1%E3%81%8C%E3%81%AA%E3%81%84
-      - https://coconala.com/smartphone/news/202
 
   silence_cancel_risk:
     summary: >
@@ -128,7 +141,7 @@ facts:
     summary: >
       おひねり等の追加支払いは、トークルームが開いている間の追加支払い手段として扱う。
       承諾後でもクローズ前の一定期間は可能な場合があるが、closed 後の導線として案内しない。
-      closed 後は、メッセージ上で確認し、実作業が必要なら見積り提案または新規依頼へ戻す。
+      closed 後はトークルーム内のおひねり等の追加購入ができない。
       どの経路で支払われた金額かによって取消方法や扱いは分かれる。
     confidence: official
     outward_assertion: cautious
@@ -183,6 +196,9 @@ guidance:
     rule: >
       quote_sent は見積り提案済みでも、入金完了前なら取引開始済みとして扱わない。
       buyer の不安には提案内容・範囲・購入後の流れで答え、トークルーム open や作業開始を前提にしない。
+      「もう作業を始められるか」と聞かれた場合は、現時点では実作業を開始せず、
+      購入・入金完了後にトークルームが開いてから正式に作業開始することを返す。
+      購入前は、必要情報の確認や進め方の整理までに留める。
     based_on:
       - internal_phase_mapping
       - estimate_proposal_flow
@@ -194,6 +210,7 @@ guidance:
       このファイルは「場の仕様」を扱う。価格・スコープ・追加料金単位は service-registry.yaml と service.yaml を正本にする。
     based_on:
       - estimate_proposal_flow
+      - category_minimum_price_exists
 
   - id: do_not_assert_refund_mechanics
     when:
@@ -206,6 +223,7 @@ guidance:
       closed 後はこれだけだと曖昧なので、旧トークルームが閉じていること、
       まずメッセージ上で前回修正との関係を見ること、実作業が必要なら見積り提案または新規依頼へ戻すことを明示する。
       closed 後に「キャンセルを含めて相談します」とだけ書かない。
+      closed 後の返金要求では、前回補足で済む確認か、実作業が必要な新規導線かを切り分ける着地まで返す。
     based_on:
       - cancel_refund_shape
       - closed_talkroom_locked
@@ -230,6 +248,7 @@ guidance:
       旧トークルーム内で返金/キャンセルを進める、という前提を書かない。
       まず「返金可否はここで断定できない」「トークルームは閉じている」
       「メッセージ上で前回修正との関係を確認する」を返す。
+      最後は、前回補足で済む確認か、実作業が必要な新規見積り/新規依頼かを切り分ける導線に着地させる。
       ココナラ取引の返金と、依頼者サービス側の Stripe 顧客返金を混同しない。
     based_on:
       - closed_talkroom_locked
@@ -239,18 +258,26 @@ guidance:
     when:
       - closed
     rule: >
-      closed 後でも、メッセージ上で症状・再現条件・ログ・スクショ・必要部分のZIPなど確認材料を受け取ることはできる。
+      closed 後でも、メッセージ上で症状・再現条件・ログ・スクショ・必要最小限の関係ファイルZIPなど確認材料を受け取ることはできる。
       ただし、実際にコードを直す、差し替えファイルを作る、納期を置く、成果物を返す段階に入るなら、
       見積り提案または新規依頼へ戻す。
+      こちら起因の可能性がある場合でも、0円作業や無料修正を外向けに約束しない。
+      「通常料金をいただく前提では進めない」「ココナラ上で進められる形と費用を先に相談する」程度に留め、
+      実際の提案金額は service.yaml のカテゴリ最低価格と画面上の制約を確認してから決める。
+      「ZIPで送れば直して返す」と読ませず、確認材料の受領と実作業を分ける。
       100MB超などで添付が難しい時も、外部ストレージや外部リポジトリ共有へ逃がさず、
       必要部分だけに絞る / 分割する / 秘密値を除く方向へ寄せる。
     based_on:
       - closed_talkroom_locked
       - message_vs_talkroom
+      - estimate_proposal_flow
+      - category_minimum_price_exists
 
   - id: finish_extra_charge_before_formal_delivery
-    when:
+    mode:
       - delivery
+    when:
+      - pre_formal_delivery
     rule: >
       platform 上はクローズ前に追加支払いできる時間帯があるが、
       Workspace では追加費用や追加作業の合意を原則として正式な納品前に終える。
@@ -270,8 +297,10 @@ guidance:
       - additional_payment_before_close
 
   - id: confirm_before_formal_delivery
-    when:
+    mode:
       - delivery
+    when:
+      - pre_formal_delivery
     rule: >
       初回の正式な納品前に、buyer へ「この内容で送って問題ないか」の確認を挟く。
       差し戻し回数の上限を、初回納品文で圧として出しすぎない。

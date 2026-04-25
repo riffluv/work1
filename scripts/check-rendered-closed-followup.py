@@ -115,9 +115,11 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("closed follow-up still uses banned `形になります` wording")
     if "お約束する形" in rendered:
         errors.append("closed follow-up still uses banned `お約束する形` wording")
+    if has_any(rendered, ["今回のご相談がどの種類か", "前回の続きとして扱えるか確認します"]):
+        errors.append("generic closed fallback survived in rendered text")
     if (primary["disposition"] == "answer_after_check" or (contract.get("ask_map") and decision_plan.get("blocking_missing_facts"))) and ("本日" not in rendered or "までに" not in rendered):
         errors.append("missing time commitment")
-    if scenario not in {"price_complaint", "price_discount_request", "repeat_bugfix_price_check", "refund_request"} and has_any(rendered, ["15,000円", "25000円", "25,000円"]):
+    if scenario not in {"price_complaint", "price_discount_request", "repeat_bugfix_price_check", "refund_request", "closed_free_followup_price"} and has_any(rendered, ["15,000円", "25000円", "25,000円"]):
         errors.append("closed follow-up should not front-load price")
 
     direct_answer_line = decision_plan.get("direct_answer_line", "")
@@ -175,6 +177,37 @@ def lint_case(module, source: dict) -> list[str]:
     if scenario == "similar_but_not_same" and "トークルーム" in raw:
         if not has_any(rendered, ["メッセージ上", "見積り提案", "新規依頼"]):
             errors.append("closed similar-event case does not explain the post-close path clearly")
+
+    if has_any(raw, ["Google Drive", "Googleドライブ", "Dropbox", "外部共有"]):
+        if not has_any(rendered, ["外部共有", "Google Drive など", "使っていません", "メッセージ添付", "送れる範囲"]):
+            errors.append("closed external-share request is missing refusal plus coconala attachment alternative")
+
+    if has_any(raw, [".env", "envファイル", "Stripeのキー", "APIキー", "秘密鍵"]):
+        if not has_any(rendered, ["送らないでください", "値は扱いません", "キー名", "伏せて"]):
+            errors.append("closed secret-sharing question is missing secret-value refusal")
+
+    if has_any(raw, ["ZIPでコード", "コード一式", "直して返して", "修正して返"]):
+        if not has_any(rendered, ["修正済みファイルを返すことはできません", "実作業", "見積り提案", "新規依頼"]):
+            errors.append("closed zip-fix request does not separate materials review from actual work")
+
+    if has_any(raw, ["先に原因だけ", "原因だけ見てもら", "見積り前", "お願いするか決めたい"]):
+        if not has_any(rendered, ["見積り前", "原因調査", "症状の概要", "見立て"]):
+            errors.append("closed pre-estimate cause-check request does not separate lightweight triage from actual investigation")
+
+    if has_any(raw, ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
+        if not has_any(
+            rendered,
+            [
+                "断定できません",
+                "断定はしません",
+                "決まっているわけでもありません",
+                "前提では進めません",
+                "前回の補足",
+                "新規見積り",
+                "費用の有無",
+            ],
+        ):
+            errors.append("closed free-followup/price complaint is missing non-commitment and next-path split")
 
     if "新しい機能" in raw or "クーポン機能" in raw or "Invoice" in raw or "請求書" in raw:
         if not has_any(rendered, ["範囲ではありません", "機能追加"]):

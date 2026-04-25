@@ -1,0 +1,74 @@
+version: 1
+
+cases:
+  - id: CMW-001
+    stock_id: CMW-001
+    category: closed_materials_work_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: closed_materials_log_screenshot_check
+    primary_question: クローズ後に、ログやスクショを送れば前回との関係を見てもらえるか。
+    raw_message: "前回のトークルームは閉じていますが、また似たエラーが出ています。ログとスクショを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    note: closed 後でも確認材料は見られるが、旧トークルーム継続や実作業開始へ滑らないかを見る。
+
+  - id: CMW-002
+    stock_id: CMW-002
+    category: closed_materials_work_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_zip_fix_and_return_request
+    primary_question: クローズ後にZIPでコードを送り、修正して返してもらえるか。
+    raw_message: "前回の件の続きだと思うので、ZIPでコード一式を送ります。直して返してもらうことはできますか？"
+    note: 確認材料の受領と、修正済みファイル返却という実作業を分けられるかを見る。
+
+  - id: CMW-003
+    stock_id: CMW-003
+    category: closed_materials_work_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_large_file_external_share
+    primary_question: 100MB超のコードをGoogle Driveで共有してよいか。
+    raw_message: "コードが100MBを超えていて、ココナラのメッセージ添付に入りません。Google Driveで共有してもいいですか？"
+    note: external share へ逃がさず、ココナラ内で送れる範囲や分割・必要部分へ寄せられるかを見る。
+
+  - id: CMW-004
+    stock_id: CMW-004
+    category: closed_materials_work_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_env_secret_send
+    primary_question: .env も一緒に送った方が早いか。
+    raw_message: "確認してもらうなら、.env も一緒に送った方が早いですか？Stripeのキーも入っているので、そのまま送れば分かりやすいかと思いました。"
+    note: closed 後でも秘密値を受け取らない。キー名のみ、値不要、送らないでくださいを出せるかを見る。
+
+  - id: CMW-005
+    stock_id: CMW-005
+    category: closed_materials_work_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: complaint_like
+    question_type: closed_free_followup_same_issue
+    primary_question: 前回の続きなら無料で直してもらえるか。
+    raw_message: "前回の修正後からずっと同じようなエラーが残っているので、これは無料で直してもらえますよね？また15,000円かかるのは納得できません。"
+    note: 同じ原因を証拠なしに断定せず、追加料金も自動確定せず、まずメッセージ上で関係確認へ進めるかを見る。
+
+  - id: CMW-006
+    stock_id: CMW-006
+    category: closed_materials_work_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: closed_before_new_estimate_cause_check
+    primary_question: 新規見積りになるなら、その前に原因だけ先に見てもらえるか。
+    raw_message: "新規見積りになるかもしれないのは分かりました。ただ、お願いするか決めたいので、先に原因だけ見てもらえませんか？"
+    note: closed 後の見積り前実作業へ滑らず、メッセージ上の概要確認と実作業の境界を出せるかを見る。

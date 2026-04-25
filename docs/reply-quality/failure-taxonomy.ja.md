@@ -1,6 +1,6 @@
 # 返信失敗 QA分類（reply-only）
 
-更新日: 2026-04-11
+更新日: 2026-04-26
 
 ## 目的
 
@@ -33,15 +33,30 @@
 - `ai_tone`
   - 説明書っぽい、抽象語が多い、bot感がある
 
+### phase 補助ラベル
+
+- `phase_answer_gap`
+  - 文面は安全に見えるが、今の phase で buyer が次に取れる行動が見えない
+  - 特に `quote_sent / delivered / closed` で、可能な操作・不可な操作・代替導線・次アクションのどれかが抜けている
+  - 生成 rule ではなく監査レンズとして使う。毎回説明を増やすためではなく、`確認します` で実務導線がぼやける時だけ拾う
+
+### discovery 補助ラベル
+
+- `unnamed_discomfort`
+  - 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある
+  - 監査で最大1〜2件だけ挙げる。実務リスクを説明できない好み差は扱わない
+  - 生成 rule ではなく発見用レンズとして使う。単発では rule 化せず、観察メモに残して、再発してから名前付け・gold・validator・rule 返却を検討する
+
 ## 既存 QA ラベルとの対応
 
 - `QA-01 主質問ズレ` → 主に `nonanswer`
 - `QA-02 余計情報差し込み` → 主に `oversell`
-- `QA-03 phase漏れ` → 主に `premature_progress`
+- `QA-03 phase漏れ` → 主に `premature_progress` / `phase_answer_gap`
 - `QA-04 内部語漏れ` → `ai_tone` または `hidden_rule`
 - `QA-05 意味接続破綻` → 文脈次第で `nonanswer` / `ai_tone`
 - `QA-06 テンプレ臭` → 主に `ai_tone`
 - `QA-07 温度感ズレ` → 補助観点。必要なら `ai_tone` の注記で扱う
+- `未命名の違和感` → `unnamed_discomfort`。ただし、実務リスクを説明できる時だけ観察メモとして扱う
 
 運用上は、
 - まず 6タグで大分類する

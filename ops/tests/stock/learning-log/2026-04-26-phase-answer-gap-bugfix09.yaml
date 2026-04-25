@@ -1,0 +1,29 @@
+date: 2026-04-26
+case_ref: "RE-2026-04-26-bugfix-09-phase-contract-edge / B01-B08"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / phase contract edge"
+buyer_decision_stage: "quote_sent / purchased / delivered / closed"
+service: "bugfix-15000"
+state: "mixed"
+
+# --- 診断 ---
+symptom: "文面は安全でも、quote_sent / delivered / closed の phase で buyer が次に何をすればよいか見えない返信が出た"
+failure_label: "phase_answer_gap / phase_miss / missing_next_path"
+failure_layer: "reply-only / reviewer prompt / gold candidate"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "B01 の入金前作業開始、B04/B05 の承諾/差し戻し、B08 の closed 後おひねりで、phase 上の不可・代替・次導線が抜けると buyer が迷子になることを確認した"
+return_target: "reviewer_prompt / gold / future validator consideration"
+decision: "observe"
+decision_reason: "r2 は採用可まで改善したが、renderer / validator へ即反映すると説明過多になる副作用がある。まず監査レンズと gold で保持し、同型再発時だけ validator / rule へ戻す"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: "phase contract は platform-contract 側に存在する。今回の主目的は生成 rule 追加ではなく、reviewer が `安全だが導線が見えない` ケースを拾えるようにすること"
+next_sentinel: "quote_sent 作業開始依頼、delivered 承諾/差し戻し質問、closed おひねり/旧トークルーム質問で `不可 -> 代替 -> buyer の次アクション` が見えるか"
+
+# --- 抽象化 ---
+pattern: "phase edge では、主質問への直答だけでなく、その phase で buyer が実際に取れる次アクションまで落とす。不可事項は不可で止めず、メッセージ確認 / 承諾前確認 / 見積り提案など実行可能な導線へ着地させる"
+upstream_fix: "監査プロンプトに `phase_answer_gap` を追加。gold reply 22 に r2 採用型を保存。validator / renderer 本体は未変更"

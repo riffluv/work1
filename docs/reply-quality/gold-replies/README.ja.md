@@ -45,3 +45,5 @@
 - `19_prequote_success-rate-fear_no-guarantee_but_clear_value.ja.md`
 - `20_closed_repeat_with-refund-anxiety_scope-first.ja.md`
 - `21_boundary_bugfix-vs-handoff_confused-route_bugfix-first.ja.md`
+- `22_phase-contract-edge_next-path.ja.md`
+- `23_closed-materials-work-boundary.ja.md`
