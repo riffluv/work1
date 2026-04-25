@@ -5,7 +5,7 @@ last_verified: 2026-04-25
 purpose: >
   Coconala 全サービス共通の取引仕様と返信ガイダンス。
   価格・スコープは service-registry.yaml / service.yaml を正本とし、
-  このファイルは「購入前/購入後/正式納品/キャンセル」の場の違いを補う。
+  このファイルは「購入前/購入後/正式納品/完了」の場の違いを補う。
 
 applies_in_modes:
   - coconala
@@ -53,6 +53,19 @@ confidence_levels:
       writer / lint / self-check のガイダンスとして使う。
 
 facts:
+  internal_phase_mapping:
+    summary: >
+      prequote / quote_sent / purchased / delivered / closed は公式UI名ではなく、Workspace 内部の返信生成用 state。
+      prequote は見積り提案前の購入前相談、quote_sent は見積り提案済みだが入金完了前、
+      purchased は入金完了後にトークルームが開いた取引中、
+      delivered は正式な納品後かつクローズ前、
+      closed は完了としてクローズ済みのトークルームとして扱う。
+      cancelled は closed に含めず、キャンセル成立済みの別状態として扱う。
+    confidence: operational
+    outward_assertion: cautious
+    source_refs:
+      - /home/hr-hm/Project/work/docs/external-research/2026-04-25-coconala-phase-contract-agent-reach.ja.md
+
   message_vs_talkroom:
     summary: >
       メッセージは主に購入前またはクローズ後の連絡、トークルームは購入後の取引空間として扱う。
@@ -74,6 +87,7 @@ facts:
   estimate_proposal_flow:
     summary: >
       見積もり相談では、相談 -> 出品者の見積もり提案 -> buyer の承認/購入、の流れがある。
+      Workspace の quote_sent は見積り提案済みだが入金完了前の段階で、トークルームが開くのは入金完了後。
     confidence: official
     outward_assertion: direct
     source_refs:
@@ -82,6 +96,9 @@ facts:
   formal_delivery_exists:
     summary: >
       「正式な納品」は通常メッセージと別の操作で、送信後はクローズ手続きに入る前提で扱う。
+      Workspace の delivered は正式な納品後かつクローズ前の state。
+      ただし一回目の正式な納品後と、差し戻し後の二回目の正式な納品後では buyer ができることが異なるため、
+      一回目か二回目か不明な時に「差し戻しできます」と外向けに一般化しない。
     confidence: official
     outward_assertion: direct
     source_refs:
@@ -145,17 +162,30 @@ guidance:
   - id: do_not_mix_channels
     when:
       - prequote
+      - quote_sent
       - purchased
       - delivered
       - closed
     rule: >
       prequote ではトークルーム前提の文言を書かない。
+      quote_sent も入金完了前として扱い、トークルームで続ける / 作業中 / 納品後のような文面を出さない。
       purchased / delivered ではトークルーム前提で返し、クローズ後だけメッセージへ戻す。
       closed 後は、旧トークルームでの投稿・ファイル送付・追加購入・継続作業を前提にしない。
       まずメッセージ上で前回との関係を確認し、実作業が必要なら見積り提案または新規依頼へ戻す。
     based_on:
+      - internal_phase_mapping
       - message_vs_talkroom
       - closed_talkroom_locked
+
+  - id: quote_sent_is_not_started_work
+    when:
+      - quote_sent
+    rule: >
+      quote_sent は見積り提案済みでも、入金完了前なら取引開始済みとして扱わない。
+      buyer の不安には提案内容・範囲・購入後の流れで答え、トークルーム open や作業開始を前提にしない。
+    based_on:
+      - internal_phase_mapping
+      - estimate_proposal_flow
 
   - id: keep_platform_and_service_separate
     when:
@@ -180,6 +210,18 @@ guidance:
       - cancel_refund_shape
       - closed_talkroom_locked
 
+  - id: delivered_not_closed
+    when:
+      - delivered
+    rule: >
+      delivered は正式な納品後でもクローズ前として扱い、closed 後のメッセージ導線へ早く戻しすぎない。
+      ただし、一回目の正式な納品か二回目の正式な納品か不明な時は、
+      差し戻し可否や回数を外向けに言い切らず、まずトークルーム内で合意内容との差異を確認する。
+    based_on:
+      - internal_phase_mapping
+      - formal_delivery_exists
+      - rejection_limit_exists
+
   - id: closed_refund_request_guard
     when:
       - closed
@@ -192,6 +234,19 @@ guidance:
     based_on:
       - closed_talkroom_locked
       - cancel_refund_shape
+
+  - id: closed_message_fact_check_before_work
+    when:
+      - closed
+    rule: >
+      closed 後でも、メッセージ上で症状・再現条件・ログ・スクショ・必要部分のZIPなど確認材料を受け取ることはできる。
+      ただし、実際にコードを直す、差し替えファイルを作る、納期を置く、成果物を返す段階に入るなら、
+      見積り提案または新規依頼へ戻す。
+      100MB超などで添付が難しい時も、外部ストレージや外部リポジトリ共有へ逃がさず、
+      必要部分だけに絞る / 分割する / 秘密値を除く方向へ寄せる。
+    based_on:
+      - closed_talkroom_locked
+      - message_vs_talkroom
 
   - id: finish_extra_charge_before_formal_delivery
     when:
