@@ -1,0 +1,74 @@
+version: 1
+
+cases:
+  - id: TMG-001
+    stock_id: TMG-001
+    category: transaction_model_gap
+    route: estimate
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: urgent
+    question_type: quote_sent_before_payment_materials_and_cause
+    primary_question: 見積り提案には同意したが、入金前にコードやログを送れば原因だけ先に見てもらえるか。
+    raw_message: "提案内容は問題ありません。支払いは今日の夜になります。急ぎなので、先にコードやログだけ送って、原因の見当だけでも見てもらうことはできますか？"
+    note: quote_sent は購入・入金前。材料送付や原因確認が入金前の実作業へ滑らないかを見る。
+
+  - id: TMG-002
+    stock_id: TMG-002
+    category: transaction_model_gap
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: purchased_extra_issue_same_cause_fee_path
+    primary_question: 購入後に別画面の似たエラーが出た場合、今回範囲で見るのか、追加料金になるのか。
+    raw_message: "いま見てもらっている決済エラーとは別に、管理画面の注文一覧も読み込みが遅くなっています。これも同じ原因なら一緒に直してもらえますか？別料金になるなら先に知りたいです。"
+    note: purchased 中の追加症状。価格断定ではなく、同じ原因か確認してから導線を出せるかを見る。
+
+  - id: TMG-003
+    stock_id: TMG-003
+    category: transaction_model_gap
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: delivered_accept_or_wait_with_later_bug
+    primary_question: 正式納品後、承諾してよいか。承諾後に同じ問題が出たらどうなるか。
+    raw_message: "正式納品ありがとうございます。今の画面では動いているように見えます。ただ、まだ夜の本番決済では試せていません。承諾してしまって大丈夫ですか？もし承諾後に同じ問題が出たらどうなりますか？"
+    note: delivered は closed ではない。承諾前の確認導線と、承諾後のメッセージ確認導線を分けられるかを見る。
+
+  - id: TMG-004
+    stock_id: TMG-004
+    category: transaction_model_gap
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: complaint_like
+    question_type: closed_angry_same_error_work_path
+    primary_question: クローズ後に同じエラーが残っている場合、無料か再度支払いか。作業に進む場合どうなるのか。
+    raw_message: "前回の修正後も同じような Stripe のエラーが残っています。直ったと思って承諾したのに、結局直っていないならまた払うのは納得できません。これは無料で対応してもらえるんですよね？"
+    note: closed 後の怒り気味無料要求。無料約束・通常料金前提・実作業着手のどれにも寄りすぎないかを見る。
+
+  - id: TMG-005
+    stock_id: TMG-005
+    category: transaction_model_gap
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: closed_text_fix_instruction_before_quote
+    primary_question: クローズ後に、購入なしでコードの直し方だけ文章で教えてもらえるか。
+    raw_message: "前回と同じエラーだと思うので、コードをここに貼ります。どこを直せばいいか文章で教えてもらえませんか？ファイル返却までは不要なので、購入なしで大丈夫でしょうか。"
+    note: 文章での修正指示も原因調査・実作業に寄る可能性がある。確認材料と作業助言の境界を出せるかを見る。
+
+  - id: TMG-006
+    stock_id: TMG-006
+    category: transaction_model_gap
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_next_consult_before_purchase_path
+    primary_question: クローズ後にまた相談する場合、先にメッセージで見てもらってから買うのか、先に新規購入なのか。
+    raw_message: "先日はありがとうございました。また別の決済エラーが出ているのですが、次はどうすればいいですか？先にこのメッセージで症状を見てもらってから購入する感じですか？それとも新しく購入してから相談する形ですか？"
+    note: closed 後の自然な再相談導線。メッセージ上の見立てと新規購入/見積りの順序を示せるかを見る。

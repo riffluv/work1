@@ -2,6 +2,8 @@
 目的は「見積り相談 -> 返信文作成 -> 購入後の実装 -> 納品」を、mode を切り替えながら破綻なく進めることです。
 
 【現在の最優先 handoff】
+- 2026-04-26 の返信学習セッション最新サマリは `/home/hr-hm/Project/work/docs/reply-quality/live-review-session-summary-20260426.ja.md`。次セッションではここを最優先で読むこと
+- 今日の重要到達点は `transaction_model_gap`。日本語のツギハギ感を、支払い状態・作業開始条件・見積り提案・購入・成果物返却の順序欠落として検知する reviewer レンズ。writer rule として常駐させず、再発した deterministic 事故だけ validator / gold へ戻す
 - 返信システムの現状と次の一手は `/home/hr-hm/Project/work/docs/reply-quality/live-review-session-summary-20260419.ja.md` を先に読むこと
 - 返信システムの恒久原則は `/home/hr-hm/Project/work/docs/reply-quality/reply-system-strengthening-memo.ja.md` を正本として扱う
 - 2026-04-24 時点の到達点と運用整理は `/home/hr-hm/Project/work/note用/2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md` を参照すること

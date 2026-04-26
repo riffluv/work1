@@ -1,0 +1,37 @@
+date: 2026-04-26
+case_ref: "RE-2026-04-26-bugfix-11-transaction-model-gap / B01-B06"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / transaction model edge"
+buyer_decision_stage: "mixed"
+service: "bugfix-15000"
+state: "quote_sent / purchased / delivered / closed"
+
+# --- 診断 ---
+symptom: "文面は安全そうでも、入金前作業、追加症状の料金、承諾前後、closed 後の購入なし助言、次回相談導線で、取引構造が一本につながらない返信が出た"
+failure_label: "transaction_model_gap / phase_answer_gap / nonanswer"
+failure_layer: "reply-only / renderer / validator / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "購入前・購入後・正式納品後・クローズ後の複数 phase で、料金・作業開始・見積り導線が絡むと同型の曖昧さが出る"
+return_target: "gold / validator"
+decision: "adopt"
+decision_reason: "Codex / Claude の両方が r0 を要修正とし、r1 は採用可。B06 の見積り表現重複のみ r2 で圧縮した"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "過去batch同型"
+existing_rule_hit: "あり"
+next_sentinel: "安全そうな返信でも、buyer が次に取る行動、支払いの順番、作業開始条件、見積り提案の位置が見えない場合は `transaction_model_gap` として落とす"
+
+# --- 抽象化 ---
+pattern: "取引構造が絡む返信では、可否だけでなく、確認材料 -> 見立て -> 見積り提案 -> 購入 -> 実作業 の順番を phase に合わせて最小限で出す"
+upstream_fix: "Gold Reply 24 に、purchased 追加症状、closed 購入なし修正助言、closed 次回相談導線の3型を保存。B01/B03 は Gold 22、B04 は Gold 23 に近いため新規 gold では重複保存しない。quote_sent validator に入金前のコード/ログ/原因確認依頼 guard、purchased validator に追加症状の別料金不安 guard を追加"
+
+# --- 戻し方 ---
+reply_only:
+  - "quote_sent で入金前のコード/ログ確認を求められたら、購入・入金完了前は原因確認作業を開始しないと直答する"
+  - "purchased の追加症状では、同じ原因なら今回内、別原因なら先に相談、追加料金自動発生なしを一息で返す"
+  - "delivered の承諾不安では、承諾前確認と承諾後/closed 後の導線を分ける"
+  - "closed 後の購入なしコード修正助言は、ファイル返却不要でも実作業寄りとして扱う"
+  - "closed 後の次回相談では、まずメッセージで症状確認 -> 見積り提案確認 -> 購入 の順序を示す"
+common: []

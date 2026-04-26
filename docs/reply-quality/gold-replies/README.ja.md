@@ -47,3 +47,4 @@
 - `21_boundary_bugfix-vs-handoff_confused-route_bugfix-first.ja.md`
 - `22_phase-contract-edge_next-path.ja.md`
 - `23_closed-materials-work-boundary.ja.md`
+- `24_transaction-model-gap_edges.ja.md`

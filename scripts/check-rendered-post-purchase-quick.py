@@ -382,6 +382,11 @@ def lint_case(module, source: dict) -> list[str]:
     if case.get("scenario") == "extra_scope_question" and "追加料金" in raw:
         if not has_any(rendered, ["追加見積り", "追加料金"]):
             errors.append("scope-addition case does not answer the fee concern")
+    if has_any(raw, ["別料金", "追加料金"]) and has_any(raw, ["同じ原因", "一緒に直", "一緒に見"]):
+        if not has_any(rendered, ["追加料金", "追加対応", "勝手に追加", "先にご相談"]):
+            errors.append("scope-addition fee concern does not explain prior-consult/no-auto-fee handling")
+        if not has_any(rendered, ["同じ原因", "今回の件", "別の原因"]):
+            errors.append("scope-addition fee concern does not separate same-cause and separate-cause handling")
     if case.get("scenario") == "private_repo_access_question":
         if not has_any(rendered, ["URLだけでは", "中身は見えません", "閲覧できる形", "ZIP"]):
             errors.append("private repo access case does not answer the visibility/access question directly")

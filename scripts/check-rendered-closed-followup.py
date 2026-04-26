@@ -202,9 +202,11 @@ def lint_case(module, source: dict) -> list[str]:
                 "断定はしません",
                 "決まっているわけでもありません",
                 "前提では進めません",
+                "通常料金の新規依頼として進めることはしません",
                 "前回の補足",
                 "新規見積り",
                 "費用の有無",
+                "費用が発生するか",
             ],
         ):
             errors.append("closed free-followup/price complaint is missing non-commitment and next-path split")

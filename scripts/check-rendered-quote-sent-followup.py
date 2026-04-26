@@ -85,6 +85,15 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("quote_sent reply uses unnatural `ご了解` wording")
     if "形になります" in rendered:
         errors.append("quote_sent reply still uses banned `形になります` wording")
+    if (
+        has_any(raw, ["支払い", "入金", "購入前"])
+        and has_any(raw, ["先に", "支払い前", "入金前"])
+        and has_any(raw, ["コード", "ログ", "原因"])
+    ):
+        if has_any(rendered, ["送ってください", "教えてください"]):
+            errors.append("quote_sent pre-payment work request asks for materials before purchase/payment")
+        if not has_any(rendered, ["購入・入金完了前", "入金完了前", "支払い前", "ご購入後", "入金完了後"]):
+            errors.append("quote_sent pre-payment work request does not state work starts after purchase/payment")
     if primary["answer_brief"] not in rendered and direct_answer_line != primary["answer_brief"]:
         pass
     elif primary["answer_brief"] not in rendered:

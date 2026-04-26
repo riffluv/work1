@@ -71,6 +71,10 @@ SERVICE_GROUNDING = load_service_grounding()
 
 def time_commit(hours: int = 2) -> str:
     target = datetime.now(JST) + timedelta(hours=hours)
+    remainder = target.minute % 15
+    if remainder:
+        target = target + timedelta(minutes=15 - remainder)
+    target = target.replace(second=0, microsecond=0)
     return f"本日{target:%H:%M}までに、見立てをお返しします。"
 
 
@@ -438,7 +442,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "closed_free_followup_price":
         blocking_missing_facts = ["current_error_or_log"]
-        direct_answer_line = "その場合は、まず前回の修正とつながる症状かを確認するのが先です。同じ原因として扱える内容であれば、あらためて通常料金をいただく前提では進めません。"
+        direct_answer_line = "その場合は、まず前回の修正とつながる症状かを確認するのが先です。同じ原因として扱えるかを確認しないまま、通常料金の新規依頼として進めることはしません。"
     elif scenario == "closed_pre_estimate_cause_check":
         blocking_missing_facts = ["symptom_summary"]
         direct_answer_line = "見積り前の段階で、コードを見て原因調査まで進めることはしていません。"
@@ -1291,7 +1295,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "その場合は、まず前回の修正とつながる症状かを確認するのが先です。同じ原因として扱える内容であれば、あらためて通常料金をいただく前提では進めません。",
+                    "answer_brief": "その場合は、まず前回の修正とつながる症状かを確認するのが先です。同じ原因として扱えるかを確認しないまま、通常料金の新規依頼として進めることはしません。",
                     "hold_reason": "トークルームは閉じているため、この場でそのまま修正作業に入ることはできません。",
                     "revisit_trigger": "まずはエラー内容やログ、スクショを見て、前回対応として扱える内容か、別の原因として追加の作業が必要な内容かをお返しします。",
                 }
@@ -1758,7 +1762,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         )
         _append_unique(
             paragraphs,
-            "コード修正などの作業が必要な場合は、ココナラ上で進められる形と費用の有無を先にご相談します。",
+            "コード修正などの作業が必要になりそうな場合は、作業に入る前に、ココナラ上でどう進めるかと費用が発生するかを先にご相談します。",
         )
         return paragraphs
 
