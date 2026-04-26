@@ -96,6 +96,12 @@ def has_budget_completion_gate_context(text: str) -> bool:
             "2つ",
             "二つ",
             "複数",
+            "3本",
+            "三本",
+            "×3",
+            "x3",
+            "1件15,000円×3",
+            "1件15000円×3",
         ],
     )
     completion_risk = has_any(
@@ -109,6 +115,8 @@ def has_budget_completion_gate_context(text: str) -> bool:
             "原因不明",
             "直せなかった",
             "直らなかった",
+            "解決しなかった",
+            "解決しない",
             "修正範囲が広",
             "範囲が広",
             "2件だった",
@@ -120,6 +128,14 @@ def has_budget_completion_gate_context(text: str) -> bool:
             "全部見てもらって",
             "全部見て",
             "全部直して",
+            "3本とも",
+            "三本とも",
+            "念のため3本",
+            "3件分",
+            "1件15,000円×3",
+            "1件15000円×3",
+            "15,000円×3",
+            "15000円×3",
         ],
     )
     return price_or_budget and completion_risk
@@ -133,12 +149,33 @@ def collect_budget_completion_gate_errors(rendered: str, raw: str) -> list[str]:
         errors.append("budget_completion_gate failed: rendered text does not block automatic fee/additional work")
     if not has_any(rendered, ["修正完了", "正式納品", "修正済みファイル"]):
         errors.append("budget_completion_gate failed: rendered text does not include the unfinished-work completion gate")
-    if has_any(raw, ["2件", "２件", "2つ", "二つ", "複数", "両方"]) and not has_any(rendered, ["同じ原因", "別原因", "1件"]):
+    if has_any(raw, ["2件", "２件", "2つ", "二つ", "複数", "両方", "3本", "三本", "×3", "3件"]) and not has_any(rendered, ["同じ原因", "別原因", "1件"]):
         errors.append("budget_completion_gate failed: multi-issue budget concern does not explain same/different cause handling")
     if has_any(raw, ["返金", "キャンセル"]) and has_any(rendered, ["返金します", "返金できます", "キャンセルできます", "全額返金"]):
         errors.append("budget_completion_gate failed: refund/cancel handling is overpromised")
     if has_any(raw, ["全部", "全体"]) and not has_any(rendered, ["断定できません", "断定できない", "1件に絞"]):
         errors.append("budget_completion_gate failed: broad budget-capped request is not narrowed before proceeding")
+    return errors
+
+
+def has_fix_vs_structure_first_context(text: str) -> bool:
+    if not has_any(text, ["修正", "直す", "直して"]):
+        return False
+    if not has_any(text, ["整理", "コード全体", "全体を理解", "把握", "リファクタ"]):
+        return False
+    return has_any(text, ["どっち", "どちら", "先に", "先か", "まず"])
+
+
+def collect_fix_vs_structure_first_errors(rendered: str, raw: str) -> list[str]:
+    if not has_fix_vs_structure_first_context(raw):
+        return []
+    errors: list[str] = []
+    if not has_any(rendered, ["まず", "不具合修正", "直したいところ"]):
+        errors.append("fix_vs_structure_first failed: rendered text does not answer whether repair or structure should come first")
+    if not has_any(rendered, ["整理"]) or not has_any(rendered, ["前提ではなく", "範囲とは分け", "別作業"]):
+        errors.append("fix_vs_structure_first failed: rendered text does not separate code-structure work from bugfix scope")
+    if has_private_service_leak(rendered):
+        errors.append("fix_vs_structure_first failed: rendered text leaked private handoff wording")
     return errors
 
 
@@ -151,11 +188,24 @@ def is_private_service_case(case: dict) -> bool:
     return bool(service_id and service_id != "bugfix-15000")
 
 
+def is_private_public_boundary_case(source: dict, normalized: dict) -> bool:
+    if not is_private_service_case(normalized):
+        return False
+    service_hint = source.get("service_hint")
+    return service_hint == "boundary"
+
+
+def has_private_service_leak(rendered: str) -> bool:
+    return has_any(rendered, ["handoff-25000", "25,000円", "25000円", "25,000円側", "整理側", "主要1フロー"])
+
+
 def lint_case(module, case: dict) -> list[str]:
     normalized = case if case.get("reply_contract") else module.build_case_from_source(case)
-    if is_private_service_case(normalized):
-        return []
     rendered = module.render_case(normalized)
+    if is_private_service_case(normalized):
+        if is_private_public_boundary_case(case, normalized) and has_private_service_leak(rendered):
+            return ["private service leakage failed: public boundary prequote rendered private handoff wording"]
+        return []
     contract = normalized["reply_contract"]
     temperature_plan = normalized.get("temperature_plan") or {}
     primary_id = contract["primary_question_id"]
@@ -166,9 +216,11 @@ def lint_case(module, case: dict) -> list[str]:
 
     if not temperature_plan:
         errors.append("temperature_plan is missing")
+    custom_render_scenarios = {"budget_completion_gate", "fix_vs_structure_first"}
+    is_custom_render = normalized.get("scenario") in custom_render_scenarios
     is_custom_budget_completion = normalized.get("scenario") == "budget_completion_gate"
 
-    if not normalized.get("render_payload") and not is_custom_budget_completion:
+    if not normalized.get("render_payload") and not is_custom_render:
         errors.append("render_payload is missing")
     if normalized.get("render_payload_violations"):
         for violation in normalized["render_payload_violations"]:
@@ -184,7 +236,7 @@ def lint_case(module, case: dict) -> list[str]:
             direct_acceptance_markers.extend(["購入前に具体的な修正手順", "コード上の直し方までは", "購入前は症状"])
         if not has_any(rendered, direct_acceptance_markers):
             errors.append("primary answer_now case is missing direct acceptance language")
-    if primary["disposition"] == "answer_after_check" and not is_custom_budget_completion:
+    if primary["disposition"] == "answer_after_check" and not is_custom_render:
         if not has_any(
             rendered,
             [
@@ -208,9 +260,9 @@ def lint_case(module, case: dict) -> list[str]:
             errors.append("primary answer_after_check case is missing defer language")
         if not contract.get("ask_map"):
             errors.append("primary answer_after_check case has no ask_map")
-    if contract.get("ask_map") and not is_custom_budget_completion and not has_any(rendered, ["教えてください", "送ってください", "ください"]):
+    if contract.get("ask_map") and not is_custom_render and not has_any(rendered, ["教えてください", "送ってください", "ください"]):
         errors.append("ask_map exists but rendered text has no ask request")
-    if any(ask.get("default_path_text") for ask in contract.get("ask_map") or []) and not is_custom_budget_completion:
+    if any(ask.get("default_path_text") for ask in contract.get("ask_map") or []) and not is_custom_render:
         if not has_any(rendered, ["なければ", "難しければ", "決まっていなければ", "すぐ出せなければ", "まだ絞れていなければ"]):
             errors.append("optional ask exists but rendered text has no default-path language")
 
@@ -259,6 +311,7 @@ def lint_case(module, case: dict) -> list[str]:
     if has_solution_request_nonanswer(rendered, raw_message):
         errors.append("prequote_solution_request failed: solution-only request did not keep purchase-before boundary")
     errors.extend(collect_budget_completion_gate_errors(rendered, raw_message))
+    errors.extend(collect_fix_vs_structure_first_errors(rendered, raw_message))
 
     if (
         "価値があるか" in raw_message

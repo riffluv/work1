@@ -212,6 +212,8 @@ def detect_prequote_scenario(source: dict) -> str:
 
     if "不正アクセス" in combined:
         return "security_fear"
+    if is_fix_vs_structure_first_case(source):
+        return "fix_vs_structure_first"
     if is_budget_completion_gate_case(source):
         return "budget_completion_gate"
     if any(marker in combined for marker in ["保証はあります", "確実に直る", "直らなかった場合", "直らなかったら"]):
@@ -246,11 +248,6 @@ def detect_prequote_scenario(source: dict) -> str:
 def is_handoff_source(source: dict) -> bool:
     service_hint = source.get("service_hint")
     service_id = source.get("service") or source.get("service_id")
-    raw = source.get("raw_message", "")
-    if service_hint == "boundary" and any(
-        marker in raw for marker in ["25,000円", "25000円", "整理をスキップ", "修正だけお願い", "修正は不要"]
-    ):
-        return True
     return service_hint == "handoff" or service_id == "handoff-25000"
 
 
@@ -697,6 +694,17 @@ def is_scope_confusion_case(source: dict) -> bool:
     return any(marker in combined for marker in markers)
 
 
+def is_fix_vs_structure_first_case(source: dict) -> bool:
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+    if not any(marker in combined for marker in ["修正", "直す", "直して"]):
+        return False
+    if not any(marker in combined for marker in ["整理", "コード全体", "全体を理解", "把握", "リファクタ"]):
+        return False
+    return any(marker in combined for marker in ["どっち", "どちら", "先に", "先か", "まず"])
+
+
 def is_multi_symptom_case(source: dict) -> bool:
     raw = source.get("raw_message", "")
     note = source.get("note", "")
@@ -749,6 +757,8 @@ def is_budget_completion_gate_case(source: dict) -> bool:
             "原因不明",
             "直せなかった",
             "直らなかった",
+            "解決しなかった",
+            "解決しない",
             "修正範囲が広",
             "範囲が広",
             "2件だった",
@@ -1787,20 +1797,20 @@ def render_budget_completion_gate_case(case: dict) -> str:
             "\n".join([opener, "3本分の料金になるのか、という点を先に整理します。"]),
             "症状が出ているのが1本だけであれば、まずそのAPIを不具合1件として15,000円の範囲で確認します。\n念のため3本すべてを同じ深さで確認する前提ではありません。",
             "見ていく中で別のAPIも直さないと修正完了まで進められないと分かった場合は、そこで止めてご説明します。\n勝手に3件分の料金にしたり、そのまま追加作業へ進むことはありません。",
-            "まずは、レスポンスが返らなくなる1本のAPIと、発生時の状況を送ってください。そこから1件として見られそうかをお返しします。",
+            "まずは、レスポンスが返らなくなる1本のAPIと、発生時の状況を送ってください。そこから不具合1件として対応できそうかをお返しします。",
         ]
         return "\n\n".join(paragraphs)
 
-    if any(marker in raw for marker in ["2件", "２件", "2つ", "二つ", "複数", "30,000円", "30000円"]):
+    if any(marker in raw for marker in ["2件", "２件", "2つ", "二つ", "複数", "両方", "30,000円", "30000円"]):
         known_symptoms = "「" in raw or "1つ目" in raw or "2つがあります" in raw
         closing = (
-            "今書いていただいた2つを起点に、1件として見られそうかを先にお返しします。"
+            "今書いていただいた2つを起点に、不具合1件として対応できそうかを先にお返しします。"
             if known_symptoms
-            else "まずは2つの症状をそのまま送ってください。1件として見られそうかを先にお返しします。"
+            else "まずは2つの症状をそのまま送ってください。不具合1件として対応できそうかを先にお返しします。"
         )
         paragraphs = [
             "\n".join([opener, "追加費用が不安という点を先に整理します。"]),
-            "2つの症状が同じ原因で起きている場合は、不具合1件として15,000円の範囲で見られる可能性があります。\n別原因だった場合は、両方をこの金額内で直し切れるとは限りません。",
+            "2つの症状が同じ原因で起きている場合は、不具合1件として15,000円の範囲で対応できる可能性があります。\n別原因だった場合は、両方をこの金額内で直し切れるとは限りません。",
             "その場合も、勝手に料金が増えたり、そのまま追加作業へ進むことはありません。\nこの金額内では修正完了まで進められないと分かった時点で止めてご説明します。",
             closing,
         ]
@@ -1822,6 +1832,19 @@ def render_budget_completion_gate_case(case: dict) -> str:
         "今回の見積もりは15,000円の範囲で進める前提です。\n確認の結果、この金額内では修正完了まで進められないと分かった場合は、そこで止めてご説明します。",
         "勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
         "具体的な症状がまだであれば、分かる範囲で送ってください。対応範囲に入りそうかを先に見立てます。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
+def render_fix_vs_structure_first_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    opener = opener_for(case)
+    symptom = "customer.subscription.deleted のイベント処理が失敗する件" if "customer.subscription.deleted" in raw else "いま出ている不具合"
+    paragraphs = [
+        "\n".join([opener, f"この場合は、まず、{symptom}から、不具合修正として見るのが近いです。"]),
+        "コード全体を先に整理し直す前提ではなく、ご購入後は修正に必要な範囲で Webhook 周りを確認します。",
+        "不具合1件として対応できる内容であれば、15,000円の範囲で原因確認から修正まで進めます。\n確認の結果、大きな整理や別の処理の修正が必要で、この金額内では修正完了まで進められないと分かった場合は、そこで止めてご説明します。勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+        "この内容で進める場合は、ご購入後に発生時のログや関係ファイルを送ってください。",
     ]
     return "\n\n".join(paragraphs)
 
@@ -1952,6 +1975,9 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "budget_completion_gate":
         case["rendered_reply_validator_mode"] = "budget_completion_gate"
         return render_budget_completion_gate_case(case)
+    if case.get("scenario") == "fix_vs_structure_first":
+        case["rendered_reply_validator_mode"] = "fix_vs_structure_first"
+        return render_fix_vs_structure_first_case(case)
     reply_stance = case.get("reply_stance") or {}
     if reply_stance.get("reply_skeleton") != "estimate_initial":
         raise ValueError(f"{case.get('id')}: only estimate_initial is supported")

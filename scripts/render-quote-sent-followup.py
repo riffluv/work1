@@ -202,6 +202,7 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
         "risk_refund_question",
         "payment_method",
         "dashboard_scope_question",
+        "prepayment_materials_before_payment",
         "extra_fee_fear",
         "self_apply_support",
         "secret_share_reassurance",
@@ -1002,6 +1003,12 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["管理画面の設定", "設定が間違ってる", "自分で直せるなら", "お金かけずに"])
     ):
         return "price_not_found_self_fix_question"
+    if (
+        any(marker in combined for marker in ["支払い", "入金", "購入前"])
+        and any(marker in combined for marker in ["先に", "支払い前", "入金前"])
+        and any(marker in combined for marker in ["コード", "ログ", "原因"])
+    ):
+        return "prepayment_materials_before_payment"
     if "別原因" in combined and ("金額が増える" in combined or "キャンセル" in combined or "怖くて" in combined):
         return "extra_fee_fear"
     if any(
@@ -1084,6 +1091,10 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["reaction", "direct_answer", "answer_detail"]
     elif scenario == "dashboard_scope_question":
         direct_answer_line = "Webhook受信口に関係する範囲であれば、Stripeダッシュボード側の設定も確認対象です。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "prepayment_materials_before_payment":
+        blocking_missing_facts = ["payment_completion"]
+        direct_answer_line = "支払い前にコードやログを受け取って原因確認を進めることはしていません。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "extra_fee_fear":
         direct_answer_line = "今回の見積もりは15,000円の範囲で進める前提です。"
@@ -1444,6 +1455,23 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q1",
                     "disposition": "answer_now",
                     "answer_brief": "Webhook受信口に関係する範囲であれば、Stripeダッシュボード側の設定も確認対象です。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "prepayment_materials_before_payment":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "支払い前にコードやログを送れば原因だけ先に見てもらえるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "支払い前にコードやログを受け取って原因確認を進めることはしていません。",
                 }
             ],
             "ask_map": [],
@@ -2138,6 +2166,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "支払い方法の件ですね。"
     if scenario == "dashboard_scope_question":
         return "Webhook受信口に加えて、Stripeダッシュボード設定の件ですね。"
+    if scenario == "prepayment_materials_before_payment":
+        return "提案内容と、支払い前に原因だけ見てもらえるかの件ですね。"
     if scenario == "extra_fee_fear":
         return "金額が増えるのが不安という点を先に整理します。"
     if scenario == "self_edit_fee_anxiety":
@@ -2372,6 +2402,13 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         return [
             f"{direct_answer}\nStripe 以外の別機能や別原因まで広がる場合だけ、その時点で切り分けて事前にご相談します。".strip(),
             purchase_closing(scenario, raw),
+        ]
+
+    if scenario == "prepayment_materials_before_payment":
+        return [
+            f"{direct_answer}\n原因確認や作業は、ご購入後に始めます。".strip(),
+            "ご購入後にコードやログを送ってください。受領後、原因確認から進めます。",
+            "この内容で問題なければ、お支払い完了後にトークルームで必要情報を送ってください。",
         ]
 
     if scenario == "extra_fee_fear":

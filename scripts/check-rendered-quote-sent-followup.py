@@ -90,7 +90,8 @@ def lint_case(module, source: dict) -> list[str]:
         and has_any(raw, ["先に", "支払い前", "入金前"])
         and has_any(raw, ["コード", "ログ", "原因"])
     ):
-        if has_any(rendered, ["送ってください", "教えてください"]):
+        explicit_after_payment = has_any(rendered, ["ご購入後", "購入後", "入金完了後", "お支払い完了後", "支払い完了後"])
+        if has_any(rendered, ["送ってください", "教えてください"]) and not explicit_after_payment:
             errors.append("quote_sent pre-payment work request asks for materials before purchase/payment")
         if not has_any(rendered, ["購入・入金完了前", "入金完了前", "支払い前", "ご購入後", "入金完了後"]):
             errors.append("quote_sent pre-payment work request does not state work starts after purchase/payment")
@@ -259,6 +260,8 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("outline share permission case does not invite a minimal outline naturally")
 
     if scenario == "extra_fee_fear":
+        if not has_any(rendered, ["15,000円", "15000円", "今回の見積もり", "この金額"]):
+            errors.append("extra fee fear case does not anchor the current quote/scope")
         if not has_any(rendered, ["自動", "勝手"]):
             errors.append("extra fee fear case does not explain that fee/additional work will not happen automatically")
         if not has_any(rendered, ["追加対応", "追加作業"]):
@@ -269,8 +272,12 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("extra fee fear case does not address the fee anxiety directly")
         if not has_any(rendered, ["修正完了", "正式納品", "修正済みファイル"]):
             errors.append("extra fee fear case does not include the completion gate for unfinished work")
+        if has_any(raw, ["修正範囲が広", "原因不明", "別原因", "支払いボタン"]) and not has_any(rendered, ["止めて", "そこで止め", "正式納品"]):
+            errors.append("extra fee fear case does not explain the stop/no-incomplete-delivery rule")
         if not has_any(rendered, ["キャンセル", "ココナラ", "作業状況"]):
             errors.append("extra fee fear case does not land the cancellation question")
+        if has_any(rendered, ["返金します", "返金できます", "キャンセルできます", "全額返金", "返金保証"]):
+            errors.append("extra fee fear case makes refund/cancel sound guaranteed")
 
     if scenario == "self_edit_fee_anxiety":
         if not has_any(rendered, ["触った", "今の状態", "対応"]):

@@ -1,0 +1,29 @@
+date: 2026-04-26
+case_ref: "RE-2026-04-26-bugfix-18 B08"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / prequote boundary"
+buyer_decision_stage: "prequote"
+service: "bugfix-15000"
+state: "prequote"
+
+# --- 診断 ---
+symptom: "buyer が `修正と整理、どちらを先に頼むべきか` と聞いているのに、旧 bugfix テンプレートへ戻り、主質問に答えないまま購入導線へ進んだ"
+failure_label: "fix_vs_structure_first / nonanswer / transaction_model_gap"
+failure_layer: "reply-only / validator candidate / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "batch-15 B03 と batch-18 B08 で同型再発。コード整理に言及する prequote は今後も出やすく、非公開 handoff 導線漏れと bugfix 主質問 nonanswer の両リスクがある"
+return_target: "validator / gold / renderer_minimal"
+decision: "adopt"
+decision_reason: "現公開状態では handoff-25000 を外向けに出さず、まず不具合修正から見るのが近いかを直答する必要がある。文字列条件で安定検出できるため validator 向き"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "過去batch同型"
+existing_rule_hit: "あり"
+not_returned_reason: ""
+next_sentinel: "prequote で raw に `修正` と `整理/コード全体/把握/リファクタ`、さらに `どっち/どちら/先に/先か/まず` がある場合、基本テンプレートへ流れず、まず不具合修正から見るかを直答できるか"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "修正と整理の相談では、公開中 bugfix の範囲で、まず直したい不具合から見るのが近いかを直答し、コード全体の整理は不具合修正の範囲と分ける"
+upstream_fix: "failure taxonomy に fix_vs_structure_first を追加。Gold Reply 25 に型を追加。prequote renderer に fix_vs_structure_first の最小分岐を追加。prequote validator と active fixture PSV-006 を追加"

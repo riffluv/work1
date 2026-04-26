@@ -77,7 +77,7 @@ CASE_EXPECTATIONS = {
         },
     },
     "V6-011": {
-        "primary_contains": "見てもら",
+        "primary_contains": "25,000円の方が安全",
         "primary_disposition": "answer_after_check",
         "ask_count": 1,
         "question_dispositions": {

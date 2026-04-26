@@ -827,6 +827,9 @@ def detect_scenario(source: dict) -> str:
         or "範囲外なら別で相談" in combined
         or "一緒に見てもらうことは可能" in combined
         or "これも一緒に見てもら" in combined
+        or "一緒に直してもら" in combined
+        or "一緒に直して" in combined
+        or "同じ原因なら一緒" in combined
         or "これも同じ修正の中で見てもら" in combined
         or "依頼した件とは別" in combined
         or "今やってもらってる件とは別" in combined

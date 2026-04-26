@@ -1,0 +1,423 @@
+結論: 条件付き健全 ✅
+
+全体として、返信SYSTEMの学習ループはかなり健全です。特に、外部監査の指摘をそのまま rule 化せず、再発性・実務リスク・戻し先で選別する設計は維持できています。
+
+ただし、今回の重点である completion_gate_gap 周辺だけは、設計思想は正しいが、公開リポジトリ上の記録・taxonomy・validator の同期が少し崩れています。ここは小さく直した方がいいです。
+
+なお、こちらの環境ではGitHub専用コネクターは使えなかったため、公開GitHubページとRaw表示から確認しました。ココナラの現行仕様そのものは公式ヘルプで再確認していないため、キャンセル・返金の制度面は引き続き 要確認 扱いが安全です。
+
+最も重要な評価
+
+一番大きい評価はこれです。
+
+transaction_model_gap は reviewer lens として正しく抑制できている。
+completion_gate_gap は gold / sentry / targeted validator に戻すべき実務リスクだが、taxonomy・change-log・checker の同期がまだ弱い。
+
+failure-taxonomy.ja.md では、transaction_model_gap が「主質問・phase・確認材料と実作業・料金/返金/無料対応・次アクションが一本の取引構造としてつながっていない」時の reviewer 専用 lens と定義され、生成 rule や validator ではないと明記されています。これはかなり良い切り分けです。
+
+一方で、learning-log では completion_gate_gap を採用し、Gold 25・sentry・renderer / validator へ反映したと記録されていますが、公開中の failure-taxonomy.ja.md には completion_gate_gap、template_quote_drift、cancel_word_misroute が見当たりません。これは設計破綻ではありませんが、学習ループの監査可能性が落ちる source-of-truth drift です。
+
+重大リスク Top 5
+優先	リスク	評価	該当ファイル
+1	CHG-047〜CHG-055 が公開 change-log で確認できない	高	docs/reply-quality/reply-change-log.ja.md
+2	completion_gate_gap が taxonomy に未収録に見える	高	docs/reply-quality/failure-taxonomy.ja.md
+3	quote_sent の completion gate validator が少し弱い	中〜高	scripts/check-rendered-quote-sent-followup.py
+4	prequote 側の checker coverage が見えにくい	中	scripts/check-rendered-prequote-estimate.py
+5	Gold 25 がこれ以上増えると参照ノイズ化する	中	docs/reply-quality/gold-replies/25_pre-shelf-regression-boundaries.ja.md
+1. CHG-047〜CHG-055 が公開 change-log で確認できない
+
+ユーザー指定では CHG-047〜CHG-055 周辺が重要とのことでしたが、公開ページ上では CHG-047、CHG-055、completion_gate_gap の該当記述が見つかりませんでした。現在確認できる change-log は CHG-046 までで、CHG-045 / CHG-046 には transaction_model_gap の reviewer lens 化と deterministic validator 方針が記録されています。
+
+これは返信品質そのものより、運用監査の再現性の問題です。今回のような外部監査では「どの判断を、どの証拠で、どこへ戻したか」が追えなくなるため、早めに直した方がいいです。
+
+2. completion_gate_gap が taxonomy に未収録に見える
+
+learning-log では completion_gate_gap を failure label として採用し、taxonomy に追加したと書かれていますが、公開中の failure-taxonomy.ja.md では該当ラベルが見当たりません。
+
+ここは 今すぐ最小追加 がよいです。writer rule ではなく、次のような reviewer / sentry 用ラベルで十分です。
+
+- `completion_gate_gap`
+  - buyer が「15,000円を超えるなら止めたい」「原因不明でも料金がかかるのか」
+    「別原因なら追加費用になるのか」「直せなければ返金/キャンセルか」
+    を気にしているのに、
+    15,000円内で進める前提・超える場合は止めて説明・勝手に追加作業へ進まない・
+    未完成納品へ押し切らない・返金/キャンセルを断定しない、の必要部分が欠けている。
+  - 生成 rule ではなく reviewer lens / targeted sentry として使う。
+  - 毎回6点すべてを書くためのラベルではない。
+3. quote_sent の completion gate validator が少し弱い
+
+completion-gate-quote-sent.yaml は、buyer が「別原因が2つ以上ならキャンセルできるか、金額が増えるか、支払いを迷う」と聞くケースを sentry 化しており、意図は適切です。
+
+ただし check-rendered-quote-sent-followup.py の extra_fee_fear validator は、現状では「自動/事前/止める」「料金/追加対応」「キャンセル/ココナラ」を見る構成です。これは悪くありませんが、completion_gate_gap の中核である 15,000円の範囲 と 修正完了まで進められない場合に未完成納品へ押し切らない までは明示的に守っていません。
+
+この validator はグローバル化せず、completion_gate_quote_sent sentry 専用に少し足すのがよいです。
+
+4. prequote 側の checker coverage が見えにくい
+
+completion-gate-prequote-budget.yaml はかなり良いです。CGB-001〜006 で、2件化、複数症状、原因不明、返金不安、全体修正期待、3 API 課金不安を分けています。これは completion_gate_gap の本丸です。
+
+ただ、公開ページ上で check-rendered-prequote-estimate.py を見る限り、completion_gate、正式納品、返金、追加料金 の明示チェックは確認できませんでした。
+
+実際には別名・共通lint・scenario側で拾っている可能性はありますが、少なくとも監査上は CGB sentry と checker の紐づきが見えにくい です。
+
+5. Gold 25 は有用だが、これ以上増やすとノイズ化しやすい
+
+Gold 25 は、completion_gate_gap の内部判断モデルを明確にしつつ、外向けには必要部分だけ短く出すと書いています。これは今回の方針と一致しています。
+
+ただし Gold 25 はすでに quote_sent、prequote複数型、対処法だけ、delivered承諾後まで含んでいます。これ以上近い型を gold として増やすより、CGB / CGQ sentry と checker で守る方が健全です。
+
+completion_gate_gap の評価
+評価: 方針は適切。実装同期は要補修。
+
+Gold 25 の内部判断モデルはかなり良いです。特に、次の6点が揃っているのは健全です。
+
+15,000円で修正完了まで進める前提
+別原因・別フロー・重い修正が見つかったら勝手に追加作業へ進まない
+15,000円内で完了できないと分かったら止めて説明する
+buyer が追加費用を望まないなら未完成のまま正式納品へ押し切らない
+キャンセル/返金は断定せず、作業状況とココナラ手続きに沿って相談する
+軽微なら基本料金内対応に吸収する余地を残す
+
+Gold 25 はさらに、外向け文面では全部を毎回出さず、「15,000円の範囲」「超える場合は止めて説明」「勝手に追加作業へ進まない」程度に圧縮する、と明記しています。これは長文化を避ける設計として正しいです。
+
+返金保証・キャンセル保証に見えすぎないか
+
+現状は 概ね大丈夫 です。
+
+Gold 25 の「キャンセル扱いを含めて、ココナラ上の手続きに沿ってご相談します」という表現は、保証断定ではなく相談導線なので許容範囲です。ただし、buyer が強く返金を聞いているケースでは、返金になります / キャンセルできます / 全額返金 のような断定が出ない validator は追加した方が安全です。Gold 25 自体も「返金やキャンセル扱いをこの時点で断定することはできません」と書けているので、思想は合っています。
+
+未完成納品を押し切らない方針は弱すぎないか
+
+Gold とサービスページ上は十分強いです。
+
+サービスページでは、原因を特定できず修正方針にもつながらない場合は「原因不明のまま正式納品へ進めません」と明記されています。FAQでも、修正済みファイル返却まで進められない場合は正式納品へ進めず、キャンセルを含めて相談すると書かれています。
+
+弱いのは方針ではなく、renderer / checker で毎回守られているかの検知です。特に quote_sent / prequote の completion gate sentry では、「15,000円」「修正完了」「正式納品/未完成」のいずれかを軽く見る条件があると安心です。
+
+buyer の「15,000円を超えるなら止めたい」に答えられているか
+
+Gold 25 と CGB/CGQ sentry は答えています。CGQ-001 はまさに「支払いボタンを押すのを迷う」「金額が増えるのが怖い」というケースで、CGB-001〜006 も予算上限・追加費用・返金不安を明確に拾っています。
+
+ただし、quote_sent の raw detection が「別原因」かつ「怖い/金額が増える」に寄っているため、「予算オーバーなら止めたい」「追加費用が出るなら依頼しない」「2件扱いならやめたい」などの言い換えを拾い漏らすリスクはあります。render-quote-sent-followup.py では extra_fee_fear_present の検出条件がやや狭いです。
+
+writer rule として長文化しすぎていないか
+
+今のところ、長文化しすぎていません。
+
+むしろ Gold 25 は「外向け文面を長くするためではなく、返信前に取引判断を固定する」と書いており、標準文も3要素に圧縮しています。
+
+ここは絶対に、毎回6点すべてを本文に出す方向へ進めない方がいいです。
+
+transaction_model_gap の評価
+評価: かなり適切。writer rule 化しない方針を維持でよい。
+
+transaction_model_gap は、文面単体の自然さではなく、支払い状態・作業開始・確認材料・実作業・見積り・成果物返却・次アクションが一本の取引としてつながっているかを見る lens として機能しています。failure-taxonomy.ja.md でも reviewer 専用と明記されており、これは正しいです。
+
+Gold 24 も良いです。purchased の追加症状では「同じ原因なら今回内、別原因なら先に相談、勝手に追加料金なし」、closed 後では「メッセージ上でエラー確認はできるが、コードの具体修正指示は作業の一部」、次回相談では「症状概要 → 見積り提案 → 購入」の順番を示しています。これは transaction model の見本として妥当です。
+
+writer rule にしすぎていないか
+
+しすぎていません。CHG-045 でも、transaction_model_gap は writer rule ではなく reviewer 専用、validator に入れるのは deterministic な事故だけと明記されています。
+
+この方針は維持でよいです。
+
+deterministic な事故だけ validator 化する方針は妥当か
+
+妥当です。
+
+CHG-046 では、quote_sent の入金前材料要求 guard、purchased の追加症状・別料金不安 guard を validator に戻したと記録されています。これは transaction_model_gap のうち、安定して文字列検出できる事故だけ validator 化するという考え方に合っています。
+
+post-purchase checker 側でも、追加範囲の話があるときに「今回の件 / 別の話 / 同じ原因」などの関係分離と、「追加料金 / 追加対応 / 勝手に追加 / 先にご相談」をチェックしています。これは過剰ではなく、purchased phase の高リスク事故を狙えている validator です。
+
+reviewer_prompt 止まりでよいもの / validator に戻すべきもの
+
+現時点で transaction_model_gap については、追加で大きく validator 化する必要は薄いです。
+
+ただし、closed 後の「購入なしで直し方だけ教えて」は、Gold 24 にある通り高リスクです。すでに closed 側で guard があるなら維持、なければ closed 専用 sentry として残す価値があります。writer rule 化は不要です。
+
+学習ループの評価
+評価: 健全
+
+learning-log では、batch-12〜17 で複数回出た事故を、すべて renderer rule にせず、Gold 25 に圧縮し、deterministic に検出できるものだけ validator 化し、targeted sentry で実際に generic fallback が残ったものだけ renderer 最小分岐へ戻した、と記録されています。これはかなり良い運用です。
+
+failure-taxonomy.ja.md も、同じ崩れが2回以上出たら skill / schema / self-check / NG / gold の戻し先を決める、好みだけでは恒久反映しない、としています。
+
+つまり、ループ自体は以下の形で機能しています。
+
+#RE / batch 失敗
+  -> 外部監査
+  -> failure label 付与
+  -> 再発性・実務リスク・戻し先で選別
+  -> gold / validator / reviewer_prompt / renderer_minimal / case_fix へ最小反映
+
+これは健全です。
+
+問題は、「反映した」と言っている内容が public taxonomy / change-log と完全には一致していないことです。運用思想ではなく、台帳同期の問題です。
+
+validator / gold / reviewer_prompt / case_fix の分類評価
+戻し先	現状評価	コメント
+validator	概ね適切。ただし completion gate は少し補強	transaction_model 系は過剰化していない。completion gate の quote_sent / prequote だけ targeted 条件を増やすとよい。
+gold	適切。ただし Gold 25 は増やしすぎ注意	Gold 24 / 25 は必要。これ以上、近い completion gate 例を増やすと参照ノイズ化しやすい。
+reviewer_prompt	適切	phase_answer_gap / transaction_model_gap を writer rule にせず reviewer lens にしているのは正しい。
+case_fix	使い分けは概ね妥当	単発の温度感・文体好みは case_fix / observation で止める方針が維持されている。
+renderer_minimal	妥当	全面再設計ではなく、generic fallback が残った場所だけ最小分岐にしている点がよい。
+サービスページと返信SYSTEMの取引モデル一致
+評価: かなり一致している
+
+bugfix-15000.live.txt は、返信SYSTEMの基本条件と整合しています。
+
+サービスページでは、15,000円で「不具合1件（同一原因）」について、原因確認、修正内容作成、確認手順整理、修正済みファイル返却まで対応すると書かれています。購入前は対応範囲や進め方の見立てまで、と明記されています。
+
+また、同じ原因の複数箇所は基本料金内、別原因だけ追加対応、追加料金は自動発生せず必ず事前相談、原因不明のまま正式納品へ進めない、という completion gate と同じ構造がサービスページ側にもあります。
+
+FAQ でも、15,000円の範囲、同一原因/別原因、追加料金の非自動発生、原因不明のまま正式納品しないことが説明されています。
+
+1点だけ軽微に気になる箇所
+
+サービスページの例文側に「追加の件も確認しますね」のような表現が残っている場合、購入後・納品後の返信に転用されると、同一原因判定前に追加作業を受けたように見える可能性があります。
+
+大きな問題ではありませんが、サービスページ例文では次の方がより安全です。
+
+追加の件も確認しますね
+
+よりも、
+
+まず今回の不具合と同じ原因の範囲かを確認しますね
+
+の方が、completion_gate_gap と transaction_model_gap の両方に合います。
+
+phase 理解の評価
+prequote
+
+概ね良いです。購入前は「見立て」「対応範囲」「進め方」までで、実作業・具体修正手順へ踏み込まない方針がサービスページと Gold 25 にあります。
+
+ただし render-prequote-estimate-initial.py の procedure_only 返答は、「手順書だけを別で作る形ではなく、15,000円で原因調査から修正まで対応しています」となっており、Gold 25 の「購入前に具体的な修正手順やコード上の直し方までは伝えない」の方が明確です。ここは大きな修正ではなく、secondary answer の文言を Gold 25 寄せにする程度で十分です。
+
+quote_sent
+
+見積り提案後・購入前という理解は良いです。CHG-038 / CHG-039 / CHG-046 でも、quote_sent は提案済みだが入金前、実作業前であることを整理しています。
+
+ただし、completion gate の不安がある場合は、「購入してください」へ急がず、支払い前に buyer が知りたい止まり方を1〜2文で返す必要があります。CGQ-001 はそのための sentry として適切です。
+
+delivered
+
+delivered は formal delivery 後・close 前の境界として概ね守れています。delivered checker でも、承諾前テスト、承諾への直接言及、本番で無理に試させない guard が入っています。
+
+Gold 25 の delivered 例も、「承諾前なら気になる点を送れる」「無理に承諾しなくてよい」「承諾後はメッセージ確認はできるが、そのまま修正作業継続の前提ではない」と分けられており、かなり良いです。
+
+closed
+
+closed は transaction_model_gap の中心です。Gold 24 の「エラー内容はメッセージ上で確認できるが、コードのどこをどう直すかは修正作業の一部」「購入なしで具体的な修正指示まで進められない」は、確認材料と実作業の境界として適切です。
+
+ここは writer rule 化せず、closed 専用 sentry / gold で十分です。
+
+いますぐ直すべきもの
+1. reply-change-log.ja.md に CHG-047〜CHG-055 を反映する
+
+優先度: 高
+
+現状、公開リポジトリでは CHG-047〜CHG-055 が見えません。今回の completion_gate_gap は重要な方針なので、少なくとも次の内容を change-log に載せた方がいいです。
+
+### 2026-04-26 / CHG-047
+* 分類: reply-only
+* レイヤ: completion gate / gold / sentry / targeted validator
+* 変更: quote_sent / prequote の追加費用・返金・予算上限不安を completion_gate_gap として整理。
+  Gold 25 に内部判断モデルを保存し、外向け文面は必要部分だけ短く出す方針にした。
+* メモ: 返金/キャンセル保証にはしない。writer rule として毎回6点を出さない。
+2. failure-taxonomy.ja.md に completion_gate_gap を最小追加する
+
+優先度: 高
+
+learning-log には追加済みとあるため、taxonomy 側を同期するのが先です。
+
+追加位置は phase 補助ラベル の下か、transaction_model_gap の直後が自然です。
+
+3. check-rendered-quote-sent-followup.py の extra_fee_fear を少し強化する
+
+優先度: 中〜高
+
+現状の validator は基礎は良いですが、completion gate の中核がやや薄いです。
+
+追加案:
+
+if scenario == "extra_fee_fear":
+    if not has_any(rendered, ["15,000円", "15000円", "今回の見積もり", "この金額"]):
+        errors.append("extra fee fear case does not anchor the current 15,000 yen quote/scope")
+
+    if has_any(raw, ["修正範囲が広", "原因不明", "別原因が", "支払いボタン押すの迷"]):
+        if not has_any(rendered, ["修正完了", "正式納品", "未完成", "止めて", "そこで止め"]):
+            errors.append("completion gate case does not explain the no-incomplete-delivery / stop-before-continuing rule")
+
+    if has_any(rendered, ["返金します", "キャンセルできます", "全額返金", "返金保証"]):
+        errors.append("completion gate case makes refund/cancel sound guaranteed")
+
+ポイントは、全返信に適用しないことです。scenario == "extra_fee_fear" など、completion gate sentry 専用にしてください。
+
+4. check-rendered-prequote-estimate.py に CGB 用 targeted check を足す
+
+優先度: 中
+
+公開上では prequote checker に completion_gate / 正式納品 / 返金 / 追加料金 の明示チェックが見えませんでした。
+
+CGB-003 / CGB-004 だけでも、次のような sentry check を入れると良いです。
+
+if case.get("category") == "completion_gate_prequote_budget":
+    if has_any(raw, ["原因不明", "返金", "無駄"]):
+        if not has_any(rendered, ["調査だけ", "原因確認", "修正済みファイル", "正式納品"]):
+            errors.append("prequote completion gate does not explain that 15,000 yen is not investigation-only")
+        if has_any(rendered, ["返金になります", "必ず返金", "キャンセルできます"]):
+            errors.append("prequote completion gate asserts refund/cancel outcome")
+5. render-quote-sent-followup.py の検出語を少し広げる
+
+優先度: 中
+
+現状は 別原因 + 怖い/金額が増える で extra_fee_fear_present を立てています。
+
+拾いたい追加語:
+
+extra_fee_markers = [
+    "追加費用", "追加料金", "予算", "予算オーバー",
+    "2件", "二件", "複数", "別件",
+    "支払いボタン", "払ってから", "増えたら", "止めたい"
+]
+
+これも過剰に広げず、quote_sent のみでよいです。
+
+まだ直さなくてよいもの
+transaction_model_gap を writer rule に常時追加すること
+→ 不要です。今の reviewer lens 方針が正しいです。
+completion_gate_gap の6点を全返信に常時出すこと
+→ 不要です。防御的に長くなり、buyer の主質問に答える速度が落ちます。
+Gold 25 の近似例をさらに増やすこと
+→ 不要です。今後は gold 追加より sentry / checker で守る方がよいです。
+renderer / scenario の広い再設計
+→ 不要です。learning-log の「最小 renderer」「deterministic validator」方針で十分です。
+ココナラの返金・キャンセル実務を本文で断定すること
+→ 要確認のまま、作業状況とココナラ上の手続きに沿って相談、で止めるべきです。
+追加すべき sentry / validator 具体案
+A. completion_gate_quote_sent_scope_anchor
+
+対象: completion-gate-quote-sent.yaml
+
+検知条件:
+
+state: quote_sent
+category: completion_gate_quote_sent
+raw includes any:
+  - 支払いボタン
+  - 金額が増える
+  - 追加費用
+  - キャンセル
+  - 別原因
+
+期待:
+
+- 15,000円 / 今回の見積もり / この金額 のいずれかに触れる
+- 勝手に料金が増えない
+- 追加作業へ進む前に相談する
+- キャンセル/返金を断定しない
+B. completion_gate_no_refund_guarantee
+
+対象: quote_sent / prequote の返金・キャンセル不安
+
+NG:
+
+返金します
+キャンセルできます
+全額返金
+返金保証
+必ず戻ります
+
+OK:
+
+この時点で断定はできません
+ココナラ上の手続きに沿って相談します
+作業状況を整理して相談します
+C. completion_gate_no_incomplete_delivery
+
+対象: CGB-003 / CGB-004
+
+期待:
+
+原因不明のまま正式納品へ進めない
+修正完了まで進められない場合は止めて説明する
+調査だけで15,000円をいただく趣旨ではない
+
+これはサービスページと強く一致します。
+
+D. prequote_actual_work_guard
+
+対象: 「対処法だけ教えて」「直し方だけ知りたい」
+
+NG例:
+
+constructEvent をこう直してください
+raw body をこう取ってください
+このファイルのこの行を変更してください
+
+期待:
+
+購入前は見立てまで
+具体的な原因確認と修正は購入後
+
+Gold 25 の「購入前に具体的な修正手順やコード上の直し方までは伝えていない」に合わせる形です。
+
+E. closed_work_boundary_transaction_model
+
+対象: closed 後の「前と同じなら直し方だけ教えて」
+
+期待:
+
+メッセージ上でエラー概要は確認できる
+具体的な修正指示は作業の一部
+作業が必要ならココナラ上で進め方と費用有無を先に相談
+
+これは Gold 24 の型を sentry 化するだけで、writer rule 化は不要です。
+
+逆に削る / 増やさない方がよいもの
+削る候補
+
+現時点で「即削除すべき validator / gold」は強くは見つかりませんでした。
+
+ただし、今後の追加方針としては次を守るのが安全です。
+
+対象	方針
+Gold 25 の類似ケース	これ以上増やさない。CGB/CGQ sentry に逃がす。
+transaction_model_gap の本文 rule	追加しない。reviewer lens 維持。
+completion gate の6点定型文	writer rule 化しない。
+「キャンセルできます」系の安心表現	validator で禁止寄りにする。
+「迷うなら支払いボタンを押さなくて大丈夫」	標準文には戻さない。buyer が直接聞いた時だけ慎重に。
+次に取るべき3手
+1. 台帳同期を直す
+
+最優先はこれです。
+
+docs/reply-quality/reply-change-log.ja.md
+CHG-047〜CHG-055 を公開リポジトリに反映
+特に completion_gate_gap の採用理由、戻し先、非 writer rule 方針を記録
+docs/reply-quality/failure-taxonomy.ja.md
+completion_gate_gap
+template_quote_drift
+cancel_word_misroute
+
+を learning-log と一致させる。
+
+2. completion gate の targeted validator だけ足す
+
+次に、広い rule ではなく次の2つだけを入れるのが良いです。
+
+scripts/check-rendered-quote-sent-followup.py
+extra_fee_fear に 15,000円 scope anchor / no refund guarantee / stop-before-add-work を追加
+scripts/check-rendered-prequote-estimate.py
+completion_gate_prequote_budget category だけ、正式納品 gate / 返金非断定 / 追加費用非自動をチェック
+3. Gold は増やさず、sentry の結果で次の1回だけ判断する
+
+次の #RE では、Gold 追加ではなく次の観点だけ見れば十分です。
+
+- quote_sent: buyer が支払い前に止まり方を理解できるか
+- prequote: 15,000円が調査だけに見えないか
+- prequote: 返金/キャンセル保証に見えないか
+- purchased: 同一原因/別原因/追加料金が一息でつながるか
+- closed: 確認材料と実作業が混ざらないか
+
+この5点で再発したものだけを validator / renderer_minimal に戻せば、今の健全な学習ループを保てます。

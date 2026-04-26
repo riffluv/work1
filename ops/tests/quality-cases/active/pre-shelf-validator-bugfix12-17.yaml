@@ -65,3 +65,16 @@ cases:
     primary_question: 今後このトークルームで継続対応や月1回確認をしてもらえるか。
     raw_message: "納品ありがとうございます。一応動いてはいるんですが、今後もし何か問題が出た場合って、このトークルームで聞いたら対応してもらえますか？月に1回くらい確認してもらえると安心なんですが。"
     note: delivered_generic_fallback の sentry。月次保守を今回範囲に含めない。
+
+  - id: PSV-006
+    stock_id: B18-08
+    category: pre_shelf_validator
+    route: service
+    state: prequote
+    user_type: indie_hacker
+    emotional_tone: normal
+    service_hint: boundary
+    question_type: prequote_fix_vs_structure_first
+    primary_question: Webhook の不具合修正とコード整理のどちらを先に頼むべきか。
+    raw_message: "個人開発でStripe Billingを使ったサブスクサービスを運営してます。最近customer.subscription.deletedのイベント処理がたまに失敗するんですが、そもそもWebhook周りのコードが自分でも「なんでこう書いたっけ」状態なので、修正の前にまず整理した方がいいかもしれません。修正と整理、どっちを先に頼むべきですか？"
+    note: 修正と整理の boundary sentry。非公開サービス名や25,000円導線を出さず、まず不具合修正から見るべきかに直答する。

@@ -511,3 +511,11 @@
 - 変更: CHG-054 で削除したトークルーム回答例3件を、本番ページ用の必須欄として復元した。回答例は current completion gate / 秘密値禁止 / 追加料金自動発生なしの方針に合わせて更新し、`将来追加候補` だけは公開文面に戻さない
 - きっかけ: ユーザー確認で、トークルーム回答例3件は公開ページに書き込む必要がある項目だと判明した
 - 想定効果: ココナラのサービスページ項目を欠落させず、未公開サービス導線だけを除外した状態に戻す
+
+### 2026-04-26 / CHG-056
+- 分類: `reply-only`
+- レイヤ: prequote renderer / validator / gold / shelf
+- 変更: batch-18 B08 の監査結果を棚卸しし、`修正と整理、どちらを先に頼むべきか` への旧テンプレート回帰を `fix_vs_structure_first` として追加した。failure taxonomy / Gold Reply 25 / 棚卸しメモ / learning-log に反映し、prequote renderer には非公開 handoff 導線を出さずに「まず不具合修正から見るのが近い」と直答する最小分岐を追加した。prequote validator と active fixture `PSV-006` も追加した
+- きっかけ: Codex / Claude 監査で、B08 だけが `この不具合なら15,000円で進められます` の基本テンプレートへ戻り、buyer の主質問「修正と整理どちらが先か」に答えていないと一致した
+- 想定効果: 現公開状態で `整理` `コード全体` `把握` などの語が出ても、非公開サービス名や25,000円導線へ逃がさず、公開中 bugfix の範囲で主質問に答えられる
+- 確認: `PSV-006` targeted lint OK。`pre-shelf-validator-bugfix12-17.yaml` unified render + lint OK。`check-rendered-prequote-estimate.py --case-id PSV-006` OK

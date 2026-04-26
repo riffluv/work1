@@ -209,8 +209,8 @@ def detect_scenario(source: dict) -> str:
     ):
         return "approval_ok_with_future_request"
     if (
-        any(marker in combined for marker in ["承諾ボタン", "承諾のボタン", "承諾後", "承諾した後", "承諾を押した後"])
-        and any(marker in combined for marker in ["もう見てもらえない", "あとで同じ", "同じところに不具合", "不具合が残って"])
+        any(marker in combined for marker in ["承諾ボタン", "承諾のボタン", "承諾後", "承諾した後", "承諾を押した後", "承諾してしまって"])
+        and any(marker in combined for marker in ["もう見てもらえない", "あとで同じ", "同じところに不具合", "同じ問題", "同じ症状", "不具合が残って"])
     ):
         return "acceptance_after_support_question"
     if any(marker in combined for marker in ["月に1回", "月1回", "定期確認", "継続確認"]):
@@ -556,7 +556,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "今の時点で、すぐまた壊れる前提ではありません。"
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "acceptance_after_support_question":
-        direct_answer_line = "承諾前であれば、気になる点はこのトークルーム内で送ってください。"
+        direct_answer_line = "承諾前であれば、気になる点はこのトークルーム内でお伝えください。"
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "monthly_support_request":
         direct_answer_line = "月1回の定期確認は、今回の修正範囲には含まれていません。"
@@ -1103,7 +1103,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "承諾前であれば、気になる点はこのトークルーム内で送ってください。",
+                    "answer_brief": "承諾前であれば、気になる点はこのトークルーム内でお伝えください。",
                 },
             ],
             "ask_map": [],

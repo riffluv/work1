@@ -146,6 +146,11 @@ def detect_scenario(source: dict) -> str:
         return "closed_free_followup_price"
     if any(marker in combined for marker in ["先に原因だけ", "原因だけ見てもら", "見積り前", "お願いするか決めたい"]):
         return "closed_pre_estimate_cause_check"
+    if (
+        any(marker in combined for marker in ["どこを直せば", "直し方", "文章で教えて"])
+        and any(marker in combined for marker in ["購入なし", "ファイル返却までは不要", "コードをここに貼"])
+    ):
+        return "closed_pre_estimate_cause_check"
     if any(marker in combined for marker in ["useEffect", "依存配列"]) or (
         "userId" in combined and any(marker in combined for marker in ["入れなくて", "よかった", "本当"])
     ):
@@ -213,6 +218,11 @@ def detect_scenario(source: dict) -> str:
         return "new_flow_plus_discount"
     if "新規でお願いする場合" in combined or "また15,000円ですか" in combined or "買い直す必要ありますか" in combined or "新規依頼の方がいいですか" in combined:
         return "repeat_bugfix_price_check"
+    if (
+        any(marker in combined for marker in ["次はどうすれば", "先にこのメッセージ", "購入してから相談", "新しく購入してから相談"])
+        and any(marker in combined for marker in ["また別", "別の決済エラー", "別のエラー", "新しく購入"])
+    ):
+        return "closed_next_consult_path"
     if (
         "別の件" in combined
         or "別件" in combined
@@ -305,6 +315,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "クローズ後に前回修正の技術的な意図を確認できるか知りたい"
     if scenario == "closed_third_party_scope_concern":
         return "第三者の指摘が前回の修正範囲に含まれるか知りたい"
+    if scenario == "closed_next_consult_path":
+        return "クローズ後に別の決済エラーを相談する場合、先にメッセージで症状を送るのか購入後に相談するのか知りたい"
     if scenario == "new_issue_repeat_client":
         if "api_route_context_present" in facts_known and "mail_send_issue_present" in facts_known:
             return "API Route からメールが送れない件もお願いできるか知りたい"
@@ -455,6 +467,10 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
             direct_answer_line = "現時点で問題が出ていない予防的な修正を前回分として扱えるかは、指摘内容を確認してからでないとまだ判断できません。"
         else:
             direct_answer_line = "元のお値段の中で直せるかは、指摘内容を確認してからでないとまだ判断できません。"
+    elif scenario == "closed_next_consult_path":
+        blocking_missing_facts = ["current_symptom"]
+        direct_answer_line = "まずはこのメッセージ上で症状の概要を送ってください。内容を見て、見積り提案に進むかをご案内します。"
+        response_order = ["opening", "direct_answer", "ask", "next_action"]
     elif scenario == "price_complaint":
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "追加でまた15,000円と決まっているわけではありません。いまの症状を見てから、前の件とのつながりを確認します。"
@@ -904,6 +920,33 @@ def build_case_from_source(source: dict) -> dict:
                 }
             ],
             "required_moves": ["react_briefly_first", "answer_directly_now", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
+    if scenario == "closed_next_consult_path":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "次の相談は先にメッセージで症状を送るのか、新しく購入してから相談するのか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "まずはこのメッセージ上で症状の概要を送ってください。内容を見て、見積り提案に進むかをご案内します。",
+                    "hold_reason": "トークルームは閉じているため、このまま原因調査や修正作業には入りません。",
+                    "revisit_trigger": "前回の修正と関係がありそうか、別の不具合として見積り提案に進む内容かをお返しします。",
+                },
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "今出ている症状の概要やエラー内容を送ってください。",
+                    "why_needed": "見積り前に返せる入口の見立てを作るため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
         }
         return case
 
@@ -1458,6 +1501,8 @@ def reaction_line(case: dict) -> str:
         return "前回メモで伝わりにくかった部分があったとのこと、承知しました。"
     if scenario == "new_issue_repeat_client":
         return "前回とは別の内容とのことなので、まず今回の症状から確認します。"
+    if scenario == "closed_next_consult_path":
+        return "次の相談の入り口ですね。"
     if scenario == "referral_and_soft_new_issue":
         return "ご紹介のお申し出と、メルマガ配信機能の件、ありがとうございます。"
     if scenario == "dashboard_login_issue":
@@ -1550,6 +1595,8 @@ def current_focus_line(case: dict) -> str | None:
         if "webhook" in raw.lower() and any(marker in raw for marker in ["送信は成功", "到達していない", "届かなく", "届いていない"]):
             return "送信は成功しているとのことなので、まず受信側でどこまで届いているかを確認します。"
         return "いまの症状が分かると、見積りをお返ししやすくなります。"
+    if scenario == "closed_next_consult_path":
+        return "トークルームは閉じているため、コードを見て原因調査や修正作業まで入る場合は、見積り提案または新規依頼として費用の有無を先にご相談します。"
     if scenario == "price_discount_request" and "new_issue_followup_present" in (case.get("response_decision_plan") or {}).get("facts_known", []):
         return "トークルームは閉じているので、今回見たい不具合の内容が分かれば見積りの入口を整えられます。"
     if scenario == "same_ticket_scope_question":
@@ -1904,7 +1951,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             )
         return paragraphs
 
-    if scenario in {"new_issue_repeat_client", "repeat_bugfix_price_check", "same_ticket_scope_question", "repeat_handoff_request", "memo_addendum_request", "new_flow_plus_discount", "recur_uncertainty"}:
+    if scenario in {"new_issue_repeat_client", "closed_next_consult_path", "repeat_bugfix_price_check", "same_ticket_scope_question", "repeat_handoff_request", "memo_addendum_request", "new_flow_plus_discount", "recur_uncertainty"}:
         _append_unique(paragraphs, direct_answer)
         detail_lines: list[str] = []
         if focus_line:
