@@ -77,6 +77,23 @@ SERVICE_GROUNDING = load_service_grounding()
 FOLLOWUP_MEMORY_SCENARIOS = {"progress_anxiety", "progress_summary_request", "timeline_anxiety"}
 
 
+def has_technical_cancel_context(text: str) -> bool:
+    return "キャンセル" in text and any(
+        marker in text
+        for marker in [
+            "Customer Portal",
+            "subscription",
+            "サブスク",
+            "cancelUrl",
+            "customer.subscription",
+            "解約フロー",
+            "キャンセルフロー",
+            "キャンセル処理",
+            "定期課金",
+        ]
+    )
+
+
 def time_commit(hours: int = 2) -> str:
     target = datetime.now(JST) + timedelta(hours=hours)
     return f"本日{target:%H:%M}までに、現時点の確認結果をお返しします。"
@@ -339,6 +356,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "GitHub招待が届いているかと、送ったスクショで足りるか知りたい"
     if scenario == "cancel_request":
         return "キャンセルや返金の前に、いまどこまで進んでいるかを知りたい"
+    if scenario == "technical_cancel_flow_scope":
+        return "定期課金のキャンセルフローが今回のWebhook修正範囲に入るか知りたい"
     if scenario == "progress_anxiety":
         return "いま何が進んでいて、次の連絡がいつ来るのか不安"
     if scenario == "progress_summary_request":
@@ -535,6 +554,10 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "multiple_new_issues":
         blocking_missing_facts = ["new_issue_surface"]
         response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
+    elif scenario == "technical_cancel_flow_scope":
+        direct_answer_line = "同じStripeでも、Webhook修正と定期課金のキャンセルフローは別の処理である可能性があります。"
+        blocking_missing_facts = ["cancel_flow_error_surface"]
+        response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "generic_followup":
         direct_answer_line = primary["answer_brief"]
 
@@ -555,6 +578,8 @@ def detect_scenario(source: dict) -> str:
     service_hint = source.get("service_hint", "")
     combined = f"{raw}\n{note}"
 
+    if has_technical_cancel_context(combined):
+        return "technical_cancel_flow_scope"
     if "キャンセル" in combined:
         return "cancel_request"
     if any(marker in combined for marker in ["週明けに社内で報告", "箇条書きレベル", "何か分かっていることがあれば"]) and any(
@@ -868,6 +893,7 @@ def build_case_from_source(source: dict) -> dict:
                 "direct_push_request",
                 "deployment_help_request",
                 "admin_login_direct_operation_request",
+                "technical_cancel_flow_scope",
             }
             else "after_purchase",
         ),
@@ -895,6 +921,34 @@ def build_case_from_source(source: dict) -> dict:
             ],
             "ask_map": [],
             "required_moves": ["react_briefly_first", "defer_with_reason", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "technical_cancel_flow_scope":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "定期課金のキャンセルフローは今回の修正範囲に入るか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "今回のWebhook修正と同じ原因・同じ流れにつながる内容であれば、今回の対応として確認します。",
+                    "hold_reason": "別の処理フローや別原因と分かった場合だけ、追加対応が必要かを先にご相談します。勝手に追加料金が発生することはありません。",
+                    "revisit_trigger": "キャンセルフローがどこで止まっているかを確認してお返しします。",
+                },
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "エラー内容やログがあれば送ってください。",
+                    "why_needed": "今回のWebhook修正と同じ原因・同じ流れかを確認するため",
+                },
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
         }
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
@@ -2047,6 +2101,8 @@ def reaction_line(case: dict) -> str:
         return "共有いただいた秘密情報の件、承知しました。"
     if scenario == "cancel_request":
         return "キャンセルしたいとのこと、確認しました。"
+    if scenario == "technical_cancel_flow_scope":
+        return "定期課金のキャンセルフローの件、確認しました。"
     if scenario == "progress_anxiety":
         return "進みが見えにくくなっていてすみません。"
     if scenario == "repo_access_confirm":
@@ -2402,6 +2458,20 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 ]
             ),
         )
+        return paragraphs
+
+    if scenario == "technical_cancel_flow_scope":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    primary["answer_brief"],
+                    primary.get("hold_reason", ""),
+                ]
+            ),
+        )
+        _append_unique(paragraphs, _paragraph_from_lines([ask.get("ask_text", "") for ask in ask_map]))
         return paragraphs
 
     if scenario == "timeline_anxiety":

@@ -259,11 +259,17 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("outline share permission case does not invite a minimal outline naturally")
 
     if scenario == "extra_fee_fear":
-        if not has_any(rendered, ["自動", "事前", "止める"]):
+        if not has_any(rendered, ["自動", "勝手"]):
+            errors.append("extra fee fear case does not explain that fee/additional work will not happen automatically")
+        if not has_any(rendered, ["追加対応", "追加作業"]):
+            errors.append("extra fee fear case does not address additional work explicitly")
+        if not has_any(rendered, ["先に", "事前"]):
             errors.append("extra fee fear case does not explain the stop / prior-consult rule")
         if not has_any(rendered, ["料金", "追加対応"]):
             errors.append("extra fee fear case does not address the fee anxiety directly")
-        if not has_any(rendered, ["キャンセル", "ココナラ"]):
+        if not has_any(rendered, ["修正完了", "正式納品", "修正済みファイル"]):
+            errors.append("extra fee fear case does not include the completion gate for unfinished work")
+        if not has_any(rendered, ["キャンセル", "ココナラ", "作業状況"]):
             errors.append("extra fee fear case does not land the cancellation question")
 
     if scenario == "self_edit_fee_anxiety":

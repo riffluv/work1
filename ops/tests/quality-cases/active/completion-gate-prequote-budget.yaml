@@ -1,0 +1,80 @@
+version: 1
+
+cases:
+  - id: CGB-001
+    stock_id: QLT-003
+    category: completion_gate_prequote_budget
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: price_sensitive
+    service_hint: bugfix
+    question_type: prequote_two_case_extra_fee_fear
+    primary_question: やってみたら実は2件だった場合に追加費用が増えるのか。
+    raw_message: "15000円で1件ということなんですが、やってみたら実は2件だったみたいなことってありますか？追加費用が怖くて。"
+    note: completion_gate_gap sentry。2件化した時の自動追加費用不安へ直答する。
+
+  - id: CGB-002
+    stock_id: V3-003
+    category: completion_gate_prequote_budget
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: price_sensitive
+    service_hint: bugfix
+    question_type: prequote_two_symptoms_budget_limit
+    primary_question: 2つの症状が1件扱いか、2件なら30,000円になるのか。
+    raw_message: "サービスページ見ました。15,000円で1件とのことですが、うちの場合「決済後にメールが届かない」と「マイページに反映が遅い」の2つがあります。これは1件扱いになりますか？2件だと30,000円ですか？予算的にちょっと厳しいので、先に聞いておきたくて。"
+    note: completion_gate_gap sentry。複数症状と予算制約を、同一原因/別原因/自動増額なしに分ける。
+
+  - id: CGB-003
+    stock_id: V3-006
+    category: completion_gate_prequote_budget
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: price_sensitive
+    service_hint: bugfix
+    question_type: prequote_unknown_cause_fee_anxiety
+    primary_question: 原因不明でも15,000円がかかるのか。
+    raw_message: "。料金についてはじめまして先に確認なんですが、15,000円は調査も含めた金額ですか？見てもらったけど原因不明でした、でも15,000円かかります、ということはないですよね？"
+    note: completion_gate_gap sentry。原因不明・正式納品 gate・返金非断定を分ける。
+
+  - id: CGB-004
+    stock_id: GMN-015
+    category: completion_gate_prequote_budget
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: price_sensitive
+    service_hint: boundary
+    question_type: prequote_broad_scope_refund_anxiety
+    primary_question: 修正範囲が広くて直せなかった場合に返金になるのか、無駄にならないか。
+    raw_message: "もし15000円の方で依頼して、修正範囲が広くて直せなかった場合は返金になりますか？原因も分からないので無駄にならないか心配です。"
+    note: completion_gate_gap sentry。修正完了不能時に未完成納品へ進めないことと、返金断定回避を両立する。
+
+  - id: CGB-005
+    stock_id: V4-020
+    category: completion_gate_prequote_budget
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: price_sensitive
+    service_hint: boundary
+    question_type: prequote_broad_all_fix_budget_cap
+    primary_question: 全部見て全部直す依頼が3万円以内で収まるか。
+    raw_message: "もう疲れました。3ヶ月くらいずっとこの決済の問題を抱えてて、自分で調べてもChatGPTに聞いても解決しない。何が悪いのかすら分からない。とにかく誰かに全部見てもらって、壊れてるところを直してほしい。予算は3万以内で収まりますか。"
+    note: completion_gate_gap sentry。全部直す期待を15,000円テンプレへ落とさず、1件に絞る。
+
+  - id: CGB-006
+    stock_id: V4-020
+    category: completion_gate_prequote_budget
+    route: service
+    state: prequote
+    user_type: semi_technical
+    emotional_tone: normal
+    service_hint: boundary
+    question_type: prequote_three_api_fee_scope
+    primary_question: 3本のAPIを見てもらうと15,000円×3になるのか。
+    raw_message: "Route Handlerで作ったAPIが3本あるんですが、1本だけたまにレスポンスが返らなくなります。他の2本は関係ないと思うんですが、念のため3本とも見てもらえると助かります。1件15,000円×3ですか？"
+    note: completion_gate_gap sentry。困っている1本を起点にし、念のため全体確認や3件課金へ勝手に進まない。

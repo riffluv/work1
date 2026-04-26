@@ -1,0 +1,15 @@
+version: 1
+
+cases:
+  - id: CGQ-001
+    stock_id: GMN-019
+    category: completion_gate_quote_sent
+    route: talkroom
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: price_sensitive
+    service_hint: bugfix
+    question_type: quote_sent_extra_fee_cancel_anxiety
+    primary_question: 別原因が2つ以上だった場合にキャンセルできるのか、金額が増えるのか。
+    raw_message: "見積もりありがとうございます。これ調査して別原因が２つ以上だったらキャンセルとかできますか？支払いボタン押すの迷ってます。金額が増えるのが怖くて。"
+    note: completion_gate_gap の sentry。キャンセル可否を断定せず、自動増額なし・追加作業前相談・未完成のまま進めない導線を出す。

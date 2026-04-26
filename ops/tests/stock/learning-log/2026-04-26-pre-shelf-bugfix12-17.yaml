@@ -1,0 +1,29 @@
+date: 2026-04-26
+case_ref: "RE-2026-04-26-bugfix-12..17"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / pre-shelf regression"
+buyer_decision_stage: "prequote / quote_sent / purchased / delivered / closed"
+service: "bugfix-15000"
+state: "mixed"
+
+# --- 診断 ---
+symptom: "危険な境界ケースを増やした結果、r0 では丸引用、delivered 汎用 fallback、購入前対処法要求、quote_sent 追加料金/キャンセル不安、技術的キャンセル語の misroute が再発した。r1/r2 では採用可まで戻せた"
+failure_label: "template_quote_drift / delivered_generic_fallback / actual_work_before_payment / phase_answer_gap / cancel_word_misroute / completion_gate_gap"
+failure_layer: "reply-only / validator candidate / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "batch-12〜17 で複数回同型が出た。特に丸引用 + `とのことでした` は5batch連続、delivered 汎用 fallback は6回、購入前対処法要求は2回、cancel_word_misroute は高リスクな初出として確認された"
+return_target: "gold / validator / renderer_minimal / reviewer_prompt"
+decision: "adopt"
+decision_reason: "全てを renderer rule にせず、r1/r2 採用文を Gold 25 に圧縮し、deterministic に検出できるものだけ validator 化した。targeted sentry で実際に汎用 fallback が残ったものだけ、既存 renderer に最小分岐を追加した"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "過去batch同型"
+existing_rule_hit: "あり"
+not_returned_reason: ""
+next_sentinel: "次回 #RE で V1/V2/V3/V4/V5 が r0 再発しないか。V5 は quote_sent だけでなく prequote の追加費用・返金・予算上限不安で completion gate が落ちないか監査する"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "reply-only の危険境界は、本文に説明を常時盛るのではなく、gold で良い運びを残し、文字列で安定検出できる事故だけ validator に戻す"
+upstream_fix: "docs/reply-quality/rehearsal-shelf-20260426-bugfix12-17.ja.md と Gold Reply 25 を追加。failure taxonomy に template_quote_drift / cancel_word_misroute / completion_gate_gap を追加。V1/V2/V3/V4/V5 は validator / 最小 renderer に反映。ユーザー監査後、prequote の追加費用・返金・予算上限不安も sentry / renderer / validator に追加"

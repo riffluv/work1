@@ -1086,7 +1086,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "Webhook受信口に関係する範囲であれば、Stripeダッシュボード側の設定も確認対象です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "extra_fee_fear":
-        direct_answer_line = "別原因が見つかっても、自動で料金が増えたり追加対応に進んだりはしません。"
+        direct_answer_line = "今回の見積もりは15,000円の範囲で進める前提です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "self_edit_fee_anxiety":
         direct_answer_line = "その場合でもまず今の状態を見て対応可否を確認できます。"
@@ -1460,7 +1460,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "別原因が見つかった時点で状況を共有し、追加対応に進むかどうかは事前にご相談します。",
+                    "answer_brief": "別原因が見つかった時点で状況を共有し、この金額内で修正完了まで進められない場合は、そこで止めてご説明します。",
                 }
             ],
             "ask_map": [],
@@ -2139,7 +2139,7 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "dashboard_scope_question":
         return "Webhook受信口に加えて、Stripeダッシュボード設定の件ですね。"
     if scenario == "extra_fee_fear":
-        return "金額が増えるのでは、というご不安はもっともです。"
+        return "金額が増えるのが不安という点を先に整理します。"
     if scenario == "self_edit_fee_anxiety":
         return "ご自身で触った影響もご不安とのことですね。"
     if scenario == "self_apply_support":
@@ -2376,9 +2376,10 @@ def draft_body_paragraphs(case: dict) -> list[str]:
 
     if scenario == "extra_fee_fear":
         return [
-            f"{direct_answer}\nその場合は状況を共有し、追加対応に進まずそこで止める形も含めて事前にご相談します。".strip(),
-            "キャンセルの扱いが必要になった場合は、その時点でご相談します。",
-            purchase_closing(scenario, raw),
+            f"{direct_answer}\n確認の結果、別原因が複数あり、この金額内では修正完了まで進められないと分かった場合は、そこで止めてご説明します。".strip(),
+            "勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+            "その場合は、キャンセル扱いを含めて、ココナラ上の手続きに沿ってご相談します。",
+            "この前提でよければ、そのままご購入ください。",
         ]
 
     if scenario == "self_edit_fee_anxiety":

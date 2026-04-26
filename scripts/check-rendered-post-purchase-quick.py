@@ -29,6 +29,31 @@ def has_any(text: str, needles: list[str]) -> bool:
     return any(needle in text for needle in needles)
 
 
+def has_technical_cancel_context(text: str) -> bool:
+    return "キャンセル" in text and has_any(
+        text,
+        [
+            "Customer Portal",
+            "subscription",
+            "サブスク",
+            "cancelUrl",
+            "customer.subscription",
+            "解約フロー",
+            "キャンセルフロー",
+            "キャンセル処理",
+            "定期課金",
+        ],
+    )
+
+
+def has_transaction_cancel_misroute(rendered: str, raw: str) -> bool:
+    if not has_technical_cancel_context(raw):
+        return False
+    if has_any(rendered, ["Webhook", "Customer Portal", "サブスク", "定期課金", "subscription", "cancelUrl", "customer.subscription"]):
+        return False
+    return has_any(rendered, ["返金", "途中キャンセル", "取引キャンセル", "作業済み範囲", "ココナラ上の手続き"])
+
+
 def normalized(text: str) -> str:
     return re.sub(r"[\s。、，,.！？?「」『』（）()・:：/／\\-]+", "", text)
 
@@ -312,6 +337,8 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("buyer_compliance_respect failed")
     if has_bad_emotion_label(rendered, source):
         errors.append("emotion_label_check failed")
+    if has_transaction_cancel_misroute(rendered, raw):
+        errors.append("cancel_word_misroute failed: technical cancel wording was treated as transaction cancellation")
     errors.extend(word_density_errors(rendered))
     if decision_plan.get("blocking_missing_facts") and any(ask.get("default_path_text") for ask in contract.get("ask_map") or []):
         if not has_any(rendered, ["なければ", "まだ", "すぐ出せなければ"]):

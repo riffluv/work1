@@ -113,6 +113,8 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
         "same_cause_check",
         "extra_scope_after_delivery",
         "approval_reassurance_request",
+        "acceptance_after_support_question",
+        "monthly_support_request",
         "future_breakage_reassurance",
         "cause_explanation_request",
         "doc_to_bugfix_addon",
@@ -206,6 +208,13 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["今後また", "また何かあったとき", "またお願いできる", "お願いできるもの"])
     ):
         return "approval_ok_with_future_request"
+    if (
+        any(marker in combined for marker in ["承諾ボタン", "承諾のボタン", "承諾後", "承諾した後", "承諾を押した後"])
+        and any(marker in combined for marker in ["もう見てもらえない", "あとで同じ", "同じところに不具合", "不具合が残って"])
+    ):
+        return "acceptance_after_support_question"
+    if any(marker in combined for marker in ["月に1回", "月1回", "定期確認", "継続確認"]):
+        return "monthly_support_request"
     if (
         any(marker in combined for marker in ["承諾しておきます", "承諾しておきます。", "承諾します", "承諾しておきます。また"])
         and any(marker in combined for marker in ["ありがとうございました", "ありがとうございます", "また何かあれば", "よろしくお願いいたします"])
@@ -426,6 +435,10 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "確認が済んだので承諾して区切りたい"
     if scenario == "approval_ok_with_future_request":
         return "承諾してよいかと、今後また何かあった時に相談できるかを知りたい"
+    if scenario == "acceptance_after_support_question":
+        return "承諾後に同じ箇所の不具合が残っていた場合の相談導線を知りたい"
+    if scenario == "monthly_support_request":
+        return "納品後の継続対応や月1回確認が今回範囲に入るか知りたい"
     if scenario == "delivery_scope_mismatch":
         return "納品内容が期待とずれていた点をどう埋めるか確認したい"
     if scenario == "backup_diff_request":
@@ -541,6 +554,12 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "future_breakage_reassurance":
         direct_answer_line = "今の時点で、すぐまた壊れる前提ではありません。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "acceptance_after_support_question":
+        direct_answer_line = "承諾前であれば、気になる点はこのトークルーム内で送ってください。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "monthly_support_request":
+        direct_answer_line = "月1回の定期確認は、今回の修正範囲には含まれていません。"
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "cause_explanation_request":
         direct_answer_line = "今回の件は、Stripe側だけの問題というより、実装側とのつなぎ方にずれが出ていたのが原因です。"
@@ -1067,6 +1086,42 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q2",
                     "disposition": "answer_now",
                     "answer_brief": "また何かあれば、その時点の内容を見て対応できるかご案内できます。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "acceptance_after_support_question":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "承諾後に同じ箇所の不具合が残っていた場合でも見てもらえるか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "承諾前であれば、気になる点はこのトークルーム内で送ってください。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "monthly_support_request":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "今後の継続対応や月1回確認が今回範囲に入るか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "月1回の定期確認は、今回の修正範囲には含まれていません。",
                 },
             ],
             "ask_map": [],
@@ -1730,6 +1785,10 @@ def draft_opening_anchor(case: dict) -> str:
         return "Webhookの受信は確認できていて、保留中イベントが残っているとのこと、確認しました。"
     if scenario == "future_breakage_reassurance":
         return "今はちゃんと動いているとのこと、よかったです。"
+    if scenario == "acceptance_after_support_question":
+        return "軽く見た範囲では大丈夫そうとのこと、確認しました。"
+    if scenario == "monthly_support_request":
+        return "一応動いているとのこと、確認しました。"
     if scenario == "cause_explanation_request":
         return "動作確認ありがとうございます。原因の件、確認しました。"
     if scenario == "workload_reflection_question":
@@ -1960,6 +2019,33 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                     direct_answer,
                     "将来の仕様変更まではここで言い切れませんが、現状が安定しているなら承諾いただいて大丈夫です。",
                     "固定の保証期間としてはお伝えしていませんが、今回の動作が安定しているかを基準に見てもらえれば大丈夫です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "acceptance_after_support_question":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "まだ確認できていない箇所がある場合は、無理に承諾しなくて大丈夫です。",
+                    "承諾後もメッセージで状況確認はできますが、トークルームは閉じるため、そのまま修正作業を続ける前提にはなりません。",
+                    "同じ箇所に不具合が残っている可能性がある場合は、内容を確認したうえで対応方法をご相談します。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "monthly_support_request":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "今回の件で気になる点が残っている場合は、承諾前にこのトークルーム内でお伝えください。",
+                    "承諾後に同じ箇所で問題が出た場合は、まずメッセージで状況を確認し、実作業が必要な場合は作業前に対応方法をご相談します。",
                 ]
             ),
         )

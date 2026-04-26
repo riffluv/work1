@@ -212,6 +212,8 @@ def detect_prequote_scenario(source: dict) -> str:
 
     if "不正アクセス" in combined:
         return "security_fear"
+    if is_budget_completion_gate_case(source):
+        return "budget_completion_gate"
     if any(marker in combined for marker in ["保証はあります", "確実に直る", "直らなかった場合", "直らなかったら"]):
         return "guarantee_or_refund_question"
     if any(marker in combined for marker in ["直せた場合", "調査だけ", "修正は別料金", "追加料金", "別料金"]):
@@ -621,6 +623,7 @@ def build_temperature_plan(source: dict, *, case_type: str | None = None) -> dic
     scenario = source.get("scenario") or detect_prequote_scenario(source)
     boundary_like_scenarios = {
         "boundary_bugfix_first",
+        "budget_completion_gate",
         "service_selection_confusion",
         "service_value_uncertain",
         "followon_fix_question",
@@ -709,6 +712,66 @@ def is_multi_symptom_case(source: dict) -> bool:
     return False
 
 
+def is_budget_completion_gate_case(source: dict) -> bool:
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+    price_or_budget = any(
+        marker in combined
+        for marker in [
+            "15,000円",
+            "15000円",
+            "1万5千円",
+            "30,000円",
+            "30000円",
+            "3万",
+            "予算",
+            "追加費用",
+            "追加料金",
+            "2件",
+            "２件",
+            "2つ",
+            "二つ",
+            "3本",
+            "×3",
+            "複数",
+        ]
+    )
+    completion_risk = any(
+        marker in combined
+        for marker in [
+            "追加費用が怖",
+            "追加料金が怖",
+            "金額が増え",
+            "返金",
+            "無駄にならない",
+            "無駄になら",
+            "原因不明",
+            "直せなかった",
+            "直らなかった",
+            "修正範囲が広",
+            "範囲が広",
+            "2件だった",
+            "２件だった",
+            "2件だと",
+            "２件だと",
+            "2つがあります",
+            "3本とも",
+            "1件15,000円×3",
+            "1件15000円×3",
+            "念のため3本",
+            "両方一緒",
+            "全部見てもらって",
+            "全部見て",
+            "全部直して",
+        ]
+    )
+    discount_only = any(marker in combined for marker in ["値下げ", "値引", "10,000円", "10000円", "もう少し安く"])
+    if discount_only and not any(marker in combined for marker in ["返金", "追加費用", "追加料金", "2件", "２件", "2つ", "原因不明"]):
+        return False
+    return price_or_budget and completion_risk
+
+
 def split_explicit_questions(raw: str) -> list[str]:
     text = compact_text(raw)
     candidates: list[str] = []
@@ -751,10 +814,14 @@ def classify_question_type(question_text: str) -> str:
         return "secret_sharing"
     if "スクショ" in text or ("画面" in text and any(marker in text for marker in ["送", "見せ", "撮"])):
         return "evidence_screenshot"
-    if "手順書" in text or "どう直すか" in text or "自分で直す" in text:
-        return "procedure_only"
     if "調べるだけ" in text:
         return "investigation_only"
+    if "どうやって直す" in text or "どう直す" in text:
+        return "solution_only"
+    if any(marker in text for marker in ["対処法", "直し方"]) and any(marker in text for marker in ["教えて", "自分で直せ", "だけ"]):
+        return "solution_only"
+    if "手順書" in text or "どう直すか" in text or "自分で直す" in text:
+        return "procedure_only"
     if "相談だけでも" in text or "まず相談だけ" in text:
         return "consultation_ok"
     if "返金" in text:
@@ -823,7 +890,7 @@ def infer_explicit_questions(source: dict) -> list[dict]:
     needs_implicit_primary = True
     for question in extracted:
         qtype = classify_question_type(question)
-        if qtype in {"price_acceptance", "price_general", "can_handle", "service_selection", "guarantee", "refund_policy"}:
+        if qtype in {"price_acceptance", "price_general", "can_handle", "service_selection", "guarantee", "refund_policy", "solution_only"}:
             needs_implicit_primary = False
             break
 
@@ -835,7 +902,7 @@ def infer_explicit_questions(source: dict) -> list[dict]:
     for idx, question in enumerate(extracted):
         qtype = classify_question_type(question)
         score = 0
-        if qtype in {"price_acceptance", "can_handle", "price_general", "service_selection", "guarantee", "refund_policy"}:
+        if qtype in {"price_acceptance", "can_handle", "price_general", "service_selection", "guarantee", "refund_policy", "solution_only"}:
             score = 30
         elif qtype in {"security", "cause_owner", "timeline", "impact"}:
             score = 20
@@ -865,6 +932,8 @@ def answer_brief_for_question(question_type: str, primary_now: bool) -> str:
         return "エラー内容が分かる画面なら、スクショが1枚あると助かります。"
     if question_type == "procedure_only":
         return "手順書だけを別で作る形ではなく、15,000円で原因調査から修正まで対応しています。"
+    if question_type == "solution_only":
+        return "購入前に具体的な修正手順や、コード上の直し方まではお伝えしていません。"
     if question_type == "investigation_only":
         return "はい、原因の調査からで大丈夫です。"
     if question_type == "consultation_ok":
@@ -990,6 +1059,7 @@ def derive_disposition(source: dict) -> str:
 
     if scenario in {
         "boundary_bugfix_first",
+        "budget_completion_gate",
         "service_value_uncertain",
         "followon_fix_question",
         "no_meeting_request",
@@ -1177,7 +1247,7 @@ def build_case_from_source(source: dict) -> dict:
     if disposition == "answer_after_check":
         ask_text, why_needed, evidence_kind, default_path_text = derive_ask(source)
         primary_answer_item["hold_reason"] = "情報がまだ足りず、いま案内してよい範囲を断定しにくい。"
-        if scenario in {"boundary_bugfix_first", "service_selection_confusion", "service_value_uncertain", "followon_fix_question", "no_meeting_request"}:
+        if scenario in {"boundary_bugfix_first", "budget_completion_gate", "service_selection_confusion", "service_value_uncertain", "followon_fix_question", "no_meeting_request"}:
             primary_answer_item["revisit_trigger"] = "追加情報を受領したあとに、今の内容で案内できる範囲をお返しします。"
         else:
             primary_answer_item["revisit_trigger"] = "追加情報を受領したあとに、進められるかをお返しします。"
@@ -1389,7 +1459,7 @@ def acknowledge_for(case: dict) -> str:
         return "内容ありがとうございます。"
     if "進め方" in summary:
         return "ご相談の内容、分かりました。"
-    return f"{strip_period(summary)}とのことでした。"
+    return "内容ありがとうございます。"
 
 
 def primary_question(case: dict) -> tuple[dict, dict]:
@@ -1418,6 +1488,11 @@ def secondary_answer_items(case: dict) -> list[tuple[dict, dict]]:
 def promoted_answer_now_lines(case: dict) -> list[str] | None:
     for question, answer in secondary_answer_items(case):
         qtype = answer.get("question_type") or question.get("question_type")
+        if qtype == "solution_only":
+            return [
+                "購入前に具体的な修正手順や、コード上の直し方まではお伝えしていません。",
+                "購入前は、症状・エラー内容・環境から対応範囲の見立てまでお返しできます。",
+            ]
         if qtype == "procedure_only":
             return [
                 "手順書だけを別で作る形ではなく、15,000円で原因調査から修正まで対応しています。",
@@ -1456,6 +1531,11 @@ def answer_now_lines(case: dict, question: dict, answer: dict) -> list[str]:
         return lines
     if question_type == "guarantee":
         lines.append("いいえ、必ず直ると約束して受ける形ではありません。")
+        return lines
+    if question_type == "solution_only":
+        lines.append("購入前に具体的な修正手順や、コード上の直し方まではお伝えしていません。")
+        lines.append("Webhook署名検証エラーであれば対応範囲に入る可能性は高いので、購入前は症状・エラー内容・環境から見立てまでお返しできます。")
+        lines.append("具体的な原因確認と修正は購入後に進めます。")
         return lines
     if question_type in {"can_handle", "price_acceptance"} and any(
         marker in raw for marker in ["直せた場合", "調査だけ", "修正は別料金", "原因が分かりません", "原因がわかりません"]
@@ -1547,6 +1627,9 @@ def secondary_lines(case: dict) -> list[str]:
             if qtype == "procedure_only":
                 lines.append("手順書だけを別で作る形ではなく、15,000円で原因調査から修正まで対応しています。")
                 lines.append("調査で分かった原因と修正内容は、分かる形でお渡しできます。")
+            elif qtype == "solution_only":
+                lines.append("購入前に具体的な修正手順や、コード上の直し方まではお伝えしていません。")
+                lines.append("購入前は、症状・エラー内容・環境から対応範囲の見立てまでお返しできます。")
             elif qtype == "investigation_only":
                 lines.append("調べるだけでも大丈夫です。")
                 lines.append("原因の調査から対応するので、直し方が分からない状態でも問題ありません。")
@@ -1686,6 +1769,63 @@ def compose_render_payload(payload: dict, *, use_fallback_editable: bool = False
     return "\n\n".join(sections)
 
 
+def render_budget_completion_gate_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    opener = opener_for(case)
+
+    if any(marker in raw for marker in ["全部見てもらって", "全部見て", "全部直して"]):
+        paragraphs = [
+            "\n".join([opener, "予算内で全部見て全部直せるか、という点を先に整理します。"]),
+            "今の時点では、3万円以内で全体を直し切れるとは断定できません。\nこのサービスで進める場合は、まず直したい不具合を1件に絞り、15,000円の範囲で確認します。",
+            "見ていく中で別原因が複数あり、この金額内では修正完了まで進められないと分かった場合は、そこで止めてご説明します。\n勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+            "まず一番困っている症状を送ってください。そこから対応範囲を見立てます。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    if any(marker in raw for marker in ["3本", "×3"]):
+        paragraphs = [
+            "\n".join([opener, "3本分の料金になるのか、という点を先に整理します。"]),
+            "症状が出ているのが1本だけであれば、まずそのAPIを不具合1件として15,000円の範囲で確認します。\n念のため3本すべてを同じ深さで確認する前提ではありません。",
+            "見ていく中で別のAPIも直さないと修正完了まで進められないと分かった場合は、そこで止めてご説明します。\n勝手に3件分の料金にしたり、そのまま追加作業へ進むことはありません。",
+            "まずは、レスポンスが返らなくなる1本のAPIと、発生時の状況を送ってください。そこから1件として見られそうかをお返しします。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    if any(marker in raw for marker in ["2件", "２件", "2つ", "二つ", "複数", "30,000円", "30000円"]):
+        known_symptoms = "「" in raw or "1つ目" in raw or "2つがあります" in raw
+        closing = (
+            "今書いていただいた2つを起点に、1件として見られそうかを先にお返しします。"
+            if known_symptoms
+            else "まずは2つの症状をそのまま送ってください。1件として見られそうかを先にお返しします。"
+        )
+        paragraphs = [
+            "\n".join([opener, "追加費用が不安という点を先に整理します。"]),
+            "2つの症状が同じ原因で起きている場合は、不具合1件として15,000円の範囲で見られる可能性があります。\n別原因だった場合は、両方をこの金額内で直し切れるとは限りません。",
+            "その場合も、勝手に料金が増えたり、そのまま追加作業へ進むことはありません。\nこの金額内では修正完了まで進められないと分かった時点で止めてご説明します。",
+            closing,
+        ]
+        return "\n\n".join(paragraphs)
+
+    if any(marker in raw for marker in ["返金", "無駄", "原因不明", "直せなかった", "直らなかった", "修正範囲が広"]):
+        paragraphs = [
+            "\n".join([opener, "無駄にならないかという点を先に整理します。"]),
+            "15,000円は調査だけの料金ではなく、原因確認から修正、確認手順、修正済みファイルの返却まで進める前提です。",
+            "確認の結果、この金額内では修正完了まで進められないと分かった場合は、未完成のまま正式納品へは進めず、そこで止めて状況をご説明します。",
+            "勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+            "返金やキャンセル扱いをこの時点で断定することはできませんが、必要になった場合はココナラ上の手続きに沿ってご相談します。",
+            "具体的な症状がまだであれば、分かる範囲で送ってください。対応範囲に入りそうかを先に見立てます。",
+        ]
+        return "\n\n".join(paragraphs)
+
+    paragraphs = [
+        "\n".join([opener, "金額が増えるのが不安という点を先に整理します。"]),
+        "今回の見積もりは15,000円の範囲で進める前提です。\n確認の結果、この金額内では修正完了まで進められないと分かった場合は、そこで止めてご説明します。",
+        "勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+        "具体的な症状がまだであれば、分かる範囲で送ってください。対応範囲に入りそうかを先に見立てます。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
 def validate_render_payload(case: dict, payload: dict, rendered: str) -> list[str]:
     temperature_plan = ensure_temperature_plan(case)
     editable_slots = payload.get("editable_slots") or {}
@@ -1706,6 +1846,7 @@ def validate_render_payload(case: dict, payload: dict, rendered: str) -> list[st
                 "原因が分からない状態でも",
                 "調べるだけでも",
                 "手順書だけを別で作る形ではなく",
+                "購入前に",
                 "はい",
                 "いいえ",
             )
@@ -1808,6 +1949,9 @@ def render_case(case: dict) -> str:
 
     if case.get("state") != "prequote":
         raise ValueError(f"{case.get('id')}: only prequote is supported")
+    if case.get("scenario") == "budget_completion_gate":
+        case["rendered_reply_validator_mode"] = "budget_completion_gate"
+        return render_budget_completion_gate_case(case)
     reply_stance = case.get("reply_stance") or {}
     if reply_stance.get("reply_skeleton") != "estimate_initial":
         raise ValueError(f"{case.get('id')}: only estimate_initial is supported")

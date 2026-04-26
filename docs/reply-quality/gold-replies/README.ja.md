@@ -48,3 +48,4 @@
 - `22_phase-contract-edge_next-path.ja.md`
 - `23_closed-materials-work-boundary.ja.md`
 - `24_transaction-model-gap_edges.ja.md`
+- `25_pre-shelf-regression-boundaries.ja.md`

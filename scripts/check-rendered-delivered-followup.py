@@ -282,9 +282,19 @@ def lint_case(module, source: dict) -> list[str]:
             "Webhookのログ",
             "自分で見る方法",
             "自分でも確認できる",
+            "承諾後",
+            "もう見てもらえない",
+            "今後もし",
+            "今後問題",
+            "月に1回",
+            "月1回",
+            "定期確認",
+            "継続確認",
         ],
     ):
         errors.append("generic_delivered fallback survived a concrete delivered follow-up request")
+    if scenario == "generic_delivered" and "前回対応の続きとして扱える話" in rendered:
+        errors.append("generic_delivered fallback survived: rendered text asks whether this is a previous-work continuation")
 
     forbidden_terms = ["GitHubに招待", "Driveに置いて", "Dropbox", "外部決済", "無料で対応"]
     for term in forbidden_terms:

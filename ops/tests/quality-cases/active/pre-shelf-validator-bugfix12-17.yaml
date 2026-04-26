@@ -1,0 +1,67 @@
+version: 1
+
+cases:
+  - id: PSV-001
+    stock_id: B17-02
+    category: pre_shelf_validator
+    route: service
+    state: prequote
+    user_type: indie_hacker
+    emotional_tone: normal
+    service_hint: bugfix
+    question_type: technical_subscription_cancel_scope_one_case
+    primary_question: Stripe Customer Portal のサブスクキャンセル時のWebhook処理は不具合1件として対応できるか。
+    raw_message: "個人開発してます。StripeのCustomer PortalでサブスクをキャンセルしたときにWebhookで受けてDBを更新してるんですが、Portalからのキャンセルだとイベントがcustomer.subscription.updatedとcustomer.subscription.deletedの両方来てて、たぶん順番の問題で最終的にDBがおかしくなってます。これ1件で対応できますか？"
+    note: template_quote_drift と cancel_word_misroute の sentry。購入前の技術的キャンセル語を取引キャンセルに誤分類しない。
+
+  - id: PSV-002
+    stock_id: B17-05
+    category: pre_shelf_validator
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    service_hint: bugfix
+    question_type: prequote_solution_only_request
+    primary_question: 購入前にWebhook署名検証エラーの直し方だけ教えてもらえるか。
+    raw_message: "StripeのWebhookが署名検証で失敗してるみたいなんですが、これってどうやって直すんですか？対処法だけ教えてもらえれば自分で直せるかもしれないので。"
+    note: template_quote_drift と購入前の対処法要求の sentry。具体的な修正手順へ進まない。
+
+  - id: PSV-003
+    stock_id: B16-06
+    category: pre_shelf_validator
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    service_hint: bugfix
+    question_type: purchased_subscription_cancel_flow_scope
+    primary_question: 定期課金のキャンセルフローが今回のWebhook修正範囲に入るか。
+    raw_message: "何度もすみません。前回Webhook直してもらったじゃないですか。で、その後テストしたら別のことに気づいて。定期課金のキャンセルフローが動いてないんです。これも同じStripeだし、今回の範囲に入りますよね？"
+    note: cancel_word_misroute の sentry。技術フローのキャンセルを取引キャンセルとして扱わない。
+
+  - id: PSV-004
+    stock_id: B17-06
+    category: pre_shelf_validator
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    service_hint: bugfix
+    question_type: delivered_acceptance_after_support
+    primary_question: 承諾ボタンを押した後、同じ箇所に不具合が残っていた場合でも見てもらえるのか。
+    raw_message: "正式納品ありがとうございます。いま軽く見た感じは大丈夫そうです。承諾ボタンを押したら、もしあとで同じところに不具合が残っていた場合でも、もう見てもらえないのでしょうか？"
+    note: delivered_generic_fallback の sentry。承諾前 / 承諾後 / closed 後の導線が必要。
+
+  - id: PSV-005
+    stock_id: B14-06
+    category: pre_shelf_validator
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    service_hint: bugfix
+    question_type: delivered_monthly_support_request
+    primary_question: 今後このトークルームで継続対応や月1回確認をしてもらえるか。
+    raw_message: "納品ありがとうございます。一応動いてはいるんですが、今後もし何か問題が出た場合って、このトークルームで聞いたら対応してもらえますか？月に1回くらい確認してもらえると安心なんですが。"
+    note: delivered_generic_fallback の sentry。月次保守を今回範囲に含めない。

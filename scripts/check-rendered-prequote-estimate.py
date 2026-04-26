@@ -26,6 +26,122 @@ def has_any(text: str, needles: list[str]) -> bool:
     return any(needle in text for needle in needles)
 
 
+def has_template_quote_drift(rendered: str) -> bool:
+    if "とのことでした" not in rendered:
+        return False
+    before = rendered.split("とのことでした", 1)[0]
+    topic = before.splitlines()[-1].strip()
+    return "..." in topic or len(topic) >= 32
+
+
+def has_technical_cancel_context(text: str) -> bool:
+    return "キャンセル" in text and has_any(
+        text,
+        [
+            "Customer Portal",
+            "subscription",
+            "サブスク",
+            "cancelUrl",
+            "customer.subscription",
+            "解約フロー",
+            "キャンセルフロー",
+            "キャンセル処理",
+            "定期課金",
+        ],
+    )
+
+
+def has_transaction_cancel_misroute(rendered: str, raw: str) -> bool:
+    if not has_technical_cancel_context(raw):
+        return False
+    if has_any(rendered, ["Webhook", "Customer Portal", "サブスク", "定期課金", "subscription", "cancelUrl", "customer.subscription"]):
+        return False
+    return has_any(rendered, ["返金", "途中キャンセル", "取引キャンセル", "作業済み範囲", "ココナラ上の手続き"])
+
+
+def has_prequote_solution_request(text: str) -> bool:
+    if "調べるだけ" in text and not has_any(text, ["対処法", "どうやって直す", "どう直す"]):
+        return False
+    if has_any(text, ["直し方は分からない", "直し方が分からない", "直し方はわからない", "直し方がわからない"]):
+        return False
+    return has_any(text, ["対処法", "直し方", "どうやって直す", "どう直す"]) and has_any(
+        text,
+        ["教えて", "自分で直せ", "だけ"],
+    )
+
+
+def has_solution_request_nonanswer(rendered: str, raw: str) -> bool:
+    if not has_prequote_solution_request(raw):
+        return False
+    if not has_any(rendered, ["購入前"]):
+        return True
+    return not has_any(rendered, ["具体的な修正手順", "コード上の直し方", "直し方までは"])
+
+
+def has_budget_completion_gate_context(text: str) -> bool:
+    price_or_budget = has_any(
+        text,
+        [
+            "15,000円",
+            "15000円",
+            "1万5千円",
+            "30,000円",
+            "30000円",
+            "3万",
+            "予算",
+            "追加費用",
+            "追加料金",
+            "2件",
+            "２件",
+            "2つ",
+            "二つ",
+            "複数",
+        ],
+    )
+    completion_risk = has_any(
+        text,
+        [
+            "追加費用が怖",
+            "追加料金が怖",
+            "金額が増え",
+            "返金",
+            "無駄になら",
+            "原因不明",
+            "直せなかった",
+            "直らなかった",
+            "修正範囲が広",
+            "範囲が広",
+            "2件だった",
+            "２件だった",
+            "2件だと",
+            "２件だと",
+            "2つがあります",
+            "両方一緒",
+            "全部見てもらって",
+            "全部見て",
+            "全部直して",
+        ],
+    )
+    return price_or_budget and completion_risk
+
+
+def collect_budget_completion_gate_errors(rendered: str, raw: str) -> list[str]:
+    if not has_budget_completion_gate_context(raw):
+        return []
+    errors: list[str] = []
+    if not has_any(rendered, ["勝手に料金", "勝手に費用", "自動で料金", "自動で費用", "そのまま追加作業"]):
+        errors.append("budget_completion_gate failed: rendered text does not block automatic fee/additional work")
+    if not has_any(rendered, ["修正完了", "正式納品", "修正済みファイル"]):
+        errors.append("budget_completion_gate failed: rendered text does not include the unfinished-work completion gate")
+    if has_any(raw, ["2件", "２件", "2つ", "二つ", "複数", "両方"]) and not has_any(rendered, ["同じ原因", "別原因", "1件"]):
+        errors.append("budget_completion_gate failed: multi-issue budget concern does not explain same/different cause handling")
+    if has_any(raw, ["返金", "キャンセル"]) and has_any(rendered, ["返金します", "返金できます", "キャンセルできます", "全額返金"]):
+        errors.append("budget_completion_gate failed: refund/cancel handling is overpromised")
+    if has_any(raw, ["全部", "全体"]) and not has_any(rendered, ["断定できません", "断定できない", "1件に絞"]):
+        errors.append("budget_completion_gate failed: broad budget-capped request is not narrowed before proceeding")
+    return errors
+
+
 def needs_screenshot_guidance(question_text: str) -> bool:
     return "スクショ" in question_text or ("画面" in question_text and any(marker in question_text for marker in ["送", "見せ", "撮"]))
 
@@ -50,7 +166,9 @@ def lint_case(module, case: dict) -> list[str]:
 
     if not temperature_plan:
         errors.append("temperature_plan is missing")
-    if not normalized.get("render_payload"):
+    is_custom_budget_completion = normalized.get("scenario") == "budget_completion_gate"
+
+    if not normalized.get("render_payload") and not is_custom_budget_completion:
         errors.append("render_payload is missing")
     if normalized.get("render_payload_violations"):
         for violation in normalized["render_payload_violations"]:
@@ -62,9 +180,11 @@ def lint_case(module, case: dict) -> list[str]:
             direct_acceptance_markers.extend(["まずこの不具合対応から入るのが近い", "まずこの不具合対応から"])
         if primary_question_type == "investigation_only":
             direct_acceptance_markers.extend(["調べるだけでも大丈夫です", "原因の調査から対応"])
+        if primary_question_type == "solution_only":
+            direct_acceptance_markers.extend(["購入前に具体的な修正手順", "コード上の直し方までは", "購入前は症状"])
         if not has_any(rendered, direct_acceptance_markers):
             errors.append("primary answer_now case is missing direct acceptance language")
-    if primary["disposition"] == "answer_after_check":
+    if primary["disposition"] == "answer_after_check" and not is_custom_budget_completion:
         if not has_any(
             rendered,
             [
@@ -88,9 +208,9 @@ def lint_case(module, case: dict) -> list[str]:
             errors.append("primary answer_after_check case is missing defer language")
         if not contract.get("ask_map"):
             errors.append("primary answer_after_check case has no ask_map")
-    if contract.get("ask_map") and not has_any(rendered, ["教えてください", "送ってください", "ください"]):
+    if contract.get("ask_map") and not is_custom_budget_completion and not has_any(rendered, ["教えてください", "送ってください", "ください"]):
         errors.append("ask_map exists but rendered text has no ask request")
-    if any(ask.get("default_path_text") for ask in contract.get("ask_map") or []):
+    if any(ask.get("default_path_text") for ask in contract.get("ask_map") or []) and not is_custom_budget_completion:
         if not has_any(rendered, ["なければ", "難しければ", "決まっていなければ", "すぐ出せなければ", "まだ絞れていなければ"]):
             errors.append("optional ask exists but rendered text has no default-path language")
 
@@ -132,6 +252,14 @@ def lint_case(module, case: dict) -> list[str]:
                 errors.append("discount question exists but rendered text does not keep fixed-price boundary")
 
     raw_message = normalized.get("raw_message", "")
+    if has_template_quote_drift(rendered):
+        errors.append("template_quote_drift failed: long buyer quote plus `とのことでした` survived")
+    if has_transaction_cancel_misroute(rendered, raw_message):
+        errors.append("cancel_word_misroute failed: technical cancel wording was treated as transaction cancellation")
+    if has_solution_request_nonanswer(rendered, raw_message):
+        errors.append("prequote_solution_request failed: solution-only request did not keep purchase-before boundary")
+    errors.extend(collect_budget_completion_gate_errors(rendered, raw_message))
+
     if (
         "価値があるか" in raw_message
         or "内容に差があるなら" in raw_message

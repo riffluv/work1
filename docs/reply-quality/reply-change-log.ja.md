@@ -443,3 +443,71 @@
 - 想定効果: local lint が OK でも、入金前作業開始や追加料金不安への nonanswer を止めやすくする。closed 後の「文章で直し方だけ教えて」はファイル返却なしでも実作業寄りとして扱う
 - 確認: `TMG-001` / `TMG-002` targeted lint が新 guard で NG になることを確認。全 role suite OK（eval の既存 projection warning `CMP-002` 1件のみ）
 - メモ: `transaction_model_gap` は引き続き reviewer レンズ。validator へ戻すのは、入金前材料要求や別料金不安のように文字列条件で安定検出できるものだけにする
+
+### 2026-04-26 / CHG-047
+- 分類: `reply-only`
+- レイヤ: shelf / gold / taxonomy / learning-log
+- 変更: batch-12〜17 の棚卸しを行い、戻し先を `validator 候補 / gold / reviewer_prompt / case_fix` に分類した。新規に `Gold Reply 25` と棚卸しメモ、learning-log を追加し、failure taxonomy に `template_quote_drift` と `cancel_word_misroute` を追加した
+- きっかけ: batch-17 までで、丸引用 + `とのことでした`、delivered 汎用 fallback、購入前の対処法要求、quote_sent の追加料金/キャンセル不安、技術的キャンセル語の誤分類が再発パターンとして固まった
+- 想定効果: 次の修正で、全部を writer rule にせず、再発性が高く deterministic に検出できる事故だけ validator 化できる。gold は4型に絞り、参照ノイズを増やしすぎない
+- 確認: markdown / learning-log のみ更新。validator 実装は未実施
+- メモ: 次に validator 実装するなら、優先順は `template_quote_drift` -> `delivered_generic_fallback` -> `cancel_word_misroute` -> `prequote solution extraction` -> `quote_sent fee/cancel anxiety`
+
+### 2026-04-26 / CHG-048
+- 分類: `reply-only`
+- レイヤ: validator / minimal renderer / pre-shelf regression
+- 変更: CHG-047 の棚卸しを受け、V1 `template_quote_drift`、V2 `delivered_generic_fallback`、V3 `prequote solution extraction`、V4 `cancel_word_misroute` を validator に戻した。targeted sentry で残った `キャンセルフロー` 誤分類、delivered 承諾後不安、delivered 月次確認要求、購入前の対処法要求は、既存 renderer に最小分岐だけ追加した
+- きっかけ: batch-12〜17 で、丸引用、delivered 汎用 fallback、購入前の具体修正手順要求、技術的キャンセル語の誤分類が r0 で再発した。batch-17 r1/r2 で採用可の文面が固まったため、deterministic に検出できるものだけ恒久反映した
+- 想定効果: reviewer に出す前の r0 で、読んでいないように見える丸引用、承諾/承諾後/月次サポートへの汎用 fallback、購入前の直し方だけ要求、Stripe の技術的キャンセル語の誤分類を止めやすくする
+- 確認: targeted fixture `pre-shelf-validator-bugfix12-17.yaml` OK。`python3 scripts/check-coconala-reply-role-suites.py --save-report` 全 role OK（eval の既存 projection warning `CMP-002` 1件のみ）。`./scripts/os-check.sh` OK
+- メモ: V5 `quote_sent` 追加料金/キャンセル不安は今回は gold 優先で維持。次の #RE で同型再発したら validator 化を検討する
+
+### 2026-04-26 / CHG-049
+- 分類: `reply-only`
+- レイヤ: quote_sent renderer / validator / gold / completion gate
+- 変更: batch-17 B01 のユーザー監査を受け、V5 `quote_sent` 追加料金/キャンセル不安を `completion_gate_gap` として格上げした。`extra_fee_fear` renderer に、購入前なら無理に支払いボタンを押さなくてよいこと、別原因が複数でも自動増額しないこと、15,000円内で修正完了できない場合は先へ進まず説明すること、追加/停止/キャンセル扱いは作業状況とココナラ手続きに沿って相談することを追加した。validator / Gold Reply 25 / 棚卸しメモ / learning-log / failure taxonomy も更新した
+- きっかけ: `キャンセルを安請け合いしない` guard だけが働くと、予算上限のある buyer に対して未完成納品・追加費用・停止判断の導線が宙ぶらりんになることを確認した
+- 想定効果: 15,000円内で完了不能な可能性が出た時に、未完成のまま正式納品へ押し込む印象と、キャンセル/返金を事前確約する印象の両方を避ける
+- 非変更: キャンセル可否・返金額を事前断定する rule は追加しない。納品物本文や service facts へは反映しない
+
+### 2026-04-26 / CHG-050
+- 分類: `reply-only`
+- レイヤ: quote_sent wording / completion gate
+- 変更: CHG-049 の B17-01 文面から、buyer を足踏みさせる `購入前なので、迷いがあれば支払いボタンを押さなくて大丈夫` と、意味が曖昧な `追加対応として進めるか` を外した。標準文は `今回の見積もりは15,000円の範囲で進める前提`、`この金額内では修正完了まで進められないと分かった場合は止めて説明`、`勝手に料金が増えたり追加作業へ進まない`、`キャンセル扱いはココナラ上の手続きに沿って相談` に圧縮した
+- きっかけ: ユーザー監査で、buyer の本音は「15,000円で対応してほしい。超えるならやめたい」であり、長い seller 都合の分岐説明は不信感を生むと分かった
+- 想定効果: 予算上限のある buyer に対して、購入を止める方向へ押し戻さず、かつ未完成納品・自動追加料金・キャンセル確約の事故を避ける
+
+### 2026-04-26 / CHG-051
+- 分類: `reply-only` + service listing wording
+- レイヤ: prequote renderer / validator / gold / service page copy
+- 変更: 同じ `completion_gate_gap` が prequote 側にも残っていないか確認し、`追加費用が怖い`、`2件だと30,000円か`、`原因不明でも15,000円がかかるのか`、`修正範囲が広くて返金になるか`、`全部見て全部直すと予算内か`、`3本あるAPIが15,000円×3か` の6件を sentry 化した。prequote renderer に `budget_completion_gate` を追加し、validator でも自動増額なし・completion gate・同一原因/別原因・返金/キャンセル断定回避を検査するようにした。公開サービスページ FAQ と mirror の `追加対応に進むか` も、`修正完了まで進められない場合は止めて説明` へ置き換えた
+- きっかけ: GMN-015 / QLT-003 / V3-003 / V3-006 / V4-020 が lint OK のまま、予算上限や返金不安に対して基本テンプレートへ流れることを確認した
+- 想定効果: quote_sent だけでなく prequote の段階でも、「15,000円で見てほしい。超えるならやめたい」という buyer の本音を落とさず、未完成納品・自動追加料金・キャンセル確約を同時に避ける
+
+### 2026-04-26 / CHG-052
+- 分類: `reply-only`
+- レイヤ: completion gate / internal operating model
+- 変更: `completion_gate_gap` の内部判断モデルを6点に整理し、failure taxonomy、Gold Reply 25、prequote 約束ポリシー、棚卸しメモへ反映した。内容は、15,000円で修正完了まで進める前提、別原因・別フロー・重い修正では勝手に追加作業へ進まない、範囲内で完了不能なら止めて説明する、追加費用を望まない buyer に未完成納品を押し切らない、キャンセル/返金は断定せず手続きに沿って相談する、軽微なら基本料金内吸収の余地を残す、の6点
+- きっかけ: ユーザー監査で、`キャンセルを安請け合いしない` だけでは返信が宙ぶらりんになり、取引実務としては「未完成納品へ押し切らない」ことが中核だと整理された
+- 想定効果: 返信文に長い防御説明を増やさず、内部では completion gate を通してから buyer に必要な部分だけを短く出せる
+
+### 2026-04-26 / CHG-053
+- 分類: service listing wording
+- レイヤ: bugfix-15000 public service page / completion gate
+- 変更: `bugfix-15000.live.txt` と mirror の `coconala-listing-final.ja.md` で、`別原因だけ追加対応をご案内します`、`レポートにまとめます`、`キャンセルを含めてご相談します` のように、追加対応・報告のみ納品・キャンセルを誤読させやすい表現を整理した。別原因は「進める前に対応方法と費用の有無を相談」、間欠不具合は「修正方針につながれば修正まで進める / 完了できない場合は止めて必要情報を伝える」に変更した
+- きっかけ: completion gate 方針が固まったことで、公開サービスページ側にも seller 視点の曖昧表現が残っていないか確認した
+- 想定効果: サービスページの時点で、未完成納品・自動追加料金・返金/キャンセル保証のいずれにも誤読されにくくする
+
+### 2026-04-26 / CHG-054
+- 分類: service listing wording
+- レイヤ: ChatGPT Pro audit / bugfix-15000 public service page
+- 変更: ChatGPT Pro 監査結果を受け、FAQ の `原因が分からないまま15,000円になることはありますか？` を `原因が分からないまま正式納品されますか？` へ差し替えた。`正式納品へ進めません` は `一方的に正式納品へ進めることはありません` に寄せ、返金/キャンセル保証ではなく作業状況に応じた個別相談であることを明記した。大幅な設計変更・別フロー・秘密値・外部連絡/外部決済・GitHub等への直接pushも公開本文で明確化し、公開ページ末尾のトークルーム回答例と将来追加候補を削除した
+- きっかけ: Pro 監査で、買い手の安心に効く一方で `原因不明なら料金が発生しない` `直らなければキャンセル/返金保証` と誤読される余地、未公開サービス導線が公開文面に混ざるリスクが指摘された
+- 想定効果: completion gate を保ちつつ、返金保証・キャンセル保証・未公開サービス期待・追加作業自動化の誤読を減らす
+
+### 2026-04-26 / CHG-055
+- 分類: service listing wording
+- レイヤ: bugfix-15000 public service page / answer examples
+- 変更: CHG-054 で削除したトークルーム回答例3件を、本番ページ用の必須欄として復元した。回答例は current completion gate / 秘密値禁止 / 追加料金自動発生なしの方針に合わせて更新し、`将来追加候補` だけは公開文面に戻さない
+- きっかけ: ユーザー確認で、トークルーム回答例3件は公開ページに書き込む必要がある項目だと判明した
+- 想定効果: ココナラのサービスページ項目を欠落させず、未公開サービス導線だけを除外した状態に戻す
