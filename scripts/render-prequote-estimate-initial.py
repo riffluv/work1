@@ -212,6 +212,28 @@ def detect_prequote_scenario(source: dict) -> str:
 
     if "不正アクセス" in combined:
         return "security_fear"
+    if is_plan_change_payment_not_reflected_case(source):
+        return "plan_change_payment_not_reflected"
+    if is_production_checkout_post_405_case(source):
+        return "production_checkout_post_405"
+    if is_preview_webhook_env_error_case(source):
+        return "preview_webhook_env_error"
+    if is_vercel_webhook_signature_400_case(source):
+        return "vercel_webhook_signature_400"
+    if is_frontend_stripe_mixed_scope_case(source):
+        return "frontend_stripe_mixed_scope"
+    if all(marker in combined for marker in ["Webhook", "署名検証"]) and any(
+        marker in combined for marker in ["raw body", "request.text", "stripe-signature", "App Router"]
+    ):
+        return "stripe_webhook_raw_body_signature"
+    if "customer.subscription.updated" in combined and any(marker in combined for marker in ["DB", "ダウングレード", "アップグレード"]):
+        return "stripe_subscription_upgrade_db_update"
+    if "お客さん" in combined and any(marker in combined for marker in ["カード引き落とし", "入金"]) and any(
+        marker in combined for marker in ["商品ページ", "購入履歴"]
+    ):
+        return "customer_payment_access_response"
+    if any(marker in combined for marker in ["100%直せる", "100%直せ", "原因が特定", "どのくらいの割合"]):
+        return "success_rate_or_guarantee_question"
     if is_public_structure_scope_boundary_case(source):
         return "public_structure_scope_boundary"
     if is_fix_vs_structure_first_case(source):
@@ -831,6 +853,55 @@ def is_budget_completion_gate_case(source: dict) -> bool:
     if discount_only and not any(marker in combined for marker in ["返金", "追加費用", "追加料金", "2件", "２件", "2つ", "原因不明"]):
         return False
     return price_or_budget and completion_risk
+
+
+def is_plan_change_payment_not_reflected_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        "プラン変更" in combined
+        and any(marker in combined for marker in ["支払いは完了", "決済は完了", "Stripeの画面"])
+        and any(marker in combined for marker in ["反映され", "変わっていません", "変わらない"])
+    )
+
+
+def is_production_checkout_post_405_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        "405" in combined
+        and any(marker in combined for marker in ["POST", "post"])
+        and "Vercel" in combined
+        and any(marker in combined for marker in ["Checkout", "セッション作成", "APIルート", "API Route"])
+    )
+
+
+def is_preview_webhook_env_error_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    combined_lower = combined.lower()
+    return (
+        any(marker in combined for marker in ["プレビュー環境", "preview環境", "Preview"])
+        and "webhook" in combined_lower
+        and any(marker in combined for marker in ["STRIPE_WEBHOOK_SECRET", "イベントID", "evt_"])
+    )
+
+
+def is_vercel_webhook_signature_400_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    combined_lower = combined.lower()
+    return (
+        "webhook" in combined_lower
+        and "Vercel" in combined
+        and any(marker in combined for marker in ["400", "署名検証"])
+        and any(marker in combined for marker in ["環境変数", "endpoint", "Route Handler", "Next.js 14", "Next.js 15"])
+    )
+
+
+def is_frontend_stripe_mixed_scope_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        any(marker in combined for marker in ["フロントエンド", "フロント"])
+        and "Stripe" in combined
+        and any(marker in combined for marker in ["2つ", "二つ", "管理画面", "ポップアップ"])
+    )
 
 
 def split_explicit_questions(raw: str) -> list[str]:
@@ -1953,6 +2024,105 @@ def render_multi_site_non_stripe_scope_case(case: dict) -> str:
     return "\n\n".join(paragraphs)
 
 
+def render_plan_change_payment_not_reflected_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "Stripeで支払いは完了しているのに、戻った後もサイト側のプランが反映されない状態ですね。\nこの不具合なら15,000円で対応できます。",
+            "ログの場所が分からない状態でも大丈夫です。まずは決済後の反映処理と、サイト側のプラン更新処理のつながりを確認します。",
+            "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_production_checkout_post_405_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "本番のVercel上で、Stripe Checkoutのセッション作成APIだけが405になる状態ですね。\nこの不具合なら15,000円で対応できます。",
+            "まずは本番とローカルで、Next.js API Route のルーティングやPOSTの扱いに差が出ていないかを確認します。",
+            "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_preview_webhook_env_error_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "ローカルは動くのに、プレビュー環境のWebhookだけエラーになる状態ですね。\nこの不具合なら15,000円で対応できます。",
+            "共有いただいたEvent IDと STRIPE_WEBHOOK_SECRET の設定状況を起点に、プレビュー環境側のWebhook endpointと環境変数の反映を確認します。",
+            "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_vercel_webhook_signature_400_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "ローカルでは通るのに、Vercel上でWebhook署名検証が400になる状態ですね。\nこの不具合なら15,000円で対応できます。",
+            "まずはVercel側の環境変数、endpoint URL、Next.js 14から15への更新でRoute Handlerまわりの扱いが変わっていないかを中心に確認します。",
+            "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_frontend_stripe_mixed_scope_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "Next.jsで動いているサイトであれば、フロント側の不具合も対応範囲に入ります。",
+            "ただ、管理画面のボタン不反応とStripe決済後のポップアップ不具合は、同じ原因か別の原因かを先に切り分けます。\n同じ原因なら15,000円の範囲で見ます。別原因の場合は、勝手に追加作業へ進まず、対応方法と費用の有無をご相談します。",
+            "まずは一番困っている方を起点に確認します。Stripe決済後のポップアップを優先する場合は、この内容でご購入いただいて大丈夫です。",
+        ]
+    )
+
+
+def render_stripe_webhook_raw_body_signature_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "Next.js 14 App Router の Stripe Webhook で、署名検証が通らない状態ですね。\nstripe-signature は取れていて、raw body の取得まわりが怪しいとのことなので、15,000円で対応できます。",
+            "まずは request.text() で取得している本文と、Stripe の署名検証に渡している値がずれていないかを中心に確認します。",
+            "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_stripe_subscription_upgrade_db_update_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "Stripe側ではアップグレードが反映され、customer.subscription.updated も受け取れているのに、DB側のプランが更新されない状態ですね。\nダウングレードは正常とのことなので、アップグレード時の更新分岐を中心に15,000円で確認できます。",
+            "まずは受信済みイベントの処理後に、DB更新がどこで止まっているかを確認します。",
+            "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_customer_payment_access_response_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "メッセージありがとうございます。\nお急ぎの状況は承知しました。",
+            "お客さんへの対応と、不具合修正の進め方の2点ですね。\nお客さんには、Stripe側で入金は確認できていて、サイト側の購入履歴反映を確認中と伝えるのが安全です。再購入や再決済は案内しないでください。",
+            "不具合修正としては、決済後に購入履歴が作成されない箇所を15,000円で確認できます。\nまずは Stripe で成功した決済が、サイト側の購入履歴作成まで届いているかを確認します。",
+            "進める場合は、この内容でご提案します。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_success_rate_or_guarantee_question_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "メッセージありがとうございます。",
+            "100%直せるとはお約束しておらず、案件ごとに環境やコードの状態が違うため、原因特定率を一律の数字でお伝えすることもしていません。",
+            "15,000円は、不具合1件について原因確認から修正、修正済みファイルの返却まで進める前提の料金です。\n原因や修正方針につながらず、修正済みファイルを返せない状態のまま、一方的に正式納品へ進めることはありません。",
+            "具体的な症状があれば、状況を教えてください。対応範囲に入りそうかを先にお返しします。",
+        ]
+    )
+
+
 def validate_render_payload(case: dict, payload: dict, rendered: str) -> list[str]:
     temperature_plan = ensure_temperature_plan(case)
     editable_slots = payload.get("editable_slots") or {}
@@ -2091,6 +2261,33 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "multi_site_non_stripe_scope":
         case["rendered_reply_validator_mode"] = "multi_site_non_stripe_scope"
         return render_multi_site_non_stripe_scope_case(case)
+    if case.get("scenario") == "plan_change_payment_not_reflected":
+        case["rendered_reply_validator_mode"] = "plan_change_payment_not_reflected"
+        return render_plan_change_payment_not_reflected_case(case)
+    if case.get("scenario") == "production_checkout_post_405":
+        case["rendered_reply_validator_mode"] = "production_checkout_post_405"
+        return render_production_checkout_post_405_case(case)
+    if case.get("scenario") == "preview_webhook_env_error":
+        case["rendered_reply_validator_mode"] = "preview_webhook_env_error"
+        return render_preview_webhook_env_error_case(case)
+    if case.get("scenario") == "vercel_webhook_signature_400":
+        case["rendered_reply_validator_mode"] = "vercel_webhook_signature_400"
+        return render_vercel_webhook_signature_400_case(case)
+    if case.get("scenario") == "frontend_stripe_mixed_scope":
+        case["rendered_reply_validator_mode"] = "frontend_stripe_mixed_scope"
+        return render_frontend_stripe_mixed_scope_case(case)
+    if case.get("scenario") == "stripe_webhook_raw_body_signature":
+        case["rendered_reply_validator_mode"] = "stripe_webhook_raw_body_signature"
+        return render_stripe_webhook_raw_body_signature_case(case)
+    if case.get("scenario") == "stripe_subscription_upgrade_db_update":
+        case["rendered_reply_validator_mode"] = "stripe_subscription_upgrade_db_update"
+        return render_stripe_subscription_upgrade_db_update_case(case)
+    if case.get("scenario") == "customer_payment_access_response":
+        case["rendered_reply_validator_mode"] = "customer_payment_access_response"
+        return render_customer_payment_access_response_case(case)
+    if case.get("scenario") == "success_rate_or_guarantee_question":
+        case["rendered_reply_validator_mode"] = "success_rate_or_guarantee_question"
+        return render_success_rate_or_guarantee_question_case(case)
     reply_stance = case.get("reply_stance") or {}
     if reply_stance.get("reply_skeleton") != "estimate_initial":
         raise ValueError(f"{case.get('id')}: only estimate_initial is supported")

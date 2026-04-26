@@ -1,6 +1,6 @@
 # 返信失敗 QA分類（reply-only）
 
-更新日: 2026-04-26
+更新日: 2026-04-27
 
 ## 目的
 
@@ -43,6 +43,15 @@
   - 文面単体は安全でも、主質問・phase 上できること・確認材料と実作業・料金/返金/無料対応・次アクションが一本の取引構造としてつながっていない
   - 特に `closed` 後で、材料確認とコード修正、無料/通常料金、見積り/新規依頼の導線が断片的に並ぶ時に使う
   - 生成 rule や validator ではなく reviewer 専用の監査レンズ。単なる文体の好みや接続語の違和感には使わない
+  - 外部調査反映後の下位観点:
+    - `transaction_clarity`: buyer が現在の取引状態、支払い状態、作業開始条件を誤解しないか
+    - `phase_route_clarity`: quote_sent / purchased / delivered / closed それぞれで、次に進める導線が見えるか
+    - `work_payment_boundary_clarity`: 確認材料の受領と、コード修正・具体的修正指示・成果物返却などの実作業が混ざっていないか
+    - `buyer_not_lost`: 返信後に buyer が何を送る・待つ・判断するのかが迷子になっていないか
+    - `responsibility_over_admission_risk`: 未確認なのに過失・責任・返金可能性を認めすぎていないか
+    - `free_support_expectation_risk`: closed 後や範囲外で、無料の実作業まで期待させていないか
+    - `request_minimality`: 必要以上の資料・秘密情報・説明を求めたり、外向け本文に条件を積みすぎていないか
+  - 上記は常時採点項目ではない。`transaction_model_gap` が疑われる時だけ、どの下位観点が崩れているかを短く特定する
 
 ### deterministic guard 候補ラベル
 

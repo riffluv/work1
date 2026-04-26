@@ -49,3 +49,4 @@
 - `23_closed-materials-work-boundary.ja.md`
 - `24_transaction-model-gap_edges.ja.md`
 - `25_pre-shelf-regression-boundaries.ja.md`
+- `26_prequote-concrete-symptom-pickup.ja.md`

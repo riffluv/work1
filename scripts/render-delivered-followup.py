@@ -114,6 +114,7 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
         "extra_scope_after_delivery",
         "approval_reassurance_request",
         "acceptance_after_support_question",
+        "delivered_can_reject",
         "monthly_support_request",
         "future_breakage_reassurance",
         "cause_explanation_request",
@@ -213,6 +214,8 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["もう見てもらえない", "あとで同じ", "同じところに不具合", "同じ問題", "同じ症状", "不具合が残って"])
     ):
         return "acceptance_after_support_question"
+    if "差し戻し" in combined and "承諾" in combined:
+        return "delivered_can_reject"
     if any(marker in combined for marker in ["月に1回", "月1回", "定期確認", "継続確認"]):
         return "monthly_support_request"
     if (
@@ -437,6 +440,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "承諾してよいかと、今後また何かあった時に相談できるかを知りたい"
     if scenario == "acceptance_after_support_question":
         return "承諾後に同じ箇所の不具合が残っていた場合の相談導線を知りたい"
+    if scenario == "delivered_can_reject":
+        return "未確認箇所がある状態で、差し戻しや承諾の判断をどうすればよいか知りたい"
     if scenario == "monthly_support_request":
         return "納品後の継続対応や月1回確認が今回範囲に入るか知りたい"
     if scenario == "delivery_scope_mismatch":
@@ -558,6 +563,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "acceptance_after_support_question":
         direct_answer_line = "承諾前であれば、気になる点はこのトークルーム内でお伝えください。"
         response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "delivered_can_reject":
+        direct_answer_line = "本番でまだ確認できていない箇所があるなら、無理に承諾しなくて大丈夫です。"
+        response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "monthly_support_request":
         direct_answer_line = "月1回の定期確認は、今回の修正範囲には含まれていません。"
         response_order = ["opening", "direct_answer", "answer_detail"]
@@ -1104,6 +1112,30 @@ def build_case_from_source(source: dict) -> dict:
                     "question_id": "q1",
                     "disposition": "answer_now",
                     "answer_brief": "承諾前であれば、気になる点はこのトークルーム内でお伝えください。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        return case
+
+    if scenario == "delivered_can_reject":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "正式納品後に差し戻しできるか", "priority": "primary"},
+                {"id": "q2", "text": "まだ確認できていなくても承諾しないといけないか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "差し戻しで送っていただいて大丈夫です。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "本番で一部確認できていないなら、無理に承諾しなくて大丈夫です。",
                 },
             ],
             "ask_map": [],
@@ -1787,6 +1819,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "今はちゃんと動いているとのこと、よかったです。"
     if scenario == "acceptance_after_support_question":
         return "軽く見た範囲では大丈夫そうとのこと、確認しました。"
+    if scenario == "delivered_can_reject":
+        return "本番で一部確認できていないとのこと、確認しました。"
     if scenario == "monthly_support_request":
         return "一応動いているとのこと、確認しました。"
     if scenario == "cause_explanation_request":
@@ -2033,6 +2067,20 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                     "まだ確認できていない箇所がある場合は、無理に承諾しなくて大丈夫です。",
                     "承諾後もメッセージで状況確認はできますが、トークルームは閉じるため、そのまま修正作業を続ける前提にはなりません。",
                     "同じ箇所に不具合が残っている可能性がある場合は、内容を確認したうえで対応方法をご相談します。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "delivered_can_reject":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "確認できていない箇所がある場合は、承諾前にこのトークルーム内でお伝えください。",
+                    "こちらで確認して、承諾いただいて問題ないかをお返しします。",
+                    "承諾後に同じ問題が出た場合は、まずメッセージ上で前回の修正とのつながりを確認します。",
                 ]
             ),
         )

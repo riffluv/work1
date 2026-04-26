@@ -392,6 +392,11 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("progress anxiety direct answer does not state current status clearly")
         if "確認できているところから先にお伝えします" in rendered:
             errors.append("progress anxiety still uses the empty `先にお伝えします` promise")
+        if has_any(raw, ["diff", "差分", "変更予定ファイル"]):
+            if not has_any(rendered, ["diff", "差分", "変更予定ファイル"]):
+                errors.append("progress anxiety diff request is not answered")
+            if rendered.count("原因の切り分け") >= 2:
+                errors.append("progress anxiety repeats the same cause-isolation phrase")
     if case.get("scenario") == "delay_complaint_refund":
         if not has_any(rendered, ["進捗", "進み具合", "整理"]):
             errors.append("delay/refund case does not state the current progress handling")

@@ -31,6 +31,7 @@
 追加で使ってよい監査ラベル:
 - `phase_answer_gap`: 文面は安全に見えるが、今の phase で buyer が次に取れる行動が見えない。特に `quote_sent / delivered / closed` で、可能な操作・不可な操作・代替導線・次アクションのどれかが抜けている
 - `transaction_model_gap`: 文面単体は自然でも、buyer の主質問、phase 上できること、確認材料と実作業、料金・返金・無料対応、次アクションが一本の取引構造としてつながっていない。特に `closed` 後で、無料/通常料金、材料確認/コード修正、見積り/新規依頼が断片的に並ぶ場合に使う
+  - 必要に応じて下位観点として、`transaction_clarity`、`phase_route_clarity`、`work_payment_boundary_clarity`、`buyer_not_lost`、`responsibility_over_admission_risk`、`free_support_expectation_risk`、`request_minimality` のどれが崩れているかを見る
 - `completion_gate_gap`: 15,000円の範囲で修正完了まで進める前提、範囲超過時の停止・説明、追加作業へ勝手に進まないこと、未完成のまま正式納品へ押し切らないことが、buyer の不安に対して不足している。返金保証・キャンセル保証として断定させず、buyer が聞いている範囲だけ短く見る
 - `surface_overexposure`: 内部で見るべき安全条件が外向け本文に並びすぎている。`同一原因`、`別原因`、`追加料金`、`キャンセル`、`正式納品`、`closed後作業不可`、`見積り導線` などが1通に積み上がり、buyer にはチェックリストや契約説明のように見える時に使う
 - `unnamed_discomfort`: 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある。最大1〜2件まで、実務リスクを説明できる場合だけ挙げてください
@@ -38,6 +39,7 @@
 注意:
 - `phase_answer_gap` は自然さを壊してまで説明を足すための rule ではありません。buyer が実際に迷う場面だけ、軽い指摘または必須修正として扱ってください
 - `transaction_model_gap` は自然化 rule ではなく監査レンズです。単なる文体の好みには使わず、取引導線として buyer が誤解・停滞しそうな場合だけ指摘してください
+- `transaction_model_gap` の下位観点は全件採点軸ではありません。該当時だけ、どの取引構造が抜けたかを短く特定してください
 - `completion_gate_gap` は writer rule ではなく監査レンズです。内部6点を毎回本文に出すのではなく、追加費用・未完成納品・キャンセル不安など、buyer が実際に聞いている箇所だけ評価してください
 - `surface_overexposure` は短ければよいという指摘ではありません。安全性を落とさず、`直答 1〜2文 -> 必要な境界 1〜2文 -> 次アクション 1文` に圧縮できる時だけ指摘してください
 - `unnamed_discomfort` はその場で rule 化しないでください。好み差は必須修正にせず、まず観察メモとして扱ってください

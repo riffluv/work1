@@ -260,6 +260,8 @@ def next_action_line(case: dict, hours: int = 2) -> str:
     if case.get("scenario") == "timeline_anxiety" and any(marker in case.get("raw_message", "") for marker in ["あとどれくらい", "目安だけでも", "いつまでこう言い続ければ"]):
         return f"本日{target:%H:%M}までに、原因の方向性と次の見通しをお送りします。"
     if case.get("scenario") == "progress_anxiety":
+        if any(marker in case.get("raw_message", "") for marker in ["diff", "差分", "変更予定ファイル"]):
+            return f"本日{target:%H:%M}までに、分かっている点と次に見る箇所をお送りします。"
         return f"本日{target:%H:%M}までに、状況を整理してお送りします。"
     if case.get("scenario") == "progress_summary_request":
         return f"本日{target:%H:%M}までに、現時点で見えている点を箇条書きでお送りします。"
@@ -455,7 +457,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
 
     if scenario == "progress_anxiety":
-        if any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
+        if any(marker in raw for marker in ["diff", "差分", "変更予定ファイル"]):
+            direct_answer_line = "現在は、対象処理のどこで止まっているかを確認しています。まだ原因は断定していません。"
+        elif any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
             direct_answer_line = "いまは、今回の不具合がどこで止まっているかを確認している段階です。"
         elif any(marker in raw for marker in ["対応するかしないか", "どうなってるんですか", "まだ何も返事"]):
             direct_answer_line = "対応可否も含めて確認に入っており、まず今の状況を整理してお返しします。"
@@ -2191,6 +2195,8 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "cancel_request":
         return "いまは、今回どこまで進んでいるかを先に確認しています。"
     if scenario == "progress_anxiety":
+        if any(marker in raw for marker in ["diff", "差分", "変更予定ファイル"]):
+            return "修正方針は、変更予定ファイルとdiffで影響範囲が分かる形でお送りします。"
         if any(marker in raw for marker in ["売上が立ってない", "売上が立っていない", "クライアント", "決済エラーのせいで売上"]):
             return "いまは、決済が止まっている箇所の切り分けを進めています。"
         if any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):

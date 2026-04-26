@@ -553,3 +553,51 @@
 - きっかけ: 正本接続棚卸しで、platform-contract / Gold / validator は更新済みでも、skill reference と generic fallback に古い closed 認識が残ると、未知ケースで transaction_model_gap が再発し得ると分かった
 - 想定効果: `#R` や未分類 closed ケースで、通常料金への即誘導・無料実作業期待・内部分類語のいずれにも寄らず、確認材料と実作業の境界を保ちやすくする
 - 非変更: closed 後の全ケースを hard rule 化しない。具体質問に対する直答は引き続き scenario / validator / gold で扱い、generic fallback は最後の安全網としてだけ使う
+
+### 2026-04-27 / CHG-061
+- 分類: `reply-only`
+- レイヤ: external research synthesis / reviewer prompt / taxonomy / scorecard
+- 変更: ChatGPT Deep Research と Gemini Deep Research の結果を、正本へ直接流し込まず、`transaction_model_gap` の下位観点として最小反映した。failure taxonomy に `transaction_clarity`、`phase_route_clarity`、`work_payment_boundary_clarity`、`buyer_not_lost`、`responsibility_over_admission_risk`、`free_support_expectation_risk`、`request_minimality` を追加し、Codex / Claude 監査プロンプトにも「該当時だけ見る補助観点」として接続した。scorecard には点数を増やさない補助監査軸を追加した
+- きっかけ: 外部調査で、実務返信AIは文体だけでなく、状態管理・workflow guardrails・policy/action guardrails・QA loop として成立させる必要があると確認された。`transaction_model_gap` は既存概念と近いが、ココナラの支払い状態・作業開始条件・成果物返却導線までまとめて見る内部レンズとして有効だと整理された
+- 想定効果: normal prequote を重くせず、closed / delivered / quote_sent など高リスク phase でだけ、buyer が迷子になる取引構造の欠落を監査で拾いやすくする
+- 非変更: writer rule / renderer / validator の新規大規模追加は行わない。下位観点は全件採点軸ではなく、`transaction_model_gap` が疑われる時だけ使う reviewer lens とする
+
+### 2026-04-27 / CHG-062
+- 分類: `reply-only`
+- レイヤ: delivered renderer / phase contract
+- 変更: active fixture `PCE-005` の delivered 差し戻し/承諾不安が `generic_delivered` へ落ちていたため、`delivered_can_reject` の最小分岐を追加した。正式納品後・承諾前に、未確認箇所があるなら無理に承諾しなくてよいこと、承諾前はトークルーム内で伝えること、承諾後に同じ問題が出た場合はメッセージ上で前回修正とのつながりを確認することを返す
+- きっかけ: external research 反映後の targeted lint で、role suite は通る一方、phase-contract edge fixture の `PCE-005` が `generic_delivered fallback survived` で落ちた。これは `phase_route_clarity` の接続不足として扱うべき deterministic gap だった
+- 想定効果: delivered の承諾/差し戻し質問で、buyer が「承諾するしかないのか」「承諾後はどうなるのか」で迷子になる事故を減らす
+- 確認: `python3 scripts/check-rendered-delivered-followup.py --fixture ops/tests/quality-cases/active/phase-contract-edge-bugfix09.yaml` OK。full role suite OK
+
+### 2026-04-27 / CHG-063
+- 分類: `reply-only`
+- レイヤ: #RE batch-22 / gold候補メモ
+- 変更: batch-22 `normal-phase-tmg-regression` の r1 で、普通寄り prequote と phase sentry の混在 batch が Codex / Claude の両監査で採用可になった。B01 は `Stripe支払い完了 -> プラン未反映` と `ログの場所が分からない` を拾う prequote 型、B03 は `本番Vercel / Stripe Checkout / POST 405` を一息で拾う技術症状型、B07 は closed 後の `購入なしで具体的な修正指示まではできない` 境界型として gold 候補に記録する
+- きっかけ: r0 では B01/B03 が `内容ありがとうございます -> この不具合なら15,000円 -> どこで止まっているか確認` の旧テンプレートへ戻り、B07 も購入なしコード修正助言への直答が弱かった。r1 で buyer 情報拾いと closed 実作業境界を最小修正し、両監査で必須修正なしになった
+- 想定効果: `transaction_model_gap` 下位観点を接続した後でも、普通の見積り相談が重くなりすぎず、buyer の具体症状を拾った自然な prequote と phase 境界の両立を確認できた
+- 非変更: 今回は validator / renderer / reviewer_prompt へ新規反映しない。B01/B03 の旧テンプレート回帰が次 batch でも再発する場合だけ、prequote の `内容ありがとうございます` / generic stop-check を validator 候補として棚卸しする
+
+### 2026-04-27 / CHG-064
+- 分類: `reply-only`
+- レイヤ: #RE batch-23 / gold候補メモ
+- 変更: batch-23 `normal-prequote-depth` の r2 で、普通寄り prequote 4件と phase sentry 3件が採用可になった。B01 は `raw body / request.text() / stripe-signature` を拾う Webhook署名検証型、B02 は `customer.subscription.updated / DB未更新 / ダウングレード正常` を拾う情報量多め相談型、B03 は顧客対応と不具合修正を分ける型、B04 は成功率/100%保証質問への completion gate 型、B06 は purchased 進捗 + diff希望回答型、B07 は closed 後の一般的な確認手順質問型として gold 候補に記録する
+- きっかけ: r0 では B01/B02/B04 が旧テンプレートへ戻り、B03 は顧客対応質問に答えず、B06 は同義反復と diff 希望落ちが出た。r1/r2 で buyer 情報拾い、業務対応と技術修正の分離、進捗現在地、closed 後の情報提供範囲を最小修正した
+- 想定効果: 普通の見積り相談で具体症状を拾う力と、`transaction_model_gap` の補助観点を本文に出しすぎないバランスを確認できた。特に B03 は buyer の「顧客に何と伝えるか」と「修正をどう頼むか」を分ける gold 候補として重要
+- 非変更: 今回も validator / renderer へ即時反映しない。ただし `内容ありがとうございます -> この不具合なら15,000円 -> どこで止まっているか確認` の旧テンプレート回帰は batch-21〜23 で連続しているため、次の棚卸しで prequote renderer / validator の最優先候補にする
+
+### 2026-04-27 / CHG-065
+- 分類: `reply-only`
+- レイヤ: prequote renderer / validator / Gold Reply 26
+- 変更: batch-21〜23 で連続再発した `内容ありがとうございます -> この不具合なら15,000円 -> どこで止まっているか確認` の旧 prequote テンプレート回帰を棚卸しした。renderer に Webhook署名検証/raw body、subscription更新DB未反映、顧客対応+不具合修正、成功率/100%保証の4つだけ最小分岐を追加し、validator には具体症状がある prequote で旧三点セットが同時に出た場合の warn を追加した。Gold Reply 26 も追加し、buyer の具体情報を1〜2個拾ってから価格・次アクションへ進む型を参照できるようにした
+- きっかけ: r1/r2 の手修正では毎回採用可まで持っていける一方、r0 では同じ旧テンプレートへ戻るため、case_fix ではなく renderer / validator に戻す再発条件を満たした
+- 想定効果: 普通の prequote を契約説明のように重くせず、具体症状が書かれている相談では `読んでいない感` と `bot感` を減らす。成功率質問や顧客対応混在相談を通常の不具合受付テンプレートへ流さない
+- 確認: STK-014 / STK-024 / STK-032 / STK-041 の targeted render と prequote lint OK。`python3 scripts/check-coconala-reply-role-suites.py --save-report` OK（既存 projection warning `CMP-002` 1件のみ）。`./scripts/os-check.sh` OK
+
+### 2026-04-27 / CHG-066
+- 分類: `reply-only`
+- レイヤ: prequote renderer / validator / purchased renderer / Gold Reply 26 / batch-24
+- 変更: batch-24 r0 で、CHG-065 の4分岐外にある普通 prequote 5件が旧テンプレート三点セットへ戻ったため、近縁ケースの最小分岐を追加した。対象は、プラン変更後の未反映、本番VercelだけのCheckout POST 405、preview環境Webhookエラー、Vercel上のWebhook署名検証400、フロント問題とStripe連携不具合の混在相談。validator の concrete prequote context も同じ範囲へ拡張した。あわせて purchased 進捗確認 + diff希望で `原因の切り分け中` の同義反復が出る問題を、現在地 + diff共有可否 + 次回報告内容へ分ける最小分岐にした
+- きっかけ: Codex / Claude 監査で、B01〜B05 がすべて `内容ありがとうございます -> この不具合なら15,000円 -> どこで止まっているか確認` に戻り、B06 も diff 希望へ答えず同義反復になった。これは case_fix ではなく、CHG-065 の接続範囲不足として扱うべき再発だった
+- 想定効果: 専用4型だけでなく、近い普通 prequote でも buyer の具体症状を拾ってから価格・次アクションへ進める。購入後の進捗催促では、空の `確認中です` ではなく、現在地と次に返す内容を buyer に見える形にする
+- 非変更: prequote 全般を大きく再設計しない。今回確認された具体症状パターンと、旧三点セットの deterministic warn に限って最小反映する

@@ -34,6 +34,39 @@ def has_template_quote_drift(rendered: str) -> bool:
     return "..." in topic or len(topic) >= 32
 
 
+def has_concrete_prequote_context(text: str) -> bool:
+    lower_text = text.lower()
+    if "プラン変更" in text and has_any(text, ["支払いは完了", "決済は完了"]) and has_any(text, ["反映され", "変わっていません"]):
+        return True
+    if "405" in text and "Vercel" in text and has_any(text, ["POST", "post", "Checkout", "セッション作成"]):
+        return True
+    if "webhook" in lower_text and has_any(text, ["プレビュー環境", "preview環境", "STRIPE_WEBHOOK_SECRET", "evt_"]):
+        return True
+    if "webhook" in lower_text and "Vercel" in text and has_any(text, ["400", "署名検証", "endpoint", "環境変数", "Route Handler"]):
+        return True
+    if has_any(text, ["フロントエンド", "フロント"]) and "Stripe" in text and has_any(text, ["2つ", "管理画面", "ポップアップ"]):
+        return True
+    if any(marker in text for marker in ["request.text", "stripe-signature", "raw body"]):
+        return True
+    if "customer.subscription.updated" in text and any(marker in text for marker in ["DB", "ダウングレード", "アップグレード"]):
+        return True
+    if "お客さん" in text and "購入履歴" in text and "どう対応" in text:
+        return True
+    if any(marker in text for marker in ["100%直せ", "原因が特定", "どのくらいの割合"]):
+        return True
+    return False
+
+
+def has_generic_prequote_template_fallback(rendered: str, raw: str) -> bool:
+    if not has_concrete_prequote_context(raw):
+        return False
+    return (
+        "内容ありがとうございます" in rendered
+        and "この不具合なら15,000円で進められます" in rendered
+        and "まずはこの不具合がどこで止まっているかを確認します" in rendered
+    )
+
+
 def has_technical_cancel_context(text: str) -> bool:
     return "キャンセル" in text and has_any(
         text,
@@ -222,6 +255,15 @@ def lint_case(module, case: dict) -> list[str]:
         "public_structure_scope_boundary",
         "no_concrete_bug_anxiety",
         "multi_site_non_stripe_scope",
+        "plan_change_payment_not_reflected",
+        "production_checkout_post_405",
+        "preview_webhook_env_error",
+        "vercel_webhook_signature_400",
+        "frontend_stripe_mixed_scope",
+        "stripe_webhook_raw_body_signature",
+        "stripe_subscription_upgrade_db_update",
+        "customer_payment_access_response",
+        "success_rate_or_guarantee_question",
     }
     is_custom_render = normalized.get("scenario") in custom_render_scenarios
     is_custom_budget_completion = normalized.get("scenario") == "budget_completion_gate"
@@ -312,6 +354,8 @@ def lint_case(module, case: dict) -> list[str]:
     raw_message = normalized.get("raw_message", "")
     if has_template_quote_drift(rendered):
         errors.append("template_quote_drift failed: long buyer quote plus `とのことでした` survived")
+    if has_generic_prequote_template_fallback(rendered, raw_message):
+        errors.append("generic_prequote_template failed: concrete buyer context fell back to old generic 15,000 yen stop-check template")
     if has_transaction_cancel_misroute(rendered, raw_message):
         errors.append("cancel_word_misroute failed: technical cancel wording was treated as transaction cancellation")
     if has_solution_request_nonanswer(rendered, raw_message):
