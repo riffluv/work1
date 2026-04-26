@@ -454,7 +454,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "closed_free_followup_price":
         blocking_missing_facts = ["current_error_or_log"]
-        direct_answer_line = "その場合は、まず前回の修正とつながる症状かを確認するのが先です。同じ原因として扱えるかを確認しないまま、通常料金の新規依頼として進めることはしません。"
+        direct_answer_line = "まずは、今のエラーが前回の修正とつながる症状かを確認します。確認しないまま、通常料金の新規依頼として進めることはしません。"
     elif scenario == "closed_pre_estimate_cause_check":
         blocking_missing_facts = ["symptom_summary"]
         direct_answer_line = "見積り前の段階で、コードを見て原因調査まで進めることはしていません。"
@@ -662,7 +662,7 @@ def build_case_from_source(source: dict) -> dict:
                     "id": "a1",
                     "question_ids": ["q1"],
                     "ask_text": "今回追加で出ているエラー箇所が分かれば、そのまま送ってください。",
-                    "why_needed": "前回の続きとして扱えるかを切るため",
+                    "why_needed": "前回の修正とつながる内容かを確認するため",
                 }
             ],
             "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
@@ -1338,9 +1338,9 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "その場合は、まず前回の修正とつながる症状かを確認するのが先です。同じ原因として扱えるかを確認しないまま、通常料金の新規依頼として進めることはしません。",
+                    "answer_brief": "まずは、今のエラーが前回の修正とつながる症状かを確認します。確認しないまま、通常料金の新規依頼として進めることはしません。",
                     "hold_reason": "トークルームは閉じているため、この場でそのまま修正作業に入ることはできません。",
-                    "revisit_trigger": "まずはエラー内容やログ、スクショを見て、前回対応として扱える内容か、別の原因として追加の作業が必要な内容かをお返しします。",
+                    "revisit_trigger": "このメッセージ上でできるのは、エラー内容やログ、スクショを見て、前回の修正とつながる内容かを確認するところまでです。",
                 }
             ],
             "ask_map": [
@@ -1437,9 +1437,9 @@ def build_case_from_source(source: dict) -> dict:
             {
                 "question_id": "q1",
                 "disposition": "answer_after_check",
-                "answer_brief": "今回のご連絡内容は確認しました。まず今回のご相談がどの種類かを見てから案内します。",
-                "hold_reason": "トークルームは閉じていますが、内容を見て次の案内を決めます。",
-                "revisit_trigger": "必要な情報を受領したあとに、どの形で進めるかをお伝えします。",
+                "answer_brief": "トークルームは閉じていますが、まずこのメッセージ上で内容を確認します。",
+                "hold_reason": "この場でそのまま修正作業やファイル返却へ進める前提にはしません。",
+                "revisit_trigger": "内容を見たうえで、メッセージ上の確認で足りるか、実作業として見積り提案または新規依頼へ戻すかをお伝えします。",
             },
         ],
         "ask_map": [],
@@ -1610,7 +1610,7 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "recur_uncertainty":
         return "トークルームは閉じていますが、通らない時の出方を見て前の修正とのつながりを確認します。"
     if scenario == "generic_closed":
-        return "トークルームは閉じているため、今回のご相談が前回の続きとして扱えるか確認します。"
+        return "実作業が必要な場合は、作業前にココナラ上でどう進めるかをご相談します。"
     return None
 
 
@@ -1802,10 +1802,14 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             _paragraph_from_lines(
                 [
                     "恐れ入りますが、トークルームは閉じているため、この場でそのまま修正作業に入ることはできません。",
-                    "まずはエラー内容やログ、スクショを見て、前回対応として扱える内容か、別の原因として追加の作業が必要な内容かを確認します。",
+                    "このメッセージ上でできるのは、エラー内容やログ、スクショを見て、前回の修正とつながる内容かを確認するところまでです。",
                     *(ask.get("ask_text", "") for ask in ask_map),
                 ]
             ),
+        )
+        _append_unique(
+            paragraphs,
+            "確認したうえで、メッセージ上の補足で済む内容か、コード修正などの作業が必要な内容かをお伝えします。",
         )
         _append_unique(
             paragraphs,

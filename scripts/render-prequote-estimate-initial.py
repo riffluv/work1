@@ -212,8 +212,14 @@ def detect_prequote_scenario(source: dict) -> str:
 
     if "不正アクセス" in combined:
         return "security_fear"
+    if is_public_structure_scope_boundary_case(source):
+        return "public_structure_scope_boundary"
     if is_fix_vs_structure_first_case(source):
         return "fix_vs_structure_first"
+    if is_no_concrete_bug_anxiety_case(source):
+        return "no_concrete_bug_anxiety"
+    if is_multi_site_non_stripe_scope_case(source):
+        return "multi_site_non_stripe_scope"
     if is_budget_completion_gate_case(source):
         return "budget_completion_gate"
     if any(marker in combined for marker in ["保証はあります", "確実に直る", "直らなかった場合", "直らなかったら"]):
@@ -698,11 +704,56 @@ def is_fix_vs_structure_first_case(source: dict) -> bool:
     raw = source.get("raw_message", "")
     note = source.get("note", "")
     combined = f"{raw}\n{note}"
+    if any(marker in combined for marker in ["25,000円", "25000円", "2万5千円", "どっちを買"]):
+        return False
     if not any(marker in combined for marker in ["修正", "直す", "直して"]):
         return False
     if not any(marker in combined for marker in ["整理", "コード全体", "全体を理解", "把握", "リファクタ"]):
         return False
-    return any(marker in combined for marker in ["どっち", "どちら", "先に", "先か", "まず"])
+    return any(marker in combined for marker in ["どっち", "どちら", "先に", "先か", "先なのか", "どちらが先", "どっちが先", "まず"])
+
+
+def is_public_structure_scope_boundary_case(source: dict) -> bool:
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+    if not any(marker in combined for marker in ["整理", "コード全体", "全体を理解", "把握", "リファクタ"]):
+        return False
+    if not any(marker in combined for marker in ["修正", "直す", "直して", "バグ"]):
+        return False
+    return any(
+        marker in combined
+        for marker in [
+            "25,000円",
+            "25000円",
+            "2万5千円",
+            "引き継ぎ",
+            "両方のサービス",
+            "比較",
+            "スキップ",
+            "ついで",
+            "合計",
+            "どっちを買",
+        ]
+    )
+
+
+def is_no_concrete_bug_anxiety_case(source: dict) -> bool:
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+    no_bug = any(marker in combined for marker in ["不具合はたぶんない", "不具合は多分ない", "不具合がない", "不具合はない"])
+    anxiety = any(marker in combined for marker in ["なんとなく不安", "漠然", "変ですか", "不安です", "よく分からないけど動いてる"])
+    return no_bug and anxiety
+
+
+def is_multi_site_non_stripe_scope_case(source: dict) -> bool:
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+    multi_site = any(marker in combined for marker in ["2つのサイト", "2サイト", "２つのサイト", "複数サイト"])
+    non_stripe_payment = any(marker in combined for marker in ["Square", "PayPay", "GMO", "PayPal", "別の決済"])
+    return multi_site and "Stripe" in combined and non_stripe_payment
 
 
 def is_multi_symptom_case(source: dict) -> bool:
@@ -1070,6 +1121,9 @@ def derive_disposition(source: dict) -> str:
     if scenario in {
         "boundary_bugfix_first",
         "budget_completion_gate",
+        "public_structure_scope_boundary",
+        "no_concrete_bug_anxiety",
+        "multi_site_non_stripe_scope",
         "service_value_uncertain",
         "followon_fix_question",
         "no_meeting_request",
@@ -1783,6 +1837,15 @@ def render_budget_completion_gate_case(case: dict) -> str:
     raw = case.get("raw_message", "")
     opener = opener_for(case)
 
+    if any(marker in raw for marker in ["どっちを買", "どちらを買", "整理を買", "整理が先"]):
+        paragraphs = [
+            "\n".join([opener, "どれを選ぶべきか、という点を先に整理します。"]),
+            "この場合は、まず決済が通らない不具合修正から先に見るのが近いです。\nコード全体を整理し直す前提ではなく、修正に必要な範囲を確認します。",
+            "15,000円内で修正完了まで進められないと分かった場合は、そこで止めてご説明します。\n勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+            "この内容で進める場合は、ご購入後にエラー内容やログを送ってください。",
+        ]
+        return "\n\n".join(paragraphs)
+
     if any(marker in raw for marker in ["全部見てもらって", "全部見て", "全部直して"]):
         paragraphs = [
             "\n".join([opener, "予算内で全部見て全部直せるか、という点を先に整理します。"]),
@@ -1839,12 +1902,53 @@ def render_budget_completion_gate_case(case: dict) -> str:
 def render_fix_vs_structure_first_case(case: dict) -> str:
     raw = case.get("raw_message", "")
     opener = opener_for(case)
-    symptom = "customer.subscription.deleted のイベント処理が失敗する件" if "customer.subscription.deleted" in raw else "いま出ている不具合"
+    symptom = (
+        "customer.subscription.deleted のイベント処理が失敗する件"
+        if "customer.subscription.deleted" in raw
+        else "決済まわりの不具合"
+        if "決済" in raw
+        else "いま出ている不具合"
+    )
     paragraphs = [
-        "\n".join([opener, f"この場合は、まず、{symptom}から、不具合修正として見るのが近いです。"]),
-        "コード全体を先に整理し直す前提ではなく、ご購入後は修正に必要な範囲で Webhook 周りを確認します。",
-        "不具合1件として対応できる内容であれば、15,000円の範囲で原因確認から修正まで進めます。\n確認の結果、大きな整理や別の処理の修正が必要で、この金額内では修正完了まで進められないと分かった場合は、そこで止めてご説明します。勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+        "\n".join([opener, f"この場合は、まず全体整理より{symptom}から先に対応するのがよさそうです。"]),
+        "コード全体を先に整理し直す前提ではなく、修正に必要な範囲を確認します。",
+        "15,000円内で直し切れないと分かった場合は、追加作業へ進まず、そこでご説明します。",
         "この内容で進める場合は、ご購入後に発生時のログや関係ファイルを送ってください。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
+def render_public_structure_scope_boundary_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    opener = opener_for(case)
+    paragraphs = [
+        "\n".join([opener, "まずは、実際に止まっている不具合を起点にするのが安全です。"]),
+        "コード全体を整理し直す前提ではなく、不具合修正に必要な範囲を確認します。",
+        "15,000円内で修正完了まで進められない、または全体整理が必要だと分かった場合は、そこで止めてご説明します。\n勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+        "この内容で進める場合は、ご購入後にエラー内容やログを送ってください。",
+    ]
+    if any(marker in raw for marker in ["どう直す", "直し方", "対処法", "手順書", "自分で直す"]):
+        paragraphs.insert(2, "購入前に具体的な修正手順や、コード上の直し方まではお伝えしていません。")
+    return "\n\n".join(paragraphs)
+
+
+def render_no_concrete_bug_anxiety_case(case: dict) -> str:
+    opener = opener_for(case)
+    paragraphs = [
+        "\n".join([opener, "変ではありません。"]),
+        "ただ、このサービスは具体的な不具合が出ている状態を前提にしています。\n「動いているが、なんとなく不安」という段階であれば、無理に購入を急がなくて大丈夫です。",
+        "決済が通らない、エラーが出る、表示がおかしいなど、気になる画面や操作があれば、それを1件の確認対象にできるか見立てます。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
+def render_multi_site_non_stripe_scope_case(case: dict) -> str:
+    opener = opener_for(case)
+    paragraphs = [
+        "\n".join([opener, "まず範囲を整理します。"]),
+        "2サイト分をまとめて15,000円で進める前提ではありません。\nまずは一番困っている1サイト・1症状を、不具合1件として確認します。",
+        "Stripe 側であれば対応範囲に入ります。Square 側は内容が別になるため、必要であれば分けてご相談になります。",
+        "まずは一番困っている症状とエラー内容を教えてください。対応範囲に入りそうかをお返しします。",
     ]
     return "\n\n".join(paragraphs)
 
@@ -1978,6 +2082,15 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "fix_vs_structure_first":
         case["rendered_reply_validator_mode"] = "fix_vs_structure_first"
         return render_fix_vs_structure_first_case(case)
+    if case.get("scenario") == "public_structure_scope_boundary":
+        case["rendered_reply_validator_mode"] = "public_structure_scope_boundary"
+        return render_public_structure_scope_boundary_case(case)
+    if case.get("scenario") == "no_concrete_bug_anxiety":
+        case["rendered_reply_validator_mode"] = "no_concrete_bug_anxiety"
+        return render_no_concrete_bug_anxiety_case(case)
+    if case.get("scenario") == "multi_site_non_stripe_scope":
+        case["rendered_reply_validator_mode"] = "multi_site_non_stripe_scope"
+        return render_multi_site_non_stripe_scope_case(case)
     reply_stance = case.get("reply_stance") or {}
     if reply_stance.get("reply_skeleton") != "estimate_initial":
         raise ValueError(f"{case.get('id')}: only estimate_initial is supported")

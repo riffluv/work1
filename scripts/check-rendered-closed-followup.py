@@ -210,6 +210,10 @@ def lint_case(module, source: dict) -> list[str]:
             ],
         ):
             errors.append("closed free-followup/price complaint is missing non-commitment and next-path split")
+        if not has_any(rendered, ["このメッセージ上でできるのは", "確認材料", "確認するところまで"]):
+            errors.append("closed free-followup/price complaint does not limit message-side handling to materials review")
+        if not has_any(rendered, ["作業に入る前に", "コード修正などの作業が必要", "修正作業に入ることはできません"]):
+            errors.append("closed free-followup/price complaint does not separate message review from actual work")
 
     if "新しい機能" in raw or "クーポン機能" in raw or "Invoice" in raw or "請求書" in raw:
         if not has_any(rendered, ["範囲ではありません", "機能追加"]):

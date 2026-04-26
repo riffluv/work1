@@ -182,6 +182,7 @@ gold 化しないが、近い将来の候補として残すもの:
 - V5 `quote_sent の追加料金/キャンセル不安`: ユーザー監査で `completion_gate_gap` として格上げ。15,000円内で完了不能な時に未完成納品へ進めないこと、追加作業前に止めること、キャンセル扱いは作業状況とココナラ手続きに沿って相談することを renderer / validator / gold に反映
 - V5 追加調整: `購入前なので、迷いがあれば支払いボタンを押さなくて大丈夫` は buyer を足踏みさせるため標準文から外す。`追加対応として進めるか` も seller 側の都合語として避け、`15,000円の範囲で進める前提 / 超えるなら止めて説明 / 勝手に追加作業へ進まない / キャンセル扱いは手続きに沿って相談` に圧縮
 - V6 `prequote の修正/整理どちらが先か`: batch-18 B08 で旧テンプレート回帰を確認。`fix_vs_structure_first` として taxonomy / Gold 25 / prequote renderer / validator / active fixture に反映
+- V7 `surface_overexposure`: batch-19 と Pro 監査で、安全条件が正しくても本文に並びすぎると、buyer には監査項目・規約説明・契約説明のように見えることを確認。`transaction_model_gap` / `completion_gate_gap` は内部 lens として残し、外向け本文は `直答 1〜2文 -> 必要な境界 1〜2文 -> 次アクション 1文` に圧縮する。まずは writer-brief / compression-rules / gold / batch case_fix へ反映し、renderer / validator の大きな変更は次の #RE で再発を見てから判断する
 
 確認:
 - targeted fixture: `ops/tests/quality-cases/active/pre-shelf-validator-bugfix12-17.yaml` OK

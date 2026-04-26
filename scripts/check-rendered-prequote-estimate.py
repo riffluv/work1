@@ -216,7 +216,13 @@ def lint_case(module, case: dict) -> list[str]:
 
     if not temperature_plan:
         errors.append("temperature_plan is missing")
-    custom_render_scenarios = {"budget_completion_gate", "fix_vs_structure_first"}
+    custom_render_scenarios = {
+        "budget_completion_gate",
+        "fix_vs_structure_first",
+        "public_structure_scope_boundary",
+        "no_concrete_bug_anxiety",
+        "multi_site_non_stripe_scope",
+    }
     is_custom_render = normalized.get("scenario") in custom_render_scenarios
     is_custom_budget_completion = normalized.get("scenario") == "budget_completion_gate"
 

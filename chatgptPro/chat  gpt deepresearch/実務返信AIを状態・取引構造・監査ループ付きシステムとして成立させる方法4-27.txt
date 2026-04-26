@@ -1,0 +1,161 @@
+
+実務返信AIを状態・取引構造・監査ループ付きシステムとして成立させる方法
+Executive Summary
+公開事例を横断すると、事故りにくい support AI はほぼ例外なく「生成モデルに全部を任せる」設計ではありません。共通しているのは、知識、状態、workflow、action 実行権限、policy、QA、改善ループを分離し、LLM は主に「自然言語理解・自然な説明・不足情報の聞き返し」に使い、phase 判定、実行可否、routing、closed 後の導線、秘密情報の取り扱い、refund/billing のような高リスク判断は決定的ロジックか少なくとも強い validator に寄せることです。Intercom Fin は Procedures と Escalation Rules/Guidance、Zendesk は instructions・actions・generative procedures・intelligent triage・QA、Salesforce Agentforce は topics/subagents・actions・variables・action filters・Testing Center・event logs、Google Dialogflow CX は pages/forms/routes/session params/webhooks/handoff metadata、NVIDIA NeMo Guardrails は input/retrieval/dialog/output/execution rails という形で、いずれも「言語生成」と「業務制御」を分けています。
+
+あなたの phase contract は、海外の実務実装でいう policy-aware workflow と stateful orchestration のど真ん中にあります。特に近い外部概念は、業務上必要な状態や属性が見えていないせいで、見た目は自然でも組織ルール違反になる policy-invisible violations です。ただし transaction_model_gap はそれより広く、支払い状態・作業開始条件・成果物返却導線・closed 後の実作業境界・顧客の次アクションまで含めて監査する点で、DST や policy compliance 単体よりも実務的です。公開研究から見ても、multi-turn での迷子、必要情報の未収集、初期仮定の引きずり、隠れた policy state の見落とし、privacy over-disclosure、tool/action の過剰約束、次アクション不明瞭は現在の LLM support agent の典型失敗です。
+
+結論を先に言うと、ココナラ向け日本語返信システムへ落とすなら、最も効くのは「ルールを増やす」ことではなく、phase ledger を明示すること、実作業と確認材料の境界を validator で hard fail 化すること、closed 後の route を gold 返信型として固定すること、#RE 学習ループ を single-turn 文面ではなく再発する failure cluster 単位で戻すことです。公開ベンダー事例でも、改善は conversation debug、batch/simulation、scorecards、event logs、unresolved cluster、escalation rate drivers のような観測可能な失敗面から進めるのが主流で、単発の違和感で prompt/rule を増やす方針はむしろ避けられています。
+
+Open questions / limitations
+この調査は公開情報ベースなので、各社の内部 classifier、hidden prompt、品質監査のしきい値、production での override ルールまでは見えません。特に Replicant の guardrails/QA は主に自社公開情報に依存しており、Intercom・Zendesk・Google ほど管理画面レベルの細かい仕様公開は厚くありません。また、transaction_model_gap と完全一致する既存用語は見当たらず、以下の比較は複数概念の統合的な位置づけです。日本語高文脈対応についても、直接のココナラ研究ではなく、英語圏実装資料と cross-cultural / Japanese dialogue 研究からの慎重な転用です。
+
+Public Examples / Products
+Intercom Fin は、knowledge base に加えて、Guidance で口調・説明方針・handoff を、Procedures で multi-step の業務手順を、Escalation Rules/Guidance で handoff 条件を、Workflows で post-escalation routing を制御します。Procedures は「自然言語 instructions + conditions + branching logic + code/data access」を一つの文書にまとめ、conversation change に応じて非線形に前後でき、Simulations/Batch Testing で go-live 前に検証できます。つまり Intercom では LLM が会話を自然に進める一方で、枝分かれ、手順、handoff、測定、debug は明確に別レイヤで持っています。
+
+Zendesk AI agents は、help center / external content を知識源にしつつ、instructions でブランド・返答方針を制御し、actions と generative procedures で必要情報の収集、API 実行、エスカレーション分岐を持たせ、intelligent triage で intent/sentiment を業務 workflow に接続し、さらに Zendesk QA の scorecards と AutoQA で conversation quality を監査する構造です。ここでも LLM に任せるのは説明や柔軟対話で、業務フロー接続は procedure/action/trigger/ticket workflow に逃がしています。特に order status / damaged item の procedure 例は、必要情報が揃うまで聞く・フォーマット検証する・失敗回数で人に渡す・その後 API や ticket 作成を行うという、あなたの phase contract と非常に相性のよい設計です。
+
+Salesforce Agentforce は、topics/subagents、actions、variables、action filters で業務制御をかける色が最も強い製品の一つです。公開教材でも、LLM から action を “見えなくする” action filtering を使い、たとえば credit issuance を eligibility variable で決定的に制限する例が示されています。さらに Testing Center、Enhanced Event Logs、dashboards があり、agent launch 後に conversation trace を見て guardrails や instructions を修正する前提です。言い換えると、Agentforce の主張は「prompt を強くする」ではなく、可視 state と action gate で business rules を deterministic に埋めることにあります。なお公式資料では Einstein Trust Layer を強調しますが、agents では data masking が無効になるケースが明記されており、privacy を marketing 文句だけで過信すべきではありません。
+
+Google Conversational Agents / Dialogflow CX は、support 特化製品というより状態機械としての会話設計基盤です。Pages の lifecycle、state handlers、forms、session parameters、routes、webhooks が中核で、必要な parameter が揃うまで system が待ち、揃ったら webhook へ渡し、handoff/success metadata は signal として返すが、実際の state change や ticket system 連携は外部が担います。近年は Conversational Agents console で playbooks や generative data stores も入っていますが、依然として強みは deterministic flows と observability にあります。closed ticket や refund eligibility のような support lifecycle は built-in ではなく、自分で明示状態を設計する前提です。
+
+NVIDIA NeMo Guardrails は helpdesk 製品ではなく guardrail middleware です。公開 docs は input rails / retrieval rails / dialog rails / output rails / execution rails を分け、dialog rails で multi-turn flow を制御し、execution rails で custom actions を管理し、canonical intent → next step → bot message の流れを定義しています。support AI にそのまま使うというより、policy / secrets / topic restriction / action safety を外付けで実装する部品として有用です。逆に言えば、ticket lifecycle、refund routing、resolved/closed semantics、QA scorecards は別システムが必要です。
+
+Replicant は voice/chat contact center 向けの vendor で、公開情報では deterministic code-based guardrails、supervisory agents、100% conversation capture、synthetic customer data / character-based voice simulation / regression tests、hypercare feedback loops を打ち出しています。実務上参考になるのは、「AI agent は prompt で作るのでなく、schema・templates・subagents・real call regression・prelaunch stress test で作る」という思想です。ただし、公開 docs の粒度は Intercom や Dialogflow CX ほど実装詳細に踏み込んでいないため、ここから直接借りるべきなのはcontinuous improvement の運用思想であり、具体ルールは POC で検証すべきです。
+
+OSS 側では、Rasa CALM の Flow Policy が state machine と dialogue stack で business logic を deterministic に回し、conversation patterns で repair / clarification / handoff を扱います。LangChain の LangGraph は durable execution、checkpointing、human-in-the-loop interrupts、time-travel debugging を提供し、stateful support workflow の土台になります。補助比較として Ada は Actions/Processes/Coaching を、Microsoft Copilot Studio は topics / Escalate topic / escalation analysis / analytics を明示しており、support AI が「会話」ではなく「stateful workflow + analytics」であることを裏づけます。
+
+Research Findings
+状態・workflow guardrails の共通設計
+最も重要な収穫は、公開実装の成功例がほぼ全て knowledge / workflow / policy / action / QA / analytics を分けていることです。Intercom は Guidance と Procedures を分け、Zendesk は instructions と procedures/actions と QA を分け、Agentforce は instructions より variables/action filters を重視し、Dialogflow CX は pages/forms/session params/webhooks を first-class にしています。これは「自然な返答」と「正しい業務進行」が別問題だという実務理解です。あなたの phase contract を中心に据える設計は、まさにこの収斂点にあります。
+
+ここから導ける設計原則は三つです。第一に、phase は text から推定するのでなく、明示 state として持つ。第二に、action の可否は prompt で説得せず gate で塞ぐ。第三に、LLM は phase 内での言い方を担当し、phase 跨ぎの権限判断は state/workflow に任せる。JourneyBench が policy-aware agent を評価する際に SOP graph と policy control を明示し、Dynamic-Prompt Agent が Static-Prompt Agent を上回ったのは、この分離が有効であることを示しています。
+
+closed ticket・post-resolution complaint・refund expectation・billing dispute の構造
+公開ベストプラクティスから抽出すると、closed/resolved 後の対応で重要なのは「会話継続の可否」ではなく、何が旧案件の延長で、何が新規 route を要するかを明確にすることです。Zendesk では closed ticket は reopen できず follow-up ticket になります。Intercom では closed 後 reply を reopen にするか、新規 conversation にするか reply window で制御できます。つまり成熟系 helpdesk は、post-resolution の連絡経路を formal object として扱うのであって、「自然に会話が続くから旧取引も自然に継続」とは扱いません。
+
+この構造をあなたのプロジェクトに移すと、closed 後は「確認材料を見る」ことと「作業を再開する」ことを分けるべきです。Zendesk の damaged item / order status procedure 例でも、AI はまず必須情報を集め、必要なら human/team へ escalate し、最終決定や後続処理へ route します。Copilot Studio でも Escalate topic は live representative transfer だけでなく callback や ticket creation を含む “別 route” として設計されています。したがって closed 後の最適応答は、軽い確認は受けるが、具体修正・成果物返却・追加作業は見積り提案や新規依頼など正式導線へ切り替える、という二層構造です。
+
+refund expectation と billing dispute も同様で、英語圏の “customer delight” をそのまま移植するのではなく、決裁権・事実認定・route を切り分けるのが本質です。policy-adherent agents の研究は、refund eligibility や cancellation rules のような strict policy 領域で、helpful さを保ちながらも policy 拒否と代替 route 提示が必要だと強調しています。つまり AI は「返金します」と言うべきではなく、現在の確認可能事項・必要情報・判断主体・正式 routeを明確に出すべきです。
+
+continuous improvement loop の作り方
+公開事例の改善ループは、ほぼ「文面を眺める」ではなく、再現可能な conversation trace を中心に回っています。Intercom は Batch Testing、answer debugger、unresolved question clusters、content performance を用意し、Zendesk は QA scorecards と BotQA/Reviews、intent recommendations、advanced AI agent monitoring を持ち、Agentforce は Testing Center と Enhanced Event Logs、Copilot Studio は escalation rate drivers、Replicant は real-call regression と hypercare を前提にしています。あなたの #RE 学習ループ は、これらの実務パターンにかなり近いです。
+
+この観点からは、「単発違和感で rule を増やさない」という方針は正しいです。改善対象は、再発 cluster であり、しかも cluster を rule に戻す前に、まず gold 返信型、reviewer_prompt、validator、knowledge、workflow のどこが欠けているかを切り分けるべきです。特に research でも trace-level human review の必要性や、behavior-based evaluation の重要性が指摘されており、case-level 一発採点だけでは失敗モードを取りこぼします。
+
+英語圏 guardrails を日本語へそのまま入れるとノイズになりやすい点
+英語圏 guardrails をそのまま日本語高文脈・丁寧語へ移植するとノイズになりやすいのは、explicitness の設計思想が違うからです。英語圏 product docs は「clear and direct」「one instruction per directive」「anger なら early escalation」「privacy boundary を明示」といった運用を推奨しますが、日本語実務返信では、同じ構造をそのまま文面へ出すと、過剰に冷たく、機械的で、責任認定っぽく、あるいは逆に大げさな謝罪に見えることがあります。cross-cultural benchmark でも LLM は conversational framing と stylistic sensitivity に課題があり、日本語対話研究でも verbal politeness の動的調整はまだ難所とされています。これは構造は輸入し、表現は日本語 pragmatics にローカライズすべきことを示します。
+
+日本語運用で特に危ないのは、感情検知ベースの即 escalation、説明過多の policy talk、privacy script の過剰明示、ownership 表現の直訳です。Intercom のような frustration trigger は useful ですが、日本語では不満が明示怒りではなく婉曲不信として出ることが多く、逆に軽い不満表現を全部 escalation に寄せるとノイズ化します。また privacy も「同意してください」を毎回正面から言うより、必要最小限の情報要求として自然に実装した方が実務返信では機能します。ここは validator では厳格、surface text は柔らかく、が基本です。
+
+Failure Mode Taxonomy
+state loss / route drift は、multi-turn で必要な制約や earlier instruction を保持できず、別 phase のように話し出す失敗です。MultiChallenge は instruction retention、inference memory、reliable versioned editing、self-coherence を multi-turn の主要難所として挙げ、frontier models でも低精度でした。DST 研究や stateful tool-use 研究も、長い対話や stateful interaction で性能が落ちると示しています。phase contract を自由生成の文脈推定に置くのはここが最大の事故点です。
+
+under-clarification / 必須情報未収集 は、必要な order number、email、症状概要、環境情報などを集めずに答えてしまう失敗です。ClarQ-LLM、ClarifyMT-Bench、AskBench はそろって、LLM が ambiguous / underspecified input に対して premature answer へ寄りやすいことを示しています。support ではこの失敗が「自然だが危険」になりやすく、closed 後の修正依頼や billing dispute では特に致命的です。
+
+early wrong assumption の固定化 は、最初の誤解を conversation 全体で引きずる失敗です。Common ground misalignment 研究は、task success の低下が conversational friction と結びつき、alignment が崩れると進行が detour 化すると示しています。これは transaction_model_gap の言い換えでいえば、「言語上は流れているが、前提世界がズレたまま進む」状態です。
+
+policy / hidden state violation は、表面上は自然で user-sanctioned な応答・action が、見えていない entity attribute / session history / policy metadata のせいで組織ルール違反になる失敗です。Policy-Invisible Violations はこの失敗を明確に定義しており、JourneyBench も SOP/graph で policy adherence を測っています。これは transaction_model_gap に最も近い外部 failure class です。
+
+capability overclaim / action hallucination は、「できない作業をできるように見せる」「route が未確定なのに修正や返却が進む前提で話す」失敗です。policy-adherent agent や stateful tool-use の研究は、tool realism や long-horizon interaction で failure が増えると示しており、support 実務ではこれが unpaid work・未承認作業・closed 後継続支援の誤期待につながります。
+
+privacy / secrets over-disclosure は、必要以上のログ、個人情報、資格情報、将来不要な memory への保存を求めたり露出したりする失敗です。Contextual privacy 研究は、user が goals 達成に不要な sensitive info を無意識に出しがちだとし、phone-use privacy 研究は privacy を “execution-time boundaries” として明示しないと監査できないと述べます。support QA の surface overexposure はこの failure を operationalized した軸として有効です。
+
+next action ambiguity / buyer lost は、tone は自然でも「このあと何をすればよいか」が分からない失敗です。Copilot Studio や helpdesk products が escalation / follow-up / callback / ticket creation を独立経路として設計するのは、会話の最後に state transition を確定させる必要があるからです。support AI では、resolution できない場合、最小でも「今できる確認」「できない作業」「正式 route」の三点が必要です。
+
+transaction_model_gap と既存概念の比較
+最も近い概念は、Atlassian 著者らの policy-invisible violations です。定義は「行為自体は文法的にも意味的にも自然で、ユーザーも望んでいるように見えるが、正しい policy judgment に必要な state が agent に見えていないため組織ルール違反になる失敗」です。transaction_model_gap と似ている点は、表面の自然さではなく、見えていない取引状態・属性・履歴の欠落そのものを問題にする点です。違う点は、policy-invisible violations が主に action/compliance failure を中心に置くのに対し、transaction_model_gap は返信文自体の危険性、特に work/payment boundary や route clarity、buyer not lost まで含むことです。
+
+二番目に近いのは Dialogue State Tracking です。DST は multi-turn の中で slot/value/intents を更新し続ける枠組みで、task-oriented dialogue の基本概念です。似ている点は、状態の継続管理がないと正しい応答も action もできないこと。違う点は、DST の主眼が conversation-internal state であり、transaction_model_gap のような支払い状態、正式導線、closed 後の業務境界、成果物返却可否のような business-state / contract-state までは通常持たないことです。つまり transaction_model_gap は “business-extended DST” に近いです。
+
+三番目は common ground misalignment / conversational friction です。IBM ではなく ACL 2025 の common ground misalignment 研究が示すのは、会話の friction が shared understanding のズレから生じ、task success を落とすという点です。transaction_model_gap と似ているのは、会話が流れていても前提世界がズレていることが失敗の核心である点です。違う点は、common ground misalignment が主に認知・解釈の共有を扱うのに対し、transaction_model_gap はそこに制度的・取引的な境界を加えている点です。
+
+四番目は policy-aware workflow / SOP graph adherence です。JourneyBench は customer support を SOP graph と policy control の問題として評価します。これは phase contract と相性がよく、phase を graph node、許可/禁止/必須情報を edge condition に置き換えられます。ただし JourneyBench の評価焦点は adherence であり、あなたの transaction_model_gap ほど「文面が buyer に何を期待させるか」には踏み込みません。
+
+五番目は contextual privacy / minimal disclosure です。これは surface overexposure に直接つながる概念で、必要最小限の disclosure を重視します。ただしこれは transaction_model_gap の一部分に過ぎません。transaction_model_gap の中では、「ログやスクショは受けるが、秘密や成果物そのものをこの phase で要求しない」という具体ルールに翻訳されるべき概念です。
+
+要するに、transaction_model_gap は既存概念で言えば policy-invisible violations + business-state-aware DST + common-ground audit + route clarity の合成概念です。既存用語に完全一致させるより、あなたの名称を残しつつ、英語では transaction-state grounding gap あるいは transaction-model gap と説明するのが実務上もっとも通りやすいと思います。これは既存概念の上位統合として十分に妥当です。
+
+QA / Review Rubric 提案
+公開QA scorecard の共通骨格はかなり収斂しています。Zendesk QA は scorecards / rating categories / AutoQA を明示し、MaestroQA は rubric を sections / criteria / auto-fail で組み、4C として Communication / Customer Connection / Compliance & Security / Correct & Complete Content を推します。Microsoft の user satisfaction 研究は SAT/DSAT rubrics を conversation pattern として蒸留し、explicit thumbs-up/down だけでは見えない不満理由を掘っています。つまり実務 QA は、単一の総合点ではなく、構造化 rubric + fail section + satisfaction pattern 分解で設計するのがよいです。
+
+あなたの既存 5 軸はそのままでよく、追加候補 7 軸も大半が妥当です。ただし、そのまま 12 軸を横並びにすると reviewer ノイズが増えるので、hard fail と soft score を分けるべきです。私の推奨は、主質問への直答 / scope 順守 / 情報節約 / 自然さ / 次アクション明確さ を soft score の基盤に置き、追加候補のうち transaction clarity / phase route clarity / work/payment boundary clarity / surface overexposure は high-weight、responsibility over-admission risk / free-support expectation risk は high-risk fail-or-warn、buyer not lost は outcome score として扱うことです。
+
+追加候補ごとの判定は次のとおりです。
+
+transaction clarity は採用すべきです。日本語自然さと別軸で、今どの取引状態を前提に返しているかを見ます。DST や policy-aware benchmark から見ても、state loss は根本失敗です。
+phase route clarity も採用すべきです。closed 後や未購入時に「どの正式 route に乗るべきか」を出せるかは、helpdesk lifecycle 設計そのものです。
+work/payment boundary clarity は最重要で、validator hard-fail 候補です。あなたの marketplace 文脈では特に強い差別化軸です。
+buyer not lost は採用すべきですが、単独軸というより 次アクション明確さ の marketplace 強化版として運用すると安定します。
+responsibility over-admission risk は採用すべきです。日本語の謝罪表現は法的 admission と心理的 appeasement の境目が曖昧になりやすいので、文面だけでなく route とセットで見ます。
+free-support expectation risk は採用すべきです。一般 helpdesk の rubric には少ないですが、Coconala では支払いと作業範囲が密接なので独自に重要です。これは work/payment boundary clarity の outcome 側指標です。
+surface overexposure も採用すべきですが、名前は 情報・開示最小性 か request minimality に寄せた方が reviewer 間の解釈が揃います。不要なログ、秘密、追加材料の先回り要求を抑制する軸です。
+実装上は、scorecard を三層に分けるのが最も扱いやすいです。Layer A は hard fail validator、Layer B は reviewer rubric、Layer C は会話群 analytics です。Layer A では phase violation、未承認作業の示唆、秘密情報要求、無権限の返金/責任確約を 0/1 で落とします。Layer B では上記 10〜12 軸を 0–2 か 1–5 で採点します。Layer C では re-open 率、closed 後 friction、follow-up 率、buyer lost 率、free-support expectation 再発率の cluster を見ます。これは Zendesk QA、MaestroQA の auto-fail/sections、Microsoft の SAT/DSAT pattern mining と整合します。
+
+ココナラ日本語返信システムへの適用案
+validator に入れるべきもの
+phase contract 違反検知。現在 phase で許可されていない約束・指示・誘導を出したら hard fail にするべきです。特に closed 後の「修正します」「ファイルを返します」「対応を進めます」は、正式 route が明示されていなければ落とすべきです。
+work/payment boundary violation。ログ・スクショ・症状概要の受領は許可、コード修正・具体修正指示・成果物返却・追加対応は route 必須、という境界を hard fail 化します。これは英語圏でいう policy-adherent action gating に相当します。
+formal route omission。できないことを言うだけで、見積り提案・新規依頼・再相談など次の正式導線が出ていない返信は fail か major warning にします。buyer not lost を state transition として扱うためです。
+responsibility / refund over-commit。責任認定、返金確約、補償確約、期限保証を authority なしに言ったら hard fail。高リスク領域では neutral explanation + route が原則です。
+surface overexposure。資格情報、不要な個人情報、過剰なログ、不要な成果物要求を禁止します。必要情報は最小単位・理由付きで要求するよう validator を置きます。
+closed 後の inspection / labor 混同。内容確認のための閲覧・状況把握と、手を動かす作業が混ざっていたら fail。これはあなたの独自要件ですが、公開 helpdesk lifecycle から見ても正しい分離です。
+next action absence。未解決なのに次アクションが曖昧な返信を fail ではなく strong warning にするのがよいです。全 fail にすると過剰になるためです。
+reviewer_prompt に入れるべきもの
+「この返信は今の取引状態を正しく前提にしているか。言葉は自然でも、別 phase の権限や前提を混入していないか。」
+「今できる確認と正式 route が必要な実作業を分けて書けているか。」
+「必要な追加情報の要求は最小限か。不要な秘密・PII・成果物を先回りで求めていないか。」
+「怒り気味 customer に対し、過剰謝罪で責任を認めたり、逆に冷たく policy だけ述べたりせず、柔らかいが境界は明確になっているか。」これは日本語向けの stylistic review です。
+「buyer が読んだあとに一歩だけ次に何をするかが分かるか。複数 route を出す場合も優先順があるか。」
+「文面が free-support expectation を生んでいないか。『見ます』『確認します』『対応します』が unpaid labor に読めないか。」
+「closed 後の返信で、相談継続を受けつつも、旧取引の時間軸や成果物で自動継続しているように見せていないか。」
+gold reply として持つべき型
+closed 後・軽い確認材料のみ受ける型
+目的は “見られるが、まだ作業開始ではない” を自然に出すことです。骨格は「状況把握は可能 → 見てほしい材料の最小列挙 → ただし修正や返却が必要なら正式導線」を固定化します。
+closed 後・実作業は正式導線へ切る型
+骨格は「現スレッドでは確認ベースまで / 具体修正・調整・返却は見積り提案または新規依頼で対応 / 必要ならその導線で受けます」。これが work/payment boundary clarity の標準形です。
+購入前・必要情報収集型
+Zendesk の order/damaged item procedure に近く、「必要項目だけ順番に聞く」「不正フォーマットや不足は再質問」「揃ったら次 step へ」をテンプレ化します。
+購入後・作業開始条件未充足型
+納期や修正の話へ飛ばず、「開始条件」「不足材料」「揃った後の進み方」を示す型を持つべきです。これは transaction_model_gap の典型予防です。
+正式納品後承諾前・確認と修正窓口を整理する型
+「確認してほしい点」「修正依頼の出し方」「まだ closed ではないこと」を明示する型です。helpdesk 的には solved vs closed の間に相当する明示 phase があると安定します。
+refund / billing dispute 中立 route 型
+骨格は「現時点で事実確定はしない」「確認対象を限定」「必要情報」「判断主体または正式 route」を示すことです。自然さより neutral governance を優先します。
+怒り気味 customer の減圧型
+Intercom の escalation guidance をそのまま真似ず、日本語では「感情受容 → いま確認できる範囲 → 進め方提示」の順番を金型化した方が安定します。
+直接入れない方がよいもの
+単発違和感を拾う語彙ルール。公開事例は test/simulation/trace から再発 cluster を改善しており、単発 wording を rule 化し続けるアプローチは maintenance cost を上げます。
+感情検知だけで即 escalation。英語圏では useful でも、日本語では mild complaint や婉曲不満が多く、ノイズ増加の可能性が高いです。
+毎回の過剰な policy 説明。構造は必要ですが、文面は route clarity に還元し、policy 名や規約名の反復は reviewer 指標にしない方がよいです。
+“自然さ” の過重み。tone が自然でも transaction structure が曖昧なら危険、というのが研究・実務両方の結論です。自然さは soft score に留めるべきです。
+一般論の truthfulness / harmlessness をそのまま support QA に混ぜること。必要なのは domain-generic virtues ではなく、phase・route・boundary・minimal disclosure です。NeMo 的な generic guardrails は外枠として有効でも、rubric 中心軸にはしない方がよいです。
+英語圏 refund 慣習の直輸入。必要なのは refund generosity ではなく、責任認定を避けつつ正式 route へつなぐ構造です。
+過度に細かい politeness validator。日本語では丁寧語の選択は文脈依存が大きく、ここを hard rule にするとノイズが増えます。reviewer_prompt 側に寄せるべきです。
+優先度つき action list
+P0: phase ledger を明示状態として実装する。 購入前 / 見積り提案後 / 購入後 / 納品後承諾前 / closed 後 を文脈推定ではなく system state に持ち、reply policy を phase ごとに分ける。
+P0: validator に hard-fail を入れる。 phase contract violation / work-payment boundary violation / formal route omission / responsibility-refund overcommit / surface overexposure の 5 本を最初の守りとして固定する。
+P1: gold reply を phase 別に 6〜8 型作る。 特に closed 後、未購入、開始条件未充足、承諾前、billing/refund、怒り気味 customer はテンプレが効きます。
+P1: reviewer_prompt を “自然さ” 中心から “transaction clarity” 中心へ組み替える。 既存 5 軸に、transaction clarity・phase route clarity・work/payment boundary clarity・request minimality を追加する。
+P1: #RE 学習ループ を cluster-return 型に固定する。 単発の改造ではなく、再発証拠がある failure cluster だけ validator / gold / reviewer_prompt に戻す。
+P2: analytics を “buyer lost / free-support expectation / closed 後 friction / route omission” で切る。 deflection や CSAT だけでは実務事故を拾えません。
+P2: batch regression を phase×risk で作る。 closed 後、未購入、追加修正、返金期待、billing dispute、秘密情報要求のケースを最低限の回帰セットにする。
+P3: 日本語向け stylistic adaptation を別管理する。 境界は validator、言い回しは reviewer/gold で調整し、両者を混ぜない。
+参考リンク一覧
+Intercom Fin Procedures / Guidance / Escalation / Batch Testing / Debug / Reporting. 
+Zendesk AI agents, actions, generative procedures, intelligent triage, QA. 
+Salesforce Agentforce action filters, variables, testing, event logs, trust notes. 
+Google Dialogflow CX / Conversational Agents flows, pages, forms, webhooks, analytics, history. 
+NVIDIA NeMo Guardrails rail taxonomy and dialog/action control. 
+Replicant platform / simulations / regression-style deployment claims. 
+Rasa CALM Flow Policy / conversation patterns / E2E testing. 
+LangGraph persistence / HITL / time travel / durable execution. 
+Copilot Studio topics / Escalate / analytics / escalation analysis. 
+JourneyBench and policy-aware customer support benchmarking. 
+Policy-Invisible Violations and world-state-grounded enforcement. 
+Contextual privacy / minimal disclosure in conversational agents. 
+ClarQ-LLM / ClarifyMT-Bench / AskBench clarification failure research. 
+Common ground misalignment / conversational friction in goal-oriented dialog. 
+MultiChallenge multi-turn failure benchmark. 
+Zendesk / Intercom closed ticket and follow-up semantics. 
+QA rubric / 4C scorecard frameworks / satisfaction-pattern mining. 

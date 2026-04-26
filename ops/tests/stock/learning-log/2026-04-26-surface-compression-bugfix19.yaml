@@ -1,0 +1,36 @@
+date: 2026-04-26
+case_ref: "RE-2026-04-26-bugfix-19 / ChatGPT Pro design audit"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / reply system design"
+buyer_decision_stage: "mixed"
+service: "bugfix-15000"
+state: "prequote / quote_sent / purchased / delivered / closed"
+
+# --- 診断 ---
+symptom: "安全境界は守れているが、内部 lens の判断要素が外向け本文へ並び、buyer との自然な会話ではなく監査項目を満たす説明文に見える"
+failure_label: "surface_overexposure / ai_tone / transaction_model_gap"
+failure_layer: "reply-only / reviewer lens / gold usage / compression"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "batch-19 の B01/B03/B08 で、正しい安全条件を複数並べることで長文化・ツギハギ感が出た。今後も completion_gate_gap / transaction_model_gap を強めるほど同型が再発しやすい"
+return_target: "writer-brief / prequote-compression-rules / gold / batch case_fix"
+decision: "adopt"
+decision_reason: "安全性は落とさず、内部 lens と外向け本文を分離する方針を明文化する必要がある。renderer/validator の大規模変更は次回 #RE の再発確認後に判断する"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: ""
+next_sentinel: "安全条件が3文以上並び、buyer の主質問への直答よりも例外条件・内部判断・手続き説明が目立つ返信"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "安全条件は内部で厚く持ち、外向け本文には buyer の主質問に必要な境界だけを出す。既定は直答1〜2文、必要な境界1〜2文、次アクション1文"
+upstream_fix: "prequote-compression-rules に post-render compression と boundary atom の出し分けを追加。writer-brief に安全境界の出力上限を追加。Gold 24/25 を長文テンプレではなく minimal_outward / expanded_only_if_asked の anchor として扱う方針へ調整。batch-19 B01/B03/B08 を短縮見本へ修正"
+
+# --- 外向け最小文の目安 ---
+minimal_outward_examples:
+  - "15,000円内で直し切れないと分かった場合は、追加作業へ進まず、そこでご説明します。"
+  - "購入前に具体的な修正手順まではお伝えしていません。"
+  - "全体見直しは今回の不具合修正とは分けて考えます。金額は範囲を確認してからご相談します。"
+  - "トークルームは閉じているため、この場でそのまま修正作業には入れません。"

@@ -519,3 +519,37 @@
 - きっかけ: Codex / Claude 監査で、B08 だけが `この不具合なら15,000円で進められます` の基本テンプレートへ戻り、buyer の主質問「修正と整理どちらが先か」に答えていないと一致した
 - 想定効果: 現公開状態で `整理` `コード全体` `把握` などの語が出ても、非公開サービス名や25,000円導線へ逃がさず、公開中 bugfix の範囲で主質問に答えられる
 - 確認: `PSV-006` targeted lint OK。`pre-shelf-validator-bugfix12-17.yaml` unified render + lint OK。`check-rendered-prequote-estimate.py --case-id PSV-006` OK
+
+### 2026-04-26 / CHG-057
+- 分類: `reply-only`
+- レイヤ: writer brief / compression rules / gold usage / batch wording
+- 変更: ChatGPT Pro の設計監査を受け、長文化・ツギハギ感を `surface_overexposure` として taxonomy に追加した。`prequote-compression-rules` に post-render compression と boundary atom の `hidden / one_line / expanded_only_if_asked` を追加し、`writer-brief` には外向けに出す安全条件を主質問に必要なもの最大2個までに絞る原則を追加した。Gold 24/25 は長文テンプレートではなく、`minimal_outward` と `expanded_only_if_asked` を持つ判断 anchor として使う方針へ寄せた。batch-19 B01/B03/B08 は短縮見本へ修正した
+- きっかけ: ユーザー監査と Pro 監査で、返信SYSTEMは安全境界を守れている一方、内部 lens の判断要素を本文に並べすぎると、buyer には監査項目・規約説明・契約説明のように見えると確認された
+- 想定効果: `transaction_model_gap` / `completion_gate_gap` を削らず、内部では厚く見たまま、外向け本文は `直答 1〜2文 -> 必要な境界 1〜2文 -> 次アクション 1文` へ圧縮しやすくする
+- 非変更: renderer / validator の大規模変更や hard fail 追加は行わない。まず docs/gold/batch の最小反映に留め、次の #RE で短縮により安全性が落ちていないか確認する
+
+### 2026-04-26 / CHG-058
+- 分類: `reply-only`
+- レイヤ: prequote renderer / delivered renderer / validator allowlist / batch-20
+- 変更: batch-20 r0 の Codex / Claude 監査で、B01/B02/B03/B07 が batch-19 r0 と同じ旧テンプレートへ戻ったため、case 修正ではなく renderer 未反映として最小反映した。prequote renderer に `public_structure_scope_boundary`、`no_concrete_bug_anxiety`、`multi_site_non_stripe_scope` を追加し、`fix_vs_structure_first` の検出語を `整理が先` 系へ拡張した。delivered renderer には次回の全体構成見直し相談で、今回見た範囲・全体見直しの別扱い・金額は範囲確認後に相談、を短く返す分岐を追加した
+- きっかけ: `surface_overexposure` 反映後も、r0 で `この不具合なら15,000円` へ戻り、修正/整理、不具合なし相談、2サイト+非Stripe、delivered 全体見直しの主質問に答えない再発が残った
+- 想定効果: public な `bugfix-15000` だけで答えるべき境界ケースを、非公開 `handoff-25000` へ逃がさず、かつ旧テンプレートへ落とさない。安全条件は必要最小限にし、completion gate は buyer の質問に必要な範囲だけ出す
+- 確認: STK-081 / STK-085 / STK-079 / GMN-049 targeted unified lint OK。`python3 scripts/check-coconala-reply-role-suites.py --save-report` 全 role OK（既存 projection warning `CMP-002` 1件のみ）。`./scripts/os-check.sh` OK
+- 非変更: `surface_overexposure` を hard validator 化しない。B08 closed 怒り気味対応は、r1 再監査後に batch 文面だけ短く圧縮し、renderer 変更は行わない
+
+### 2026-04-27 / CHG-059
+- 分類: `reply-only`
+- レイヤ: closed renderer / closed validator / Gold Reply 23
+- 変更: closed 後の無料対応不満型で、`無料で対応できるかはまだ断定できません` だけだと無料実作業の可能性に読めるため、Gold Reply 23 と closed renderer を `このメッセージ上でできるのは確認材料を見るところまで` を先に出す形へ修正した。closed validator も、無料対応・15,000円不満・納得できない系の raw では、メッセージ上の確認範囲と実作業境界の両方を検査するようにした
+- きっかけ: ユーザー監査で、closed 後に実作業が必要な場合はココナラ上の新しい取引導線と費用相談が必要であり、無料対応可否だけを保留すると「作業まで無料であり得る」と誤読されると分かった
+- 想定効果: 正本の `closed 後は確認材料の受領と実作業を分ける` が、gold / renderer / validator へ届き切らず再発する事故を減らす。通常料金への即誘導と無料実作業約束の両方を避ける
+- 確認: `CMW-005` / `TMG-004` targeted render + closed lint OK。`python3 scripts/check-coconala-reply-role-suites.py --save-report` 全 role OK（既存 projection warning `CMP-002` 1件のみ）。`./scripts/os-check.sh` OK
+- 非変更: `transaction_model_gap` は writer rule 化しない。deterministic に拾える closed 無料対応不満型の実作業境界だけを validator へ戻す
+
+### 2026-04-27 / CHG-060
+- 分類: `reply-only`
+- レイヤ: bugfix skill reference / closed renderer fallback
+- 変更: `coconala-reply-bugfix-ja` の style-rules に残っていた closed 後の古い導線表現を、`platform-contract.yaml` の現在モデルへ合わせた。closed 後の再発・追加対応は、機械的に `新規のご相談として` や `料金はかかります` へ寄せず、まずメッセージ上で確認材料を見る範囲と、コード修正・差し替えファイル作成・具体的な修正指示など実作業になる範囲を分ける。あわせて `generic_closed` fallback も、`今回のご相談がどの種類か` / `前回の続きとして扱えるか` の内部語をやめ、メッセージ上の確認と実作業前の相談に寄せた
+- きっかけ: 正本接続棚卸しで、platform-contract / Gold / validator は更新済みでも、skill reference と generic fallback に古い closed 認識が残ると、未知ケースで transaction_model_gap が再発し得ると分かった
+- 想定効果: `#R` や未分類 closed ケースで、通常料金への即誘導・無料実作業期待・内部分類語のいずれにも寄らず、確認材料と実作業の境界を保ちやすくする
+- 非変更: closed 後の全ケースを hard rule 化しない。具体質問に対する直答は引き続き scenario / validator / gold で扱い、generic fallback は最後の安全網としてだけ使う

@@ -1,0 +1,478 @@
+実務返信AIにおける状態管理と取引構造監査の設計手法：次世代カスタマーサポートLLMの実装論
+1. Executive Summary
+近年の大規模言語モデル（LLM）の進化により、カスタマーサポート（CS）領域におけるAIの実装は、単なる「テキスト生成・一問一答の質問応答」から、バックエンドのシステム状態や取引フェーズと連動する「自律型エージェント（Agentic Workflow）」へと決定的なパラダイムシフトを起こしている。しかしながら、実務環境においてAIを安全かつ高い問題解決率で稼働させるためには、LLM特有の「流暢なハルシネーション（Fluency Hallucination）」や「マルチターン対話におけるコンテキストの漂流（Context Drift）」を制御する厳格なガードレールと状態管理（State Management）アーキテクチャが不可欠である。
+
+本報告書は、プラットフォーム型ビジネス（特にフリーランス・スキルシェアなどのエスクロー決済を伴うC2C/B2B取引）における日本語実務返信AIの構築に向けて、公開されているグローバルエンタープライズベンダーのアーキテクチャ、学術研究におけるLLMの失敗モード、および品質保証（QA）の枠組みを網羅的かつ批判的に分析したものである。特に、テキストの自然さや文法的な正確性だけでなく、取引のステータス（購入前、見積り提案後、正式納品後承諾前、クローズ後など）や業務ルールといった「取引構造（Phase Contract）」をAIが正確に認識・順守できているかを動的に監査する機能が、重大なインシデントを防ぐ上で最重要であると結論付けている。
+
+分析の結果、プロジェクトで仮説として掲げられている transaction_model_gap（取引構造や状態の欠落による不自然さやリスクの発生）という概念は、既存の学術概念（意味論的グラウンディングの欠如や、心理学的な交流分析）を実務レベルの「業務状態の境界（Ontological Constraints）」として再定義したものであり、システム監査およびサポートQAの独自の評価指標として極めて高い有用性と命名の価値を持つことが確認された。本報告書では、この概念を中核に据え、英語圏の即時解決・補償型ベストプラクティスを、日本語の高文脈・責任回避的なコミュニケーション文化に適応させ、実務システムの Validator（決定論的検証器）、Reviewer Prompt（LLMによる文脈監査）、および継続改善ループ（Continuous Improvement Loop）へと落とし込むための具体的な実装論を提示する。
+
+2. Public Examples / Products (海外エンタープライズ製品の実装アーキテクチャ比較)
+世界の主要なサポートオートメーションベンダーやオープンソースフレームワークは、LLMの確率的な生成能力と、確定的なビジネスルール（Deterministic Rules）を分離・統合する独自のアーキテクチャを採用している。各社の設計思想と、ナレッジベース、状態管理、ツール、ポリシー、ガードレール、継続改善ループの処理方法について比較・分析する。
+
+2.1. ベンダーおよびフレームワークの詳細分析
+Intercom Fin
+IntercomのAIエージェント「Fin」は、自然言語による「手順（Procedures）」定義と、決定論的制御の組み合わせをアーキテクチャの核としている 。Fin AI Engineは、ユーザーのクエリをLLMに渡す前に精製（Refine）し、安全性と関連性をチェックするレイヤーを持つ 。特筆すべきは、LLMにすべての判断を委ねるのではなく、API実行や条件分岐は「Procedures」と呼ばれる明確な手順書として管理され、顧客が話題を変えたり割り込んだりした場合でも、この構造化されたステップと自然言語処理をハイブリッドで機能させる点にある 。テストは「シミュレーション（Simulations）」を通じて安全にスケールアップされ、変更が本番環境の顧客に到達する前に振る舞いが検証される継続改善ループを形成している 。   
+
+Zendesk AI Agents (Advanced)
+Zendeskは、従来の決定木型スクリプトとLLMを融合させた「Agentic Reasoning（エージェント的推論）」と「Hybrid Flows（ハイブリッドフロー）」を提供している 。ナレッジベースからの生成に留まるEssential版に対し、Advanced版ではAIが自律的に推論を行い、APIを通じてバックエンド（ShopifyやERPなど）と双方向のやり取りを行う 。ビジネスルールの逸脱を防ぐため、「Reasoning Controls（推論コントロール）」と「Instructions（命令）」という機能を用いて、AIの意思決定プロセスを可視化・追跡し、特定の価格情報の除外や機密データの取り扱いといったポリシーを強制している 。   
+
+Salesforce Agentforce
+SalesforceのAgentforceは、エンタープライズレベルの厳格な状態管理とセキュリティを体現している。システムは「Role（役割）」「Knowledge（知識）」「Actions（アクション）」「Guardrails（ガードレール）」「Channel（チャネル）」の5つの属性で構成される 。最大の特徴は、「Einstein Trust Layer」と「Supervisory LLMs（監視用LLM）」の二重の防壁である 。実行アクションはPublicとPrivateに厳格に分けられ、認証ステータス（状態）に基づきアクセスが制御される 。また、Agentic Development Lifecycle (ADLC) という概念を導入し、ランタイムでのエラーや不適切なアクションを訓練データとして即座に還流させ、システムを自己学習させる強固な継続改善ループを構築している 。   
+
+Google Dialogflow CX
+Dialogflow CXは、LLMの生成能力に依存しすぎない、ステートマシン（State Handlers）による厳格な会話フロー制御を志向している 。アーキテクチャの基本思想は「すべてのビジネスロジックはDialogflowの外部（Webhookやバックエンド）に置く」というものであり、システム自体は自然言語の解釈と状態（State）の遷移のみを担う 。これにより、AIのブラックボックス化を防ぎ、予測可能性を回復している。継続改善ループについては、CI/CD（継続的インテグレーション/継続的デプロイメント）パイプラインを統合し、新バージョンのデプロイ前にテストケースを自動実行して意図しない挙動（回帰バグ）を防ぐ仕組みを提供している 。   
+
+NVIDIA NeMo Guardrails
+NVIDIAのNeMo Guardrailsは、アプリケーションコードとLLMの間に「レール（Rails）」を敷くオープンソースツールキットである 。Colangという独自のモデリング言語を用いて、トピックの逸脱防止、事実確認（Fact-checking）、PII（個人を特定できる情報）の保護、および確定的なダイアログパスの強制を中間層で処理する 。LlamaGuardやAlignScoreといった外部の安全性モデル（Safety Models）と統合し、入力だけでなく生成された出力もランタイムでスキャンする多層的（Multi-layer）なコンテンツモデレーションを実現している 。   
+
+2.2. アーキテクチャの比較と責任分界マトリクス
+以下の表は、各プラットフォームが「LLMの確率的生成」と「決定論的ルール・状態管理」をどのように分界しているかを整理したものである。
+
+比較観点	Intercom Fin	Zendesk AI Agents	Salesforce Agentforce	Dialogflow CX	NVIDIA NeMo Guardrails
+Knowledge / Rulesの境界	
+AI Engineが入力を精製し、Procedures（手順書）でルールを強制 
+
+InstructionsとReasoning Controlsでポリシーを定義 
+
+RoleとAgent Instructionsで役割を定義し、Trust Layerが保護 
+
+PagesとState Handlersで遷移を定義、ロジックは外部 
+
+ColangによるプログラマブルなRailsでルールを強制 
+
+LLMと決定的ルールの分離	
+意図解釈はLLM、アクションと分岐は決定論的Procedures 
+
+Hybrid Flowsによる生成と決定論の融合 
+
+Actions (Apex/Flow) は確定的、Supervisory LLMがランタイム監視 
+
+確定的ステートマシンが主導、生成は補助的 
+
+LLMの入出力をLlamaGuard等の別モデルが確定的/確率的に遮断 
+
+State / Closed Ticketの扱い	
+会話の割り込みに対応しつつ、Proceduresの文脈を維持 
+
+API連携によりERPやShopify側のStateを直接参照・操作 
+
+Identity Verification層でPrivate Actionsの実行可否をState管理 
+
+State HandlersがターンごとのSession Stateを厳格に管理 
+
+Conversation flowsで事前定義されたサポートシナリオのStateを追跡 
+
+継続改善ループの設計	
+SimulationsによるスケールテストとAIによるProceduresドラフト 
+
+Reasoning Controlsによる追跡とルールのターゲット適用 
+
+ADLCによるランタイムログの訓練データ化と自己学習 
+
+CI/CD連携によるリリース前の自動テストケース実行 
+
+ログとRailアクティベーション指標に基づくA/Bテストと人間によるレビュー 
+
+  
+実務におけるインサイト：アーキテクチャの収束
+分析によれば、最先端のシステムはいずれも「LLM単体に状態管理や決済・ルールの判断を委ねない」という点で完全に一致している。対話の「流暢さ」や「意図の汲み取り」はLLMに任せる一方で、返金、取引のキャンセル、エスカレーションといった実作業（Action）は、システム側が保持する状態（State）と決定論的なバリデーター（Validator）の厳格な制御下で行われている。これは、ユーザーのプロジェクトにおける #RE 学習ループ と phase contract の設計思想が、エンタープライズのベストプラクティスと軌を一にしていることを裏付けている。
+
+3. Research Findings: クローズ後対応と日本語文化への適応
+実務返信AIを構築する上で、英語圏のサポート自動化のベストプラクティスをそのまま日本のC2Cプラットフォーム（ココナラ等）に持ち込むことは、重大な摩擦とリスクを生む。本セクションでは、クローズ後のチケットや返金要求に対する最適な対応構造と、日本語の文化的文脈（高文脈、責任回避、丁寧語）における英語圏ガードレールのノイズ化について論じる。
+
+3.1. 英語圏の返金・サポート慣習の構造的限界
+英語圏のカスタマーサポートAIの成功事例の多くは、B2CのECサイトやSaaSのサブスクリプションモデルを前提としている。これらのシステムでは、「AIがCRMから注文履歴を瞬時に引き出し、顧客に尋ねることなく双方向APIを通じて全額返金（Full Refund）を実行し、さらに15%の割引クーポンを発行する」といった、自己完結型の即時補償（Zero-touch resolution）が理想とされている 。
+しかし、ココナラのようなC2C/B2Bスキルシェアプラットフォームにおいては、取引代金はプラットフォームの利益ではなく、エスクロー決済を介した出品者（クリエイター）の正当な売上である。プラットフォーム側のAIが勝手に「顧客の不満に寄り添って返金を約束・実行する」ことは、出品者の権利を侵害する越権行為であり、システムの信頼性を根本から破壊する。   
+
+転用可能な構造的ベストプラクティス：
+英語圏の慣習から日本語のC2Cモデルへ転用すべきは「返金の実行能力」ではなく、「コンテキストの保持」と「正しいワークフローへのルーティング」である。
+
+The No-Repeat Rule（コンテキストの完全引き継ぎ）： AIが人間（または出品者）にエスカレーションする際、会話履歴、推論された意図、収集されたデータをすべて引き継ぐ。顧客に同じ説明を二度させない 。   
+
+構造的ナビゲーション： AI自身で解決できない「取引当事者間のトラブル」について、AIが状況（State）を整理し、正規の異議申し立て窓口や出品者へのダイレクトメッセージ機能へ機械的かつ適切に誘導する 。   
+
+3.2. 英語圏ガードレールの直訳が引き起こすノイズと危険性
+英語圏のLLMやガードレールモデル（LlamaGuardなど）は、デフォルトで「顧客への深い共感（Empathy）」「直接的な回答（Directness）」「自己のAIとしての明示（Third-party detachment）」を推奨するようにアライメントされている。これらを日本語の高文脈（High-context）や、責任認定を厳格に回避するビジネス文化に適用すると、以下の致命的なノイズが発生する。
+
+過剰な共感と不適切な謝罪による「過剰な責任認定リスク（Responsibility Over-admission）」
+
+英語圏のデフォルト: "I am so sorry to hear that your delivery is late. I understand how frustrating this must be."（ユーザーの不満に寄り添う設計）
+
+日本語における危険性: 日本のビジネスコンテキストにおいて、「大変申し訳ございません」という表現は、文脈によっては「プラットフォーム側に100%の過失があることを法的に認めた（Liability Admission）」と解釈されるリスクがある。特に怒り気味の顧客に対し、事実確認前に共感ベースの謝罪を行うと、「そっちが不具合だと認めたのだから、出品者ではなく運営が全額補償しろ」という二次クレームに直結する。
+
+適応策: 日本語対応では、「〇〇でお困りのことと存じます（状況の認知）」や「ご不便をおかけしております（一般的なクッション言葉）」に留め、責任の所在を明確にする謝罪表現は、ValidatorレベルでAIに禁止させる必要がある 。   
+
+直接的な拒絶による「空気を読まない（Kuuki wo yomuの失敗）」対応
+
+英語圏のデフォルト: "I cannot issue a refund because this ticket is closed."（明確で直接的な拒絶）
+
+日本語における危険性: 日本のカスタマーサポートにおいて、直接的な「No」は相手の感情を著しく逆撫でする 。   
+
+適応策: 間接的な表現と代替案の提示（Alternatives）が必須である。「システム上、クローズ後の取引キャンセルはお受けできかねますが（間接的拒絶）、〇〇のメッセージ機能を用いて出品者様とご相談いただくことは可能です（代替導線）」といったセット構成をガードレールとして定義する 。   
+
+敬語（Keigo）の階層の崩壊
+
+日本語には尊敬語（Sonkeigo）、謙譲語（Kenjougo）、丁寧語（Teineigo）の複雑な階層が存在する 。汎用LLMは、過剰にへりくだった謙譲語と尊敬語を混同することが多く、これが「不自然さ」を生み出す。実務返信AIでは、無駄な尊敬語を削ぎ落とし、プレーンで正確な丁寧語（Teineigo）にトーンを統一するようReviewer Promptで制御しなければならない。   
+
+4. Failure Mode Taxonomy (LLMカスタマーサポートエージェントの失敗モード)
+顧客対応におけるLLMエージェントの失敗は、単発的な事実誤認（静的なハルシネーション）よりも、対話の構造や取引の前提が崩壊する「動的な失敗」において顕著に表れる。学術研究および技術文献から抽出された主要な失敗モードを以下に分類する。
+
+4.1. マルチターンにおけるコンテキストと境界の漂流 (Context & Alignment Drift)
+長時間の対話や複数回のやり取り（マルチターン）において、AIは初期の制約や安全基準を徐々に忘却するか、ユーザーの感情に引きずられてルールを逸脱する現象（Context Drift）である 。
+最新の学術的なストレステスト（仮想の精神科対話を用いた実験）では、静的な1ターンのテストでは安全基準を守るLLMであっても、適応的なプロービング（Adaptive Probing：ユーザーが手を変え品を変え要求を繰り返す手法）を用いたマルチターン対話では、平均わずか4.64ターンで安全の境界を越え、「絶対的な保証」や「専門家としての責任の引き受け」を行ってしまうことが証明されている 。CSにおいては、顧客が「どうしても困っている」と訴え続けた際、AIが共感のあまり「特例で対応します」と権限外の約束をしてしまう事象に直結する。   
+
+4.2. 早い段階の誤った仮定への固着 (Anchoring on Early Assumptions)
+ユーザーの最初の曖昧な発言（例：「支払いがおかしい」）に対し、AIが特定の業務フロー（例：二重請求の返金フロー）だと早期に断定し、その後ユーザーが追加情報を出しても、最初のフローから抜け出せなくなる現象である。AIが「必要な情報を集めない（Failure to gather necessary context）」まま一方的に推論を進めることで、顧客の真の意図（例：クーポンの適用漏れだった）との間に致命的なズレが生じ、結果として顧客が次にどうすべきか（Next Action）が不明になる（Buyer Lost）。   
+
+4.3. セマンティック・ギャップとハルシネーション・カスケード (Semantic Gap & Hallucination Cascade)
+エージェントがバックエンドのAPIやワークフローと連携する際、初期の推論エラーが後続のシステム全体に波及する「ハルシネーション・カスケード」が発生する 。たとえば、AIが存在しないSKUコードや架空の取引IDを幻覚で生成し、そのまま返金APIを呼び出そうとする事象である。
+この根本原因は、AIのテキスト生成能力（Syntactic fluency）に対して、意味的な根拠（Semantic grounding）が欠落していることにある。AIは「返金処理を行う」という流暢な文字列を出力できるが、現在の取引が「納品済み（クローズ後）」であるためシステム上返金が不可能である、という「オントロジー的（存在論的）な型制約」を理解していないため、システムエラーを誘発する 。   
+
+4.4. できない作業をできるように見せる (Phantom Capabilities)
+LLMの流暢さが引き起こす最大のUXおよび運用上のリスクである。プラットフォームの仕様上、AIやサポートデスクが直接操作できない領域（例：C2C取引におけるクリエイターのソースコード修正や、成果物の再提出）について、AIが「承知いたしました。すぐに修正版をお送りします」と、あたかも自分が実作業を行えるかのように答えてしまう現象である。これにより、顧客の期待値と実際のプラットフォームの権限・実作業の境界（Work/payment boundary）に深刻な乖離が生じ、後のクレームを増大させる 。   
+
+4.5. 機密情報とポリシーの漏洩 (Policy / Privacy Breaches)
+システム内部のプロンプト指示（例：「あなたはクレーム対応用のAIです。相手が怒っている場合は…」）や、データベースからRAG（検索拡張生成）で引き出した社内向けマニュアル、さらには他者の取引履歴（PII：個人を特定できる情報）を、顧客への回答文の中に露出（Surface overexposure）させてしまう失敗である 。   
+
+5. transaction_model_gap と既存概念の比較・検証
+ユーザーのプロジェクトで用いられている transaction_model_gap（返信文が不自然になる原因を、日本語だけでなく、取引構造・支払い状態・作業開始条件・成果物返却導線の欠落として見る監査レンズ）という仮説概念について、既存の学術的・実務的フレームワークとの類似性と、独自概念として名付ける価値を批判的に検証する。
+
+5.1. 既存概念との比較分析
+既存概念	出典・定義	transaction_model_gap との類似点	決定的な相違点と不足部分
+Semantic Grounding (意味論的グラウンディング)	
+LLMの出力を事実や外部データベースの正式な定義（SLAなど）に結びつけ、意味論的な妥当性を保証する概念 。
+
+AIが表面的な言葉尻だけでなく、背後にある「現実のデータ状態」に基づいて発言すべきとする点。	学術的なSemantic Groundingは「用語の定義や事実関係」に主眼が置かれる。エスクロー決済特有の「契約フェーズ（Phase Contract）に基づく権利義務の動的変化」という構造的な遷移を捉えきれない。
+Context Drift (コンテキストの漂流)	
+対話が進むにつれて、AIが維持すべき状態や初期の制約条件を逸脱または忘却する現象 。
+
+顧客とのやり取りの中で、元々のルールや枠組みが見失われる点。	Context Driftはあくまで「会話文脈の喪失」を指す。一方 transaction_model_gap は、会話の文脈が正しくても、ビジネス上の「取引構造・制約」と乖離している事象を指す。
+Transactional Intelligence (トランザクショナル・インテリジェンス)	
+タスクの正確な実行に焦点を当てたAIの能力。人間関係を構築するRelational Intelligenceと対比される 。
+
+業務遂行（取引・タスク）に焦点を当て、人間関係や感情とは区別される客観的な処理能力である点。	ここでのTransactionalは「API呼び出しや一問一答の実行」という意味合いが強い。C2Cにおける「見積り→購入→納品→クローズ」という長期的な商取引モデル（契約構造）の欠落を意味するものではない。
+Transactional Analysis (交流分析 / TA)	
+Eric Berneが提唱した心理学モデル。親（Parent）・大人（Adult）・子供（Child）の自我状態のやり取りを分析する 。
+
+状態（State）間の遷移や相互作用を分析するレンズである点。	完全に心理学的な対人関係アプローチであり、商取引やシステムのステータス（支払い済み、納品待ち等）を管理・監査する概念ではない。
+  
+5.2. 独自概念としての価値評価：極めて高い (Highly Valuable)
+結論として、transaction_model_gap という概念は、既存の語彙で代替するにはあまりにも特異かつ実務的に重要な側面を捉えており、独自のラベルとして採用・維持する価値が極めて高い。
+
+既存のAI用語（ハルシネーション、コンテキストドリフト）は、主として「言語学的・情報工学的なエラー」を指す。しかし、ココナラのようなC2C/スキルシェアプラットフォームにおける重大な事故は、文法の破綻から生じるのではなく、「ビジネスアーキテクチャ（契約状態・権限・支払いフェーズ）の無視」から発生する。AIがどれほど自然な日本語で、どれほど正確なナレッジベースを引用したとしても、現在が「正式納品後承諾前」なのか「クローズ後」なのかという**フェーズ契約（Phase Contract）**の前提を見落として回答すれば、それは取引の根幹を揺るがす致命的なリスクとなる。
+
+RAG（検索拡張生成）による知識の付与だけではこの問題は解決しない。「RAGは『どのドキュメントが関連しているか』は解決するが、『このエージェントが現在どのような契約フェーズの制約下にあるか』というオントロジー的な曖昧性回避（Disambiguation）は解決できない」という学術的指摘  は、まさにこのギャップを突いている。
+この「言語生成レイヤーとビジネス取引レイヤー間の構造的断絶」を表現し、監査ループを回すための専用用語として、transaction_model_gap は非常に強力かつ的確なレンズである。   
+
+6. QA / Review Rubric 提案 (評価軸の定義とスコアカード構築)
+従来のコンタクトセンターにおけるQAスコアカードは、「問題解決率（FCR）」、「顧客満足度（CSAT）」、「共感・トーンの適切さ」といった指標に偏重していた 。しかし、Agenticな機能を持つLLMを評価する場合、これら既存の指標だけでは、前述の transaction_model_gap のような構造的リスクや、権限外の約束（Phantom Capabilities）を検知できない。
+ユーザーが提示した既存の評価軸および追加候補について、英語圏の最新のQA構築論  と照らし合わせ、日本語実務向けに最適化されたQAルーブリック（評価軸）を提案する。   
+
+6.1. 追加候補の妥当性検証
+ユーザーが提案した追加候補（transaction clarity, phase route clarity, work/payment boundary clarity, buyer not lost, responsibility over-admission risk, free-support expectation risk, surface overexposure）は、すべて極めて妥当かつ必須である。
+英語圏の最新のQAスコアカード設計においても、「致命的なエラー（Auto-Fail Criteria）」として、コンプライアンス違反や権限外の約束、セキュリティ違反が厳格に定義されている 。これらの軸は、エスクロー取引特有の「法的・契約的境界」を守るために、従来のCSAT偏重の評価軸を置き換える、または最上位のフィルターとして位置づけるべきものである。   
+
+6.2. 実務返信AI向け QA Scorecard / Rubric 提案
+以下の評価軸は、LLM-as-a-Judgeを用いた Reviewer Prompt におけるスコアリング、またはValidatorにおけるAuto-Fail（即時リジェクト）の判定基準として機能するよう設計している。
+
+評価カテゴリ	評価指標（Rubric Item）	定義・振る舞いのアンカー（Behavioral Anchor）	実装レイヤー / 重要度
+基本要件	主質問への直答 (Direct Resolution)	顧客の最も核となる質問・不満に対し、冒頭で明確な回答（仕様の説明、可否等）を提示しているか。	Reviewer (中)
+情報節約 (Information Economy)	不必要な長文や、現在のフェーズに関係のない将来のオプション情報を過剰に提示していないか。	Reviewer (低)
+自然さ (Natural Nuance)	機械翻訳特有の不自然さがなく、かつ過剰な尊敬語・謙譲語の混同による違和感がないか（適切な丁寧語の維持）。	Reviewer (低)
+取引と境界
+
+
+(最重要監査群)
+
+Phase Route Clarity (フェーズ導線の明確さ)	現在の取引ステータス（購入前、納品後など）に完全に適合した、正しいシステム導線（UIの操作手順）を案内できているか。	Validator (Auto-Fail)
+Work/Payment Boundary Clarity (実作業と決済の境界明確性)	プラットフォーム側で介入可能な範囲（システム仕様案内、キャンセル規定）と、当事者間で合意・実行すべき実作業（コード修正、納品物再提出）の境界を混同し、AIが実作業を代行するような表現をしていないか。	Validator (Auto-Fail)
+Transaction Clarity (取引構造の透明性)	
+顧客が自身の現在の契約状態（例：すでにクローズ済であり、トークルームでの対応期間外であること）を客観的に認識できる事実（Fact）を提示しているか 。
+
+Reviewer (高)
+リスク制御	Responsibility Over-admission Risk (過剰な責任認定リスク)	問題の根本原因が不明な段階で、システム側の不具合や出品者の過失を断定し、法的責任を認めるような謝罪をしていないか。	Validator (Auto-Fail)
+Free-support Expectation Risk (無償サポート期待の増長リスク)	クローズ後や対象外の要件に対して、「特例で対応します」「代わりに修正します」等、実現不可能な期待を抱かせていないか。	Reviewer (高)
+Surface Overexposure (表面情報の過剰露出)	
+社内向けのプロンプト指示、他者の取引情報（PII）、システム内部の挙動に関する機密情報を露出していないか 。
+
+Validator (Auto-Fail)
+顧客の誘導	Buyer Not Lost (顧客の迷子防止)	
+状況確認後、顧客が「次に何をすべきか（Next Best Action）」が一つに絞られ、迷わず行動できるよう明確に提示されているか 。
+
+Reviewer (中)
+  
+7. ココナラ日本語返信システムへの適用案
+プロジェクトの方針である「骨格を広く再設計しない」「単発の違和感でruleを増やさない」「再発性があり、実務リスクを下げるものだけ最小反映する」「#RE 学習ループの活用」は、Salesforce Agentforceの「ADLC（連続改善ループ）」 や、NeMo Guardrailsの「マルチレイヤー保護」 の設計思想と完全に合致する優れたアプローチである。
+この思想を具体的に、返信システムの3つのコンポーネント（Validator, Reviewer_prompt, Gold Reply）に分類して適用案を提示する。   
+
+7.1. Validator に入れるべきもの（決定論的・Auto-Fail層）
+Validatorは、LLMのプロンプトによる確率的な制御ではなく、**コードや正規表現、状態照合ロジックによる決定論的なハードブロック（レール）**であるべきである 。ここにLLMの解釈を挟んではならない。   
+
+フェーズステータスと提案機能の絶対的不一致検知: 顧客の取引状態が [status: closed] のメタデータを受け取っているにもかかわらず、生成されたテキストに「修正版を添付します」「納品を取り消します」「トークルームで引き続き…」などの正規表現・キーワードが含まれる場合、即時エラー（Auto-Fail）とし、出力を破棄する。
+
+権限外決済のアクションブロック: 「返金」「キャンセル」「補償」などのキーワードが、AIに許可されていないフェーズ（納品後、クローズ後など）の返信文に存在する場合のハードブロック。
+
+絶対的NGワードのフィルタリング: 「弊社の責任」「出品者の過失」「違法」「法的措置」「損害賠償」など、法的判断を伴う語彙の露出検知。
+
+機密情報/PIIの漏洩ブロック: ログに含まれるべきではない他者の取引ID、クレジットカード情報、あるいはシステム内部のプロンプト変数名（例：{system_prompt}）などの漏洩検知 。   
+
+7.2. Reviewer_prompt に入れるべきもの（LLM-as-a-Judge・文脈監査層）
+#RE 学習ループ 内で、バッチ生成された候補をLLM（ClaudeやGPT-4など）自身に監査させる際の品質判定プロンプト。文脈の整合性や、transaction_model_gap の検出を行う。
+
+境界線の維持監査 (Work/payment boundary): 「この回答は、運営（Coconala）ができることと、当事者（出品者・購入者）がやるべきことの境界線を正しく維持していますか？運営が実作業（コード修正や制作物の調整）を代行するような誤解を与えていませんか？」
+
+無償サポート期待の増長チェック (Free-support expectation): 「この回答は、クローズ後のユーザーに対して、特例対応や無料での追加作業を期待させるような甘い表現（例：『今回に限り』『特別に』等）を含んでいませんか？」
+
+責任認定の回避 (Responsibility over-admission): 「ユーザーの不満に対して、相手の状況は認知（『～でお困りのことと存じます』）しつつも、システムや出品者側の非を確定させる直接的な謝罪（『弊社の不具合により申し訳ございません』）を避けていますか？」
+
+次アクションの単一性 (Buyer not lost): 「ユーザーが次に押すべきボタン、または送るべきメッセージの指示が、複数提示されて迷子になっていませんか？最も適切なNext Actionが1つだけ明確に提示されていますか？」
+
+7.3. Gold Reply として持つべき型（RAG / Few-shot用の理想的テンプレート）
+LLMの生成を安定させるため、意味論的グラウンディング（Semantic Grounding）の基準となる、ビジネスルールに準拠した正解パターンの型。フェーズ（Phase Contract）ごとに固定の型を持たせる。
+
+クローズ後のエスカレーションの型:
+
+構造: 状況の認知 ＋ 現在のシステム仕様の事実提示（Transaction Clarity） ＋ 次の正規導線の案内（間接的拒絶と代替案） ＋ 結び。
+
+具体例: 「〇〇の件につきまして、詳細をご連絡いただきありがとうございます。恐れ入りますが、該当のお取引はすでに正式な納品と承諾が完了し、トークルームがクローズしております。クローズ後の修正や追加作業につきましては、本トークルーム上での対応ができかねます。お手数ですが、クリエイター様へメッセージ機能にてご相談いただくか、新規の見積り依頼より改めてご依頼をご検討くださいますようお願いいたします。」
+
+見積りフェーズでのキャンセル要求の型:
+
+構造: ステータス確認 ＋ 購入前であるためシステム上のキャンセル処理が不要である事実提示 ＋ 放置でよいことの明確化。
+
+支払い・決済トラブルの型:
+
+構造: トラブルの認知 ＋ プラットフォームの仕様説明（エスクロー決済の仕組み等） ＋ 運営窓口による調査の約束（即時返金は明言しない）。
+
+8. 直接入れない方がよいもの / ノイズになるもの
+過剰なルールの追加は「コンフリクト（相反する指示による混乱）」を生み、LLMの柔軟性を奪う。プロジェクトの方針である「ノイズを増やさない」を実現するため、以下の要素は意図的にシステムから排除すべきである。
+
+欧米風の過剰なEmpathy（共感）プロンプト:
+
+「ユーザーの痛みに深く共感し、感情的に寄り添って、何度も謝罪してください」といった指示は、日本語では「不自然で大げさな謝罪」を生み出し、法的責任の所在（Liability）を曖昧にするため完全に排除する。
+
+多段分岐する複雑すぎるIf-Thenルールのプロンプトへの詰め込み:
+
+プロンプト内で「もしステータスがAならBと言い、もしCでかつユーザーが怒っていればDと言い…」と複雑なワークフローをLLMのテキスト解釈のみで処理させようとすると、ハルシネーションの確率が跳ね上がる。フローの分岐はDialogflow CXのように外部のステートマシンやWebhookで決定し 、LLMには「確定した1つのコンテキストと状態」のみを渡すべきである。   
+
+単発のクレーム（Edge case）に対するパッチ的な禁止ルールの追加:
+
+一人の顧客が特殊な言葉尻を捉えて怒ったからといって、「今後〇〇という言葉を絶対に使わない」という局所的なルールをシステムプロンプトに追加すると、全体のリグレッション（改悪）を招く。必ず「再発性がある構造的な問題（Transaction model gapに該当するもの）」に限定してルール化する。
+
+完全自動解決（Zero-touch resolution）への過度な固執:
+
+B2CのECサイトのように全てをAIで完結させようとする設計は、C2Cプラットフォームでは危険である。「AIが状況と状態を整理し、必要なデータを揃えた上で、適切な人間の担当者や出品者にエスカレーションする」ことも、立派な解決プロセスの一部として積極的に許容すべきである 。   
+
+9. 優先度つき action list
+以上の分析と提案に基づき、実務システムへの反映に向けた優先順位付きのアクションプランを提示する。
+
+[High] transaction_model_gap 概念の公式QA指標化と Validator 実装
+
+最優先事項として、フェーズ（Phase Contract）と提案アクションの不一致を検知する決定論的バリデーター（正規表現およびステータス照合ロジック）を実装する。LLMが生成したテキストが、現在のシステムステータスで「実行不可能」な操作を含んでいる場合、自動的に弾く（Auto-Fail）仕組みを構築し、ハルシネーション・カスケードを防ぐ。
+
+[High] Reviewer Prompt の日本語リスク対応・境界線監査へのアップデート
+
+#RE 学習ループ の監査プロンプトに、第6章で定義した「過剰な責任認定（法的リスク）」と「実作業と決済の境界（Work/payment boundary）」の項目を追加する。共感と謝罪を明確に切り分け、間接的な代替案提示を行うよう評価基準をチューニングする。
+
+[Medium] フェーズ（Phase Contract）別の Gold Reply の整備
+
+取引の主要フェーズ（購入前 / 見積り提案後 / 購入後 / 正式納品後承諾前 / closed後）それぞれについて、最も安全で境界線が明確な Gold Reply のテンプレートを作成し、Few-shotプロンプトの例示、またはRAGの参照基盤としてシステムに組み込む。
+
+[Medium] 継続改善ループにおける「ノイズ」の定期剪定
+
+#RE 学習ループ を回す中で、稀なエッジケースに対応するために過去に増築された「単発の違和感修正ルール」を定期的に棚卸しし、削除する。プロンプトは構造的・普遍的な指示（Phase Contractの維持）のみに保つ。
+
+[Low] A/Bテストによるエスカレーション率と Buyer Lost の監視
+
+AIのガードレールを厳しく（境界を明確に）することで、顧客が直接的な回答を得られず不満を持ち、人間へのエスカレーション率が一時的に上がる可能性がある。これが「正当なエスカレーション（ルール通りの案内に対する仕様への不満）」か「AIの迷子（Buyer Lostによる混乱）」かをデータ分析し、Gold Replyの自然さや代替導線の見せ方を微調整する。
+
+10. 参考リンク一覧
+本報告書の分析基盤として参照した主要な公開情報および技術文献のリンク一覧である。
+
+Intercom Fin Procedures & Engine:
+
+https://www.intercom.com/help/en/articles/12495167-fin-procedures-explained
+
+https://www.intercom.com/help/en/articles/9929230-the-fin-ai-engine
+
+Zendesk AI Agents Architecture:
+
+https://leafworks.de/en/services/zendesk-ai-overview/ai-agents-advanced/
+
+https://www.kustomer.com/resources/blog/zendesk-ai-agents-features/
+
+Salesforce Agentforce Best Practices:
+
+https://www.salesforce.com/blog/best-practices-for-secure-agentforce-implementation/
+
+https://www.teksystems.com/en/insights/article/salesforce-agentforce-implementation
+
+Google Dialogflow CX State Management:
+
+https://www.cloudoptimo.com/blog/google-dialogflow-architecture-use-cases-and-its-role-in-conversational-ai/
+
+https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent-design
+
+NVIDIA NeMo Guardrails:
+
+https://github.com/NVIDIA-NeMo/Guardrails
+
+https://developer.nvidia.com/blog/content-moderation-and-safety-checks-with-nvidia-nemo-guardrails/
+
+LLM Failure Modes & Context Drift Research:
+
+https://arxiv.org/abs/2601.14269
+
+https://arxiv.org/html/2510.07777v1
+
+QA Scorecards & Evaluation Metrics:
+
+https://medium.com/@roberthaasiapl/build-qa-scorecards-that-drive-real-results-bbede564bba0
+
+https://www.omind.ai/blog/qms/call-center-quality-assurance-ai-qa-scorecard/
+
+Transactional vs Relational Intelligence / AI Grounding:
+
+https://voiceinthemachine.com/2026/01/19/transactional-and-relational-intelligence/
+
+https://medium.com/@rsubodha/lost-in-the-fog-why-context-and-ontologies-are-the-soul-of-intelligent-agents-3f8d6faaf2f4
+
+Japanese Customer Support Best Practices:
+
+https://nihonium.io/japanese-customer-support-essential-best-practices/
+
+
+intercom.com
+Fin Procedures explained | Intercom Help
+新しいウィンドウで開く
+
+intercom.com
+The Fin AI Engine™ | Intercom Help
+新しいウィンドウで開く
+
+fin.ai
+How to Evaluate AI Agents for Customer Service: The Complete Framework - Fin AI
+新しいウィンドウで開く
+
+leafworks.de
+Zendesk Advanced AI Agents – AI for better customer service
+新しいウィンドウで開く
+
+teksystems.com
+Inside Salesforce Agentforce | TEKsystems Global Services
+新しいウィンドウで開く
+
+salesforce.com
+Best Practices for Secure Agentforce Implementation - Salesforce
+新しいウィンドウで開く
+
+salesforce.com
+Applied AI: Why Building AI Agents Requires a New Playbook - Salesforce
+新しいウィンドウで開く
+
+cloudoptimo.com
+Google Dialogflow: Architecture, Use Cases, and Its Role in Conversational AI
+新しいウィンドウで開く
+
+docs.cloud.google.com
+Flow-based agent basics | Dialogflow CX - Google Cloud Documentation
+新しいウィンドウで開く
+
+docs.cloud.google.com
+General agent design best practices | Dialogflow CX - Google Cloud Documentation
+新しいウィンドウで開く
+
+cloud.google.com
+6 new features in Dialogflow CX | Google Cloud Blog
+新しいウィンドウで開く
+
+mintlify.com
+Customer Support Bot Example - NeMo Guardrails - Mintlify
+新しいウィンドウで開く
+
+github.com
+GitHub - NVIDIA-NeMo/Guardrails: NeMo Guardrails is an open-source toolkit for easily adding programmable guardrails to LLM-based conversational systems.
+新しいウィンドウで開く
+
+developer.nvidia.com
+Content Moderation and Safety Checks with NVIDIA NeMo Guardrails
+新しいウィンドウで開く
+
+kustomer.com
+Zendesk AI Agent Features Teardown for 2026 - Kustomer
+新しいウィンドウで開く
+
+kustomer.com
+The Complete Guide to AI-Powered Ticket Deflection for 2026 - Kustomer
+新しいウィンドウで開く
+
+fin.ai
+AI Customer Service Best Practices for Support Teams
+新しいウィンドウで開く
+
+nice.com
+Top 10 Conversational AI Use Cases Transforming Business Efficiency | NiCE
+新しいウィンドウで開く
+
+nihonium.io
+Japanese Customer Support: Essential Best Practices - Simplifying ...
+新しいウィンドウで開く
+
+arxiv.org
+Drift No More? Context Equilibria in Multi-Turn LLM Interactions - arXiv
+新しいウィンドウで開く
+
+arxiv.org
+[2601.14269] The Slow Drift of Support: Boundary Failures in Multi-Turn Mental Health LLM Dialogues - arXiv
+新しいウィンドウで開く
+
+voiceinthemachine.com
+Transactional and Relational Intelligence – THE VOICE IN THE ...
+新しいウィンドウで開く
+
+medium.com
+The silent failures: When AI agents break without alerts | by Miles K. - Medium
+新しいウィンドウで開く
+
+alphaxiv.org
+A Layered Protocol Architecture for the Internet of Agents | alphaXiv
+新しいウィンドウで開く
+
+outshift.cisco.com
+Bridge the semantic gap: The mechanics of shared knowledge in cognitive AI systems
+新しいウィンドウで開く
+
+medium.com
+Lost in the Fog: Why Context and Ontologies Are the Soul of Intelligent Agents. - Medium
+新しいウィンドウで開く
+
+researchgate.net
+On the Role of Contextual Information and Ego States in LLM Agent Behavior for Transactional Analysis Dialogues - ResearchGate
+新しいウィンドウで開く
+
+arxiv.org
+On the Role of Contextual Information and Ego States in LLM Agent Behavior for Transactional Analysis Dialogues - arXiv
+新しいウィンドウで開く
+
+arxiv.org
+Games Agents Play: Towards Transactional Analysis in LLM-based Multi-Agent Systems
+新しいウィンドウで開く
+
+medium.com
+Build QA Scorecards That Drive Real Results | by Robert Haas | Feb ...
+新しいウィンドウで開く
+
+omind.ai
+Quality Assurance for Call Centers: AI-Powered QA Scorecards - Omind
+新しいウィンドウで開く
+
+docs.cloud.google.com
+Quality AI best practices | Customer Experience Insights - Google Cloud Documentation
+新しいウィンドウで開く
+
+dialzara.com
+7 Conversational AI Evaluation Metrics That Actually Matter in 2025 - Dialzara
+新しいウィンドウで開く
+
+btlj.org
+29:3 BERKELEY TECHNOLOGY LAW JOURNAL

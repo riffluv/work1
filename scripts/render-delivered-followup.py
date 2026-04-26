@@ -2310,7 +2310,33 @@ def build_delivered_render_payload(case: dict, opening_block: str, body_paragrap
     }
 
 
+def render_future_architecture_question_case(case: dict) -> str:
+    contract = case.get("reply_contract") or {}
+    for answer in contract.get("answer_map") or []:
+        if answer.get("question_id") == contract.get("primary_question_id"):
+            answer["disposition"] = "answer_now"
+            answer["answer_brief"] = "全体の構成見直しは、今回の不具合修正とは分けて考えます。"
+    case["response_decision_plan"] = build_response_decision_plan(
+        {"raw_message": case.get("raw_message", "")},
+        case.get("scenario", "generic_delivered"),
+        contract,
+    )
+    case["service_grounding"] = dict(SERVICE_GROUNDING)
+    case["hard_constraints"] = build_hard_constraints(case.get("scenario", "generic_delivered"), SERVICE_GROUNDING)
+    paragraphs = [
+        "ご連絡ありがとうございます。\n無事に動いたとのこと、確認ありがとうございます。\n全体の構成見直しは、今回の不具合修正とは分けて考えます。",
+        "今回見た範囲では、不具合の原因になっていた箇所を修正しました。\nリポジトリ全体が悪かった、とまでは断定していません。",
+        "金額は見直す範囲によって変わるため、範囲を確認してから個別にご相談します。",
+        "ご希望であれば、見直したい範囲を送ってください。",
+    ]
+    case["render_payload"] = build_delivered_render_payload(case, paragraphs[0], paragraphs[1:], "")
+    return "\n\n".join(paragraphs)
+
+
 def render_case(case: dict) -> str:
+    if case.get("scenario") == "future_architecture_question":
+        return render_future_architecture_question_case(case)
+
     if not case.get("response_decision_plan"):
         case["response_decision_plan"] = build_response_decision_plan(
             {"raw_message": case.get("raw_message", "")},
