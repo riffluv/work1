@@ -1,0 +1,38 @@
+date: 2026-04-27
+case_ref: "RE-2026-04-27-bugfix-27-normal-price-guarantee-risk / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / price, guarantee, refund, urgent recovery, warranty"
+buyer_decision_stage: "prequote / purchased"
+service: "bugfix-15000"
+state: "prequote / purchased"
+
+# --- 診断 ---
+symptom: "r0 で、価格固定・返金/キャンセル・復旧時間・ログ不明・保証期間の質問が、汎用不具合受付や情報不足テンプレへ流れた"
+failure_label: "service_structure_nonanswer / refund_cancel_gap / recovery_time_confusion / warranty_period_gap"
+failure_layer: "reply-only / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "価格・返金・保証・復旧時間は buyer が購入前後に繰り返し聞くサービス構造質問で、通常の不具合受付テンプレに流すと実務リスクが高い"
+return_target: "gold"
+decision: "adopt"
+decision_reason: "Codex / Claude とも r1 を採用可。B01 固定価格、B03 返金/キャンセル、B04 緊急復旧、B06 保証期間は再利用価値が高い"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "過去batch同型 / 同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: "deterministic validator ではなく、判断順序と説明の型が重要。まず gold anchor として保持し、再発が続けば renderer / validator を検討する"
+next_sentinel: "価格・返金・復旧時間・保証期間の質問で、旧テンプレや同義反復へ戻らず、仕様上いま答えられることを先に返せるかを見る"
+
+# --- 抽象化 ---
+pattern: "buyer がサービス構造を聞いている場合は、不具合の受付ではなく、価格/返金/保証/復旧時間の事実と取引導線を先に返す"
+upstream_fix: "Gold Reply 29 に、固定価格/他社比較、返金/途中キャンセル、今日中復旧/設定戻し不明、保証期間/再発時追加料金の4型を保存。新規 rule / renderer 反映は保留"
+
+reply_only:
+  - "固定価格質問では、難易度や作業時間で価格を変えず、15,000円に含む範囲を説明する"
+  - "他サービス比較では、こちらから安い高いの断定をしない"
+  - "返金/キャンセル質問では、ココナラ手続き・completion gate・承諾前確認を分けて返す"
+  - "今日中復旧質問では、復旧時間は約束せず、48時間は一次結果の目安だと明示する"
+  - "保証期間質問では、固定保証期間を約束せず、同じ問題が出た場合に今回の修正とつながるかを確認する"
+  - "同じ原因であれば追加料金なしで確認し、別原因でも勝手に追加料金が発生しないことを伝える"
+common: []

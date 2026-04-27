@@ -52,3 +52,4 @@
 - `26_prequote-concrete-symptom-pickup.ja.md`
 - `27_closed-general-check-method.ja.md`
 - `28_prequote-price-scope-boundaries.ja.md`
+- `29_price-guarantee-refund-risk.ja.md`
