@@ -34,6 +34,10 @@ STYLE_RULES: list[tuple[re.Pattern[str], str]] = [
         "rendered text still repeats `大丈夫です` too closely",
     ),
     (
+        re.compile(r"今の情報だけではまだ判断し切れない[\s\S]{0,90}まず必要な情報を見てから判断[\s\S]{0,90}まだ断定しません"),
+        "rendered text repeats the information-insufficient judgment three times",
+    ),
+    (
         re.compile(r"(?:^|[^A-Za-z])(?:bugfix|handoff)(?:[^A-Za-z]|$)", re.IGNORECASE),
         "rendered text leaked internal service label `bugfix/handoff`",
     ),

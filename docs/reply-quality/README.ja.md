@@ -43,6 +43,8 @@
   - サービスページや内部共有認識を変えた時に、返信OSのどこへ落とすかを10行で確認するチェックリスト
 - `external-research-observation-plan-20260425.ja.md`
   - Deep Research の外部調査結果を、`#RE` の観察候補と batch archetype へ変換したメモ。正本 rule ではなく、外部調査レーンからの材料として扱う
+- `rehearsal-shelf-20260427-pro-r0-stabilization.ja.md`
+  - Pro監査 `返信システム監査4-27.txt` を、r0 初手分岐安定化の実装棚卸しへ変換したメモ。Gold 追加ではなく、renderer / validator / platform contract へ戻す候補を整理する
 - `seller-initiated-lane-minimal.ja.md`
   - buyer の文章への返信とは別に、こちら起点の進捗共有・補足・完了報告をどう最小構成で扱うかのメモ
 - `self-check-layering-first-pass.ja.md`

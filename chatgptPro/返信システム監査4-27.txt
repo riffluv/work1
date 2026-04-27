@@ -1,0 +1,483 @@
+1. Executive Summary
+
+結論から言うと、現設計の骨格は壊れていません。ただし、いま r0 で崩れている型の多くは、もう「gold を増やせば自然に直る段階」を超えています。特に 非Stripe scope / 緊急復旧時間 / 保証期間 / 仕様か不具合か / purchased 進捗 / quote_sent 語彙 / closed 後導線 は、r1 監査で直せるだけでは不十分で、renderer の初手判断順序またはdeterministic validatorへ昇格すべきです。
+
+今の skill は、設計思想としては Codex の自由判断を塞いでいません。coconala-reply-bugfix-ja も coconala-prequote-ops-ja も、skill は思考の代替ではなく、Writer は freeform に書く前提だと明記しています。これは健全です。
+一方で、返信 skill 本体に “ケース別の禁止・注意・例外” が増え続けており、今後さらに r0 失敗型を skill に直接追記すると、template-first / rule-dump / 長文化に寄ります。ここはかなり危ないです。
+
+最も重要な診断はこれです。
+
+r1 で直るが r0 で繰り返し崩れる型は、学習ループが効いている証拠ではあるが、初回生成側への接続はまだ弱い。
+特に同じ型が複数 batch で r0 fail → r1/r2 pass しているものは、learning-log/gold 止まりではなく、renderer または validator へ戻すべきです。
+
+実際、learning-log では bugfix28〜31 にわたり、非Stripe、緊急復旧、browser / scope、仕様境界、closed discount、怒り気味 buyer、保証、quote_sent phase wording などが r0 で崩れ、r1/r2 で安定したことが記録されています。各 log 自身も「r0 が続くなら renderer/validator 検討」と書いており、今回の状況はその条件を満たしています。
+
+2. 現設計の健全性評価
+2.1 骨格はかなり健全
+
+良い点は、Classifier / Writer / Reviewer の分離が明確なことです。coconala-prequote-ops-ja では、Classifier が phase / service / scope / forbidden_moves を固定し、Writer は最小 facts packet を受けて自然文を書く、Reviewer が phase/public-private/price/scope/forbidden/next action を見る構造になっています。
+
+writer-brief.ja.md も、Writer に full self-check や長い audit history を渡さず、buyer 文、route/state、最小制約、近い few-shot だけを渡す方針です。これはかなり正しいです。Writer に全ルールを背負わせない設計なので、自由文生成の余地があります。
+
+また docs/reply-quality/README.ja.md の #RE 方針も、「再発性があるものだけ skill/facts/lint へ」「一回限りは preference/case_fix」という運用になっており、これは過剰反映を防ぐ上で妥当です。
+
+2.2 ただし r0 崩れは “文体” ではなく “初手分岐” の問題
+
+r0 未安定型を見ると、崩れ方はだいたい次のどれかです。
+
+崩れの種類	実態
+service spec 質問を通常の不具合相談として処理	緊急復旧時間、保証、返金、キャンセル
+scope boundary を price/intake に流す	非Stripe、browser-specific、仕様/不具合境界
+phase vocabulary を誤る	quote_sent で「トークルーム内」、closed 後の旧トークルーム継続
+purchased の進捗が薄い	「確認中です」だけに戻る
+感情温度を普通の受付文に戻す	怒り気味 buyer に「内容ありがとうございます」系
+
+これは「言い回しの好み」ではなく、primary_question_type / phase / boundary_kind / buyer_next_action の初期選択ミスです。したがって、gold を増やしても r0 では毎回 retrieval や判断の揺れに依存します。
+
+2.3 validator の適用範囲に穴がある
+
+render-coconala-reply.py の common validator は、quote_sent / purchased / delivered / closed には走りますが、prequote には原則走らない構造です。collect_common_validator_errors が対象 state をこの4つに限定しています。
+
+しかし、今回 r0 で崩れやすいものの多くは prequote です。
+
+非Stripe scope
+緊急復旧時間
+保証期間
+仕様/不具合境界
+返金/キャンセル
+同義反復テンプレ
+
+つまり、r0 崩れの主戦場に対して、共通 validator が薄い可能性があります。ここは接続不良です。大規模再設計ではなく、prequote 専用の deterministic guard を薄く足すのがよいです。
+
+2.4 platform / service fact の分離は正しいが、返信側でまだ漏れるリスクがある
+
+service-registry.yaml では、外向け public は bugfix-15000 のみ、handoff-25000 は public: false の private service と定義されています。public reply では public false service の name/price/purchase CTA を出してはいけない、という契約も明記されています。
+
+platform-contract.yaml では、quote_sent は payment 前、purchased は payment 後に talkroom が開く状態、closed は closed talkroom であり、closed 後は旧 talkroom に戻せず、message 経由や正式導線が必要だと定義されています。
+
+この contract は強いです。問題は、この情報が r1 reviewer では効いているが、r0 renderer の語彙選択にまだ十分効いていない箇所があることです。
+
+3. r0未安定型ごとの戻し先判断表
+型	最適戻し先	理由	実装粒度
+非Stripe scope	renderer + validator + service_facts	r0 で通常 bugfix 相談に流れやすい。Gold 30/31 と learning-log で再発済み。非Stripeを全部拒否するのではなく、Next.js 側の Webhook/API 処理なら見る、provider/account/admin 操作は見ない、という初手分岐が必要。	renderer に payment_provider_boundary / allowed_surface を追加。validator は PayPay/GMO/Square/PayPal 等があるのに “丸ごと対応できます” と言う broad acceptance を落とす。
+緊急復旧時間	renderer + validator + service_facts	「いつ直るか」は通常の症状確認ではなく service spec 質問。Gold 29 で direct answer が必要とされ、learning-log でも r0 fail。	renderer は “復旧保証” と “一次確認/初回報告の目安” を分ける。validator は「今日中に直せます」「2時間で復旧保証」「必ず復旧」等を fail。
+保証期間	service_facts + renderer + validator	stable service policy に寄せるべき。本文生成へ毎回説明させると長くなる。Gold 29/33 は anchor として残すが、固定期間や無償保証の約束は validator で落とす。	renderer は「同一原因の再発確認」と「別原因/追加範囲」を分ける。validator は “○日保証/無料保証/必ず直す” 系の無根拠 promise を検出。
+同義反復テンプレ	validator + ng-expressions + naturalizer	gold に置くより機械検出向き。Gold 26 自体も旧三点セットを validator perspective として明示している。	近接文の normalized overlap、同一意味の3回反復、旧三点セットを deterministic warn/fail。skill には足さない。
+怒り気味 buyer	reviewer_prompt + naturalizer、必要なら renderer に軽い temperature flag	感情温度は deterministic にしづらい。validator に入れると false positive が増える。ただし complaint 冒頭で「内容ありがとうございます」から入るのは既に validator 的に扱える。	renderer は complaint_or_pressure=true のとき、最初に短い受け止め + 現在判断。reviewer は責任過多/無料期待/温度を見る。
+仕様/不具合境界	renderer + gold、validator は限定	r0 で情報不足テンプレに流れやすい。Gold 32 がこの判断順序を持っている。	renderer に spec_vs_bug_boundary を追加。「現時点では断定不可。ただし症状確認は可能 / 仕様変更なら別扱い」を先に出す。validator は証拠なしに「仕様です/不具合です」と断定する強い文だけ落とす。
+返金/キャンセル	platform_contract + renderer + validator	platform 手続き・責任表現に関わるので facts/contract 起点。Gold 29 は useful だが、毎回本文へ説明を出すと長い。platform contract は seller が feasibility/amount を断定しないことを定義済み。	renderer は asked 時だけ direct answer。validator は「返金します/返金できません/キャンセルできます/口座へ返金」等を fail。
+purchased 進捗返信	renderer + validator	「確認中です」だけは既に skill/naturalizer で NG とされているが、r0 で戻るなら生成側に minimum content が必要。	renderer は seen / uncertain / next_check / next_update_timing のうち最低2〜3要素を出す。validator は「確認中です」「調査中です」単独を fail。
+quote_sent の phase 語彙	platform_contract + validator + renderer	quote_sent は payment 前で、talkroom は purchase 後。Gold 33 と learning-log が「トークルーム内」誤用を validator candidate としている。	validator で quote_sent state に トークルーム内/作業中/納品 を原則 fail。ただし「購入後にトークルームが開いたら」は例外。
+closed 後の割引 / 別件 / 新規導線	platform_contract + renderer + validator、gold は整理	closed 後は旧 talkroom 継続不可。ただし message 上で症状概要・ログ・スクショ等の確認材料を受け取ることはある。この分離を renderer が初手で持つ必要。	renderer は「確認材料はメッセージで可 / 実作業・返却は正式導線」を短く出す。validator は旧 talkroom 継続、追加購入、無料対応約束、handoff leak を fail。
+4. validator に入れるべきもの / 入れない方がよいもの
+4.1 入れるべき deterministic validator
+
+ここはかなり強めに入れてよいです。主観ではなく、文字列・phase・service marker で落とせるものだけです。
+
+validator	fail 条件	備考
+旧三点セット検出	concrete prequote で 内容ありがとうございます + この不具合なら15,000円 + どこで止まっているか確認 相当が同時出現	Gold 26 が明示している旧 regression anchor。
+同義反復3回	同一語句・同一構造・同一意味の近接反復が3回以上	ng-expressions の「同じ意味の言い換えが続く」を validator 化。
+quote_sent phase 語彙	state=quote_sent で トークルーム内 / 作業中 / 納品 / 対応中 を現在形で使用	platform 上 quote_sent は payment 前。talkroom は purchase 後。
+closed 後の旧 talkroom 継続	state=closed で 以前のトークルームで続けます / 旧トークルームにファイルを送ってください / 追加購入で 等	closed talkroom は locked。確認材料と実作業導線を分ける必要。
+秘密値要求	sk_ / whsec_ / .env の値 / API key の実値 / webhook secret の実値を送らせる	key 名や設定箇所の説明は許可。実値要求だけ fail。
+外部共有逃がし	Google Drive / Dropbox / Slack / Discord / Zoom / GitHub invite / 外部決済 / 口座送金へ誘導	AGENTS/skill/platform の禁止系と一致。外部リンク一般を全禁止にすると false positive になるので、共有・招待・決済文脈に限定。
+private service leak	handoff-25000 / 25,000円 / 内部 handoff 導線 / private service 購入 CTA	service-registry の public false contract に基づき fail。
+返金/キャンセル断定	返金します / 返金できません / キャンセルできます / キャンセル不可です / 口座へ返金	platform procedure を seller が断定しない。
+保証・復旧 overpromise	必ず直します / 今日中に復旧できます / 2時間で復旧保証 / ○日間無料保証	“見込み/一次確認” と “成果保証” を分ける。
+非Stripe broad acceptance	buyer text に PayPay/GMO/Square/PayPal 等があるのに、Next.js側/Webhook/API境界なしで 対応できます/15,000円で大丈夫です	非Stripeを一律拒否しないが、provider 全体対応に見える返答は fail。Gold 30/31 に基づく。
+purchased 進捗の空返答	state=purchased かつ進捗/不安/催促文脈で、本文が 確認中です/調査中です/確認します 相当のみ	skill/naturalizer で既に NG。validator で止めるべき。
+prequote 購入済み語彙	state=prequote で 作業を進めます / 確認を進めます / 納品 / トークルーム を現在進行として使用	prequote は購入前。quote/purchase 後の語彙と混ぜない。
+4.2 validator に入れない方がよいもの
+
+これは入れるとノイズになります。
+
+入れないもの	理由
+怒り気味 buyer の温度不足全般	主観が大きい。validator ではなく reviewer_prompt。例外的に complaint 冒頭の「内容ありがとうございます」だけ deterministic。
+保証/返金説明がないこと	buyer が聞いていないなら不要。常時要求すると返信が怖く長くなる。
+Gold と違う言い回し	gold は template ではない。README も「コピーではなく近い anchor」と定義。
+質問数が多い/少ないの一律判定	Writer brief では質問は原則少なくするが、case による。hard fail ではなく reviewer。
+仕様/不具合を断定していないこと	断定しないのが正しい case も多い。validator は “根拠なし断定” だけ落とす。
+短くないこと	長文化は重要だが deterministic ではない。文字数だけで落とすと必要説明も落ちる。compression review へ。
+非Stripe word が出たら全部 fail	Next.js 側の Webhook/API 実装確認は scope 内になり得る。provider 全体対応だけ落とす。
+platform 仕様説明不足	buyer に見せる必要がない内部構造もある。surface_overexposure とセットで reviewer が見る。
+5. renderer に戻すべきもの
+
+validator は「落とす」ものですが、今回の r0 崩れの本丸は「最初に何を答えるか」です。したがって、次は renderer に戻すべきです。
+
+5.1 primary_question_type を先に確定する
+
+今の r0 失敗は、buyer の主質問が service spec なのに、通常 bug intake として返すケースが多いです。renderer 側で最低限この分類を持たせるべきです。
+
+primary_question_type:
+  - normal_bug_intake
+  - scope_boundary
+  - emergency_time
+  - guarantee
+  - refund_or_cancel
+  - spec_vs_bug
+  - purchased_progress
+  - quote_sent_material_or_scope
+  - closed_new_route
+
+prequote-compression-rules.ja.md も、価格・可否・納期・返金・保証などの service spec 質問は、通常 bug template に流さず、主質問へ先に答える方針を持っています。
+
+5.2 direct_answer_line を renderer の必須出力に近づける
+
+skill 側にはすでに response_decision_plan と direct_answer_line があります。
+ただ、r0 で崩れるなら、これは reviewer 用の観点ではなく、renderer の初期 skeleton に近づけた方がよいです。
+
+特に必要な型は以下です。
+
+型	direct answer の例
+非Stripe	「決済サービス自体の管理画面操作は対象外ですが、Next.js 側の Webhook/API 処理であれば確認できます。」
+緊急復旧	「原因確認前に復旧時間は約束できませんが、まず一次確認の範囲ならこの情報で判断できます。」
+保証	「固定の保証期間としては約束していません。同一原因の再発かどうかは確認できます。」
+返金/キャンセル	「こちらで返金可否や金額を断定する形ではなく、ココナラ上の手続きに沿う形になります。」
+purchased 進捗	「いま見ている箇所は◯◯で、次に△△を確認しています。」
+quote_sent	「追加ファイルは、購入後に開くトークルームで確認できます。」
+closed	「確認材料はメッセージで見られますが、実作業が必要なら新しい正式導線になります。」
+5.3 purchased 進捗は minimum content を renderer に持たせる
+
+japanese-chat-natural-ja では、進捗返答は「何を見ているか / 何が分かっているか / 次に何を見るか / 次の目安」を出す方針です。
+これは reviewer では遅いです。post_purchase renderer の skeleton に入れるべきです。
+
+最小条件はこの程度で十分です。
+
+purchased_progress_minimum:
+  require_any_3:
+    - current_target
+    - observed_fact
+    - remaining_uncertainty
+    - next_check
+    - next_update_timing
+
+ただし、毎回全部出すと長くなるので、3/5で可くらいがよいです。
+
+5.4 phase vocabulary は renderer の state-aware surface map に寄せる
+
+quote_sent と closed の誤語彙は、本文生成後に validator で落とせますが、r0 で毎回落ちるなら遅いです。
+
+surface_words_by_phase:
+  prequote:
+    avoid: ["作業を進めます", "確認を進めます", "トークルーム", "納品"]
+  quote_sent:
+    avoid_current: ["トークルーム内", "作業中", "納品"]
+    allowed_future: ["購入後にトークルームが開いたら"]
+  purchased:
+    allowed: ["トークルーム", "確認中", "次に確認"]
+  closed:
+    avoid: ["旧トークルームで続けます", "追加購入で", "納品します"]
+
+platform contract 上、quote_sent は payment 前、purchased で talkroom が開き、closed は talkroom が閉じた状態なので、これは renderer の語彙制約として置く価値があります。
+
+6. gold の整理方針
+
+Gold 26〜33 は内容としては有効です。ただし、このまま増やし続けると retrieval ノイズになります。Gold README は、gold は template ではなく reusable anchor であり、新規追加は「ほぼそのまま再利用できる」「一回限り preference ではない」ものに限る方針です。
+現状 33 本まで増えているので、追加より整理の段階です。
+
+Gold	判断	理由 / 処理
+26 concrete symptom pickup	残す。ただし validator seed を抽出	旧三点セット検出の根拠として強い。本文例としても有効。ただし、毎回参照するより validator に昇格した方が r0 に効く。
+28 price/scope boundaries	残すが参照頻度を下げる	discount / add-on / new feature split は重要。ただし 29/32/33 と重なるので、price_scope_boundary tag にまとめる。
+29 price/guarantee/refund/risk	高優先で残す	緊急復旧、保証、返金/キャンセルの direct answer anchor。今の r0 未安定型に直結。
+30 normal-boundary-routing	31と統合候補	非Stripe、prod timeout、test/live、refund operation が強い。ただし 31 と同じ technical boundary family。renderer/validator に抽出後は gold 優先度を下げる。
+31 normal-scope-support	30と統合候補	GMO/browser/unit test/external share/closed recurrence。非Stripe・browser・external share は有効だが、gold として分散させるより family 化。
+32 boundary-mixed-routing	残す。spec/bug と複数案件 anchor	仕様/不具合境界、2サイト/別決済、purchased extra fee、closed different project があり、判断順序として有効。
+33 boundary-transfer	残すが分割/降格候補あり	quote_sent phase wording、angry buyer、purchased warranty、closed discount が有効。ただし 29/32 と重なるので、quote_sent/closed anchor として絞る。
+gold 整理の具体案
+
+docs/reply-quality/gold-replies/README.ja.md に、Gold 26〜33 用の index を足すのがよいです。本文を増やすのではなく、検索時の迷いを減らす metadataです。
+
+gold_index:
+  26:
+    triggers: ["具体症状あり", "旧三点セット回避"]
+    use_when: ["prequote", "normal_bug_intake"]
+    do_not_use_when: ["返金", "保証", "緊急復旧", "closed"]
+  29:
+    triggers: ["保証", "返金", "キャンセル", "復旧時間"]
+    use_when: ["service_spec_question"]
+    do_not_use_when: ["通常の症状拾いだけ"]
+  30_31_family:
+    triggers: ["非Stripe", "browser-specific", "external share", "test/live"]
+    use_when: ["scope_boundary"]
+  32_33_family:
+    triggers: ["仕様か不具合か", "quote_sent語彙", "closed割引", "別件導線"]
+    use_when: ["boundary_transfer", "phase_routing"]
+
+今やるべきは Gold 34 を増やすことではなく、26〜33 から renderer/validator へ抽出することです。
+
+7. reviewer_prompt に置くべき観点
+
+本文生成側へ入れると長文化・説明過多になるが、監査では非常に効くものです。これは reviewer_prompt に残すべきです。
+
+reviewer 観点	renderer/validator に入れない理由
+buyer が迷子になっていないか	「次に何をすればいいか」は文脈依存。validator で一律判定すると false positive。
+責任を認めすぎていないか	怒り気味 buyer や返金文脈で重要。ただし wording は多様。
+無料対応期待を作っていないか	closed / warranty / discount で重要。deterministic phrase だけ validator、全体姿勢は reviewer。
+surface_overexposure	phase, transaction_model_gap, closed_talkroom_locked など内部構造が表に出ていないか。本文生成へ入れると逆に露出しやすい。
+buyer の感情温度に合っているか	怒り気味 buyer に通常受付文はまずいが、感情表現を template 化すると不自然。
+技術見立てを出しすぎていないか	Stripe/Next.js で推測しすぎると責任が重くなる。validator では拾いにくい。
+境界説明が多すぎないか	返金/保証/追加料金などを全部説明すると buyer に不安を作る。compression review が適切。
+主質問に先に答えているか	direct-answer-first は一部 validator 化できるが、自然な順序は reviewer が見るべき。
+
+self-check-core-always-on.ja.md は、Reviewer の always-on core を「直接回答、phase、質問過多、price/scope/public、closed、NG、一つの next action」などに絞っています。これはよい線引きです。
+
+8. ノイズ化リスク
+
+ここはかなり重要です。今後の #RE で改善しようとして、逆に壊しやすい箇所です。
+
+8.1 skill へケース知識を足しすぎる
+
+coconala-prequote-ops-ja は「skill に新しい判断ルールを足さない」「厳密固定は facts/phase/scope/forbidden_moves、本文は natural」と書いています。
+ここを破って、非Stripe、保証、怒り buyer、closed discount などを全部 skill 本体に足すと、Writer が “全部説明しなきゃ” になり、r0 は短く自然になるどころか長文化します。
+
+方針:
+skill 本体には戻さない。戻すなら renderer/validator/platform_contract/gold index。
+
+8.2 返金・保証・追加料金を常に説明する
+
+buyer が聞いていないのに返金/保証/追加料金を出すと、逆に不安・交渉・責任範囲を広げます。prequote-compression-rules.ja.md でも、未質問の返金・キャンセル・正式納品・追加費用説明は削る候補です。
+
+方針:
+asked only。保証/返金/キャンセルは primary_question_type が該当するときだけ direct answer。
+
+8.3 ココナラ仕様の説明過多
+
+phase contract は内部判断に必要ですが、buyer に quote_sent や closed_talkroom_locked 的な説明を出すと不自然です。platform contract は内部 source of truth として使い、外向けは「購入後に開くトークルーム」「この前のトークルームは閉じているため」程度に抑えるべきです。
+
+8.4 技術見立てを出しすぎる
+
+Stripe / Next.js / API は原因推測がしやすい領域ですが、ログ前に「Webhook が原因です」「PaymentIntent の処理です」と寄せすぎると、責任が重くなります。特に怒り気味 buyer・返金・緊急復旧では危険です。
+
+方針:
+「可能性」より「確認対象」を出す。
+例: “Webhook 周りの可能性があります” より “Webhook 受信後の処理とログを確認します”。
+
+8.5 gold が増えすぎる
+
+Gold 26〜33 は有効ですが、数が増えるほど r0 の retrieval が “近いけど違う例” を拾いやすくなります。Gold README も gold は少数の reusable anchor として扱う前提です。
+
+方針:
+Gold 追加停止。26〜33 の tag/index 化、重複 family 化、再発部分の renderer/validator 抽出。
+
+8.6 validator を主観判定に使う
+
+怒り buyer の温度、buyer迷子、説明過多、人間っぽさは reviewer/naturalizer です。validator に入れると、良い返信も落ちます。
+
+方針:
+validator は phase/secret/private/external/overpromise/repetition/old-template のみに絞る。
+
+9. 次の #RE 設計案
+
+優先順はこうです。
+
+Priority 1: r0未安定型だけの regression batch
+
+まずこれです。通常 batch に混ぜると、r0 がどの型で崩れているか見えづらくなります。
+
+batch_name: r0-unstable-regression-bugfix-15000
+cases:
+  - non_stripe_scope_paypay_or_gmo
+  - urgent_recovery_time
+  - warranty_period_question
+  - refund_cancel_question
+  - spec_vs_bug_boundary
+  - purchased_progress_anxiety
+  - quote_sent_additional_file_phase_wording
+  - closed_discount_or_new_request
+  - angry_buyer_temperature
+metrics:
+  - r0_pass
+  - r1_pass
+  - failure_layer: [renderer, validator, gold, reviewer_prompt, facts, case_only]
+  - direct_answer_present
+  - phase_vocab_ok
+  - private_service_leak_none
+  - overpromise_none
+
+ここでは r1/r2 の改善能力ではなく、r0 単体の分岐安定性を見るべきです。
+
+Priority 2: purchased 進捗 batch
+
+購入後の進捗は、buyer 信頼とキャンセルリスクに直結します。platform contract でも購入後の無応答・キャンセルリスクに関する規定があります。
+
+作るべきケース:
+
+「今どこまで進んでいますか？」
+「まだですか？急いでいます」
+「返金してほしいです」
+「前回から進捗が見えません」
+「ログを追加しました。見ましたか？」
+
+評価軸:
+
+「確認中です」だけで終わっていないか
+見ている対象があるか
+未確定点が明確か
+次の確認/次回共有があるか
+謝りすぎ/責任認めすぎになっていないか
+Priority 3: non-Stripe / browser-specific / 仕様か不具合か batch
+
+これは scope boundary の r0 安定化用です。
+
+PayPay / GMO / Square / PayPal
+Stripe + 別 payment provider 混在
+Safari だけ落ちる
+本番だけ起きる
+仕様か不具合かわからない
+CSS/見た目/並び順なのか API 不具合なのか曖昧
+
+目的は「受ける/受けない」ではなく、どの面なら見られるかを r0 が言えるかです。
+
+Priority 4: refund / cancel / warranty / emergency sensitive batch
+
+この batch は validator の false positive/false negative を見るために使います。
+
+聞かれているときは direct answer
+聞かれていないときは出さない
+seller が返金可否/金額/キャンセル可否を断定しない
+復旧時間を保証しない
+保証期間を勝手に作らない
+Priority 5: quote_sent + closed phase routing batch
+
+quote_sent/closed は phase contract の誤用が出ると、取引導線が壊れます。
+
+quote_sent で追加ファイルを送りたい
+quote_sent で「もう作業開始できますか？」
+closed 後に同じ不具合かも
+closed 後に別件を安くやってほしい
+closed 後にファイルを送りたい
+closed 後に返金/保証を聞かれる
+Priority 6: 短文化 / 人間の担当者っぽさ batch
+
+これはまだ主戦場にしない方がいいです。やるなら上記 regression が r0 で安定してからです。
+
+理由は、短文化を先にやると、r0 がまた「確認します」「大丈夫です」「見ます」だけに戻る危険があるからです。
+
+10. 今すぐやるべき action list
+A. learning-log から renderer/validator へ昇格する
+
+bugfix28〜31 の learning-log は、すでに high generalizability で r0 failure を示しています。not_returned_reason 的には「r0 が続くなら renderer/validator」とされているので、今回昇格条件を満たしています。
+
+対象:
+
+非Stripe scope
+緊急復旧時間
+仕様/不具合境界
+closed discount/new route
+angry buyer opening
+warranty
+quote_sent phase wording
+B. prequote validator を薄く追加する
+
+common validator が prequote に効きにくい構造なので、prequote 専用に以下だけ足す。
+
+prequote_validator:
+  - old_three_point_template
+  - synonym_repetition
+  - external_share_or_payment
+  - secret_value_request
+  - private_service_leak
+  - non_stripe_broad_acceptance
+  - emergency_overpromise
+  - warranty_overpromise
+  - refund_cancel_overclaim
+  - purchase_or_talkroom_current_tense
+C. purchased progress validator を追加する
+purchased_progress_validator:
+  fail_if:
+    - progress_context: true
+    - reply_only_contains:
+        - "確認中です"
+        - "調査中です"
+        - "確認します"
+    - lacks_all:
+        - current_target
+        - observed_fact
+        - next_check
+        - next_update_timing
+D. Gold 30/31、32/33 を family 化する
+
+新規 gold を増やす前に、README に index を足す。
+
+families:
+  technical_boundary:
+    golds: [30, 31]
+    triggers: ["非Stripe", "browser", "test/live", "external share"]
+  boundary_transfer:
+    golds: [32, 33]
+    triggers: ["仕様/不具合", "quote_sent", "closed", "discount", "別件"]
+E. quote_sent / closed の phrase validator を入れる
+quote_sent_forbidden_current_words:
+  - トークルーム内
+  - 作業中
+  - 納品
+  - 修正を進めています
+
+closed_forbidden_route_words:
+  - 前のトークルームで続けます
+  - 追加購入で
+  - そのまま納品します
+  - 無料で直します
+
+ただし、quote_sent の「購入後にトークルームが開いたら」は許可です。
+
+F. handoff leak validator を hard fail にする
+
+public reply で以下が出たら即 fail。
+
+private_service_leak:
+  - handoff-25000
+  - 25,000円
+  - 内部ハンドオフ
+  - 別サービス名を明示した購入誘導
+
+service-registry.yaml 上、handoff-25000 は public: false なので、ここは迷わず hard fail でよいです。
+
+G. r0-only regression を作る
+
+r1/r2 で通ることはもう分かっています。次は r0 のみを測る batch が必要です。
+
+acceptance:
+  r0_pass_rate_required: 90%
+  no_hard_contract_violation: true
+  no_private_service_leak: true
+  no_secret_request: true
+  no_phase_vocab_violation: true
+H. projection warning の扱いを明確にする
+
+full regression の tool files には projection warnings が含まれていますが、overall OK の gating に含まれていないように見えます。
+もし intentional warning ならよいですが、private leak / phase / secret / external share のような public safety 系は warning ではなく fail に寄せるべきです。
+
+11. 最重要懸念 3つ
+1. r0 の初手分岐ミスを gold/reviewer で吸収し続けている
+
+これが最大の懸念です。
+
+r1 で直るのは良いことですが、同じ型が r0 で繰り返し崩れるなら、gold だけでは接続が弱いです。特に 非Stripe、緊急復旧、保証、仕様境界、purchased 進捗、quote_sent/closed phase は renderer の判断順序へ戻すべきです。
+
+このまま #RE を続けると、r1 品質は上がりますが、r0 は「近い gold を引けたときだけ良い」状態が残ります。
+
+2. prequote の deterministic guard が薄い
+
+多くの危険型は prequote にありますが、common validator は主に quote_sent/purchased/delivered/closed 側です。
+そのため、prequote で起きる以下が r0 で抜けやすいです。
+
+旧三点セット
+非Stripe broad acceptance
+緊急復旧 overpromise
+保証/返金/キャンセル overclaim
+秘密値/外部共有/内部サービス leak
+同義反復
+
+ここは大規模再設計ではなく、prequote 専用 validator を薄く足せばよいです。
+
+3. skill/gold の増殖で template-first に戻るリスク
+
+現在の skill は思想としては freeform を守っています。しかし、ここに r0 失敗型を全部追記し始めると、Writer はまた「全部の注意を説明する」方向へ寄ります。
+
+危険な未来像はこれです。
+
+validator は増えず、renderer の判断順序も増えず、gold と skill だけが増える。
+その結果、r0 は長く、保険が多く、内部構造が透け、buyer に関係ない保証/返金/追加料金説明まで出る。
+
+今やるべきなのは、Gold 34 を追加することではなく、Gold 26〜33 から再発部分を renderer/validator/platform_contract/service_facts へ抽出し、gold を参照 anchor に戻すことです。

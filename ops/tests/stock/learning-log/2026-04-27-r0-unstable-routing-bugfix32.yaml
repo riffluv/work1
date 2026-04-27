@@ -1,0 +1,46 @@
+date: 2026-04-27
+case_ref: "RE-2026-04-27-bugfix-32-r0-unstable-routing-regression / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / r0 unstable routing regression"
+buyer_decision_stage: "prequote / purchased / closed"
+service: "bugfix-15000"
+state: "prequote / purchased / closed"
+
+# --- 診断 ---
+symptom: "r0 では B01/B02/B05 が旧三点セット、B03 が仕様/不具合質問の断定寄り、B04 が返金/キャンセル質問の誤読、B06 が保証期間未回答へ戻った。B07 は closed 割引要求として概ね通過したが、別プロジェクトとコピペ不可の明示が弱かった"
+failure_label: "r0_unstable_routing / service_structure_nonanswer / scope_boundary_gap / warranty_period_nonanswer"
+failure_layer: "reply-only / renderer / validator"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "非Stripe scope、緊急復旧、仕様/不具合境界、返金/キャンセル、新機能追加、保証期間は、通常相談に混ざりやすく、旧テンプレや情報不足テンプレに流れると scope事故・保証事故・buyer迷子につながるため"
+return_target: "renderer_validator"
+decision: "adopt"
+decision_reason: "Codex / Claude とも B01-B06 を必須修正。過去 batch 同型が多く、r1 手修正ではなく renderer 分岐と deterministic validator に戻す条件を満たした"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "過去batch同型 / 既存rule未反映疑い"
+existing_rule_hit: "あり"
+not_returned_reason: ""
+next_sentinel: "非Stripe scope、緊急復旧、仕様/不具合、返金/キャンセル、新機能追加、保証期間が次回 r0 で旧テンプレや情報不足テンプレへ戻らないか。加えて、引き継ぎコードの決済不具合、メール二重送信、coupon resource_missing、quantity変更時例外が旧テンプレへ戻らないか"
+
+# --- 抽象化 ---
+pattern: "サービス構造質問や scope 境界質問では、汎用不具合受付へ流さず、今答えられる取引構造・対応範囲・できないこと・次アクションを先に返す"
+upstream_fix: "prequote renderer に非Stripe scope / 緊急復旧 / 仕様不具合境界 / 返金キャンセル / 新機能追加 scope 外の最小分岐を追加。purchased renderer に保証期間質問分岐を追加。prequote validator に旧三点セット、非Stripe scope、緊急復旧、phase語彙の guard を強化。closed 割引要求は別プロジェクト/コピペ不可を明示。全体スイートで露出した eval / holdout の具体技術症状型も、code_handoff_bugfix_scope / email_duplicate_idempotency / coupon_resource_missing / subscription_quantity_update_exception として renderer に接続"
+
+reply_only:
+  - "非Stripe決済は、決済サービス全体ではなく Next.js側のWebhook/API受信処理として確認できる範囲に閉じる"
+  - "緊急復旧では、今日中復旧の保証不可と48時間以内の一次結果目安を分ける"
+  - "仕様/不具合境界では、この時点で断定せず、原因確認として見られる範囲を返す"
+  - "返金/キャンセル質問では、ココナラ手続き、completion gate、承諾前確認を分ける"
+  - "新機能追加は、不具合の同一原因/別原因ではなく scope 外として区別する"
+  - "保証期間質問では、固定保証期間の有無、同じ原因、別原因を分けて答える"
+  - "closed 後の別プロジェクト割引要求では、別件・固定価格・コピペ不可を明示する"
+  - "具体技術症状が十分に書かれている prequote では、旧三点セットに戻さず、buyer の技術語を1文で要約してから15,000円と確認軸へ進む"
+common: []
+
+verification:
+  targeted_batch32: "OK"
+  targeted_eval_holdout_exposed_cases: "OK"
+  full_role_suites: "OK"
+  report_latest: "/home/hr-hm/Project/work/runtime/regression/coconala-reply/suites/latest.txt"

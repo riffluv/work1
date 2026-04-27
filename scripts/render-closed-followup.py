@@ -435,7 +435,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "price_discount_request":
         if "new_issue_followup_present" in facts_known:
             blocking_missing_facts = ["current_symptom"]
-            direct_answer_line = "割引前提でのご案内はしておらず、この不具合修正サービスは15,000円固定です。今回の内容を見て見積りをお返しすることはできます。"
+            direct_answer_line = "別プロジェクトの場合は前回の修正範囲とは別件です。割引前提ではなく、この不具合修正サービスは15,000円固定です。今回の内容を見て見積りをお返しすることはできます。"
             response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "similar_but_not_same":
         blocking_missing_facts = ["current_symptom"]
@@ -1598,7 +1598,7 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "closed_next_consult_path":
         return "トークルームは閉じているため、コードを見て原因調査や修正作業まで入る場合は、見積り提案または新規依頼として費用の有無を先にご相談します。"
     if scenario == "price_discount_request" and "new_issue_followup_present" in (case.get("response_decision_plan") or {}).get("facts_known", []):
-        return "トークルームは閉じているので、今回見たい不具合の内容が分かれば見積りの入口を整えられます。"
+        return "同じようなエラーでも、プロジェクトが違えばコードや環境も変わるため、確認なしに前回の修正をコピペするとはお約束できません。"
     if scenario == "same_ticket_scope_question":
         return "トークルームは閉じていますが、追加で出た箇所が前の件と同じ原因か確認します。"
     if scenario == "repeat_handoff_request":

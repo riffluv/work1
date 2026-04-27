@@ -1,0 +1,53 @@
+batch_id: PRO-2026-04-27-r0-stabilization-audit
+source: chatgptPro/返信システム監査4-27.txt
+scope: bugfix-15000 reply-only
+summary:
+  verdict: 現設計の骨格は健全。ただし r0 で再発する型は gold 追加だけでは足りず、renderer / validator へ戻す段階。
+  main_issue: r1 で直るが r0 で戻る型は、文体ではなく初手分岐と deterministic guard の接続不足。
+  immediate_direction: Gold 26-33 を family 化し、再発部分を validator / renderer / platform_contract / service_facts へ抽出する。
+patterns:
+  - id: old_three_point_template
+    layer: validator
+    evidence: concrete prequote で旧三点セットが複数 batch 再発
+    action: prequote validator 候補
+  - id: non_stripe_scope
+    layer: renderer_validator
+    evidence: PayPay / GMO / Square などで provider 全体を受けそうになる
+    action: Next.js側Webhook/API受信処理に scope を閉じる分岐を renderer に戻す
+  - id: urgent_recovery_time
+    layer: renderer_validator
+    evidence: 復旧時間質問が通常不具合受付へ流れる
+    action: 復旧保証不可と一次結果目安を分ける
+  - id: warranty_refund_cancel
+    layer: platform_contract_renderer_validator
+    evidence: 保証期間・返金・キャンセルの service spec 質問が r0 で未安定
+    action: asked-only で direct answer。断定・保証・過約束は validator
+  - id: purchased_progress_empty
+    layer: renderer_validator
+    evidence: 購入後進捗が「確認中です」または同義反復に戻る
+    action: current_target / observed_fact / remaining_uncertainty / next_check / next_update_timing の最小要素を要求
+  - id: quote_sent_phase_vocab
+    layer: platform_contract_validator_renderer
+    evidence: quote_sent で「トークルーム内」等が出る
+    action: quote_sent 現在形 phase 語彙を validator 候補にする
+  - id: closed_route_gap
+    layer: platform_contract_renderer_validator
+    evidence: closed 後に旧トークルーム継続や新規導線不足が出る
+    action: 確認材料と実作業導線を分ける
+do_not_do:
+  - skill 本体へケース知識を増やしすぎない
+  - Gold 34 をすぐ追加しない
+  - 怒り気味 buyer の温度を validator 化しない
+  - 安全性が安定する前に短文化 batch へ進まない
+next_recommended_batch:
+  type: r0_unstable_regression
+  cases:
+    - non_stripe_scope
+    - urgent_recovery_time
+    - warranty_period_question
+    - refund_cancel_question
+    - spec_vs_bug_boundary
+    - purchased_progress_anxiety
+    - quote_sent_phase_wording
+    - closed_discount_or_new_request
+    - angry_buyer_temperature

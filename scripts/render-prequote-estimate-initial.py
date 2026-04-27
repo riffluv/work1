@@ -228,12 +228,30 @@ def detect_prequote_scenario(source: dict) -> str:
         return "stripe_webhook_raw_body_signature"
     if "customer.subscription.updated" in combined and any(marker in combined for marker in ["DB", "ダウングレード", "アップグレード"]):
         return "stripe_subscription_upgrade_db_update"
+    if is_code_handoff_bugfix_scope_case(source):
+        return "code_handoff_bugfix_scope"
+    if is_email_duplicate_idempotency_case(source):
+        return "email_duplicate_idempotency"
+    if is_coupon_resource_missing_case(source):
+        return "coupon_resource_missing"
+    if is_subscription_quantity_update_exception_case(source):
+        return "subscription_quantity_update_exception"
     if "お客さん" in combined and any(marker in combined for marker in ["カード引き落とし", "入金"]) and any(
         marker in combined for marker in ["商品ページ", "購入履歴"]
     ):
         return "customer_payment_access_response"
     if any(marker in combined for marker in ["100%直せる", "100%直せ", "原因が特定", "どのくらいの割合"]):
         return "success_rate_or_guarantee_question"
+    if is_non_stripe_webhook_scope_case(source):
+        return "non_stripe_webhook_scope"
+    if is_emergency_recovery_time_case(source):
+        return "emergency_recovery_time"
+    if is_spec_vs_bug_boundary_case(source):
+        return "spec_vs_bug_boundary"
+    if is_refund_cancel_prequote_case(source):
+        return "refund_cancel_prequote"
+    if is_feature_addon_scope_case(source):
+        return "feature_addon_scope"
     if is_public_structure_scope_boundary_case(source):
         return "public_structure_scope_boundary"
     if is_fix_vs_structure_first_case(source):
@@ -778,6 +796,47 @@ def is_multi_site_non_stripe_scope_case(source: dict) -> bool:
     return multi_site and "Stripe" in combined and non_stripe_payment
 
 
+def is_non_stripe_webhook_scope_case(source: dict) -> bool:
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+    non_stripe_payment = any(marker in combined for marker in ["Square", "PayPay", "GMO", "PayPal", "別の決済"])
+    app_side = any(marker in combined for marker in ["Next.js", "Next", "Webhook", "webhook", "API", "受信", "DB更新"])
+    scope_question = any(marker in combined for marker in ["対象外", "見てもらえ", "対応", "確認", "同じです"])
+    return non_stripe_payment and app_side and scope_question and not is_multi_site_non_stripe_scope_case(source)
+
+
+def is_emergency_recovery_time_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    urgent = any(marker in combined for marker in ["急ぎ", "今日中", "何時間", "いつ復旧", "なんとかなりますか", "お客さんにも迷惑"])
+    stopped = any(marker in combined for marker in ["止ま", "動かなく", "復旧", "決済がおかしく", "決済が止"])
+    return urgent and stopped
+
+
+def is_spec_vs_bug_boundary_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        any(marker in combined for marker in ["仕様", "不具合"])
+        and any(marker in combined for marker in ["不具合ですよね", "不具合なのか", "仕様なのか", "不便"])
+    )
+
+
+def is_refund_cancel_prequote_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    refund_or_cancel = any(marker in combined for marker in ["返金", "キャンセル"])
+    transaction_question = any(marker in combined for marker in ["気に入らな", "途中", "ココナラのキャンセル", "ルール"])
+    technical_cancel = any(marker in combined for marker in ["Customer Portal", "subscription", "サブスク", "解約フロー", "キャンセル処理"])
+    return refund_or_cancel and transaction_question and not technical_cancel
+
+
+def is_feature_addon_scope_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    has_bug = any(marker in combined for marker in ["不具合", "反映されない", "動かない", "エラー"])
+    addon = any(marker in combined for marker in ["機能追加", "CSV", "ダウンロードボタン", "ボタンを追加", "ついでに", "数行追加"])
+    same_price = any(marker in combined for marker in ["同じ15,000円", "同じ15000円", "同じ料金", "含め", "一緒に"])
+    return has_bug and addon and same_price
+
+
 def is_multi_symptom_case(source: dict) -> bool:
     raw = source.get("raw_message", "")
     note = source.get("note", "")
@@ -901,6 +960,39 @@ def is_frontend_stripe_mixed_scope_case(source: dict) -> bool:
         any(marker in combined for marker in ["フロントエンド", "フロント"])
         and "Stripe" in combined
         and any(marker in combined for marker in ["2つ", "二つ", "管理画面", "ポップアップ"])
+    )
+
+
+def is_code_handoff_bugfix_scope_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        any(marker in combined for marker in ["外注", "引き継ぎ", "コードの中身", "コードでも見て"])
+        and any(marker in combined for marker in ["決済", "不具合", "Stripe", "Webhook", "webhook"])
+    )
+
+
+def is_email_duplicate_idempotency_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        any(marker in combined for marker in ["メールが2通", "メールが二通", "二重送信", "2通飛ぶ"])
+        and any(marker in combined for marker in ["customer.subscription.deleted", "同じイベント", "冪等", "idempot"])
+    )
+
+
+def is_coupon_resource_missing_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        any(marker in combined for marker in ["coupon", "クーポン", "クーポンコード"])
+        and any(marker in combined for marker in ["resource_missing", "Checkout Session", "セッション作成"])
+    )
+
+
+def is_subscription_quantity_update_exception_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        "customer.subscription.updated" in combined
+        and "quantity" in combined
+        and any(marker in combined for marker in ["例外", "エラー", "ハンドラ"])
     )
 
 
@@ -2024,6 +2116,71 @@ def render_multi_site_non_stripe_scope_case(case: dict) -> str:
     return "\n\n".join(paragraphs)
 
 
+def render_non_stripe_webhook_scope_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    provider = "GMOペイメント" if "GMO" in raw else "PayPayオンライン決済" if "PayPay" in raw or "paypay" in raw else "決済サービス"
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            f"{provider}のWebhookをNext.js側で受けている構成ですね。",
+            f"{provider}側そのものの仕様調査ではなく、Next.js側のWebhook/API受信処理として確認できる内容であれば見られます。",
+            "まずは通知を受けるAPIの場所と、表示されているエラーやログの有無を分かる範囲で送ってください。確認後、15,000円の範囲で進められるかをお返しします。",
+        ]
+    )
+
+
+def render_emergency_recovery_time_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    symptom = "Webhookの設定を変更してから決済が止まり、元の設定が分からなくなっている状態ですね。" if "Webhook" in raw else "決済が止まっている状態ですね。"
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。\nお急ぎの状況は承知しました。",
+            symptom,
+            "この不具合なら15,000円で対応できます。",
+            "今日中に復旧できるかは、原因を確認してからでないとお約束できません。\n復旧の見通しは、購入後にまず決済が止まっている箇所を確認してからお返しします。",
+            "この内容で進める場合は、そのままご購入ください。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。これは復旧時間の保証ではなく、最初の確認結果の目安です。",
+        ]
+    )
+
+
+def render_spec_vs_bug_boundary_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    symptom = "Stripe決済後のメールが30分ほど遅れて届く状態ですね。" if "30分" in raw and "メール" in raw else "仕様か不具合か判断しづらい状態ですね。"
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            symptom,
+            "「仕様か不具合か」をこの時点で断定することはできませんが、原因確認は15,000円で対応できます。",
+            "原因を確認した結果、仕様上の制約や設計上の待ち時間だった場合は、その内容をお伝えしたうえで対応をご相談します。",
+            "この内容で進める場合は、そのままご購入ください。",
+        ]
+    )
+
+
+def render_refund_cancel_prequote_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "返金や途中キャンセルについては、この場で一律に断定することはできません。\nココナラの手続きと、その時点の進み具合に沿って確認します。",
+            "原因や修正方針につながらず、修正済みファイルを返せない状態のまま、一方的に正式納品へ進めることはありません。\nその場合は、分かった範囲をお伝えしたうえで、キャンセルを含めてご相談します。",
+            "修正内容に疑問がある場合は、承諾前にココナラ上でお伝えください。",
+            "具体的な症状があれば、対応範囲に入りそうかを先にお返しします。",
+        ]
+    )
+
+
+def render_feature_addon_scope_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "決済後に注文履歴へ反映されない不具合については、15,000円で対応できます。",
+            "ただし、CSVダウンロードボタンの追加は、不具合修正ではなく新機能追加になります。\n不具合修正と機能追加は別の対応になるため、同じ15,000円内に含めることはできません。",
+            "まずは注文履歴への反映不具合を1件として進め、CSVダウンロード追加が必要であれば別途ご相談ください。",
+            "この内容で進める場合は、そのままご購入ください。",
+        ]
+    )
+
+
 def render_plan_change_payment_not_reflected_case(case: dict) -> str:
     return "\n\n".join(
         [
@@ -2097,6 +2254,53 @@ def render_stripe_subscription_upgrade_db_update_case(case: dict) -> str:
             "Stripe側ではアップグレードが反映され、customer.subscription.updated も受け取れているのに、DB側のプランが更新されない状態ですね。\nダウングレードは正常とのことなので、アップグレード時の更新分岐を中心に15,000円で確認できます。",
             "まずは受信済みイベントの処理後に、DB更新がどこで止まっているかを確認します。",
             "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_code_handoff_bugfix_scope_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "外注先と連絡が取れず、決済まわりの不具合が残っていて、コードの中身も追いにくい状態ですね。",
+            "決済まわりの不具合修正として見る場合は、15,000円で対応できます。\nコード全体の引き継ぎ整理を前提ではなく、修正に必要な範囲をこちらで確認します。",
+            "まずは決済で起きている症状と、関連しそうなファイルを送ってください。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_email_duplicate_idempotency_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "customer.subscription.deleted を受けた解約確認メールが、二重に送られることがある状態ですね。",
+            "同じイベントを複数回受けた場合の冪等処理や、メール送信済み判定が原因になっている可能性があるため、この不具合なら15,000円で対応できます。",
+            "まずは Webhook イベントの受信処理と、解約確認メールを送る分岐が二重に走っていないかを確認します。",
+            "この内容で進める場合は、そのままご購入ください。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_coupon_resource_missing_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "特定のクーポンコードで、Checkout Session の作成時に resource_missing が返る状態ですね。",
+            "coupon ID が環境や Checkout Session に渡している値とずれている可能性があるため、この不具合なら15,000円で対応できます。",
+            "まずは該当クーポンを指定している箇所と、Checkout Session 作成時に Stripe へ渡している coupon / promotion code の値を確認します。",
+            "この内容で進める場合は、そのままご購入ください。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+        ]
+    )
+
+
+def render_subscription_quantity_update_exception_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "customer.subscription.updated の Webhook で、quantity 変更時だけハンドラ例外が出る状態ですね。",
+            "通常のプラン変更では問題ないとのことなので、quantity 変更時のイベント内容や分岐処理を中心に15,000円で確認できます。",
+            "まずは Webhook ハンドラ内で quantity を参照している箇所と、Supabase へ保存する処理が特定の値で落ちていないかを確認します。",
+            "この内容で進める場合は、そのままご購入ください。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
         ]
     )
 
@@ -2261,6 +2465,21 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "multi_site_non_stripe_scope":
         case["rendered_reply_validator_mode"] = "multi_site_non_stripe_scope"
         return render_multi_site_non_stripe_scope_case(case)
+    if case.get("scenario") == "non_stripe_webhook_scope":
+        case["rendered_reply_validator_mode"] = "non_stripe_webhook_scope"
+        return render_non_stripe_webhook_scope_case(case)
+    if case.get("scenario") == "emergency_recovery_time":
+        case["rendered_reply_validator_mode"] = "emergency_recovery_time"
+        return render_emergency_recovery_time_case(case)
+    if case.get("scenario") == "spec_vs_bug_boundary":
+        case["rendered_reply_validator_mode"] = "spec_vs_bug_boundary"
+        return render_spec_vs_bug_boundary_case(case)
+    if case.get("scenario") == "refund_cancel_prequote":
+        case["rendered_reply_validator_mode"] = "refund_cancel_prequote"
+        return render_refund_cancel_prequote_case(case)
+    if case.get("scenario") == "feature_addon_scope":
+        case["rendered_reply_validator_mode"] = "feature_addon_scope"
+        return render_feature_addon_scope_case(case)
     if case.get("scenario") == "plan_change_payment_not_reflected":
         case["rendered_reply_validator_mode"] = "plan_change_payment_not_reflected"
         return render_plan_change_payment_not_reflected_case(case)
@@ -2282,6 +2501,18 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "stripe_subscription_upgrade_db_update":
         case["rendered_reply_validator_mode"] = "stripe_subscription_upgrade_db_update"
         return render_stripe_subscription_upgrade_db_update_case(case)
+    if case.get("scenario") == "code_handoff_bugfix_scope":
+        case["rendered_reply_validator_mode"] = "code_handoff_bugfix_scope"
+        return render_code_handoff_bugfix_scope_case(case)
+    if case.get("scenario") == "email_duplicate_idempotency":
+        case["rendered_reply_validator_mode"] = "email_duplicate_idempotency"
+        return render_email_duplicate_idempotency_case(case)
+    if case.get("scenario") == "coupon_resource_missing":
+        case["rendered_reply_validator_mode"] = "coupon_resource_missing"
+        return render_coupon_resource_missing_case(case)
+    if case.get("scenario") == "subscription_quantity_update_exception":
+        case["rendered_reply_validator_mode"] = "subscription_quantity_update_exception"
+        return render_subscription_quantity_update_exception_case(case)
     if case.get("scenario") == "customer_payment_access_response":
         case["rendered_reply_validator_mode"] = "customer_payment_access_response"
         return render_customer_payment_access_response_case(case)

@@ -582,6 +582,8 @@ def detect_scenario(source: dict) -> str:
     service_hint = source.get("service_hint", "")
     combined = f"{raw}\n{note}"
 
+    if "保証期間" in combined or ("同じ問題" in combined and "追加料金" in combined):
+        return "warranty_period_question"
     if has_technical_cancel_context(combined):
         return "technical_cancel_flow_scope"
     if "キャンセル" in combined:
@@ -2283,6 +2285,19 @@ def _same_meaning(left: str, right: str) -> bool:
     return nl == nr or nl in nr or nr in nl
 
 
+def render_warranty_period_question_case(case: dict) -> str:
+    opening = "ありがとうございます。\n保証期間と追加料金のご不安、確認しました。"
+    body = [
+        "固定の保証期間としてはお約束していません。",
+        "ただ、同じ問題が出た場合に、すぐ追加料金になると決まっているわけではありません。\nまずは今回の修正とつながる内容かを確認します。",
+        "同じ原因であれば、追加料金なしで確認します。別の原因と分かった場合も、勝手に追加料金が発生することはなく、進める前にご相談します。",
+    ]
+    next_action = next_action_line(case)
+    case.setdefault("response_decision_plan", {})["direct_answer_line"] = "固定の保証期間としてはお約束していません。"
+    case["render_payload"] = build_post_purchase_render_payload(case, opening, body, next_action)
+    return "\n\n".join([opening, *body, next_action])
+
+
 def _append_unique(paragraphs: list[str], text: str) -> None:
     cleaned = text.strip()
     if not cleaned:
@@ -2877,6 +2892,9 @@ def build_post_purchase_render_payload(case: dict, opening_block: str, body_para
 
 def render_case(case: dict) -> str:
     shared.ensure_temperature_plan(case)
+    if case.get("scenario") == "warranty_period_question":
+        case["rendered_reply_validator_mode"] = "warranty_period_question"
+        return render_warranty_period_question_case(case)
     if not case.get("response_decision_plan"):
         case["response_decision_plan"] = build_response_decision_plan(
             {"raw_message": case.get("raw_message", ""), "reply_memory": case.get("reply_memory")},

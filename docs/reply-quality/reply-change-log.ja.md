@@ -610,3 +610,12 @@
 - 想定効果: フロント問題混在相談で bugfix-15000 の範囲を広げすぎず、Stripe/API連携との関係へ閉じられる。closed 後の一般質問では、`対応できません` や `新規見積りです` へ急がず、答えられる一般範囲を先に返せる
 - 確認: batch-24 r2 を Codex 監査に出し、必須修正なし・採用可を確認。B06/B07 は軽微指摘のみで、batch 停止不要と判断
 - 非変更: B06 の具体対象名追加、B07 の追加具体化は必須ではないため renderer / validator へ戻さない。B07 は gold 参照に留める
+
+### 2026-04-27 / CHG-068
+- 分類: `reply-only`
+- レイヤ: prequote renderer / prequote validator / purchased renderer / closed renderer / batch-32
+- 変更: Pro 棚卸し後の r0 未安定型 regression として、非Stripe scope、緊急復旧、仕様/不具合境界、返金/キャンセル、新機能追加、保証期間、closed後別プロジェクト割引要求を検証した。r0 では B01-B06 が旧テンプレ・情報不足テンプレ・service spec nonanswer へ戻ったため、prequote renderer に `non_stripe_webhook_scope`、`emergency_recovery_time`、`spec_vs_bug_boundary`、`refund_cancel_prequote`、`feature_addon_scope` を追加し、purchased renderer に `warranty_period_question` を追加した。validator には旧三点セット、非Stripe scope、緊急復旧、phase語彙、同義反復3回の guard を接続し、closed 割引要求では別プロジェクト・固定価格・コピペ不可を明示するようにした。全体スイートで追加露出した eval / holdout の具体技術症状型（引き継ぎコードの決済不具合、解約メール二重送信、coupon `resource_missing`、quantity変更時例外）も専用分岐へ戻した
+- きっかけ: Codex / Claude 監査で、B01-B06 がすべて必須修正。特に `内容ありがとうございます -> この不具合なら15,000円 -> どこで止まっているか確認`、返金/キャンセル誤読、新機能追加の scope 吸収、保証期間未回答は、過去 batch で複数回再発しており case_fix では止まらないと判断した
+- 想定効果: service structure question を通常の不具合受付へ流さず、buyer が聞いている「対象か」「いつ直るか」「仕様か」「返金/キャンセルはどうなるか」「同じ料金内か」「保証はあるか」に先に答える。`transaction_model_gap` を本文へ出しすぎず、必要な入口分岐として効かせる
+- 確認: batch-32 7件の targeted render + lane lint OK。追加で eval / holdout の失敗ケース 9件を targeted render + lane lint OK。`python3 scripts/check-coconala-reply-role-suites.py --save-report` は seed / renderer_seed / edge / eval / holdout すべて OK。`python3 -m py_compile` OK。`git diff --check` OK
+- 非変更: Pro棚卸しの全提案を一括投入しない。今回 deterministic に再発した r0 未安定型だけを renderer / validator へ最小反映し、怒り気味 buyer の温度や短文化は引き続き reviewer / gold 側で観察する
