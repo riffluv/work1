@@ -50,3 +50,5 @@
 - `24_transaction-model-gap_edges.ja.md`
 - `25_pre-shelf-regression-boundaries.ja.md`
 - `26_prequote-concrete-symptom-pickup.ja.md`
+- `27_closed-general-check-method.ja.md`
+- `28_prequote-price-scope-boundaries.ja.md`

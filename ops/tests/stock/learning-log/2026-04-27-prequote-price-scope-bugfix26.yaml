@@ -1,0 +1,37 @@
+date: 2026-04-27
+case_ref: "RE-2026-04-27-bugfix-26-normal-prequote-price-scope / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / normal prequote with price and scope pressure"
+buyer_decision_stage: "prequote / quote_sent / purchased"
+service: "bugfix-15000"
+state: "prequote / quote_sent / purchased"
+
+# --- 診断 ---
+symptom: "r0 で、不信感・間欠性・値引き希望・ついで修正・新機能追加要求が、旧テンプレや同一原因/別原因判定へ流れた"
+failure_label: "prequote_old_template_regression / scope_confusion / nonanswer / purchased_progress_repetition"
+failure_layer: "reply-only / gold"
+
+# --- 投資判断 ---
+generalizability: "medium-high"
+reason: "普通の見積り相談でも、buyer の不信感、価格交渉、ついで修正、新機能追加が混ざると、価格・scope・次アクションの順序が崩れやすい"
+return_target: "gold"
+decision: "adopt"
+decision_reason: "Codex / Claude とも r1 を採用可。B04 値引き希望、B06 新機能追加 scope 外、B01 外注不信/手動対応限界は初出 gold として再利用価値が高い"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: "renderer / validator に強く戻すほど deterministic ではない。まず gold anchor として、近い相談で参照する"
+next_sentinel: "普通 prequote で価格・相性・ついで修正・新機能追加が出た時、旧テンプレへ戻らず buyer の主質問へ直答できるかを見る"
+
+# --- 抽象化 ---
+pattern: "普通 prequote でも、buyer が不信感・値引き・ついで修正・新機能追加を出した場合は、不具合受付テンプレに流さず、価格/範囲/代替/分離を先に返す"
+upstream_fix: "Gold Reply 28 に、外注不信/手動対応限界、間欠再発、ついで修正、値引き/お試し、新機能追加 scope 外の5型を保存。新規 rule / renderer 反映は保留"
+
+reply_only:
+  - "外注不信や手動対応限界では、過去相手を批判せず、事実ベースで疲弊を1文だけ受けて確認対象へ戻す"
+  - "間欠不具合では、毎回ではないことを切り分け難度として拾う"
+  - "ついで修正で buyer が同じ原因と決めつけても、そのまま採用せず、同じ原因でつながるかを確認する"
+  - "値引き/お試し希望には価格を崩さず、購入前の対応範囲確認を代替として出す"
+  - "ついでの新機能追加は、同じ原因/別原因ではなく今回の不具合修正とは分ける"
+common: []
