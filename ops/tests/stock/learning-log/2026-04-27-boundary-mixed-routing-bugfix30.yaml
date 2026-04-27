@@ -1,0 +1,38 @@
+date: 2026-04-27
+case_ref: "RE-2026-04-27-bugfix-30-boundary-mixed-routing / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / boundary mixed routing"
+buyer_decision_stage: "prequote / purchased / delivered / closed"
+service: "bugfix-15000"
+state: "prequote / purchased / delivered / closed"
+
+# --- 診断 ---
+symptom: "r0 では B02 が仕様/不具合質問に情報不足テンプレ、B05 が原因場所と追加料金の不安へ曖昧回答、B07 が closed 後の別プロジェクト割引要求で導線不足。r1 では全件採用可"
+failure_label: "boundary_question_nonanswer / transaction_scope_confusion / closed_new-project_route_gap"
+failure_layer: "reply-only / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "仕様か不具合か、修正先行か整理先行か、2サイト別決済、別プロジェクト割引要求は、通常の見積り相談に混ざりやすく、scope事故・未公開導線漏れ・buyer迷子につながるため"
+return_target: "gold"
+decision: "adopt"
+decision_reason: "Codex / Claude とも r1 を採用可。仕様/不具合境界、原因場所と追加料金の分離、2サイト別決済の金額感、closed後別プロジェクト導線は再利用価値が高い"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内 / 過去batch同型"
+existing_rule_hit: "あり"
+not_returned_reason: "deterministic validator より、判断順序と取引導線の設計が重要。まず Gold Reply 32 として保存し、同型 r0 再発が続く場合だけ renderer / validator を検討する"
+next_sentinel: "仕様/不具合質問と closed後別プロジェクト割引要求が、次回以降 r0 で情報不足テンプレや値引き可否だけに戻らないか"
+
+# --- 抽象化 ---
+pattern: "相談の種類自体が揺れる時は、通常受付テンプレへ流さず、見られる範囲・見ない範囲・金額感・次の取引導線を先に整理する"
+upstream_fix: "Gold Reply 32 に、bugfix先行/整理先行、仕様/不具合、2サイト別決済、原因場所≠追加料金、closed別プロジェクト割引要求、delivered承諾待ちの6型を保存。新規 rule / renderer 反映は保留"
+
+reply_only:
+  - "仕様か不具合かは断定せず、原因確認として受けられる範囲と仕様制約だった場合の扱いを分ける"
+  - "bugfix先行か整理先行かでは、未公開整理サービスへ流さず、止まっている不具合を起点にする"
+  - "2サイト・別決済は1件15,000円に広げず、別件扱いと金額感を示す"
+  - "原因がフロント側など技術分類上変わっても、今回症状の原因なら直ちに別件扱いにしない"
+  - "closed後の別プロジェクトは前回範囲ではなく新しい依頼として扱い、値引きやコピペ修正を約束しない"
+  - "delivered の承諾待ちは closed 導線へ戻しすぎず、承諾前にトークルーム内で気になる点を送る導線を出す"
+common: []

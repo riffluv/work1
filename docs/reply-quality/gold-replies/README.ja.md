@@ -54,3 +54,6 @@
 - `28_prequote-price-scope-boundaries.ja.md`
 - `29_price-guarantee-refund-risk.ja.md`
 - `30_normal-boundary-routing.ja.md`
+- `31_normal-scope-support.ja.md`
+- `32_boundary-mixed-routing.ja.md`
+- `33_boundary-transfer.ja.md`

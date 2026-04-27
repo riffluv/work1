@@ -1,0 +1,37 @@
+date: 2026-04-27
+case_ref: "RE-2026-04-27-bugfix-29-normal-scope-support / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / normal prequote, purchased boundary, closed recurrence"
+buyer_decision_stage: "prequote / purchased / closed"
+service: "bugfix-15000"
+state: "prequote / purchased / closed"
+
+# --- 診断 ---
+symptom: "r0 では B01/B02/B03 が、非Stripe scope・緊急復旧・ブラウザ依存で情報不足テンプレや旧テンプレへ戻った。B05/B07 は標準範囲と closed 後導線の説明が薄かった。r2 では全件採用可"
+failure_label: "scope_boundary_gap / recovery_time_confusion / browser_dependency_scope / standard_scope_gap / closed_phase_route_gap"
+failure_layer: "reply-only / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "非Stripe決済、ブラウザ依存、テスト追加期待、外部共有、closed後再発は通常相談に混ざりやすく、scope事故・外部共有事故・無料作業期待につながるため"
+return_target: "gold"
+decision: "adopt"
+decision_reason: "Codex / Claude とも r2 を採用可。非Stripe scope は PayPay/GMO の2パターンで検証され、ブラウザ依存・unittest境界・closed導線は新しい参照 anchor として価値が高い"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "過去batch同型 / 同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: "validator より判断順序と文面の境界設計が重要。今回は Gold Reply 31 として保存し、同型 r0 再発が続く場合だけ renderer / validator を検討する"
+next_sentinel: "非Stripe scope が PayPay/GMO 以外でも r0 安定するか。ブラウザ依存と unittest 境界が次回以降も通常テンプレへ戻らないか"
+
+# --- 抽象化 ---
+pattern: "対象可否や標準範囲の質問では、まず見られる範囲を作業可能領域に閉じて直答し、標準外は今回範囲と分けて先に相談する"
+upstream_fix: "Gold Reply 31 に、非Stripe GMO scope、ブラウザ依存、unittest標準外、外部共有拒否、closed後再発導線の5型を保存。新規 rule / renderer 反映は保留"
+
+reply_only:
+  - "非Stripe決済は、決済会社側全体ではなく Next.js側のWebhook/API受信処理として見られる範囲に閉じる"
+  - "ブラウザ依存は、決済後のNext.js側処理と端末/ブラウザ固有要因の切り分けとして返す"
+  - "unittest追加や継続チェック用テストは標準範囲に含めず、修正済みファイルと確認手順とは分ける"
+  - "Google Driveなど外部共有は使わず、ココナラ内で関係ファイルに絞って分割送付へ戻す"
+  - "closed後の同じエラー再発は、メッセージ上で前回とのつながりを確認し、修正作業が必要ならココナラ上の進め方を先に相談する"
+common: []

@@ -1,0 +1,38 @@
+date: 2026-04-27
+case_ref: "RE-2026-04-27-bugfix-31-boundary-transfer / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / boundary transfer"
+buyer_decision_stage: "prequote / quote_sent / purchased / closed"
+service: "bugfix-15000"
+state: "prequote / quote_sent / purchased / closed"
+
+# --- 診断 ---
+symptom: "r0 では B03 が予算30,000円への接続不足、B04 が怒り気味 buyer と冷静 buyer の同一テンプレ、B06 が保証期間質問への未回答。r2 で phase 表現も含めて採用可"
+failure_label: "budget_connection_gap / angry_buyer_ack_gap / guarantee_period_nonanswer / quote_sent_phase_wording"
+failure_layer: "reply-only / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "不具合なしの不安、修正/整理判断、複数症状+予算、保証期間、closed後割引要求は、通常相談に混ざりやすく、未公開導線漏れ・scope拡張・buyer迷子につながるため"
+return_target: "gold"
+decision: "adopt"
+decision_reason: "Claude は r1 採用可、Codex は B05 の quote_sent phase 語彙のみ必須修正。r2 で修正済み。新規 rule より gold anchor として残す価値が高い"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内 / 過去batch同型"
+existing_rule_hit: "あり"
+not_returned_reason: "deterministic validator へ即追加するより、判断順序・温度・phase語彙の参照例として残す方がノイズが少ない。quote_sent の「トークルーム内」は今後再発すれば validator 候補"
+next_sentinel: "保証期間質問、怒り気味の修正/整理判断、quote_sent の追加ファイル送付で r0 が再びテンプレ・phase drift に戻らないか"
+
+# --- 抽象化 ---
+pattern: "相談入口が揺れる時は、未公開サービスへ流さず、公開 bugfix の範囲で今言える入口・範囲・価格・phase 導線を短く整理する"
+upstream_fix: "Gold Reply 33 に、不具合なし不安、怒り気味 bugfix/整理判断、複数症状+予算、quote_sent追加ファイル、purchased保証期間、closedリピート割引の6型を保存。新規 rule / renderer 反映は保留"
+
+reply_only:
+  - "不具合なしの漠然不安では、無理に購入を促さず、具体的不具合が出てからでよいと返す"
+  - "怒り気味 buyer には、事実ベースで1文受け止めてから、bugfix-first の判断へ入る"
+  - "複数症状+予算提示では、同じ原因なら15,000円、別原因なら2件扱いの可能性を予算に接続する"
+  - "quote_sent では「トークルーム内」と書かず、「ココナラ上」「見積り相談上」に留める"
+  - "保証期間質問では、固定保証期間の有無、同じ原因の場合、別原因の場合を分けて答える"
+  - "closed 後のリピート割引要求では、割引前提にせず、固定価格と新しい内容確認の導線を出す"
+common: []
