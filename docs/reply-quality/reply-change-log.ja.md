@@ -627,3 +627,27 @@
 - きっかけ: batch-33 r0 は batch-32 より改善したが、B03/B04/B06 で「技術症状だけ拾い、返金・2件料金・Slackなどの取引上危ない問いを落とす」再発が出た。r1 では全件通過し、Gold 化する価値があると判断した
 - 想定効果: `transaction_model_gap` をさらに細かく、複数質問の回収順序として効かせる。特に purchased 複数話題で `進捗だけ返す`、複数症状で `2件目を無視する`、秘密情報で `接続URLを送らせる` 事故を減らす
 - 非変更: 新規 renderer / validator 反映は保留。r0 で改善が見え始めているため、即 rule 追加ではなく Gold 34 と learning-log で次 batch の再発を見る
+
+### 2026-04-28 / CHG-070
+- 分類: `reply-only`
+- レイヤ: Pro analysis / failure taxonomy / scorecard / writer brief / Gold Reply 34
+- 変更: ChatGPT Pro の `buyer_state_ack_gap` 分析を受け、QA-07 温度感ズレの下位レンズとして最小反映した。Gold 34 の closed 疲弊+無料期待ケースは、`また同じような症状が出ているとのこと、確認しました` から、`同じような症状がまた出ていて、前回分との関係や費用面も気になる状況かと思います` へ差し替えた。failure taxonomy / scorecard notes / writer brief に、怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満などの状態シグナルを、症状や料金だけで受け流していないかを見る補助観点を追加した
+- きっかけ: closed 後の再発+無料期待ケースで、transaction / phase / work boundary は正しいのに、冒頭が症状だけを `確認しました` で受けており、buyer の `もう嫌` `また払うのは納得できない` という状態シグナルが落ちていた
+- 想定効果: 怒り気味・疲弊気味 buyer への返信で、謝罪や無料対応約束に寄らず、状態だけを1文受けてから主質問・取引境界・次アクションへ戻せるようにする
+- 非変更: validator / renderer / hard rule には入れない。`buyer_state_ack_gap` は deterministic ではないため、当面は reviewer_prompt + gold + scorecard notes に留める。再発しても hard fail ではなく warn 候補として扱う
+
+### 2026-04-28 / CHG-071
+- 分類: `reply-only`
+- レイヤ: writer brief / Gold Reply 34 / learning-log / batch-34
+- 変更: `buyer_state_ack_gap` のうち、他者修正失敗や再発後の不信を受ける語彙を補強した。`次に頼む先を決めるのも不安` は抽象化されすぎて bot 的に見えるため、`今回も本当に直るのか不安に感じる状況かと思います` のように、buyer の判断不安そのものへ寄せる方針を writer brief / Gold 34 / learning-log に追加し、batch-34 B02 も差し替えた
+- きっかけ: batch-34 B02 の「次に頼む先」という表現が不自然で、共感を無理に作ったように見えた。外部調査でも、クレーム/不安対応では抽象的な感情推測より、相手の具体状況を短く受ける方が自然だと確認した
+- 想定効果: 不信・再発・他者修正失敗のケースで、前任批判や過剰保証に寄らず、自然な状態受けを1文で置けるようにする
+- 非変更: validator / renderer / hard rule には入れない。固定文として自動挿入せず、gold / writer phrase bank の参照 anchor に留める
+
+### 2026-04-28 / CHG-072
+- 分類: `reply-only`
+- レイヤ: writer brief / learning-log / batch-35
+- 変更: `buyer_state_ack_gap` の状態受け後に、価格・scope・phase 導線へ急に飛ぶと貼り合わせ感が出るため、短い橋を置く方針を writer brief と learning-log に追加した。batch-35 B02 は `その点も含めて、ご購入後は現在のコードとログを改めて確認する前提で、15,000円で対応できます` へ修正した。B07 は文中の単独 `はい、このメッセージで症状を送って大丈夫です` を削り、`まずはこのメッセージで症状を送ってください` へ統合した
+- きっかけ: user 監査で、状態受けと `15,000円で対応できます` がパーツを貼ったように見えること、また文脈上すでに方向を出した後の `はい` が日本語として流れを切ることが指摘された
+- 想定効果: 状態受けを入れても bot 的な共感文にならず、主質問・価格・次アクションへ自然につながる。Yes/No の直答も、文章の流れを切らずに次アクションへ統合できる
+- 非変更: validator / renderer / hard rule には入れない。固定文を自動挿入するのではなく、writer が状態受けと結論の接続を判断するための自然化観点に留める

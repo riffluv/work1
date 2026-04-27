@@ -235,14 +235,22 @@ return_to: prequote policy / reply skill / self-check
 典型例:
 - 強い不安に対して、完全に無受領で手続きだけ返す
 - 毎回重い共感を入れて、要件が薄くなる
+- buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満を明示しているのに、症状・価格・手順だけを受けている
 
 見分け方:
 - `言っていることは合っているのに、受け手の体感だけがズレる`
+- `buyer_state_ack_gap`: 冒頭の反応対象が buyer の状態ではなく、症状・価格・手順だけに寄っていないかを見る
+- 状態は1文だけ事実ベースで受ける。謝罪・過失認定・返金断定・無料対応約束には広げない
 
 主な戻し先:
 - `temperature plan`
 - `gold replies`
 - `review rubric`
+
+扱い:
+- `buyer_state_ack_gap` は QA-07 の下位レンズとして扱う
+- validator / renderer の hard rule にはしない
+- まずは reviewer prompt と gold replies で観察し、再発した場合も warn 候補に留める
 
 ## 境界の見方
 

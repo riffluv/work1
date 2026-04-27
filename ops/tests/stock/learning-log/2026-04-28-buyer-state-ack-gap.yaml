@@ -1,0 +1,40 @@
+date: 2026-04-28
+case_ref: "ChatGPT Pro / buyer_state_ack_gap分析4-28"
+
+# --- 文脈 ---
+consultation_type: "reply quality lens / closed fatigue and fee dissatisfaction"
+buyer_decision_stage: "closed / purchased / prequote mixed"
+service: "bugfix-15000"
+state: "reviewer_prompt / gold"
+
+# --- 診断 ---
+symptom: "buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満を明示しているのに、返信が症状・価格・手順だけを受け、状態シグナルを落とす"
+failure_label: "buyer_state_ack_gap"
+failure_layer: "reply-only / reviewer_prompt / gold"
+
+# --- 投資判断 ---
+generalizability: "medium_high"
+reason: "closed 後の再発不満、返金/無料期待、緊急復旧、購入後進捗不安などで再発し得る。ただし自動挿入すると謝罪過多・責任認定・無料期待・surface_overexposure のリスクがある"
+return_target: "reviewer_prompt + gold"
+decision: "adopt_minimal"
+decision_reason: "QA-07 温度感ズレの下位レンズとして有効。ただし validator / renderer / hard rule へ入れるには早い"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "Gold 34 closed 疲弊+無料期待で、症状は受けているが buyer の疲弊・費用不満が落ちた"
+existing_rule_hit: "QA-07 温度感ズレ / buyer_signal_used / free_support_or_responsibility_risk"
+not_returned_reason: "deterministic ではないため、現時点では validator / renderer に戻さない。再発しても warn 候補に留める"
+next_sentinel: "closed 再発+無料期待、purchased 追加料金不安、prequote 緊急復旧、他者修正失敗+返金質問で、症状だけを確認しましたで受けていないか"
+
+# --- 抽象化 ---
+pattern: "状態シグナルが明示されている時は、冒頭で症状だけでなく buyer の状態を1文だけ事実ベースで受ける。ただし謝罪・過失認定・返金断定・無料対応約束には広げない"
+upstream_fix: "Gold 34 case 5 の冒頭を差し替え、failure taxonomy / scorecard notes / writer-brief に QA-07 下位レンズとして最小反映"
+
+reply_only:
+  - "buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満を明示している場合、冒頭1文で状態を事実ベースに受ける"
+  - "症状や料金だけを `確認しました` で受け、buyer の状態シグナルを落としていないかを reviewer で見る"
+  - "`ご負担の大きい状況かと思います` `費用面も気になる状況かと思います` `お急ぎの状況は承知しました` などを安全な候補にする"
+  - "他者修正失敗や再発後の不信では、`次に頼む先を決めるのも不安` のような不自然な抽象化を避け、`今回も本当に直るのか不安` のように buyer の判断不安へ寄せる"
+  - "状態受けの直後に価格・scope・phase 導線へ飛ぶと貼り合わせ感が出やすい。`その点も含めて` `その前提で` などの短い橋を置き、状態受けと結論を1つの流れにする"
+  - "文中で既に方向を出した後は、`はい、このメッセージで症状を送って大丈夫です` のような単独 yes 返答を置かず、`まずはこのメッセージで症状を送ってください` のように直答を次アクションへ統合する"
+  - "`ご迷惑をおかけしています` `大変申し訳ございません` `こちらの修正不足です` `無料で対応します` `返金できます` は原因確認前に使わない"
+  - "状態受領は長くても1文。直後に主質問・取引境界・次アクションへ戻す"
+common: []
