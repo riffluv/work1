@@ -619,3 +619,11 @@
 - 想定効果: service structure question を通常の不具合受付へ流さず、buyer が聞いている「対象か」「いつ直るか」「仕様か」「返金/キャンセルはどうなるか」「同じ料金内か」「保証はあるか」に先に答える。`transaction_model_gap` を本文へ出しすぎず、必要な入口分岐として効かせる
 - 確認: batch-32 7件の targeted render + lane lint OK。追加で eval / holdout の失敗ケース 9件を targeted render + lane lint OK。`python3 scripts/check-coconala-reply-role-suites.py --save-report` は seed / renderer_seed / edge / eval / holdout すべて OK。`python3 -m py_compile` OK。`git diff --check` OK
 - 非変更: Pro棚卸しの全提案を一括投入しない。今回 deterministic に再発した r0 未安定型だけを renderer / validator へ最小反映し、怒り気味 buyer の温度や短文化は引き続き reviewer / gold 側で観察する
+
+### 2026-04-28 / CHG-069
+- 分類: `reply-only`
+- レイヤ: #RE batch-33 / Gold Reply 34 / learning-log
+- 変更: batch-33 `post-chg068-near-miss` の r1 が Codex / Claude 監査で採用可になったため、CHG-068 後の近縁ケースを棚卸しした。r0 では非Stripe scope と緊急復旧時間が初めて通過し、秘密情報対応と closed 疲弊+無料期待も安定した。一方、仕様/不具合+返金、複数症状+料金、purchased 進捗+別件+Slack では明示質問の取り落としが残ったため、Gold Reply 34 に複合質問の回収型として保存した。learning-log にも、複合質問では料金・返金・外部連絡・秘密情報・closed 後導線を落とさないことを記録した
+- きっかけ: batch-33 r0 は batch-32 より改善したが、B03/B04/B06 で「技術症状だけ拾い、返金・2件料金・Slackなどの取引上危ない問いを落とす」再発が出た。r1 では全件通過し、Gold 化する価値があると判断した
+- 想定効果: `transaction_model_gap` をさらに細かく、複数質問の回収順序として効かせる。特に purchased 複数話題で `進捗だけ返す`、複数症状で `2件目を無視する`、秘密情報で `接続URLを送らせる` 事故を減らす
+- 非変更: 新規 renderer / validator 反映は保留。r0 で改善が見え始めているため、即 rule 追加ではなく Gold 34 と learning-log で次 batch の再発を見る

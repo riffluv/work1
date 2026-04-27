@@ -1,0 +1,39 @@
+date: 2026-04-28
+case_ref: "RE-2026-04-28-bugfix-33-post-chg068-near-miss / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / post CHG-068 near miss"
+buyer_decision_stage: "prequote / purchased / closed"
+service: "bugfix-15000"
+state: "prequote / purchased / closed"
+
+# --- 診断 ---
+symptom: "CHG-068 後、非Stripe scope と緊急復旧時間は r0 で初通過。一方、B03 仕様/不具合+返金、B04 複数症状+料金、B06 purchased進捗+別件+Slack で明示質問の取り落としが残った。r1 で全件採用可"
+failure_label: "mixed_question_drop / multi_symptom_fee_gap / purchased_multi_topic_nonanswer / secret_value_boundary_precision"
+failure_layer: "reply-only / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "仕様/不具合、返金、複数症状料金、秘密情報、外部連絡、closed後無料期待は、通常相談に混ざると事故リスクが高く、buyer が迷子になりやすい"
+return_target: "gold"
+decision: "adopt"
+decision_reason: "Claude は採用可、Codex は必須修正なし。残りは語感と明示質問回収の軽微補強だったため、Gold 34 に複合質問の回収型として保存する"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "同batch内 / 過去batch同型"
+existing_rule_hit: "あり"
+not_returned_reason: "r0 で一部安定化が見えており、即 renderer / validator へ追加するより、複合質問の gold anchor として次 batch で再発を見る方がノイズが少ない。B06 の purchased_progress_minimum は再発時に renderer 候補"
+next_sentinel: "複数症状+料金で2件目を無視しないか、purchased 複数話題で進捗だけ返さないか、秘密情報で接続URL共有を促さないか"
+
+# --- 抽象化 ---
+pattern: "複合質問では、技術症状だけでなく、料金・返金・外部連絡・秘密情報・closed後導線の明示質問を全て回収する"
+upstream_fix: "Gold Reply 34 に、仕様/不具合+返金+他者失敗、複数症状+料金+急ぎ、purchased複数話題、秘密情報送信済み、closed疲弊+無料期待の5型を保存。新規 renderer / validator 反映は保留"
+
+reply_only:
+  - "非Stripe scope は、決済サービス全体ではなく Next.js側のWebhook/API受信処理へ閉じる"
+  - "緊急復旧は、復旧保証と一次結果目安を分ける"
+  - "仕様/不具合+返金では、仕様かどうかを断定せず、返金も一律に断定しない。作業状況とココナラ手続きに沿って相談する"
+  - "複数症状+料金では、2つ目の症状を無視せず、同じ原因なら1件、別原因なら2件扱いの可能性を示す"
+  - "purchased で複数話題が混ざる時は、進捗・別件・外部連絡を分けて全部答える"
+  - "秘密情報送信済みでは、キー名や設定箇所のみ。実値や接続URLは送らないでください、と明示する"
+  - "closed 後は、確認材料の確認と修正作業の正式導線を分ける"
+common: []

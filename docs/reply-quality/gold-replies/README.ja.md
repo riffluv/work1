@@ -57,6 +57,7 @@
 - `31_normal-scope-support.ja.md`
 - `32_boundary-mixed-routing.ja.md`
 - `33_boundary-transfer.ja.md`
+- `34_post-chg068-near-miss.ja.md`
 
 ## Gold 26-33 family index
 
@@ -69,7 +70,7 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 | closed_general_check | 27 | closed 後に一般的な確認方法だけを聞かれ、実作業に入らない時 | コード修正指示・成果物返却・返金要求が混ざる時 |
 | price_scope_boundary | 28, 29 | 値引き、保証、返金、復旧時間、複数症状、追加料金不安など、料金・範囲の主質問に答える時 | 通常の症状受けだけで足りる時 |
 | technical_boundary | 30, 31 | 非Stripe決済、ブラウザ依存、本番/preview差、秘密情報、外部共有、テスト追加など、技術境界を切る時 | provider 側の管理画面操作や外部共有を受ける時 |
-| boundary_transfer | 32, 33 | 仕様/不具合境界、quote_sent 語彙、closed 後の別件・割引・新規導線、怒り気味 buyer への受け止めを扱う時 | phase が単純な通常 prequote の時 |
+| boundary_transfer | 32, 33, 34 | 仕様/不具合境界、quote_sent 語彙、closed 後の別件・割引・新規導線、怒り気味 buyer、複数質問混在への回収を扱う時 | phase が単純な通常 prequote の時 |
 
 ### 抽出して validator / renderer へ戻す候補
 
@@ -77,3 +78,4 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 - Gold 29: 復旧時間・保証期間・返金/キャンセル質問で、通常の不具合受付テンプレに流さない direct answer。
 - Gold 30/31: 非Stripe名が出た時に、決済サービス全体ではなく `Next.js側のWebhook/API受信処理` へ scope を閉じる。
 - Gold 32/33: `quote_sent` / `closed` の phase 語彙と導線。`トークルーム内` や旧トークルーム継続を validator 候補にする。
+- Gold 34: 複合質問で、返金・料金・Slack・秘密情報・closed 後導線など事故りやすい明示質問を落とさない。
