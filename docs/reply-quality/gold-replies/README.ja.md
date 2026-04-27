@@ -53,3 +53,4 @@
 - `27_closed-general-check-method.ja.md`
 - `28_prequote-price-scope-boundaries.ja.md`
 - `29_price-guarantee-refund-risk.ja.md`
+- `30_normal-boundary-routing.ja.md`

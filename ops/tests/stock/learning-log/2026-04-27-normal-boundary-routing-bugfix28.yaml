@@ -1,0 +1,37 @@
+date: 2026-04-27
+case_ref: "RE-2026-04-27-bugfix-28-normal-boundary-routing / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / normal prequote, non-Stripe scope, production timeout, test-live switch, refund operation"
+buyer_decision_stage: "prequote / quote_sent / purchased"
+service: "bugfix-15000"
+state: "prequote / quote_sent / purchased"
+
+# --- 診断 ---
+symptom: "r0 では B02/B03/B04/B05/B06 が、非Stripe scope・緊急復旧・本番timeout・本番切替・返金操作質問に十分答えられなかった。r1 では境界と具体症状拾いが安定した"
+failure_label: "boundary_routing_gap / recovery_time_confusion / secret_request_risk / refund_operation_boundary"
+failure_layer: "reply-only / gold"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "非Stripe決済、Vercel本番timeout、test/live切替、返金操作は、通常の不具合相談に混ざりやすく、scope事故や秘密情報要求事故につながるため"
+return_target: "gold"
+decision: "adopt"
+decision_reason: "Codex / Claude とも r1 を採用可。B04/B05/B06 は新しい gold 候補として価値が高く、B02 は非Stripe scope の既存型を再確認した"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "過去batch同型 / 同batch内"
+existing_rule_hit: "あり"
+not_returned_reason: "deterministic validator より、判断順序と文面の境界設計が重要。まず gold anchor として保存し、r0 再発が続く型だけ renderer / validator を検討する"
+next_sentinel: "非Stripe scope / 緊急復旧時間 / 返金操作質問が r0 で安定するか。技術症状型 prequote は B01 で r0 安定が出始めている"
+
+# --- 抽象化 ---
+pattern: "決済サービス名・実行環境・APIキー・返金操作などの境界情報が出たら、通常受付テンプレではなく、見られる範囲と見ない範囲を先に分ける"
+upstream_fix: "Gold Reply 30 に、非Stripe scope、本番のみ timeout、テスト→本番切替、返金操作 + request_minimality の4型を保存。新規 rule / renderer 反映は保留"
+
+reply_only:
+  - "非Stripe決済は、決済事業者側全体ではなく Next.js側のWebhook/API受信処理に閉じて返す"
+  - "本番のみ timeout では、Vercel実行時間制限とAPI呼び出し経路を確認軸として出す"
+  - "テスト環境から本番切替後の不具合では、APIキー/secretの値を求めず、キー名や設定箇所で確認する"
+  - "返金操作質問では、Stripe上で確認できる手順案内と返金実行代行を分ける"
+  - "二重引き落としの確認では、日時・金額・Stripe上の決済IDなど最小情報にし、カード情報や個人情報は不要と明記する"
+common: []
