@@ -1,0 +1,39 @@
+date: 2026-04-28
+case_ref: "ChatGPT Pro / response_weight_mismatch-4-28"
+
+# --- 文脈 ---
+consultation_type: "reply quality lens / reply weight and bot-feel"
+buyer_decision_stage: "prequote / purchased / delivered / closed mixed"
+service: "bugfix-15000"
+state: "reviewer_prompt / gold"
+
+# --- 診断 ---
+symptom: "安全境界は守れているが、buyer の文量・温度・質問数に対して返信が重く、契約説明・監査項目・安全条件の列挙に見える"
+failure_label: "response_weight_mismatch"
+failure_layer: "reply-only / reviewer_prompt / gold"
+
+# --- 投資判断 ---
+generalizability: "medium"
+reason: "closed 後、返金/保証、複数症状、秘密情報などでは説明量が必要な一方、通常 prequote や短い yes/no では過剰説明が bot 感になる"
+return_target: "reviewer_prompt + gold + writer_brief"
+decision: "adopt_minimal"
+decision_reason: "surface_overexposure を buyer 入力の重さ側から見る補助レンズとして有効。ただし文字数や文量は主観が強く、validator hard reject には不向き"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "batch-35 B01/B02/B07 で、安全だが少し重い・貼り合わせ感がある文面が観察された"
+existing_rule_hit: "surface_overexposure / QA-06 テンプレ臭 / QA-07 温度感ズレ / buyer_state_ack_gap"
+not_returned_reason: "短文化を hard rule 化すると closed / refund / guarantee / secret など必要な安全境界を削る危険がある"
+next_sentinel: "短文 buyer、短い返答希望、通常 prequote、closed 通常再相談で、必要境界を残しつつ返信の重さが合っているか"
+
+# --- 抽象化 ---
+pattern: "返信の重さは文字数ではなく、buyer の文量・温度・質問数・phase risk と、外向けに露出している safety atom の釣り合いで見る"
+upstream_fix: "failure taxonomy / scorecard notes / writer-brief / Gold 35 に最小反映。validator / renderer へは入れない"
+
+reply_only:
+  - "`response_weight_mismatch` は主ラベルではなく、`surface_overexposure` の近縁 warning として扱う"
+  - "短文化の目的で、価格・phase・closed 後実作業導線・返金/保証・秘密情報などの必要境界を削らない"
+  - "buyer が短文・単一質問・低温度なら、主質問への直答、必要境界、次アクションだけに圧縮できないかを見る"
+  - "buyer が `長い説明じゃなくていい` と明示したら、進捗は現在地・未確定点・次回時刻の最小構成へ寄せる"
+  - "状態受けと価格/対応可否の間に、今回の見方・判断基準がないと貼り合わせ感が出やすい"
+  - "文中の `はい` は全面禁止しない。yes/no 質問への先頭直答なら自然だが、直前文で方向を出した後の単独 `はい` は浮きやすい"
+  - "closed 後や返金/保証など高リスク phase では、buyer 文が短くても必要境界を残す"
+common: []

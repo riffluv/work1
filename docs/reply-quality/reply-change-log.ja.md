@@ -651,3 +651,11 @@
 - きっかけ: user 監査で、状態受けと `15,000円で対応できます` がパーツを貼ったように見えること、また文脈上すでに方向を出した後の `はい` が日本語として流れを切ることが指摘された
 - 想定効果: 状態受けを入れても bot 的な共感文にならず、主質問・価格・次アクションへ自然につながる。Yes/No の直答も、文章の流れを切らずに次アクションへ統合できる
 - 非変更: validator / renderer / hard rule には入れない。固定文を自動挿入するのではなく、writer が状態受けと結論の接続を判断するための自然化観点に留める
+
+### 2026-04-28 / CHG-073
+- 分類: `reply-only`
+- レイヤ: Pro analysis / failure taxonomy / scorecard / writer brief / reviewer prompts / Gold Reply 35 / learning-log
+- 変更: ChatGPT Pro の `response_weight_mismatch` 分析を受け、buyer の文量・温度・質問数に対して返信が重すぎるかを見る補助レンズを追加した。failure taxonomy と scorecard notes には、`surface_overexposure` の近縁 warning として記録した。writer brief には、短文化で境界を削らず、主質問に必要な safety atom だけを外向けに残す原則を1行だけ追加した。Claude / Codex xhigh 監査プロンプトにも、hard fail ではなく reviewer warning として見る注意を追加した。Gold Reply 35 には、短くても安全な例、重くても必要な例、状態受けから価格へ飛ばさない例、文中の `はい` を次アクションへ統合する例を追加した
+- きっかけ: batch-35 の文面で、安全境界は守れているが buyer の文量に対して返信が少し重いケース、状態受けと価格が貼り合わせに見えるケース、文中の `はい` が流れを切るケースが見えた。Pro は `response_weight_mismatch` を validator hard reject ではなく reviewer warning / gold 対比で扱うべきと判断した
+- 想定効果: 安全性を落とさず、説明過多・bot感・パーツ貼り付け感を減らす。`短くする` ではなく、buyer に必要な直答・境界・次アクションだけを外向けに残す判断をしやすくする
+- 非変更: validator / renderer / hard rule には入れない。文字数・文数・`はい` の有無で落とさない。closed / 返金 / 保証 / 秘密情報などの必要な安全境界を削る用途には使わない
