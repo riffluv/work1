@@ -1,0 +1,86 @@
+version: 1
+
+cases:
+  - id: RWL37-001
+    stock_id: RWL37-001
+    category: response_weight_layout
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: prequote_short_scope_only
+    primary_question: Stripe Webhook 後に会員プランが更新されない不具合が対象かだけ知りたい。
+    raw_message: "Stripeのinvoice.paidは来ているのですが、会員プランが更新されません。細かい説明は後でいいので、対象になるかだけ知りたいです。"
+    note: 短文の対象可否。response_weight_mismatch で過剰説明せず、価格と購入導線だけを残せるかを見る。
+
+  - id: RWL37-002
+    stock_id: RWL37-002
+    category: buyer_state_ack_gap
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: prequote_previous_fix_failed_trust
+    primary_question: 他者修正後に再発した不信があるが、15,000円で対応できるか。
+    raw_message: "前の出品者さんに直ったと言われたのに、またStripe決済後の注文反映が止まりました。今度も同じことにならないか不安です。15,000円でお願いできますか？"
+    note: 他者修正失敗 + 不信。抽象共感や前任批判ではなく、今回どう確認するかへ自然につなげる。
+
+  - id: RWL37-003
+    stock_id: RWL37-003
+    category: spec_vs_bug
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: spec_or_bug_with_refund_anxiety
+    primary_question: 仕様で直せない場合どうなるか。原因確認は頼めるか。
+    raw_message: "Stripe決済後のメールが20分くらい遅れて届きます。外注先には仕様かもしれないと言われました。もし仕様で直せない場合はどうなりますか？"
+    note: 仕様/不具合境界。短くしすぎず、返金断定なし・completion gate を残せるかを見る。
+
+  - id: RWL37-004
+    stock_id: RWL37-004
+    category: purchased_progress_short
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: purchased_progress_brief_update
+    primary_question: 長い説明ではなく、今分かっていることだけ短く知りたい。
+    raw_message: "すみません、長い説明はいりません。今どこまで分かっているかだけ短く教えてください。"
+    note: purchased 進捗短答。追加症状テンプレに誤発火せず、現在地と次回返答だけを短く返せるかを見る。
+
+  - id: RWL37-005
+    stock_id: RWL37-005
+    category: purchased_feature_addon
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: purchased_feature_addon_scope
+    primary_question: 購入後、注文反映の不具合修正中に CSV 出力ボタン追加も一緒にできるか。
+    raw_message: "注文反映の件ありがとうございます。ついでに管理画面にCSV出力ボタンも追加してもらうことはできますか？数行で済むなら一緒にお願いしたいです。"
+    note: 新機能追加を不具合追加症状として吸収しないかを見る。作業量ではなく分類で切る。
+
+  - id: RWL37-006
+    stock_id: RWL37-006
+    category: delivered_accept_timing
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: delivered_accept_after_one_more_check
+    primary_question: もう1回本番確認してから承諾してよいか。待ってもらえるか。
+    raw_message: "納品ありがとうございます。明日の朝に本番で1回だけ確認してから承諾でも大丈夫ですか？少し待ってもらえますか？"
+    note: delivered yes/no。短く直答し、自動承諾や長い phase 説明へ広げすぎないかを見る。
+
+  - id: RWL37-007
+    stock_id: RWL37-007
+    category: closed_normal_rescope
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_send_symptom_first
+    primary_question: closed 後、別件かもしれない症状をまずメッセージで送ってよいか。
+    raw_message: "前回とは別かもしれませんが、Stripeの領収書メールだけ届かない件があります。まずこのメッセージで症状を送ればいいですか？"
+    note: closed 通常再相談。単独 yes を浮かせず、メッセージ確認と実作業導線を分ける。

@@ -659,3 +659,19 @@
 - きっかけ: batch-35 の文面で、安全境界は守れているが buyer の文量に対して返信が少し重いケース、状態受けと価格が貼り合わせに見えるケース、文中の `はい` が流れを切るケースが見えた。Pro は `response_weight_mismatch` を validator hard reject ではなく reviewer warning / gold 対比で扱うべきと判断した
 - 想定効果: 安全性を落とさず、説明過多・bot感・パーツ貼り付け感を減らす。`短くする` ではなく、buyer に必要な直答・境界・次アクションだけを外向けに残す判断をしやすくする
 - 非変更: validator / renderer / hard rule には入れない。文字数・文数・`はい` の有無で落とさない。closed / 返金 / 保証 / 秘密情報などの必要な安全境界を削る用途には使わない
+
+### 2026-04-28 / CHG-074
+- 分類: `reply-only`
+- レイヤ: Pro analysis / failure taxonomy / scorecard / writer brief / reviewer prompts / batch-36
+- 変更: ChatGPT Pro の監査レンズ布陣レビューを受け、`transaction_model_gap` の下位観点を常時7系統で見る運用から、まず `route_clarity` / `work_payment_boundary` / `buyer_not_lost` の3系統で見る運用へ圧縮した。`responsibility_over_admission_risk`、`free_support_expectation_risk`、`request_minimality` は closed / refund / anger / secrets など高リスク時だけ使う補助観点にした。`surface_overexposure` は独立 hard label ではなく `response_weight_mismatch` の原因 subtype として扱い、`response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort` は soft lens と明記した。writer brief には、未受領の材料に依存する見立て・時刻・作業予定を `届き次第` `いただけた範囲で` `確認できる範囲で` のように条件付きで書く方針を追加した。batch-36 B06 は `本日07:10までに` の時刻約束を、`いただけた範囲で、見立てを短くお返しします` へ修正した
+- きっかけ: Pro は、レンズが増えたことで監査が二重採点・過剰補正に寄る危険を指摘した。特に `surface_overexposure` と `response_weight_mismatch` の重複、`unnamed_discomfort` の必須修正化、材料未受領前の時刻コミットは、現行品質を崩すノイズになり得ると判断した
+- 想定効果: 監査レンズを増やしすぎず、hard fail は phase drift / 非公開サービス漏れ / 返金・無料・保証断定 / 外部共有 / 直接 push / 本番デプロイ / closed 後旧トークルーム継続など deterministic な事故に絞る。自然さ・重さ・状態受けの違和感は soft lens として扱い、Codex の判断を遮らず、必要な時だけ gold / reviewer_prompt へ戻す
+- 非変更: `response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort` は validator 化しない。短文化のために安全境界を削らない。`transaction_model_gap` 自体は維持し、取引構造が崩れた時の中核レンズとして使い続ける
+
+### 2026-04-28 / CHG-075
+- 分類: `reply-only`
+- レイヤ: #RE batch-37 / learning-log / connection audit
+- 変更: batch-37 `lens-layout-near-miss` の r0/r1 を棚卸しした。r0 では旧三点セット、context bleed、purchased 追加症状テンプレ誤発火、新機能追加の scope 未回答、delivered 汎用 fallback、closed の浮いた `はい` が出た。一方、r1 では既存 gold に戻すだけで全7件が採用可になったため、新レンズ不足ではなく `gold / renderer / validator の接続不足` として learning-log に記録した
+- きっかけ: CHG-074 のレンズ布陣整理後、batch-36 の全件 r0 通過から一転して batch-37 r0 が大きく崩れた。監査では、レンズ整理そのものよりも、renderer / writer-brief / gold の参照接続が外れて旧テンプレに戻った可能性が高いと判断された
+- 想定効果: 次の構造補修で、旧三点セット hard reject、purchased の `進捗 / 追加症状 / 新機能追加` 分岐、delivered 承諾 yes/no 分岐、context bleed guard を優先できる。soft lens を増やさず、r0 初手分岐の安定化へ焦点を戻せる
+- 非変更: 新しい監査レンズや hard rule は追加しない。今回の学びは「r1 で通る gold を r0 にどう接続するか」であり、`response_weight_mismatch` や `buyer_state_ack_gap` の validator 化には進めない

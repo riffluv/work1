@@ -43,15 +43,12 @@
   - 文面単体は安全でも、主質問・phase 上できること・確認材料と実作業・料金/返金/無料対応・次アクションが一本の取引構造としてつながっていない
   - 特に `closed` 後で、材料確認とコード修正、無料/通常料金、見積り/新規依頼の導線が断片的に並ぶ時に使う
   - 生成 rule や validator ではなく reviewer 専用の監査レンズ。単なる文体の好みや接続語の違和感には使わない
-  - 外部調査反映後の下位観点:
-    - `transaction_clarity`: buyer が現在の取引状態、支払い状態、作業開始条件を誤解しないか
-    - `phase_route_clarity`: quote_sent / purchased / delivered / closed それぞれで、次に進める導線が見えるか
-    - `work_payment_boundary_clarity`: 確認材料の受領と、コード修正・具体的修正指示・成果物返却などの実作業が混ざっていないか
+  - 外部調査反映後の下位観点は、常時全部を見るのではなく、まず次の3系統に圧縮して見る:
+    - `route_clarity`: phase と次導線が見えるか
+    - `work_payment_boundary`: 確認材料の受領と、コード修正・具体的修正指示・成果物返却などの実作業が混ざっていないか
     - `buyer_not_lost`: 返信後に buyer が何を送る・待つ・判断するのかが迷子になっていないか
-    - `responsibility_over_admission_risk`: 未確認なのに過失・責任・返金可能性を認めすぎていないか
-    - `free_support_expectation_risk`: closed 後や範囲外で、無料の実作業まで期待させていないか
-    - `request_minimality`: 必要以上の資料・秘密情報・説明を求めたり、外向け本文に条件を積みすぎていないか
-  - 上記は常時採点項目ではない。`transaction_model_gap` が疑われる時だけ、どの下位観点が崩れているかを短く特定する
+  - `responsibility_over_admission_risk`、`free_support_expectation_risk`、`request_minimality` は、closed / refund / anger / secrets など高リスク時の補助観点としてだけ使う
+  - 上記は常時採点項目ではない。`transaction_model_gap` が疑われる時だけ、どの取引構造が崩れているかを短く特定する
 
 ### deterministic guard 候補ラベル
 
@@ -80,12 +77,14 @@
   - 文ごとは正しいが、buyer には監査項目・規約説明・契約説明のように見える時に使う
   - 例: `同一原因`、`別原因`、`追加料金`、`キャンセル`、`正式納品`、`closed後作業不可`、`見積り導線` を1通にまとめて列挙している
   - `transaction_model_gap` / `completion_gate_gap` を削るためのラベルではない。内部 lens は残し、外向け本文は `直答 1〜2文 -> 必要な境界 1〜2文 -> 次アクション 1文` に圧縮するために使う
+  - 実務上は `response_weight_mismatch` の原因 subtype として扱う。重複する時は `response_weight_mismatch` を主 warning、`surface_overexposure` は「内部条件露出過多」の原因メモに留める
   - まずは reviewer warning / case_fix / gold の使い方調整向き。deterministic に再発するまで hard validator 化しない
 - `response_weight_mismatch`
   - buyer の文量・温度・質問数・判断段階に対して、返信が必要以上に契約説明化し、担当者の会話ではなく安全条件や監査項目を並べたように見える
-  - `surface_overexposure` を buyer 入力の重さ側から見る補助ラベルとして扱う。主ラベルにはせず、reviewer warning / gold の対比で使う
+  - 主に reviewer warning / gold の対比で使う。`surface_overexposure` はこの原因 subtype として扱う
   - 短文化のためのラベルではない。価格、phase、closed 後の実作業導線、返金/保証、秘密情報などの必要な安全境界を削る指摘には使わない
   - 文字数・文数・`はい` の有無だけで hard reject しない。`短くても安全` と `重くても必要` の判断例を gold で持つ
+  - validator / hard reject にはしない
 - `fix_vs_structure_first`
   - buyer が `修正と整理のどちらを先に頼むべきか` を聞いているのに、`この不具合なら15,000円で進められます` などの基本テンプレートへ流れる
   - `整理` `コード全体` `把握` `リファクタ` などの語に引っ張られて、非公開サービス名・25,000円導線を外向けに出すことも避ける
@@ -97,7 +96,7 @@
 - `unnamed_discomfort`
   - 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある
   - 監査で最大1〜2件だけ挙げる。実務リスクを説明できない好み差は扱わない
-  - 生成 rule ではなく発見用レンズとして使う。単発では rule 化せず、観察メモに残して、再発してから名前付け・gold・validator・rule 返却を検討する
+  - 生成 rule ではなく発見用レンズとして使う。採点・必須修正・validator 戻しには使わず、観察メモに残して、再発してから名前付け・gold・validator・rule 返却を検討する
 
 ## 既存 QA ラベルとの対応
 

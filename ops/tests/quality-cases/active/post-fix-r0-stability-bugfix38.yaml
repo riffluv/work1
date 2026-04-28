@@ -1,0 +1,86 @@
+version: 1
+
+cases:
+  - id: RFS38-001
+    stock_id: RFS38-001
+    category: non_stripe_fee_projection
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: non_stripe_scope_and_fee
+    primary_question: PAY.JPでも対象になるか。Stripe以外だと料金が変わるか。
+    raw_message: "うちのサイトはStripeではなくPAY.JPなんですが、Next.jsのAPI Routeで決済後処理を書いています。Webhook通知後に会員プランが更新されない症状です。対象になりますか？Stripeじゃないと料金は変わりますか？"
+    note: PAY.JP を note の PayPal/Square なしで拾えるか。料金質問への secondary projection warning が戻らないかを見る。
+
+  - id: RFS38-002
+    stock_id: RFS38-002
+    category: purchased_delay_refund_projection
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: complaint_like
+    question_type: purchased_delay_refund_progress
+    primary_question: 連絡遅延への不満と返金希望に対して、現在地と返金扱いをどう返すか。
+    raw_message: "購入してから3日経ちますが、まだ何も進んでいませんよね？最初のメッセージで「2時間以内に」とおっしゃっていたのに、何も連絡がないのですが。このまま放置されるなら返金してほしいです。"
+    note: CMP-002 近縁。report anchor warning が戻らず、進捗と返金を両方拾えるかを見る。
+
+  - id: RFS38-003
+    stock_id: RFS38-003
+    category: frontend_scope_projection
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: frontend_scope_and_two_symptoms
+    primary_question: フロントエンドの不具合も対象か。2症状をどう扱うか。
+    raw_message: "質問があります。Next.jsの不具合修正とのことですが、フロントエンドのバグも対象ですか？管理画面のボタンを押しても反応しないのと、Stripe決済後のポップアップが出ないのと、2つあります。フロントだけの問題ならお門違いかもしれませんが。"
+    note: STK-073 近縁。フロント対象可否の warning が戻らず、Next.js/Stripe連携範囲へ閉じられるかを見る。
+
+  - id: RFS38-004
+    stock_id: RFS38-004
+    category: prequote_context_bleed_sentry
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: spec_vs_bug_without_handoff_context
+    primary_question: メール遅延が仕様だった場合の扱い。外注先文脈を混ぜない。
+    raw_message: "Stripe決済後のメールが20分くらい遅れて届きます。前に見た人には仕様かもしれないと言われました。もし仕様で直せない場合はどうなりますか？"
+    note: batch-37 B03 近縁。外注先連絡不可・引き継ぎ整理などの context bleed が出ないかを見る。
+
+  - id: RFS38-005
+    stock_id: RFS38-005
+    category: purchased_feature_addon_sentry
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: purchased_feature_addon_scope
+    primary_question: 注文反映修正中にCSV出力ボタン追加も同じ範囲でできるか。
+    raw_message: "注文反映の確認ありがとうございます。ついでにCSVを出力できるボタンも管理画面に付けてもらえますか？小さい追加なら今回の修正に入れてほしいです。"
+    note: 新機能追加を追加症状扱いにしないか。purchased feature_addon_scope の再発確認。
+
+  - id: RFS38-006
+    stock_id: RFS38-006
+    category: delivered_accept_yes_no_sentry
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: delivered_accept_after_check
+    primary_question: 本番確認してから承諾してよいか。
+    raw_message: "納品ありがとうございます。念のため明日の朝に本番で確認してから承諾したいのですが、それでも大丈夫ですか？"
+    note: delivered yes/no。前回対応の続き fallback に落ちないかを見る。
+
+  - id: RFS38-007
+    stock_id: RFS38-007
+    category: closed_send_symptom_first
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_send_symptom_first
+    primary_question: closed後、まず症状をメッセージで送ってよいか。
+    raw_message: "前回とは別件かもしれませんが、Stripeの領収書メールが届かない件があります。先にこのメッセージで症状だけ送っても大丈夫ですか？"
+    note: closed 通常再相談。浮いた「はい」や旧トークルーム継続前提が戻らないかを見る。

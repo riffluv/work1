@@ -89,6 +89,19 @@ def has_old_three_point_template(rendered: str) -> bool:
     )
 
 
+def has_context_bleed_from_handoff_case(rendered: str, raw: str) -> bool:
+    bleed_markers = [
+        "外注先と連絡が取れず",
+        "コードの中身も追いにくい",
+        "引き継ぎ整理",
+        "コード全体の引き継ぎ",
+    ]
+    if not has_any(rendered, bleed_markers):
+        return False
+    raw_allows_handoff_context = has_any(raw, ["連絡が取れず", "コードの中身", "引き継ぎ", "コード全体", "外注で作ってもらった"])
+    return not raw_allows_handoff_context
+
+
 def has_service_structure_question(text: str) -> bool:
     return has_any(
         text,
@@ -108,6 +121,7 @@ def has_service_structure_question(text: str) -> bool:
             "仕様",
             "不具合ですか",
             "対象",
+            "対象になるかだけ",
             "見てもらえますか",
             "追加料金",
             "値引",
@@ -125,6 +139,9 @@ def collect_prequote_r0_stability_errors(rendered: str, raw: str) -> list[str]:
 
     if has_old_three_point_template(rendered) and has_service_structure_question(raw):
         errors.append("prequote r0 guard failed: service-structure question fell back to old generic bug intake template")
+
+    if has_context_bleed_from_handoff_case(rendered, raw):
+        errors.append("prequote r0 guard failed: rendered text contains context from a different handoff/outsourcing scenario")
 
     if has_non_stripe_provider(raw):
         accepts_broadly = has_any(rendered, ["この不具合なら15,000円で対応できます", "この不具合なら15,000円で進められます", "15,000円で対応できます"])
@@ -343,6 +360,8 @@ def lint_case(module, case: dict) -> list[str]:
         "preview_webhook_env_error",
         "vercel_webhook_signature_400",
         "frontend_stripe_mixed_scope",
+        "scope_only_target_question",
+        "previous_fix_failed_trust",
         "stripe_webhook_raw_body_signature",
         "stripe_subscription_upgrade_db_update",
         "code_handoff_bugfix_scope",

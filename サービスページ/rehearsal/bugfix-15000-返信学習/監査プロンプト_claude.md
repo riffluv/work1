@@ -18,7 +18,7 @@
 - 聞かれていない説明や入力依頼を足していないか
 - phase が絡む返信で、buyer が「今この状態で次に何をすればよいか」まで自然に分かるか。安全側の `確認します` だけで、不可/代替/次導線がぼやけている場合は `phase_answer_gap` として拾ってください
 - 文面単体は自然でも、主質問・phase 上できること・確認材料と実作業・料金/返金/無料対応・次アクションが一本の取引構造としてつながっているか。正しい文が断片的に並んで buyer が「結局どうなるのか」となりそうなら `transaction_model_gap` として拾ってください
-- 安全条件は守れていても、内部判断や例外条件を外向け本文に出しすぎていないか。文ごとは正しくても、buyer には監査項目・規約説明・契約説明のように見える場合は `surface_overexposure` として拾ってください
+- 安全条件は守れていても、内部判断や例外条件を外向け本文に出しすぎていないか。文ごとは正しくても、buyer には監査項目・規約説明・契約説明のように見える場合は `response_weight_mismatch` の原因 subtype（内部条件露出過多）として拾ってください
 - buyer の文量・温度・質問数に対して、返信が必要以上に契約説明化していないか。安全境界を削る指摘ではなく、露出量・順序・統合候補を見る場合だけ `response_weight_mismatch` として拾ってください
 - ただし、安全境界を削って短くする提案は避け、主質問への直答・必要な境界・次アクションが残る短縮案だけを出してください
 - AIっぽい定型感、説明書っぽさ、報告語で結論が弱まる感じがないか
@@ -32,22 +32,24 @@
 追加で使ってよい監査ラベル:
 - `phase_answer_gap`: 文面は安全に見えるが、今の phase で buyer が次に取れる行動が見えない。特に `quote_sent / delivered / closed` で、可能な操作・不可な操作・代替導線・次アクションのどれかが抜けている
 - `transaction_model_gap`: 文面単体は自然でも、buyer の主質問、phase 上できること、確認材料と実作業、料金・返金・無料対応、次アクションが一本の取引構造としてつながっていない。特に `closed` 後で、無料/通常料金、材料確認/コード修正、見積り/新規依頼が断片的に並ぶ場合に使う
-  - 必要に応じて下位観点として、`transaction_clarity`、`phase_route_clarity`、`work_payment_boundary_clarity`、`buyer_not_lost`、`responsibility_over_admission_risk`、`free_support_expectation_risk`、`request_minimality` のどれが崩れているかを見る
+  - まず `route_clarity`、`work_payment_boundary`、`buyer_not_lost` のどれが崩れているかを見る
+  - `responsibility_over_admission_risk`、`free_support_expectation_risk`、`request_minimality` は、closed / refund / anger / secrets など高リスク時だけ補助観点として使う
 - `completion_gate_gap`: 15,000円の範囲で修正完了まで進める前提、範囲超過時の停止・説明、追加作業へ勝手に進まないこと、未完成のまま正式納品へ押し切らないことが、buyer の不安に対して不足している。返金保証・キャンセル保証として断定させず、buyer が聞いている範囲だけ短く見る
-- `surface_overexposure`: 内部で見るべき安全条件が外向け本文に並びすぎている。`同一原因`、`別原因`、`追加料金`、`キャンセル`、`正式納品`、`closed後作業不可`、`見積り導線` などが1通に積み上がり、buyer にはチェックリストや契約説明のように見える時に使う
-- `response_weight_mismatch`: buyer の文量・温度・質問数に対して、返信が重すぎて契約説明や安全条件の列挙に見える時に使う。`surface_overexposure` の近縁 warning として扱い、短文化で必要な境界を削るためには使わない
+- `surface_overexposure`: 独立した hard label ではなく、`response_weight_mismatch` の原因 subtype。内部で見るべき安全条件が外向け本文に並びすぎ、buyer にはチェックリストや契約説明のように見える時に原因メモとして使う
+- `response_weight_mismatch`: buyer の文量・温度・質問数に対して、返信が重すぎて契約説明や安全条件の列挙に見える時に使う。短文化で必要な境界を削るためには使わない
 - `buyer_state_ack_gap`: buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満などを明示しているのに、症状・価格・手順だけを受けて状態シグナルを落としている。QA-07 温度感ズレの下位観点として見てください
-- `unnamed_discomfort`: 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある。最大1〜2件まで、実務リスクを説明できる場合だけ挙げてください
+- `unnamed_discomfort`: 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある。最大1〜2件まで、実務リスクを説明できる場合だけ観察メモとして挙げてください
 
 注意:
 - `phase_answer_gap` は自然さを壊してまで説明を足すための rule ではありません。buyer が実際に迷う場面だけ、軽い指摘または必須修正として扱ってください
 - `transaction_model_gap` は自然化 rule ではなく監査レンズです。単なる文体の好みには使わず、取引導線として buyer が誤解・停滞しそうな場合だけ指摘してください
 - `transaction_model_gap` の下位観点は全件採点軸ではありません。該当時だけ、どの取引構造が抜けたかを短く特定してください
 - `completion_gate_gap` は writer rule ではなく監査レンズです。内部6点を毎回本文に出すのではなく、追加費用・未完成納品・キャンセル不安など、buyer が実際に聞いている箇所だけ評価してください
-- `surface_overexposure` は短ければよいという指摘ではありません。安全性を落とさず、`直答 1〜2文 -> 必要な境界 1〜2文 -> 次アクション 1文` に圧縮できる時だけ指摘してください
+- `surface_overexposure` は独立採点しないでください。`response_weight_mismatch` の原因 subtype として、内部条件の露出が多い時だけメモしてください
 - `response_weight_mismatch` は hard fail ではありません。文字数・文数・`はい` の有無だけで落とさず、必要な safety boundary が残ることを確認した上で、軽微または gold 候補として扱ってください
 - `buyer_state_ack_gap` は共感文を増やすための rule ではありません。状態を受ける場合も1文だけにし、謝罪・過失認定・返金断定・無料対応約束には広げないでください
-- `unnamed_discomfort` はその場で rule 化しないでください。好み差は必須修正にせず、まず観察メモとして扱ってください
+- `unnamed_discomfort` はその場で rule 化しないでください。好み差は必須修正・採点・validator 戻しにせず、まず観察メモとして扱ってください
+- hard fail と soft lens を分けてください。hard fail は phase drift、非公開サービス漏れ、返金/無料/保証の断定、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続など deterministic な事故に限ります。`response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort` は soft lens として扱ってください
 
 優先順位:
 - 構造・scope・service facts を崩さないことが前提です

@@ -139,7 +139,7 @@ def opener_for(source: dict) -> str:
     if source.get("scenario") == "dry_complete_close":
         return ""
     if source.get("scenario") == "approval_wait_request":
-        return "大丈夫です。"
+        return ""
     if source.get("scenario") == "pending_webhook_events":
         return ""
     return "ご連絡ありがとうございます。"
@@ -161,6 +161,10 @@ def detect_scenario(source: dict) -> str:
         "承諾はもう少し待って" in combined
         or "正式な承諾" in combined
         or "待ってもらっていいですか" in combined
+        or "待ってもらえますか" in combined
+        or "確認してから承諾" in combined
+        or "確認してからの承諾" in combined
+        or "本番で1回だけ確認してから承諾" in combined
         or "考えさせてもらっていい" in combined
         or "少し考えさせて" in combined
         or "ちょっと考えさせて" in combined
@@ -1565,6 +1569,9 @@ def build_case_from_source(source: dict) -> dict:
         return case
 
     if scenario == "approval_wait_request":
+        answer_brief = "はい、確認してからの承諾で大丈夫です。"
+        if any(marker in source.get("raw_message", "") for marker in ["明日の朝", "本番"]):
+            answer_brief = "はい、明日の朝に確認してからの承諾で大丈夫です。"
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [{"id": "q1", "text": "正式な承諾を待ってほしい", "priority": "primary"}],
@@ -1572,7 +1579,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "確認が終わってからご判断いただければ問題ありません。",
+                    "answer_brief": answer_brief,
                 },
             ],
             "ask_map": [],
@@ -1862,7 +1869,7 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "approval_wait_request":
         if any(marker in raw for marker in ["考えさせてもらって", "考えさせて", "ちょっと考え"]):
             return "少し考えたいとのこと、承知しました。"
-        return "承諾を少し待ちたいとのこと、承知しました。"
+        return ""
     return reaction_line(case)
 
 
@@ -2053,6 +2060,20 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                     direct_answer,
                     "将来の仕様変更まではここで言い切れませんが、現状が安定しているなら承諾いただいて大丈夫です。",
                     "固定の保証期間としてはお伝えしていませんが、今回の動作が安定しているかを基準に見てもらえれば大丈夫です。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "approval_wait_request":
+        if any(marker in raw for marker in ["本番", "明日の朝"]):
+            direct_answer = "はい、明日の朝に確認してからの承諾で大丈夫です。"
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "確認中に気になる点が出てきた場合は、承諾前にこのトークルームで送ってください。",
                 ]
             ),
         )

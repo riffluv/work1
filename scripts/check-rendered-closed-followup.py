@@ -117,7 +117,15 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("closed follow-up still uses banned `お約束する形` wording")
     if has_any(rendered, ["今回のご相談がどの種類か", "前回の続きとして扱えるか確認します"]):
         errors.append("generic closed fallback survived in rendered text")
-    if (primary["disposition"] == "answer_after_check" or (contract.get("ask_map") and decision_plan.get("blocking_missing_facts"))) and ("本日" not in rendered or "までに" not in rendered):
+    symptom_send_first = (
+        scenario == "new_issue_repeat_client"
+        and has_any(raw, ["このメッセージ", "メッセージで", "メッセージ上"])
+        and has_any(raw, ["症状", "内容", "流れ"])
+        and has_any(raw, ["送れば", "送って", "送る", "伝えれば"])
+    )
+    if (
+        primary["disposition"] == "answer_after_check" or (contract.get("ask_map") and decision_plan.get("blocking_missing_facts"))
+    ) and not symptom_send_first and ("本日" not in rendered or "までに" not in rendered):
         errors.append("missing time commitment")
     if scenario not in {"price_complaint", "price_discount_request", "repeat_bugfix_price_check", "refund_request", "closed_free_followup_price"} and has_any(rendered, ["15,000円", "25000円", "25,000円"]):
         errors.append("closed follow-up should not front-load price")

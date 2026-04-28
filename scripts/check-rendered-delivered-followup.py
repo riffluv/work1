@@ -295,6 +295,8 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("generic_delivered fallback survived a concrete delivered follow-up request")
     if scenario == "generic_delivered" and "前回対応の続きとして扱える話" in rendered:
         errors.append("generic_delivered fallback survived: rendered text asks whether this is a previous-work continuation")
+    if has_any(raw, ["確認してから承諾", "確認してからの承諾", "待ってもらえますか", "少し待って"]) and "前回対応の続きとして扱える話" in rendered:
+        errors.append("delivered acceptance yes/no failed: approval timing question fell into previous-work continuation template")
 
     forbidden_terms = ["GitHubに招待", "Driveに置いて", "Dropbox", "外部決済", "無料で対応"]
     for term in forbidden_terms:

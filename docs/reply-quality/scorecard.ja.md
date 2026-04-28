@@ -28,6 +28,7 @@
 - `transaction_model_gap`
   - 主質問、phase、支払い状態、作業開始条件、成果物返却導線、次アクションが一本の取引構造としてつながっていない
   - 主に 2 / 4 / 6 / 9 をまたぐ補助軸として扱う
+  - notes ではまず `route_clarity` / `work_payment_boundary` / `buyer_not_lost` のどれが崩れたかを見る。責任認定・無料期待・request minimality は高リスク時だけ添える
 - `work_payment_boundary`
   - 確認材料の受領と、コード修正・具体的修正指示・成果物返却などの実作業が混ざっている
   - `quote_sent / delivered / closed` でだけ重く見る
@@ -41,6 +42,7 @@
 - `surface_overexposure`
   - 安全条件を外向け本文に積みすぎ、buyer には規約説明やチェックリストのように見える
   - 安全境界を削るためではなく、必要な直答・境界・次アクションに圧縮するために使う
+  - `response_weight_mismatch` と重なる時は subtype として扱い、二重採点しない
 - `response_weight_mismatch`
   - buyer の文量・温度・質問数に対して、返信が重すぎて契約説明や安全条件の列挙に見えていないかを見る
   - 点数化しない。短文化の口実にせず、必要な safety boundary が残ることを確認した上で、露出量・順序・統合候補を notes に残す

@@ -1,0 +1,39 @@
+date: 2026-04-28
+case_ref: "RE-2026-04-28-bugfix-37-lens-layout-near-miss / B01-B07"
+
+# --- 文脈 ---
+consultation_type: "bugfix-15000 / post CHG-074 lens layout near miss"
+buyer_decision_stage: "prequote / purchased / delivered / closed"
+service: "bugfix-15000"
+state: "prequote / purchased / delivered / closed"
+
+# --- 診断 ---
+symptom: "CHG-074 後、soft lens 整理そのものは hard failure を隠していない。一方で r0 では旧三点セット、context bleed、purchased 追加症状テンプレ誤発火、delivered 汎用fallback が再発。r1 では既存 gold へ戻すだけで全件採用可"
+failure_label: "gold_connection_gap / old_generic_template_regression / context_bleed / purchased_template_misfire / delivered_fallback_drift"
+failure_layer: "reply-only / renderer / validator / gold connection"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "自然さ・返信量・状態受けの soft lens を整理しても、r0 生成段階で主質問分岐や phase 分岐が外れると、過去の旧テンプレに戻る。これは個別文面ではなく gold / renderer / validator の参照接続問題"
+return_target: "renderer + validator + gold wiring"
+decision: "observe_then_fix_connection"
+decision_reason: "新レンズや新ルールの追加ではなく、既存 gold を r0 初手分岐へ安定接続する必要がある。r1 で全件通るため、判断基準そのものは有効"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "旧三点セットは9batch以上、purchased 追加症状テンプレ誤発火は3batch連続、delivered 汎用fallbackは2batch連続、context bleed は初出だが重大"
+existing_rule_hit: "あり。Gold 35 / Gold 34 / Gold 32 / delivered 承諾 yes-no / new_feature_boundary / response_weight_mismatch"
+not_returned_reason: "今回の棚卸しでは新規 renderer 実装はしない。CHG-074 のレンズ整理を疑うのではなく、次の構造補修で接続対象を限定する"
+next_sentinel: "短文 prequote が旧三点セットへ戻らないか、purchased 進捗が追加症状扱いにならないか、delivered yes/no が前回対応継続確認へ落ちないか、別ケース文脈が混入しないか"
+
+# --- 抽象化 ---
+pattern: "r1 で gold に戻すと通る failure は、新レンズ不足ではなく r0 の参照接続不足として扱う"
+upstream_fix: "次回以降、旧三点セット hard reject、purchased progress vs addon vs feature split、delivered yes/no split、context bleed guard を renderer / validator へ戻す候補として扱う"
+
+reply_only:
+  - "prequote 短答では、対象可否を先に返し、旧三点セットを出さない"
+  - "他者修正失敗 + 不信では、抽象共感や前任批判ではなく、今回は現在のコードとログを基準に見るとつなぐ"
+  - "仕様/不具合境界では、別シナリオの外注・引き継ぎ文脈を持ち込まず、仕様か不具合か未断定 + 原因確認 + completion gate を返す"
+  - "purchased 進捗質問は、追加連絡や同じ流れかの判定にしない。現在地・未確定点・次回返答だけを返す"
+  - "purchased の CSV出力ボタン追加は、数行でも新機能追加として不具合修正と分ける"
+  - "delivered の承諾前確認は、まず yes/no で答える。前回対応の続きか確認する generic fallback に落とさない"
+  - "closed 通常再相談は、文中の浮いた `はい` や見積り可否だけにせず、症状送付 -> メッセージ確認 -> 実作業なら正式導線へつなぐ"
+common: []

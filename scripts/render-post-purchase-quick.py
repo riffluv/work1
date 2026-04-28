@@ -185,9 +185,9 @@ def is_complaint_like(source: dict) -> bool:
 
 def promised_deadline_phrase(raw: str) -> str | None:
     if "48時間以内" in raw:
-        return "お伝えしていた48時間以内を超えてしまっていて、申し訳ありません。"
+        return "お伝えしていた48時間以内の連絡を超えてしまっています。"
     if "2時間以内" in raw:
-        return "お伝えしていた2時間以内を超えてしまっていて、申し訳ありません。"
+        return "お伝えしていた2時間以内の連絡を超えてしまっています。"
     return None
 
 
@@ -262,7 +262,11 @@ def next_action_line(case: dict, hours: int = 2) -> str:
     if case.get("scenario") == "progress_anxiety":
         if any(marker in case.get("raw_message", "") for marker in ["diff", "差分", "変更予定ファイル"]):
             return f"本日{target:%H:%M}までに、分かっている点と次に見る箇所をお送りします。"
+        if any(marker in case.get("raw_message", "") for marker in ["長い説明はいりません", "長い説明はいい", "分かっているかだけ", "わかっているかだけ"]):
+            return f"本日{target:%H:%M}までに、分かっている点だけ短くお返しします。"
         return f"本日{target:%H:%M}までに、状況を整理してお送りします。"
+    if case.get("scenario") == "feature_addon_scope":
+        return f"本日{target:%H:%M}までに、注文反映の件の現時点の確認結果をお返しします。"
     if case.get("scenario") == "progress_summary_request":
         return f"本日{target:%H:%M}までに、現時点で見えている点を箇条書きでお送りします。"
     return f"本日{target:%H:%M}までに、現時点の確認結果をお返しします。"
@@ -459,6 +463,8 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     if scenario == "progress_anxiety":
         if any(marker in raw for marker in ["diff", "差分", "変更予定ファイル"]):
             direct_answer_line = "現在は、対象処理のどこで止まっているかを確認しています。まだ原因は断定していません。"
+        elif any(marker in raw for marker in ["長い説明はいりません", "長い説明はいい", "今どこまで分か", "今どこまでわか", "分かっているかだけ", "わかっているかだけ"]):
+            direct_answer_line = "いまは、決済後の反映処理がどこで止まっているかを確認しています。まだ原因は断定していません。"
         elif any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
             direct_answer_line = "いまは、今回の不具合がどこで止まっているかを確認している段階です。"
         elif any(marker in raw for marker in ["対応するかしないか", "どうなってるんですか", "まだ何も返事"]):
@@ -473,7 +479,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "はい、送っていただいたコードのフォルダ構成は見えています。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "delay_complaint_refund":
-        direct_answer_line = "まず進み具合を整理してお返しします。"
+        direct_answer_line = "現時点で確認できていること、まだ未確認の点、次に進められるかを整理してお返しします。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "timeline_anxiety":
         if any(marker in raw for marker in ["あとどれくらい", "目安だけでも", "いつまでこう言い続ければ"]):
@@ -598,6 +604,11 @@ def detect_scenario(source: dict) -> str:
         return "price_pushback"
     if "引き継ぎメモ" in combined and "修正" in combined:
         return "handoff_fix_addon"
+    if (
+        any(marker in combined for marker in ["CSV", "csv"])
+        and any(marker in combined for marker in ["ボタン", "出力", "ダウンロード"])
+    ):
+        return "feature_addon_scope"
     if any(
         marker in combined
         for marker in [
@@ -618,6 +629,12 @@ def detect_scenario(source: dict) -> str:
             "今どのあたりまで",
             "今どこまで見て",
             "今どこまで見ていただけ",
+            "今どこまで分か",
+            "今どこまでわか",
+            "長い説明はいりません",
+            "長い説明はいい",
+            "分かっているかだけ",
+            "わかっているかだけ",
             "確認って進んでますか",
             "状況だけでも教えて",
             "心配になってきまして",
@@ -958,6 +975,25 @@ def build_case_from_source(source: dict) -> dict:
                 },
             ],
             "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "feature_addon_scope":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "不具合修正中に新しい機能追加も一緒にできるか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "CSV出力ボタンの追加は、不具合修正ではなく新機能追加になります。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "commit_next_update_time"],
         }
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
@@ -2199,6 +2235,8 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "progress_anxiety":
         if any(marker in raw for marker in ["diff", "差分", "変更予定ファイル"]):
             return "修正方針は、変更予定ファイルとdiffで影響範囲が分かる形でお送りします。"
+        if any(marker in raw for marker in ["長い説明はいりません", "長い説明はいい", "分かっているかだけ", "わかっているかだけ"]):
+            return "分かっている点だけ短く整理してお返しします。"
         if any(marker in raw for marker in ["売上が立ってない", "売上が立っていない", "クライアント", "決済エラーのせいで売上"]):
             return "いまは、決済が止まっている箇所の切り分けを進めています。"
         if any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
@@ -2328,7 +2366,7 @@ def draft_opening_anchor(case: dict) -> str:
     pending_commitment = has_unfulfilled_commitment(case)
 
     if scenario == "delay_complaint_refund":
-        lines = ["お待たせしてしまい、すみません。まず状況を確認します。"]
+        lines = ["まず状況を整理します。お待たせしてしまい、申し訳ありません。"]
         lines.append(deadline_phrase or "連絡が空いてしまった点、申し訳ありません。")
         return "\n".join(lines)
     if scenario == "progress_anxiety":
@@ -2459,6 +2497,19 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         if focus_line:
             _append_unique(paragraphs, focus_line)
         return paragraphs
+    if scenario == "feature_addon_scope":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "注文反映の件は引き続き確認しています。",
+                    direct_answer,
+                    "不具合修正と機能追加は別の対応になるため、今回の15,000円内には含められません。",
+                    "まずは注文反映の不具合修正を進めます。",
+                ]
+            ),
+        )
+        return paragraphs
     if scenario == "progress_summary_request":
         _append_unique(
             paragraphs,
@@ -2523,7 +2574,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             _paragraph_from_lines(
                 [
                     direct_answer,
-                    "返金については、状況を見たうえで続けて案内します。",
+                    "返金・キャンセルについてはこの場で可否を断定せず、作業状況を整理したうえで、ココナラ上の手続きに沿って対応をご相談します。",
                 ]
             ),
         )

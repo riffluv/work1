@@ -1,0 +1,183 @@
+1. Executive Summary
+
+結論: 条件付きで #RE 続行可です。
+現行レンズ群は、少なくとも batch-36 r1 では「短い場面は短く、危険な場面は境界を残す」方向にかなり効いています。ただし、このままレンズ名を writer / renderer に流し込むと、Codex が自然文を書くのではなく “監査ラベルを消化する文” を作る危険があります。
+
+一番危ないのは、response_weight_mismatch や buyer_state_ack_gap を validator に上げることです。これは事故防止ではなく文面調整のレンズなので、hard reject にすると「短くするために必要境界を削る」「共感を入れるために毎回感情文を置く」という逆事故を起こします。writer-brief はすでに「Writer に渡すのは 11 行程度」「安全条件は主質問に必要なものを最大2個」「受け止めは1文まで」「詳細 guidance は必要時だけ」という抑制設計になっており、この方向は正しいです。
+
+batch-36 r1 の主対象では、B04 / B07 はかなり良いです。B02 / B06 も safety boundary は残っています。ただし B06 の「本日07:10までに見立て」は、buyer から材料が届く前提が未確定なのに時刻約束が先に立っているため、軽微ではなく実務上の修正候補です。これは新レンズ追加ではなく、transaction_model_gap の buyer_not_lost / request_minimality / phase_route_clarity で拾えば足ります。batch-36 r1 は response_weight_mismatch 反映後に短文場面と高リスク場面の両方を見る目的で構成されており、B01〜B07 の各返信候補もその設計に沿っています。
+
+2. 現行レンズ一覧の判定表
+lens	判定	理由	推奨配置
+phase_answer_gap	keep	phase に応じて buyer が「今なにをすればよいか」を失う問題を拾う。transaction_model_gap と重なるが、こちらは phase 導線の欠落に絞れるため有用。failure-taxonomy でも「生成 rule ではなく監査レンズ」と明記されているのがよい。	reviewer_prompt / scorecard notes。validator には 具体的な phase drift 表現だけ戻す
+transaction_model_gap	keep, ただし下位観点は減量	このレンズの価値は高いです。日本語の違和感ではなく、支払い状態・作業開始条件・成果物返却導線・closed 後導線の構造不整合を拾える。ただし下位観点が多く、全件採点すると writer が契約説明化します。	reviewer_prompt。下位観点は常時採点せず、疑い時だけ 1 個選ぶ
+completion_gate_gap	harden 部分あり	返金・直せない・追加費用・未完成納品の質問では、抜けると実務事故になります。サービス定義でも、15,000円は調査だけでなく原因確認から修正・確認手順・修正済みファイル返却まで進める前提、原因不明や修正方向なしでは正式納品しない、追加費用は事前相談とされています。	explicit refund / cannot-fix / extra-fee 不安時は validator candidate。それ以外は reviewer/gold
+surface_overexposure	merge	response_weight_mismatch と実務上かなり近いです。差を残すなら、surface_overexposure は「内部安全条件・規約条件の露出過多」という 原因 subtype に落とすべきです。独立 lens にすると、同じ返信に surface_overexposure と response_weight_mismatch が二重付与されやすい。	response_weight_mismatch/internal_condition_overexposure として reviewer_prompt / gold
+response_weight_mismatch	keep, validator 禁止	Gold 35 の意義はここです。「短くする」ではなく、必要境界だけを残して自然な重さへ戻すための観点。closed / 返金 / 保証 / 秘密情報では短文でも必要境界を残す、と明記されており、方向は正しいです。	reviewer_prompt / gold。renderer に強く入れない。validator 不可
+buyer_state_ack_gap	keep, ただし demote 気味	怒り・疲弊・不安・不信を症状や料金だけで受け流さないためには有用。ただし強制すると毎回「お気持ち分かります」系になり、過失認定・無料期待・謝罪過多に寄ります。監査プロンプト側でも「共感文を増やす rule ではない」「1文だけ」「謝罪・過失認定・返金断定・無料対応約束に広げない」と抑制されているのは適切です。	writer-brief に薄く 1 行、reviewer_prompt / gold。validator 不可
+unnamed_discomfort	demote	発見用としては残せますが、便利すぎます。実務リスクを言語化できない好み差を rule 化する逃げ道になる。現定義の「最大1〜2件」「実務リスクを説明できる場合だけ」「単発で rule 化しない」は良いが、通常 batch では最後の観察メモ扱いに落とすべきです。	reviewer observation only。採点・validator・writer 禁止
+3. 最新 batch-36 r1 の評価
+
+総評: 条件付き採用。B06 だけ修正してから使うのが安全です。
+batch-36 r1 は、B01/B04/B07 の短文場面では短く、B02/B06 の危険場面では返金・closed・無料期待の境界を残せています。buyer_state_ack_gap の過発火も大きくは出ていません。
+
+case	評価	指摘	既存レンズで拾えるか
+B01 prequote / Webhook → DB insert	概ね良い	直答が速く、不要な共感もない。ただし「登録だけ止まっている」はやや断定的。buyer は insert されないと言っているだけなので、「登録で止まっている不具合として」の方が安全。	response_weight_mismatch ではなく、軽い buyer_signal_used / 自然化
+B02 prequote / 返金・仕様・直せない不安	良い	返金断定を避けつつ、未完成のまま正式納品しない境界が残っている。少し硬いが、この場面では必要。冒頭に「不安な点なので先に境界をお伝えします」程度を足す余地はあるが、必須ではない。	completion_gate_gap が効いている
+B03 purchased / 直りそうかだけ	良い	「直せる見込みは出ています」と直答していて改善済み。ただし「修正方針につながる箇所」はやや内部語寄り。止まっている箇所 など buyer に見える語へ寄せるとさらに自然。	response_weight_mismatch / ai_tone 軽微
+B04 delivered / テスト決済後承諾	非常に良い	はい が自然。承諾前にこのトークルームで送る導線だけ残しており、closed 後説明を足していない。Gold 35 の yes/no 例と整合。	問題なし
+B05 closed / 通常再相談	概ね良い	closed 後の「確認材料」と「実作業」を分けている。やや同じ next action が二重です。「まずはこのメッセージで、領収書メールが届かない操作の流れを送ってください」に統合した方が軽い。	response_weight_mismatch 軽微。phase_answer_gap は pass
+B06 closed / 再発疲弊 + 無料期待	要修正	状態受けは良い。無料対応を約束せず、通常料金へ即誘導もしない点も良い。ただし、材料未受領のまま「本日07:10までに見立て」は時刻約束が先行しています。buyer がすぐ送らなければ破綻します。	transaction_model_gap の buyer_not_lost / phase_route_clarity で拾える。新レンズ不要
+B07 prequote / 対象可否だけ	良い	「対象になりそうです」は短くて自然。ただ、対象可否だけ聞かれているので、より強くするなら「対象です。Stripe Webhook の受信や処理で起きている不具合なら、15,000円で対応できます。」でよい。	問題なし
+B06 の推奨修正文
+同じようなエラーがまた出ていて、費用面も気になる状況かと思います。
+確認しないまま、通常料金の新規依頼として進めることはしません。
+
+まずはメッセージ上で、今回の症状が前回の修正とつながる内容か確認します。
+エラー内容、ログ、または画面スクショを送ってください。
+
+修正作業が必要な場合は、作業前にココナラ上で進め方と費用の有無をご相談します。
+いただけた範囲で、見立てを短くお返しします。
+
+07:10 を残したいなら、次のように条件を入れるべきです。
+
+本日07:10までに確認できる範囲で、見立てを短くお返しします。
+
+closed 後でもメッセージ上で症状・ログ・スクショなどの確認材料は受け取れる一方、実際にコードを直す、差し替えファイルを作る、成果物を返す段階では見積り提案または新規依頼へ戻す、という platform contract の整理と整合します。
+
+4. Gold 35 の評価
+
+Gold 35 は有効です。ただし renderer に強く入れるべきではありません。
+Gold 35 は、「短くする」ではなく「必要境界だけ残して自然な重さへ戻す」ための gold として機能しています。特に、closed / refund / guarantee / secret など高リスク場面では buyer 文が短くても必要境界を残す、短い yes/no では phase 説明を盛らない、はい は全面禁止しない、という整理は良いです。
+
+懸念は、例が 5 本あること自体ではなく、retrieval が雑だと全部の例の部品を混ぜることです。Gold README は「完全テンプレではなく近いケースの anchor」「新しく返信を作る前に近い1本だけ見る」「そのまま流用せず温度感・依頼数・既出情報の受け方・次アクションの置き方を合わせる」としており、この運用なら危険は抑えられます。
+
+Gold 35 の個別評価
+観点	評価
+gold 例として有効か	有効。response_weight_mismatch の誤読を防ぎ、「短縮」ではなく「境界密度の調整」として示せている
+例が多すぎる危険	中程度。5 例は許容範囲。ただし renderer に全部渡すとパーツ合成になる
+「短くする」への誤読	注意あり。冒頭方針で防げているが、運用側で 文字数削減 指標にすると崩れる
+はい の扱い	妥当。先頭 yes/no は自然、文中で方向を出した後の単独 はい は避ける、という線引きが良い
+状態受け後の橋渡し	妥当だが固定句化注意。その点も含めて を毎回使うと bot 化するため、Gold 35 自体の注意書きどおり判断基準へ置換する
+closed 後の境界説明	妥当。確認材料と実作業導線を分けている。ただし通常再相談では「旧トークルーム」まで毎回出すと重い
+renderer に強く入れるべきか	入れない。reviewer/gold に留める。writer には 1 本だけ近い例を渡す程度
+5. Codex の思考を遮っている可能性
+
+あります。ただし、現行ドキュメントの思想自体はかなり抑制的です。writer-brief は「classification は前段」「Writer は分類しない」「420行級 self-check や reviewer 用 ban list や platform 契約細部全文は渡さない」としており、Codex の自然な文章力を残す設計になっています。
+
+問題は、reviewer_prompt 側です。Codex xhigh / Claude 監査プロンプトは、phase_answer_gap、transaction_model_gap、completion_gate_gap、surface_overexposure、response_weight_mismatch、buyer_state_ack_gap、unnamed_discomfort を一度に見ます。各レンズに「hard fail ではない」「共感文を増やす rule ではない」「短ければよいわけではない」と注意があるため、監査としては成立していますが、このまま writer / renderer に渡すと過剰防御になります。
+
+遮り方の典型
+ラベル消化文になる
+「状態受け」「価格」「scope」「phase」「closed後導線」「報告時刻」が全部入り、buyer には規約説明に見える。
+buyer_state_ack_gap が共感テンプレ化する
+通常技術相談でも「ご不安かと思います」が出ると不自然。B01/B07 では入っていないので、現 batch では抑制できています。
+transaction_model_gap が契約説明化する
+closed / refund では必要ですが、通常 prequote まで「支払い状態」「作業開始条件」を並べると重い。
+response_weight_mismatch が safety boundary を削る口実になる
+これは最重要の禁止。Gold 35 は明確に「必要境界を削るな」としているので、配置さえ間違えなければ有効です。
+6. ノイズ化している観点
+surface_overexposure と response_weight_mismatch
+
+差は概念上ありますが、実務レビューではかなり混ざります。
+
+surface_overexposure: 内部安全条件が外向けに露出しすぎている
+response_weight_mismatch: buyer の文量・温度・質問数に対して返信が重い
+
+ただし、多くの bad case では「内部条件が露出しすぎた結果、返信が重い」ので二重ラベルになります。surface_overexposure は response_weight_mismatch の subtype に落とすのがよいです。
+
+unnamed_discomfort
+
+これは危険です。
+「なんか気持ち悪い」を救える一方で、好み差を rule 化する逃げ道になります。現定義の「最大1〜2件」「実務リスクを説明できる場合だけ」は維持しつつ、採点・必須修正・validator 戻しには使わないのが安全です。
+
+transaction_model_gap の下位観点
+
+下位観点が多すぎます。今の 7 つを全件で意識させると、Codex は全部を外向け本文に出します。
+
+残すなら、実務上は次の 3 つで十分です。
+
+route_clarity: 今どの phase で、次にどこへ進むか
+work_payment_boundary: 確認材料と実作業・費用発生が混ざっていないか
+buyer_not_lost: buyer が次に送る・待つ・判断することが見えるか
+
+responsibility_over_admission_risk と free_support_expectation_risk は、closed / refund / anger の high-risk addon としてだけ見る方がよいです。
+
+7. 足りない観点
+
+新レンズは原則不要です。
+現行レンズでほぼ拾えます。追加すると Codex の freeform 判断を潰す方向に行きます。
+
+ただし、batch-36 B06 で見えた問題は、今後も再発しそうです。
+
+新レンズではなく reviewer note として足す候補
+未受領の材料に依存する見立て・期限・作業予定は、材料が届く前提を条件付きで書く。
+例: 「いただけた範囲で」「届き次第」「確認できる範囲で」
+
+これは transaction_model_gap / buyer_not_lost の下位メモで足ります。新レンズ名を作る必要はありません。
+
+既存レンズで拾える理由
+
+B06 の問題は「時刻が悪い」のではなく、依頼者の次アクションと provider の約束の依存関係が曖昧な点です。これは transaction_model_gap の buyer_not_lost と phase_route_clarity で説明できます。監査プロンプトにも、取引構造として主質問・phase・確認材料・実作業・料金・次アクションがつながるかを見る、という定義があります。
+
+8. validator / reviewer_prompt / gold / writer-brief への配置提案
+配置先	入れるべきもの	入れないもの
+validator	private service 名・価格・購入導線漏れ、外部共有/外部決済/直接 push/本番 deploy/秘密値要求、返金・無料・保証の断定、prequote で作業開始を約束、closed 後に旧トークルーム継続やおひねり導線を出す、delivered を closed と混同する	response_weight_mismatch、buyer_state_ack_gap、unnamed_discomfort、文量の好み
+reviewer_prompt	phase_answer_gap、transaction_model_gap、completion_gate_gap、response_weight_mismatch、buyer_state_ack_gap。ただし soft lens は最大2件まで指摘	全レンズの全下位観点を毎回採点すること
+gold reply	Gold 35 のような判断順序。特に yes/no、closed 通常再相談、返金・直せない不安、短い purchased 進捗	そのまま貼るテンプレ。全例同時 retrieval
+writer-brief	既存の 11 行で十分。追加するなら「未受領材料に依存する時刻約束は条件付きにする」を 1 行だけ	監査ラベル名、下位観点、failure taxonomy 全文
+入れない	「短ければ良い」「共感は必ず入れる」「状態受け後は必ず橋渡し語」「はい 禁止」「closed では毎回旧トークルーム説明」	—
+
+service-registry では public な外向け live service は bugfix-15000 で、handoff-25000 は private reference only、private service の名前・価格・購入 CTA を出さない rule が置かれています。これは validator 向きです。
+
+9. 入れない方がよいもの
+
+以下は改善に見えて、システムを硬くします。
+
+response_weight_mismatch の validator 化
+文章量は文脈依存です。validator にすると、返金・closed・無料期待の必要境界まで削ります。
+buyer_state_ack_gap の validator 化
+「不安があるなら必ず共感文」と解釈され、通常技術相談が全部重くなります。
+unnamed_discomfort の rule 化
+好み差を rule 化する危険が高いです。再発性と実務リスクが説明できるまで observation 止まり。
+transaction 下位観点の追加
+もう十分多いです。増やすより、route / boundary / buyer_not_lost に圧縮してください。
+「短くする」だけの改善指示
+Gold 35 の趣旨と逆です。必要なのは短縮ではなく、主質問に必要な safety atom だけを残すことです。
+10. 優先度つき action list
+P0 — すぐやる
+B06 の時刻約束を条件付きに修正する
+本日07:10までに見立て は、材料未受領だと破綻します。
+推奨: いただけた範囲で、見立てを短くお返しします。
+response_weight_mismatch と buyer_state_ack_gap を validator 候補から明確に除外する
+reviewer/gold 専用でよいです。
+unnamed_discomfort を observation に降格する
+出す場合は「実務リスク」「再発可能性」「既存レンズで拾えない理由」を必須にする。
+P1 — 次の #RE 前にやる
+surface_overexposure を response_weight_mismatch の subtype にする
+独立ラベルとして残すより、internal_condition_overexposure くらいの原因メモにした方がノイズが減ります。
+transaction 下位観点を 3 系統に圧縮する
+route_clarity / work_payment_boundary / buyer_not_lost で十分です。
+reviewer 出力を hard / soft に分ける
+hard は validator 候補、soft は最大2件。これで粗探しを抑えます。
+P2 — 後でよい
+Gold 35 を family index に入れる
+response_weight / exposure_control family として、近い 1 本だけ引く運用にする。
+writer-brief に 1 行だけ追加するか検討
+追加するならこれだけです。
+未受領の材料に依存する時刻・見立て・作業予定は、条件付きで書く。
+11. この監査レンズ布陣で #RE を続けてよいか
+
+続けてよいです。条件付きで採用です。 🎯
+
+ただし、次の 3 条件を守るべきです。
+
+レンズ追加は止める
+いま足りないのは新レンズではなく、配置の整理です。
+writer にはレンズ名を渡さない
+writer は現行 writer-brief の短い価値観だけでよいです。監査ラベルは reviewer 専用にしてください。
+hard reject と soft lens を分離する
+hard reject は phase drift、private service 漏れ、返金/無料/保証断定、外部共有/直接 push/本番 deploy、closed 後の旧トークルーム継続など deterministic 事故だけに絞るべきです。
+
+最終判断としては、現行レンズ布陣は有効。ただし、このまま増やすと Codex の判断力を助ける段階を超えて、返信を監査ラベルの合成物にします。
+次の #RE は、レンズ追加ではなく 「soft lens の減量」「B06 の条件付き時刻」「surface と response_weight の統合」 を見れば十分です。

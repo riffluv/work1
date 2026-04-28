@@ -78,6 +78,22 @@ def time_commit(hours: int = 2) -> str:
     return f"本日{target:%H:%M}までに、見立てをお返しします。"
 
 
+def asks_to_send_symptoms_in_message(raw: str) -> bool:
+    return (
+        any(marker in raw for marker in ["このメッセージ", "メッセージで", "メッセージ上"])
+        and any(marker in raw for marker in ["症状", "内容", "流れ"])
+        and any(marker in raw for marker in ["送れば", "送って", "送る", "伝えれば"])
+    )
+
+
+def symptom_flow_ask(raw: str) -> str:
+    if "領収書" in raw and "メール" in raw:
+        return "領収書メールが届かない操作の流れをそのまま送ってください。"
+    if "Webhook" in raw or "webhook" in raw:
+        return "Webhook の送信結果が分かる表示や、エンドポイント側の反応があればそのまま送ってください。"
+    return "今出ている症状や操作の流れをそのまま送ってください。"
+
+
 def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
     if scenario == "feedback_for_next_time":
         plan = shared.build_temperature_plan(source, case_type="after_close")
@@ -414,7 +430,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "new_issue_repeat_client":
         blocking_missing_facts = ["current_symptom"]
-        if any(marker in raw.lower() for marker in ["webhook"]) and any(
+        if asks_to_send_symptoms_in_message(raw):
+            direct_answer_line = "まずはこのメッセージで症状を送ってください。"
+        elif any(marker in raw.lower() for marker in ["webhook"]) and any(
             marker in raw for marker in ["届かなく", "届いていない", "到達していない"]
         ):
             direct_answer_line = "前回とは別の内容でも、今の症状であれば見積りできます。"
@@ -952,16 +970,17 @@ def build_case_from_source(source: dict) -> dict:
 
     if scenario == "new_issue_repeat_client":
         webhook_issue = "webhook" in raw.lower() and any(marker in raw for marker in ["届かなく", "届いていない", "到達していない"])
+        send_symptoms_here = asks_to_send_symptoms_in_message(raw)
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [
-                {"id": "q1", "text": "新しく依頼できるか", "priority": "primary"},
+                {"id": "q1", "text": "このメッセージで症状を送ってよいか" if send_symptoms_here else "新しく依頼できるか", "priority": "primary"},
             ],
             "answer_map": [
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "はい、見積りできます。",
+                    "answer_brief": "まずはこのメッセージで症状を送ってください。" if send_symptoms_here else "はい、見積りできます。",
                 },
             ],
             "ask_map": [
@@ -971,6 +990,8 @@ def build_case_from_source(source: dict) -> dict:
                     "ask_text": (
                         "Webhook の送信結果が分かる表示や、エンドポイント側の反応があればそのまま送ってください。"
                         if webhook_issue
+                        else symptom_flow_ask(raw)
+                        if send_symptoms_here
                         else "今出ている症状か、見たい流れをそのまま送ってください。"
                     ),
                     "why_needed": "新しい内容の入口を切るため",
@@ -1592,6 +1613,8 @@ def current_focus_line(case: dict) -> str | None:
             return "トークルームは閉じていますが、PayPay対応で加えた変更とStripe側の止まり方を確認します。"
         return "トークルームは閉じていますが、触った箇所と前の修正のつながりを確認します。"
     if scenario in {"new_issue_repeat_client", "repeat_bugfix_price_check"}:
+        if scenario == "new_issue_repeat_client" and asks_to_send_symptoms_in_message(raw):
+            return "確認だけで済む範囲はメッセージ上で確認できます。修正作業が必要な場合は、旧トークルームの続きではなく、ココナラ上で対応方法と費用の有無を先にご相談します。"
         if "webhook" in raw.lower() and any(marker in raw for marker in ["送信は成功", "到達していない", "届かなく", "届いていない"]):
             return "送信は成功しているとのことなので、まず受信側でどこまで届いているかを確認します。"
         return "いまの症状が分かると、見積りをお返ししやすくなります。"
@@ -2047,7 +2070,10 @@ def render_case(case: dict) -> str:
     for paragraph in draft_body_paragraphs(case):
         _append_unique(body_paragraphs, paragraph)
 
-    next_action = time_commit() if (primary["disposition"] == "answer_after_check" or decision_plan.get("blocking_missing_facts")) else ""
+    if case.get("scenario") == "new_issue_repeat_client" and asks_to_send_symptoms_in_message(case.get("raw_message", "")):
+        next_action = "症状を送っていただいた後、確認して見立てをお返しします。"
+    else:
+        next_action = time_commit() if (primary["disposition"] == "answer_after_check" or decision_plan.get("blocking_missing_facts")) else ""
 
     sections: list[str] = []
     _append_unique(sections, opening_block)

@@ -54,6 +54,39 @@ def has_transaction_cancel_misroute(rendered: str, raw: str) -> bool:
     return has_any(rendered, ["返金", "途中キャンセル", "取引キャンセル", "作業済み範囲", "ココナラ上の手続き"])
 
 
+def is_progress_question(raw: str) -> bool:
+    return has_any(
+        raw,
+        [
+            "進捗",
+            "今どこまで",
+            "どこまで分か",
+            "どこまでわか",
+            "長い説明はいりません",
+            "長い説明はいい",
+            "分かっているかだけ",
+            "わかっているかだけ",
+        ],
+    )
+
+
+def has_additional_scope_template_misfire(rendered: str, raw: str) -> bool:
+    if not is_progress_question(raw):
+        return False
+    return has_any(rendered, ["今回の追加連絡", "今回の追加内容", "依頼の続きとして扱える話", "同じ流れの中の話"])
+
+
+def is_feature_addon_request(raw: str) -> bool:
+    return (
+        has_any(raw, ["CSV", "csv"])
+        and has_any(raw, ["ボタン", "出力", "ダウンロード"])
+    )
+
+
+def feature_addon_scope_ok(rendered: str) -> bool:
+    return has_any(rendered, ["新機能追加", "不具合修正ではなく"]) and has_any(rendered, ["含められません", "別の対応", "別途"])
+
+
 def normalized(text: str) -> str:
     return re.sub(r"[\s。、，,.！？?「」『』（）()・:：/／\\-]+", "", text)
 
@@ -339,6 +372,10 @@ def lint_case(module, source: dict) -> list[str]:
         errors.append("emotion_label_check failed")
     if has_transaction_cancel_misroute(rendered, raw):
         errors.append("cancel_word_misroute failed: technical cancel wording was treated as transaction cancellation")
+    if has_additional_scope_template_misfire(rendered, raw):
+        errors.append("purchased progress routing failed: progress question fell into additional-scope template")
+    if is_feature_addon_request(raw) and not feature_addon_scope_ok(rendered):
+        errors.append("feature addon scope failed: new feature/addon request was not separated from the bugfix scope")
     errors.extend(word_density_errors(rendered))
     if decision_plan.get("blocking_missing_facts") and any(ask.get("default_path_text") for ask in contract.get("ask_map") or []):
         if not has_any(rendered, ["なければ", "まだ", "すぐ出せなければ"]):
@@ -408,13 +445,13 @@ def lint_case(module, source: dict) -> list[str]:
     if ".env" in raw and "値は送らなくて大丈夫" not in raw:
         if not has_any(rendered, [".env", "キー名だけ"]):
             errors.append("raw .env mention exists but rendered text does not mention secret handling")
-    if has_any(raw, ["別なんですが", "別のところ", "一緒に見てもら", "これも一緒", "今回とは別", "別の画面"]):
+    if has_any(raw, ["別なんですが", "別のところ", "一緒に見てもら", "これも一緒", "今回とは別", "別の画面"]) and not is_feature_addon_request(raw):
         if not has_any(rendered, ["今回の件", "別の話", "つながっている", "同じ流れ", "同じ原因"]):
             errors.append("scope-addition case exists but rendered text does not mention relation/scope split")
     if case.get("scenario") == "extra_scope_question" and "追加料金" in raw:
         if not has_any(rendered, ["追加見積り", "追加料金"]):
             errors.append("scope-addition case does not answer the fee concern")
-    if has_any(raw, ["別料金", "追加料金"]) and has_any(raw, ["同じ原因", "一緒に直", "一緒に見"]):
+    if has_any(raw, ["別料金", "追加料金"]) and has_any(raw, ["同じ原因", "一緒に直", "一緒に見"]) and not is_feature_addon_request(raw):
         if not has_any(rendered, ["追加料金", "追加対応", "勝手に追加", "先にご相談"]):
             errors.append("scope-addition fee concern does not explain prior-consult/no-auto-fee handling")
         if not has_any(rendered, ["同じ原因", "今回の件", "別の原因"]):

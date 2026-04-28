@@ -1,0 +1,39 @@
+date: 2026-04-28
+case_ref: "ChatGPT Pro / 返信システム分析4-28"
+
+# --- 文脈 ---
+consultation_type: "reply quality lens layout / current monitoring stack review"
+buyer_decision_stage: "prequote / quote_sent / purchased / delivered / closed mixed"
+service: "bugfix-15000"
+state: "failure_taxonomy / scorecard / writer_brief / reviewer_prompt"
+
+# --- 診断 ---
+symptom: "監査レンズが増え、transaction_model_gap / surface_overexposure / response_weight_mismatch / buyer_state_ack_gap / unnamed_discomfort が重複採点や過剰補正に寄る可能性が出てきた"
+failure_label: "lens_layout_drift"
+failure_layer: "reply-only / reviewer_prompt"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "今後の #RE で文面品質が上がるほど、hard accident と soft discomfort を分けないと、自然さの改善が過剰修正や安全境界の削除に化ける"
+return_target: "failure_taxonomy + scorecard + reviewer_prompt + writer_brief"
+decision: "adopt_minimal"
+decision_reason: "Pro の指摘は新レンズ追加ではなく、既存レンズの重複整理と hard/soft 分離。実務ノイズを増やさず監査精度を上げる"
+fix_unit: "rule_return_candidate"
+recurrence_evidence: "batch-36 で response_weight_mismatch は有効だったが、surface_overexposure との二重採点や、材料未受領前の時刻約束が見えた"
+existing_rule_hit: "transaction_model_gap / response_weight_mismatch / surface_overexposure / buyer_state_ack_gap / unnamed_discomfort"
+not_returned_reason: "validator 化や renderer 強制ではなく、監査レンズの配置整理が目的"
+next_sentinel: "soft lens が必須修正化しすぎていないか、surface_overexposure が独立 hard label として扱われていないか、材料未受領前に時刻や見立てを約束していないか"
+
+# --- 抽象化 ---
+pattern: "hard fail は deterministic な事故に限り、自然さ・重さ・状態受け・未命名違和感は soft lens として reviewer / gold / writer brief で扱う"
+upstream_fix: "failure taxonomy / scorecard / writer brief / Claude and Codex xhigh reviewer prompts に最小反映"
+
+reply_only:
+  - "`transaction_model_gap` は維持するが、下位観点はまず `route_clarity` / `work_payment_boundary` / `buyer_not_lost` に圧縮する"
+  - "`responsibility_over_admission_risk` / `free_support_expectation_risk` / `request_minimality` は closed / refund / anger / secrets など高リスク時だけ見る"
+  - "`surface_overexposure` は独立 hard label ではなく、`response_weight_mismatch` の原因 subtype として扱う"
+  - "`response_weight_mismatch` / `buyer_state_ack_gap` / `unnamed_discomfort` は soft lens。必須修正・validator 戻しに直結させない"
+  - "`unnamed_discomfort` は観察メモ専用。採点、必須修正、validator 戻しには使わない"
+  - "未受領の材料に依存する見立て・時刻・作業予定は、`届き次第` `いただけた範囲で` `確認できる範囲で` のように条件付きで書く"
+  - "hard fail は phase drift、非公開サービス漏れ、返金/無料/保証断定、外部共有、直接 push、本番デプロイ、closed 後旧トークルーム継続など deterministic な事故に限る"
+common: []

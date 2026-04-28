@@ -222,12 +222,18 @@ def detect_prequote_scenario(source: dict) -> str:
         return "vercel_webhook_signature_400"
     if is_frontend_stripe_mixed_scope_case(source):
         return "frontend_stripe_mixed_scope"
+    if is_scope_only_target_question_case(source):
+        return "scope_only_target_question"
+    if is_previous_fix_failed_trust_case(source):
+        return "previous_fix_failed_trust"
     if all(marker in combined for marker in ["Webhook", "署名検証"]) and any(
         marker in combined for marker in ["raw body", "request.text", "stripe-signature", "App Router"]
     ):
         return "stripe_webhook_raw_body_signature"
     if "customer.subscription.updated" in combined and any(marker in combined for marker in ["DB", "ダウングレード", "アップグレード"]):
         return "stripe_subscription_upgrade_db_update"
+    if is_spec_vs_bug_boundary_case(source):
+        return "spec_vs_bug_boundary"
     if is_code_handoff_bugfix_scope_case(source):
         return "code_handoff_bugfix_scope"
     if is_email_duplicate_idempotency_case(source):
@@ -246,8 +252,6 @@ def detect_prequote_scenario(source: dict) -> str:
         return "non_stripe_webhook_scope"
     if is_emergency_recovery_time_case(source):
         return "emergency_recovery_time"
-    if is_spec_vs_bug_boundary_case(source):
-        return "spec_vs_bug_boundary"
     if is_refund_cancel_prequote_case(source):
         return "refund_cancel_prequote"
     if is_feature_addon_scope_case(source):
@@ -792,7 +796,7 @@ def is_multi_site_non_stripe_scope_case(source: dict) -> bool:
     note = source.get("note", "")
     combined = f"{raw}\n{note}"
     multi_site = any(marker in combined for marker in ["2つのサイト", "2サイト", "２つのサイト", "複数サイト"])
-    non_stripe_payment = any(marker in combined for marker in ["Square", "PayPay", "GMO", "PayPal", "別の決済"])
+    non_stripe_payment = any(marker in combined for marker in ["Square", "PayPay", "GMO", "PayPal", "PAY.JP", "PAYJP", "pay.jp", "別の決済"])
     return multi_site and "Stripe" in combined and non_stripe_payment
 
 
@@ -800,9 +804,9 @@ def is_non_stripe_webhook_scope_case(source: dict) -> bool:
     raw = source.get("raw_message", "")
     note = source.get("note", "")
     combined = f"{raw}\n{note}"
-    non_stripe_payment = any(marker in combined for marker in ["Square", "PayPay", "GMO", "PayPal", "別の決済"])
+    non_stripe_payment = any(marker in combined for marker in ["Square", "PayPay", "GMO", "PayPal", "PAY.JP", "PAYJP", "pay.jp", "別の決済"])
     app_side = any(marker in combined for marker in ["Next.js", "Next", "Webhook", "webhook", "API", "受信", "DB更新"])
-    scope_question = any(marker in combined for marker in ["対象外", "見てもらえ", "対応", "確認", "同じです"])
+    scope_question = any(marker in combined for marker in ["対象外", "対象にな", "対象ですか", "見てもらえ", "対応", "確認", "同じです", "料金"])
     return non_stripe_payment and app_side and scope_question and not is_multi_site_non_stripe_scope_case(source)
 
 
@@ -817,7 +821,7 @@ def is_spec_vs_bug_boundary_case(source: dict) -> bool:
     combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
     return (
         any(marker in combined for marker in ["仕様", "不具合"])
-        and any(marker in combined for marker in ["不具合ですよね", "不具合なのか", "仕様なのか", "不便"])
+        and any(marker in combined for marker in ["不具合ですよね", "不具合なのか", "仕様なのか", "仕様で直せない", "仕様だった", "不便"])
     )
 
 
@@ -963,10 +967,32 @@ def is_frontend_stripe_mixed_scope_case(source: dict) -> bool:
     )
 
 
-def is_code_handoff_bugfix_scope_case(source: dict) -> bool:
+def is_scope_only_target_question_case(source: dict) -> bool:
     combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
     return (
-        any(marker in combined for marker in ["外注", "引き継ぎ", "コードの中身", "コードでも見て"])
+        any(marker in combined for marker in ["対象になるかだけ", "対象かだけ", "対象になるか知りたい"])
+        and any(marker in combined for marker in ["invoice.paid", "Webhook", "webhook"])
+        and any(marker in combined for marker in ["会員プラン", "プラン"])
+        and any(marker in combined for marker in ["更新され", "反映され"])
+    )
+
+
+def is_previous_fix_failed_trust_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        any(marker in combined for marker in ["前の出品者", "前の方", "直ったと言われ"])
+        and any(marker in combined for marker in ["また", "再発", "止まり"])
+        and any(marker in combined for marker in ["不安", "怖い", "同じこと"])
+        and any(marker in combined for marker in ["Stripe", "注文反映", "決済後"])
+    )
+
+
+def is_code_handoff_bugfix_scope_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    if is_spec_vs_bug_boundary_case(source):
+        return False
+    return (
+        any(marker in combined for marker in ["引き継ぎ", "コードの中身", "コードでも見て", "外注で作ってもらった"])
         and any(marker in combined for marker in ["決済", "不具合", "Stripe", "Webhook", "webhook"])
     )
 
@@ -2118,15 +2144,28 @@ def render_multi_site_non_stripe_scope_case(case: dict) -> str:
 
 def render_non_stripe_webhook_scope_case(case: dict) -> str:
     raw = case.get("raw_message", "")
-    provider = "GMOペイメント" if "GMO" in raw else "PayPayオンライン決済" if "PayPay" in raw or "paypay" in raw else "決済サービス"
-    return "\n\n".join(
-        [
-            "ご相談ありがとうございます。",
-            f"{provider}のWebhookをNext.js側で受けている構成ですね。",
-            f"{provider}側そのものの仕様調査ではなく、Next.js側のWebhook/API受信処理として確認できる内容であれば見られます。",
-            "まずは通知を受けるAPIの場所と、表示されているエラーやログの有無を分かる範囲で送ってください。確認後、15,000円の範囲で進められるかをお返しします。",
-        ]
+    provider = (
+        "GMOペイメント"
+        if "GMO" in raw
+        else "PayPayオンライン決済"
+        if "PayPay" in raw or "paypay" in raw
+        else "PAY.JP"
+        if "PAY.JP" in raw or "pay.jp" in raw
+        else "決済サービス"
     )
+    paragraphs = [
+        "ご相談ありがとうございます。",
+        f"{provider}のWebhookをNext.js側で受けている構成ですね。",
+        f"{provider}側そのものの仕様調査ではなく、Next.js側のWebhook/API受信処理として確認できる内容であれば対応できます。",
+    ]
+    if any(marker in raw for marker in ["料金", "金額", "変わりますか", "変わる"]):
+        paragraphs.append(
+            "決済サービス名だけで料金が変わるわけではありません。Next.js側のWebhook/API受信処理として確認できる内容であれば、15,000円固定です。"
+        )
+    paragraphs.append(
+        "まずは通知を受けるAPIの場所と、表示されているエラーやログの有無を分かる範囲で送ってください。確認後、15,000円の範囲で進められるかをお返しします。"
+    )
+    return "\n\n".join(paragraphs)
 
 
 def render_emergency_recovery_time_case(case: dict) -> str:
@@ -2145,13 +2184,41 @@ def render_emergency_recovery_time_case(case: dict) -> str:
 
 def render_spec_vs_bug_boundary_case(case: dict) -> str:
     raw = case.get("raw_message", "")
-    symptom = "Stripe決済後のメールが30分ほど遅れて届く状態ですね。" if "30分" in raw and "メール" in raw else "仕様か不具合か判断しづらい状態ですね。"
+    if "20分" in raw and "メール" in raw:
+        symptom = "Stripe決済後のメールが20分ほど遅れて届く状態ですね。"
+    elif "30分" in raw and "メール" in raw:
+        symptom = "Stripe決済後のメールが30分ほど遅れて届く状態ですね。"
+    else:
+        symptom = "仕様か不具合か判断しづらい状態ですね。"
     return "\n\n".join(
         [
             "ご相談ありがとうございます。",
             symptom,
             "「仕様か不具合か」をこの時点で断定することはできませんが、原因確認は15,000円で対応できます。",
-            "原因を確認した結果、仕様上の制約や設計上の待ち時間だった場合は、その内容をお伝えしたうえで対応をご相談します。",
+            "原因を確認した結果、仕様上の制約や設計上の待ち時間だった場合は、その内容をお伝えしたうえで対応方法をご相談します。\n修正済みファイルを返せない状態のまま、一方的に正式納品へ進めることはありません。",
+            "この内容で進める場合は、そのままご購入ください。",
+        ]
+    )
+
+
+def render_scope_only_target_question_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "対象になりそうです。",
+            "invoice.paid 後に会員プランが更新されない不具合として、15,000円で対応できます。",
+            "この内容で進める場合は、そのままご購入ください。",
+        ]
+    )
+
+
+def render_previous_fix_failed_trust_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "一度直ったと言われたあとに再発していると、また同じ結果にならないか不安だと思います。",
+            "Stripe決済後の注文反映が止まる不具合として、15,000円で対応できます。",
+            "ご購入後は現在のコードとログから改めて確認します。\n15,000円内で直し切れないと分かった場合は、追加作業へ進まず、その時点でご説明します。",
             "この内容で進める場合は、そのままご購入ください。",
         ]
     )
@@ -2229,7 +2296,7 @@ def render_frontend_stripe_mixed_scope_case(case: dict) -> str:
     return "\n\n".join(
         [
             "ご相談ありがとうございます。",
-            "Next.jsで動いているサイトであれば、フロント側の不具合も対応範囲に入ります。",
+            "Next.jsやStripe連携に関わる範囲であれば、フロント側の不具合修正も対応範囲に入ります。",
             "ただ、管理画面のボタン不反応とStripe決済後のポップアップ不具合は、同じ原因か別の原因かを先に切り分けます。\n同じ原因なら15,000円の範囲で見ます。別原因の場合は、勝手に追加作業へ進まず、対応方法と費用の有無をご相談します。",
             "まずは一番困っている方を起点に確認します。Stripe決済後のポップアップを優先する場合は、この内容でご購入いただいて大丈夫です。",
         ]
@@ -2495,6 +2562,12 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "frontend_stripe_mixed_scope":
         case["rendered_reply_validator_mode"] = "frontend_stripe_mixed_scope"
         return render_frontend_stripe_mixed_scope_case(case)
+    if case.get("scenario") == "scope_only_target_question":
+        case["rendered_reply_validator_mode"] = "scope_only_target_question"
+        return render_scope_only_target_question_case(case)
+    if case.get("scenario") == "previous_fix_failed_trust":
+        case["rendered_reply_validator_mode"] = "previous_fix_failed_trust"
+        return render_previous_fix_failed_trust_case(case)
     if case.get("scenario") == "stripe_webhook_raw_body_signature":
         case["rendered_reply_validator_mode"] = "stripe_webhook_raw_body_signature"
         return render_stripe_webhook_raw_body_signature_case(case)
