@@ -675,3 +675,264 @@
 - きっかけ: CHG-074 のレンズ布陣整理後、batch-36 の全件 r0 通過から一転して batch-37 r0 が大きく崩れた。監査では、レンズ整理そのものよりも、renderer / writer-brief / gold の参照接続が外れて旧テンプレに戻った可能性が高いと判断された
 - 想定効果: 次の構造補修で、旧三点セット hard reject、purchased の `進捗 / 追加症状 / 新機能追加` 分岐、delivered 承諾 yes/no 分岐、context bleed guard を優先できる。soft lens を増やさず、r0 初手分岐の安定化へ焦点を戻せる
 - 非変更: 新しい監査レンズや hard rule は追加しない。今回の学びは「r1 で通る gold を r0 にどう接続するか」であり、`response_weight_mismatch` や `buyer_state_ack_gap` の validator 化には進めない
+
+### 2026-04-28 / CHG-076
+- 分類: `reply-only`
+- レイヤ: #BR shortcut / boundary-routing shadow rehearsal
+- 変更: `#BR` を `bugfix-15000 / handoff-25000` の境界ルーティング専用 shadow rehearsal として定義した。`docs/next-codex-prompt.txt` と `docs/reply-quality/README.ja.md` に保存先・公開状態・監査観点を追加し、正本メモ `boundary-routing-shadow-rehearsal.ja.md` を作成した。あわせて `サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-01.md`、`監査プロンプト_codex-xhigh.md`、`監査プロンプト_claude.md`、`ops/tests/quality-cases/active/boundary-routing-shadow-br01.yaml` を準備した
+- きっかけ: `bugfix-15000` で十分に返信OSが育ってきたため、将来 `handoff-25000` を公開した時の `修正 / 整理 / 混在 / 価格分離 / scope 外` のルーティングを先に鍛える必要が出た
+- 想定効果: 通常の `#RE` を壊さず、dual-service 状態の boundary case を別レーンで検査できる。`handoff-25000 public:false` の間は live 返信に名称・価格・購入導線を漏らさず、future-dual simulation としてだけ route 判定を鍛えられる
+- 確認: `#BR` 定義・保存先・fixture を追加。`service-registry.yaml` の公開状態は未変更
+- 非変更: `handoff-25000` を public にしない。通常の `#R` / `#RE bugfix` へ handoff の名称・25,000円・購入導線を混ぜない。今回の準備では renderer / validator は変更しない
+
+### 2026-04-28 / CHG-077
+- 分類: `reply-only`
+- レイヤ: #BR batch-01 r1 / boundary route gold
+- 変更: `#BR` 初回 r0 の Codex 監査を受け、`返信監査_batch-01.md` の B02〜B07 を boundary route 正解形へ手反映した。B02 は `handoff-first`、B03 は `bugfix-first`、B04 は `bugfix-first + scope boundary`、B05 は `handoff-first + flow boundary`、B06 は `handoff-first + no repair promise`、B07 は `neither / scope out` として整理した
+- きっかけ: r0 では handoff-first / neither が `default_bugfix` に吸収され、`壊れていない整理相談`、`主要1フロー整理`、`整理中のバグ修正約束`、`新機能追加` がすべて bugfix 文脈へ流れた。B03/B04 では相手文にない `外注先と連絡が取れず` の context bleed も出た
+- 想定効果: #BR の最初の gold として、`直したいなら bugfix-first`、`把握したいなら handoff-first`、`混在なら主目的で順番を決める`、`新機能追加は neither` を明確にできる。将来 dual-service 化した時の価格・成果物・修正約束の混線を減らす
+- 確認: `返信監査_batch-01.md` を r1 手反映済みに更新し、`git diff --check` OK
+- 非変更: `service-registry.yaml` の公開状態は変更しない。今回の r1 は batch 内 gold 化であり、通常 live 返信や #RE renderer には戻さない
+
+### 2026-04-28 / CHG-078
+- 分類: `reply-only`
+- レイヤ: #BR batch-01 r2 / boundary route gold
+- 変更: #BR batch-01 r1 の Codex再監査で必須修正なし・採用可となったため、軽微2点だけ反映した。B02 は handoff-first の購入前相談でコード一式や関係ファイル送付を強く求めず、対象フロー確認に留める文へ変更した。B06 は `整理はできる / 修正は別` と切った後に、整理として進める次アクションを1文追加した
+- きっかけ: 監査で、handoff-first の購入前にファイル要求が強すぎること、handoff で修正を別扱いにした後の次アクションが薄いことが軽微指摘された
+- 想定効果: 将来 dual-service 化した際、整理相談で購入前からコード一式を求めすぎず、buyer がまず対象フローを決められる。handoff で修正を約束しない場合も、buyer が次に何を送ればよいか迷子にならない
+- 確認: `返信監査_batch-01.md` を r2 手反映済みに更新し、`git diff --check` OK
+- 非変更: 新規 rule 化はしない。今回の2点は #BR shadow gold として保持し、通常 live / #RE へは戻さない
+
+### 2026-04-28 / CHG-079
+- 分類: `reply-only`
+- レイヤ: #BR batch-01 r3 / boundary route naturalization
+- 変更: user監査を受け、B02 の handoff-first 返信を自然化した。`今すぐ壊れている不具合の修正というより...` は route 判定を外向けに発表しているように見えるため、先に `できます。` と直答し、その後で `今回の目的だと、壊れている箇所を直すよりも、次の外注先が追えるように...整理する対応が合っています` へ接続する形に変更した
+- きっかけ: B02 の r2 返信は boundary としては正しいが、文頭で `不具合修正というより` と分類しており、用意したパーツを貼ったように見えるという違和感があった
+- 想定効果: #BR の handoff-first で、内部 route 判定をそのまま外向けに出さず、buyer の依頼への可否回答から自然に整理ルートへつなげられる
+- 確認: `返信監査_batch-01.md` を r3 手反映済みに更新
+- 非変更: 通常 live への handoff 解禁はしない。今回の変更は #BR shadow batch 内の自然化に留める
+
+### 2026-04-28 / CHG-080
+- 分類: `reply-only`
+- レイヤ: #BR batch-01 r4 / boundary route naturalization
+- 変更: B02 の冒頭で単独 `できます。` が FAQ 的に浮いていたため削除した。`この内容であれば、次の外注先が追えるように「決済完了から注文作成まで」の流れを整理する対応が合っています` へ統合し、対象フロー確認文も短くした
+- きっかけ: user監査で、単独の `できます。` は日本語圏の業務文として bot 感が強いと指摘された。外部確認でも、ビジネス文では `対応可能です` や具体的な対応内容を伴う表現が一般的で、単独の可否返答は文脈内で浮きやすいと判断した
+- 想定効果: handoff-first で可否に答えつつ、`はい/できます` のFAQパーツ感を減らし、相談内容から自然に整理ルートへ接続できる
+- 確認: `返信監査_batch-01.md` を r4 手反映済みに更新
+- 非変更: `できます` という語自体を禁止しない。単独で浮く場合だけ避ける。通常 live への handoff 解禁はしない
+
+### 2026-04-28 / CHG-081
+- 分類: `reply-only`
+- レイヤ: #BR audit prompt
+- 変更: #BR 監査プロンプト内の主対象を固定の `返信監査_batch-02.md` ではなく、ユーザーが添付・指定した `返信監査_batch-*.md` として扱う表現へ変更した。プロンプト本文や過去ログの batch 名と実ファイル名が食い違う場合は、実ファイルを優先し、対象名のズレを監査結果で指摘する運用にした
+- きっかけ: batch-02 作成時に共有監査プロンプトを batch-02 向けへ書き換えたため、batch-01 r4 を再監査する時に対象名がズレた
+- 想定効果: #BR batch を複数並行で扱っても、監査対象ファイルの取り違えを減らす。batch ごとに監査プロンプトを手で戻す必要をなくし、実ファイル優先の運用にできる
+- 非変更: #BR の監査観点・service facts・future-dual simulation の前提は変更しない
+
+### 2026-04-28 / CHG-082
+- 分類: `reply-only`
+- レイヤ: #BR batch file operation
+- 変更: #BR の監査対象ファイルを `返信監査_batch-current.md` に固定した。メイン階層には最新 batch だけを残し、既存の `返信監査_batch-01.md` と `返信監査_batch-02.md` は `archive/` へ退避した。監査プロンプトも `返信監査_batch-current.md` を主対象に戻した
+- きっかけ: 過去履歴を使って Codex 監査へ出す運用では、batch ごとにファイル名が変わると対象名の修正が手間になり、監査対象の取り違えが起きやすい
+- 想定効果: #RE と同じく「毎回見るファイルは1つ」に固定できる。外部監査へ渡すファイル名が安定し、batch の増殖やプロンプト名ズレを防げる
+- 非変更: `archive/` は履歴退避用であり、通常の監査対象にはしない。#BR の future-dual simulation 前提や公開状態ルールは変更しない
+
+### 2026-04-28 / CHG-083
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / boundary route gold
+- 変更: `返信監査_batch-current.md` の r0 監査を受け、B01〜B07 を boundary route 正解形へ手反映した。B01/B03/B05 は bugfix-first、B02/B04/B06 は handoff-first、B07 は neither として整理した。B05 の `外注先と連絡が取れず` の context bleed を削除し、B06 では 25,000円整理がリポジトリ全体・Stripe全処理の網羅ではなく主要1フローであることを明記した
+- きっかけ: r0 では handoff-first と neither が default_bugfix に吸収され、壊れていない整理相談や新機能追加が `この不具合なら15,000円` へ流れた。B05 では相手文にない事情の context bleed も再発した
+- 想定効果: #BR の dual-service 境界で、修正・整理・新機能追加を buyer の主目的に沿って分けられる。軽い変更箇所説明と正式な引き継ぎメモの境界も明確になる
+- 非変更: 通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-084
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r2 / boundary route gold
+- 変更: #BR batch-current r1 の Codex再監査で必須修正なし・採用可となったため、軽微2点だけ反映した。B04 は handoff-first の次アクションを `対象フローを「決済からユーザー権限付与まで」に絞って進めます` へ明確化した。B07 は neither 判定で `この2つの出品では対応範囲外です` を追加した
+- きっかけ: 監査で、B04 は回答として正しいが次アクションが少し弱いこと、B07 は新機能追加として scope out できているが buyer が迷わないよう対応範囲外の明示があるとよいことが軽微指摘された
+- 想定効果: handoff-first では可否回答後に対象フローの確定が見え、neither では bugfix / handoff のどちらにも含まれないことが明確になる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない
+
+### 2026-04-28 / CHG-085
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r3 / boundary route naturalization
+- 変更: B02 の `今は不具合修正ではなく...整理する内容が合っています` を、`決済自体は動いていて、次の担当者へ渡す前にStripeまわりの危険箇所と関連ファイルを整理したい、という内容ですね` へ変更した
+- きっかけ: user監査で、buyer はすでに整理依頼を決め打ちしているため、`合っています` と route 判定を返すのは、迷っていない相手に診断を発表しているようで不自然だと指摘された
+- 想定効果: #BR の handoff-first で、buyer が迷っている場面と、すでに整理依頼をしている場面を分けられる。前者では route 提案、後者では依頼内容の自然な受けから価格・範囲・次アクションへ進める
+- 非変更: `対応できます` や `対応可能です` を禁止語にはしない。今回の改善は敬語表現ではなく、buyer の依頼状態に応じて route 判定語を外向けに出すかどうかの自然化
+
+### 2026-04-28 / CHG-086
+- 分類: `reply-only`
+- レイヤ: #BR route state split / boundary-route subrule
+- 変更: `boundary-route` の下位判定として、`route_match_decided` / `route_mismatch_decided` / `route_uncertain` を追加した。正しい route を buyer がすでに選んでいる時は診断文を出さず依頼内容を受ける。buyer の選んだ route が主目的とズレている時は受け流さず正しい入口へ誘導する。buyer が迷っている時は主目的から順番を提案する
+- きっかけ: user監査で、B02 のように buyer が整理依頼を決め打ちしている場面では `合っています` が不自然だが、明らかに症状と違う route を選んでいる場面では誘導が必要だと整理された
+- 想定効果: #BR で、route 判定を外向けに出しすぎる bot 感を減らしつつ、誤った route 選択をそのまま受ける事故も防ぐ
+- 非変更: 新しい大きな監査レンズは追加しない。`route_state_mismatch` は #BR の `boundary-route` 下位ラベルとして扱い、通常 live への handoff 解禁や `service-registry.yaml` の公開状態は変更しない
+
+### 2026-04-28 / CHG-087
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / route state split gold
+- 変更: BR-03 r0 の Codex監査を受け、`返信監査_batch-current.md` の B01〜B07 を r1 へ手反映した。B01/B04 は `route_match_decided / handoff-first`、B02 は `route_mismatch_decided / bugfix-first`、B03 は `route_uncertain / bugfix-first`、B05 は `bugfix-first + later handoff`、B06 は `neither / scope out`、B07 は `handoff-first + no repair promise` として整理した
+- きっかけ: r0 では、buyer が正しい handoff route をすでに選んでいる B01/B04 と、新機能追加の B06、handoff に修正を吸収しそうな B07 が default bugfix へ吸収された。B02/B03/B05 も順番提示や後続整理への回答が薄かった
+- 想定効果: #BR の route state split を実データで gold 化できる。`合っている時は受ける / ズレている時は誘導する / 迷っている時は順番を提案する` を、将来 dual-service 化した時の境界ルーティング資産として保持できる
+- 非変更: 通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-088
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r2 / handoff one-flow clarity
+- 変更: BR-03 r1 の Codex再監査で必須修正なし・採用可となったため、軽微3点だけ反映した。B02 は `入口が近いです` を自然化し、B03 は `15,000円内で` を `15,000円の範囲で` に変更した。B07 は handoff の説明に `対象にする流れを1つに絞って` を追加した
+- きっかけ: 監査で、route 境界は通っているが、B02/B03 は語感、B07 は `Stripe連携の流れ` が広く見える点を軽微指摘された
+- 想定効果: handoff-25000 の 25,000円整理が、Stripe連携全体やリポジトリ全体の網羅ではなく主要1フローであることを #BR 内でも安定して示せる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない
+
+### 2026-04-28 / CHG-089
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / mixed-service stress gold
+- 変更: BR-04 r0 の Codex監査を受け、`返信監査_batch-current.md` を r1 へ手反映した。B01/B03/B04/B05 は handoff-first 系、B02/B07 は bugfix-first 系、B06 は neither として整理した。B04 では 25,000円整理が Stripe連携全体・DB全部の網羅ではないこと、B05 では handoff 中に軽微なバグ修正を吸収しないこと、B07 では修正後の軽い変更箇所説明と正式な引き継ぎ資料を分けることを明示した
+- きっかけ: r0 では handoff-first / neither の相談が default bugfix へ吸収され、B07 では相手文にない `外注先と連絡が取れず` の context bleed が出た
+- 想定効果: dual-service 化した時に、`壊れていない整理`、`active defect の整理逃げ`、`不具合なしの把握相談`、`全体網羅要求`、`handoff中の修正吸収`、`新機能追加`、`bugfix内の軽い説明` をそれぞれ分けられる
+- 非変更: 通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-090
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r2 / handoff next-action close
+- 変更: BR-04 r1 の Codex再監査で必須修正なし・採用可となったため、B01/B05 の handoff-first 文末導線だけ軽微補強した。B01 は対象フローを `Stripe決済からユーザー権限付与まで` に絞ることと、コード一式は購入後でよいことを追加した。B05 はサブスク変更フローを1つに絞って整理することを最後に追加した
+- きっかけ: 監査で、route / price / scope は通っているが、handoff 側の文末導線をもう少し締めると buyer が迷いにくいと指摘された
+- 想定効果: handoff-first 返信で、`対象1フロー` / `購入後にコード共有` / `修正は含まない` のいずれかを自然に置き、整理依頼の次アクションを明確にする
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない
+
+### 2026-04-28 / CHG-091
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r3 / route-mismatch no-sequential-upsell
+- 変更: BR-04 B02 の user監査を受け、`まず購入履歴が作られない不具合修正から` と `整理メモが必要な場合は、修正後に別対応` を弱めた。buyer は整理メモを明確に欲しがっているのではなく、コードが読めないため route を迷っている状態なので、`今回の目的が購入履歴が作られない状態を止めたいことなら、15,000円の不具合修正で対応する内容` とし、整理メモは今回の修正に必須ではないとした
+- きっかけ: `まず` が、1サービス目の後に2サービス目へ進む前提・追加購入前提に読めると user 監査で指摘された
+- 想定効果: route_mismatch_decided で正しい入口へ誘導する時に、不要な後続サービス感を出さず、buyer の主目的に対して必要な入口だけを示せる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない
+
+### 2026-04-28 / CHG-092
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / boundary route stress br05
+- 変更: BR-05 r0 の Codex監査を受け、`返信監査_batch-current.md` を r1 へ手反映した。B01 は active defect のため bugfix-first、B02/B03/B04/B07 は handoff-first 系、B06 は neither、B05 は bugfix-first + light explanation boundary として整理した。B04 では2フローを同じ25,000円内でまとめないこと、B06 では返金ボタン追加を新機能追加として切ること、B07 では handoff 中の小さい修正を吸収しないことを明示した
+- きっかけ: r0 では handoff-first / neither が default bugfix へ吸収され、B05 では相手文にない `外注先と連絡が取れず` の context bleed が出た
+- 想定効果: #BR で、active defect の整理迷い、明確な handoff 依頼、2フロー整理、新機能追加、bugfix 内の軽い説明、handoff 中の修正吸収をより安定して切り分ける
+- 非変更: 通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-093
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r2 / handoff close and add-flow clarity
+- 変更: BR-05 r1 の Codex再監査で必須修正なし・採用可となったため、B02/B04 の文末導線だけ軽微補強した。B02 は対象フローを `決済完了から注文作成まで` に絞って進めることを追加した。B04 は2フロー両方が必要な場合、まず1フローを整理したうえで追加分として相談することを追加した
+- きっかけ: route / price / scope は通っているが、handoff 側の文末導線を締めると buyer が次に選ぶ対象フローを迷いにくいと指摘された
+- 想定効果: #BR の handoff-first で、`主要1フロー` と `追加フロー` の着地を短く明示し、25,000円整理が複数フロー一括に見える事故を減らす
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない
+
+### 2026-04-28 / CHG-094
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / explicit bugfix+handoff separation
+- 変更: BR-06 r0 の Codex監査を受け、`返信監査_batch-current.md` を r1 へ手反映した。B01 は bugfix-first + optional handoff、B02 は handoff-first then possible bugfix、B03 はセット割圧力への price / deliverable separation、B04 は3フロー整理 + 小さい不具合の scope split、B05 は bugfix 内の軽い説明、B06 は新機能追加 scope out + 既存不具合 bugfix、B07 は正式仕様書ではなく主要1フロー引き継ぎメモとして整理した
+- きっかけ: r0 では bugfix と handoff の両方を明示された相談が片方へ潰れ、B02/B04/B07 の handoff-first が default bugfix に吸収された。B03 では相手文にない `外注先と連絡が取れず` の context bleed が出た。B06 では請求書CSV出力の新機能追加を neither に落とせなかった
+- 想定効果: dual-service 化した時に、buyer が両方を明示しても `順番` / `価格` / `成果物` を分けて案内できる。15,000円修正と25,000円整理を一括料金やセット割として約束せず、handoff を複数フロー・正式仕様書・修正作業へ広げない
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-095
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1/r2 / near-boundary route gold
+- 変更: BR-07 r0 の Codex監査を受け、`返信監査_batch-current.md` を r1 へ手反映し、再監査後に B05 文末だけ軽微修正した。B01 は handoff repair boundary、B02 は cheap-route mismatch、B03 は route_match_decided handoff、B04 は bugfix + later handoff no same-day promise、B05 は Customer Portal 新機能を neither、B06 は handoff audience boundary、B07 は bugfix light explanation enough として整理した
+- きっかけ: r0 では、`25,000円整理で修正も含むか`、`15,000円修正枠で整理だけ見たい`、`正式仕様書や職種別資料までほしい`、`新機能追加もメモにしたい` などの近縁境界が default bugfix へ吸収された。B03 では相手文にない `外注先と連絡が取れず` の context bleed も出た
+- 想定効果: dual-service 化した時に、25,000円整理へ修正を吸収しない、15,000円修正枠で整理だけ見たい相談を bugfix にしない、正式仕様書・職種別資料・新機能追加を handoff に広げない、bugfix 内の軽い説明で足りる時は handoff を押し込まない
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-096
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / config-test-runbook boundary gold
+- 変更: BR-11 r0 の Codex監査を受け、`返信監査_batch-current.md` を r1 へ手反映した。B01 は active defect sequencing、B02 は config / URL secret safety、B03 は test creation scope out、B04 は multi-flow audit の1フロー境界、B05 は bugfix + handoff no same-day promise、B06 は ops runbook scope out、B07 は route_match_decided handoff として整理した
+- きっかけ: r0 では、B02/B03/B06/B07 が default_bugfix へ吸収され、B04 も不具合相談へ誤寄せされた。B05 は不具合修正側へ寄る一方で、次担当者向けメモとの成果物分離と同日約束の否定が不足した
+- 想定効果: dual-service 化した時に、secret / APIキー / DB接続URL / 接続先URL の値そのものを扱わない、テスト追加・テスト仕様書・社内運用資料・復旧手順書を handoff に吸収しない、複数フローや同日一括完了を安易に約束しない境界を保持できる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-097
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r2 / config inventory flow close
+- 変更: BR-11 の外部 Codex 監査で必須崩れなし・採用圏となったため、軽微指摘の B02 だけ反映した。`対象フローを1つに絞って進めます` を、`たとえば「決済完了から注文作成まで」のように対象フローを1つに絞って進めます` へ変更した
+- きっかけ: config / env / secret 整理では、対象フローが抽象的なままだと環境変数全体の棚卸しへ広がりやすいと指摘された
+- 想定効果: handoff でキー名・利用箇所・用途を扱う場合も、主要1フロー境界から外れずに案内できる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の修正は #BR batch 内の case_fix として扱う
+
+### 2026-04-28 / CHG-098
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / work-surface and migration boundary gold
+- 変更: BR-12 r0 の Codex監査を受け、`返信監査_batch-current.md` を r1 へ手反映した。B01 は bugfix + no direct push/deploy、B02 は handoff memo not GitHub PR review、B03 は monitoring retainer scope out、B04 は bugfix + schema migration boundary、B05 は multi-repo one-flow handoff、B06 は API/framework migration scope out、B07 は no-repair handoff with secret-safe settings map として整理した
+- きっかけ: r0 では、B02/B05/B07 の handoff-first が default_bugfix へ吸収され、B03/B06 の neither も active defect 風の generic boundary へ流れた。B01/B04 は bugfix-first の方向は近いが、直接push・本番反映・DB設計変更/マイグレーションを切る回答が不足した
+- 想定効果: dual-service 化した時に、修正対象そのものと作業場所/本番反映/外部レビュー/継続監視/移行作業を分けられる。active defect は bugfix-first に保ちつつ、直接push・本番デプロイ・DB大規模変更・継続保守を吸収しない
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-099
+- 分類: `reply-only`
+- レイヤ: #BR forward plan / previous Codex handoff
+- 変更: 前 Codex からの引き継ぎを受け、BR13 以降の重点を `handoff に見えるが実は neither` 系へ寄せる方針を `boundary-routing-shadow-rehearsal.ja.md` に追記した。あわせて、通常 live / #RE へ戻してよい汎用境界と、shadow asset に留めるべき handoff-25000 / 25,000円 / dual-service 案内を分離して記録した
+- きっかけ: BR10〜BR12 で bugfix / handoff の境界は育ってきたため、次は `どちらにも入れないものを冷たくならずに切る` 訓練が重要だと整理された
+- 想定効果: 複数サービス展開時の router core として、service fit だけでなく neither 判定を安定させる。Pro 分析へ投げる時も、BR10〜BR15 の r0/r1 差分と gold をまとめて渡せる
+- 非変更: 新規 renderer / validator 実装はしない。通常 live への handoff 解禁はしない
+
+### 2026-04-28 / CHG-100
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r2 / migration neither close
+- 変更: BR-12 の外部 Codex 監査で必須崩れなし・採用圏となったため、軽微指摘の B06 だけ反映した。`既存フローを整理するだけであれば25,000円の整理候補になりますが` を、`既存フローの整理だけが目的であれば別の整理対象になりますが` へ変更した
+- きっかけ: API更新・App Router移行を neither に落とした後に、25,000円整理候補を補足すると、範囲外判定後の説明が少し横へ広がると指摘された
+- 想定効果: neither 判定後に別サービス候補を出しすぎず、今回の API更新・フレームワーク移行が対象外であることへ戻せる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の修正は #BR batch 内の case_fix として扱う
+
+### 2026-04-28 / CHG-101
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / neither-heavy boundary gold
+- 変更: BR-13 r0 の Codex監査を受け、`返信監査_batch-current.md` を r1 へ手反映した。B01 は customer FAQ scope out、B02 は dashboard operations manual scope out、B03 は formal spec / audience-specific docs scope out、B04 は new feature plus memo scope out、B05 は raw secret inventory scope out、B06 は full audit pressure の1フロー境界、B07 は diagnosis-only pressure、B08 は handoff repair absorption として整理した
+- きっかけ: 前 Codex からの引き継ぎどおり、BR13 は `handoff に見えるが実は neither` を厚めに当てた。r0 では B01〜B05/B08 が default_bugfix や generic boundary へ強く吸収され、B01 では相手文にない `外注先と連絡が取れず` の context bleed も出た
+- 想定効果: 複数サービス展開時に、Stripe関連でも FAQ / 操作マニュアル / 仕様書 / 新機能説明メモ / secret値台帳 / 全体監査を安易に handoff へ吸収しない。neither を冷たくならず自然に切る gold を増やす
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の 25,000円案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-102
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 accepted / external audit close
+- 変更: BR-13 の外部 Codex 監査で必須崩れなし・採用圏となったため、`返信監査_batch-current.md` の状態を `r1 accepted` に更新し、`boundary-routing-shadow-rehearsal.ja.md` に外部監査結果を追記した。B06 の診断調表現は preference 扱いで本文修正なし
+- きっかけ: neither の切り方、secret値の扱い、全体監査の1フロー制限、diagnosis-only pressure、handoff repair absorption が安定していると評価された
+- 想定効果: BR13 を採用済み gold として扱い、次の BR14 では引き続き neither / bundle pressure / deliverable boundary を厚めに検査できる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。`25,000円` / `handoff-25000` / 主要1フロー整理の購入導線は #BR 内の future-dual simulation に留める
+
+### 2026-04-28 / CHG-103
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r1 / mixed handoff-positive boundary gold
+- 変更: BR-14 fixture を追加し、`返信監査_batch-current.md` を r1 へ手反映した。B01 は active defect with code confusion、B02 は decided one-flow handoff、B03 は bugfix light explanation、B04 は environment/setup boundary、B05 は GitHub work-surface boundary、B06 は broad architecture review mismatch、B07 は secret-safe settings map、B08 は bundle pressure として整理した
+- きっかけ: BR13 で neither が安定したため、BR14 は handoff に入れてよい相談と、handoff へ広げてはいけない作業面・成果物面の境界を混ぜて検査した。r0 では handoff-first が bugfix へ吸収され、全体設計レビューも原因不明の不具合相談のように誤読された
+- 想定効果: dual-service 化した時に、有効な handoff 相談を自然に受けつつ、環境構築・README整備・GitHub Issue/PR作業・全体設計レビュー・セット料金化へ広げない。bugfix 内の軽い説明と本格 handoff も分離できる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の `25,000円` 案内は #BR future-dual simulation 内の shadow gold として扱う
+
+### 2026-04-28 / CHG-104
+- 分類: `reply-only`
+- レイヤ: #BR batch-current r2 / code sharing wording close
+- 変更: BR-14 の外部 Codex 監査で必須崩れなし・採用圏となったため、軽微指摘の B02 だけ反映した。`対象リポジトリまたは該当コード一式を共有してください` を、`該当コード一式や関係ファイルを共有してください` へ変更した
+- きっかけ: `対象リポジトリ` という表現が、GitHub招待や外部repo上作業を連想させる余地があると指摘された
+- 想定効果: decided handoff の購入後共有物を自然に案内しつつ、GitHub Issue/PR/label 作業や外部repo work-surface への誤読を減らす
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の修正は #BR batch 内の case_fix として扱う
+
+### 2026-04-29 / CHG-105
+- 分類: `common`
+- レイヤ: transaction/payment route isolation
+- 変更: `platform-contract.yaml` に `service_scope_vs_payment_route` と `keep_service_boundary_and_payment_route_separate` を追加し、サービス境界と支払い導線を分離した。`service-plan.ja.md` は追加料金欄を支払い導線の運用メモとして明確化した。handoff の `boundaries.yaml` から `同じトークルーム内で追加料金の修正として続けられる` を外し、`decision-contract.yaml` でも修正追加は handoff 本体と分けて進め方と費用を相談する表現へ弱めた。#BR メモと内部 gold も、支払い方法を前面化しない形へ調整した
+- きっかけ: `bugfix -> handoff` / `handoff -> bugfix` の追加対応導線が、サービス境界の正本に混ざると、AI が後続サービス前提・一括料金化・おひねり導線を通常返信へ出しやすくなる懸念があった
+- 想定効果: #BR では `別成果物` `別対応` `進め方と費用を相談` までに留め、同じトークルーム内 / 有料オプション / おひねりは buyer が支払い方法を聞いた時だけ、取引状態に応じて案内する。通常 live / #RE への handoff 漏れも抑える
+- 非変更: `bugfix-15000` / `handoff-25000` の価格・成果物・公開状態は変更しない。`handoff-25000` は引き続き public:false
+
+### 2026-04-29 / CHG-106
+- 分類: `common`
+- レイヤ: #BR batch-current r1 / payment-route separation gold
+- 変更: BR-15 fixture を追加し、`返信監査_batch-current.md` を r1 へ手反映した。B01 は prequote no-ohineri promise、B02 は handoff-first no payment-route、B03 は no cheap trial、B04 は no bundle/no same-room promise、B05 は purchased state-allowed payment route、B06 は handoff repair split、B07 は delivered-not-closed payment route、B08 は closed no-old-talkroom-ohineri として整理した。監査プロンプトにも `payment_route_bleed` と `phase_payment_mismatch` を追加した
+- きっかけ: CHG-105 で支払い導線を platform layer に隔離したため、その分離が #BR の route gold で効くかを検査する必要があった
+- 想定効果: サービス境界と支払い導線を混ぜず、必要な場面だけ state に応じて支払い導線を出せる。ココナラ固有の導線を返信判断コアへ常駐させず、将来の汎用返信OSにも移植しやすくする
+- 非変更: 通常 live への handoff 解禁はしない。`handoff-25000` は引き続き public:false。支払い導線の詳細は buyer が明示的に聞いた時だけ扱う
+
+### 2026-04-29 / CHG-107
+- 分類: `common`
+- レイヤ: #BR batch-current r2 / delivered payment route hedge
+- 変更: BR-15 の外部 Codex 監査で必須崩れなし・採用圏となったため、軽微指摘の B07 だけ反映した。`合意後におひねり等の追加支払いで進める形になります` を、`合意後におひねり等の追加支払いで進められる場合があります` へ変更した
+- きっかけ: delivered / クローズ前で buyer が支払い方法を聞いているため追加支払い導線は妥当だが、断定を少し弱めると取引状態依存の表現としてより安全だと指摘された
+- 想定効果: 支払い導線を出すべき場面でも、ココナラ上の状態や手続きに依存する余地を残し、自動追加・確定導線に見える事故を減らす
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の修正は #BR batch 内の case_fix として扱う

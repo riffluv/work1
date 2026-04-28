@@ -1,6 +1,6 @@
 # note用 README
 
-更新日: 2026-04-24
+更新日: 2026-04-28
 
 ## 目的
 
@@ -24,8 +24,9 @@
 4. [2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md](/home/hr-hm/Project/work/note用/2026-04-18_返信OSの構造固定とbuyer語彙の研磨.md)
 5. [2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md](/home/hr-hm/Project/work/note用/2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md)
 6. [2026-04-26_返信OS_phaseとtransaction_model_gapを掴んだ日.md](/home/hr-hm/Project/work/note用/2026-04-26_返信OS_phaseとtransaction_model_gapを掴んだ日.md)
-7. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
-8. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
+7. [2026-04-28_返信OS_5.5Codexセッションと境界ルーティング.md](/home/hr-hm/Project/work/note用/2026-04-28_返信OS_5.5Codexセッションと境界ルーティング.md)
+8. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
+9. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
 
 ## 各ファイルの位置づけ
 
@@ -113,7 +114,21 @@
 - 用途:
   - 「日本語のツギハギ感の正体が、仕様・phase・取引構造の欠落だと見えた日」を追う
 
-### 7. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
+### 7. [2026-04-28_返信OS_5.5Codexセッションと境界ルーティング.md](/home/hr-hm/Project/work/note用/2026-04-28_返信OS_5.5Codexセッションと境界ルーティング.md)
+
+- 役割: GPT-5.5 Codex セッションで進んだ `#RE` / `#BR`、Pro 分析、buyer state、返信量、複数サービス境界の時系列記録
+- 主な内容:
+  - `transaction_model_gap` の実戦投入
+  - `buyer_state_ack_gap`
+  - `response_weight_mismatch`
+  - Pro のレンズ布陣レビュー
+  - `#BR` による `bugfix-15000` / `handoff-25000` / neither の future-dual 境界訓練
+- 時期感:
+  - 2026-04-27〜04-28 の GPT-5.5 Codex セッション記録
+- 用途:
+  - 「返信OSが単体返信品質から、複数サービスの入口ルーティングまで進んだ期間」を追う
+
+### 8. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
 
 - 役割: この返信システムの moat と、公開しすぎない方がよい部分の整理
 - 主な内容:
@@ -125,7 +140,7 @@
 - 用途:
   - 情報公開の境界確認
 
-### 8. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
+### 9. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
 
 - 役割: この資産をどう売るかの方向性メモ
 - 主な内容:

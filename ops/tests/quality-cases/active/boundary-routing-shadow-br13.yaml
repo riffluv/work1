@@ -1,0 +1,124 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-13
+shortcut: "#BR"
+purpose: "neither-heavy boundary route rehearsal for FAQ/manual/spec/feature-memo/raw-secret inventory/full-audit/diagnosis-only/repair-absorption pressure"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR13-001
+    stock_id: BR13-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / customer support FAQ disguised as Stripe handoff"
+    expected_route: neither_customer_support_faq_not_code_handoff
+    first_question_to_answer: "購入者からの決済問い合わせに答えるFAQや返答案を25,000円整理で作れるか。"
+    raw_message: "Stripe決済まわりの引き継ぎ資料として、お客さんから問い合わせが来た時のFAQや返答案テンプレートを作ってほしいです。コードの整理ではないですが、25,000円の方でできますか？"
+    buyer_text: "Stripe決済まわりの引き継ぎ資料として、お客さんから問い合わせが来た時のFAQや返答案テンプレートを作ってほしいです。コードの整理ではないですが、25,000円の方でできますか？"
+    must_check:
+      - "Customer support FAQ is neither."
+      - "Do not absorb support response templates into handoff."
+      - "Avoid legal/payment advice."
+
+  - case_id: BR13-002
+    stock_id: BR13-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / Stripe dashboard operations manual"
+    expected_route: neither_dashboard_manual_not_code_handoff
+    first_question_to_answer: "Stripe管理画面で返金・キャンセル・領収書確認をする操作手順書を25,000円整理で作れるか。"
+    raw_message: "エンジニア向けではなく、スタッフがStripe管理画面で返金、キャンセル、領収書確認をするための操作手順書を作ってほしいです。Stripe関連なので25,000円の整理に入りますか？"
+    buyer_text: "エンジニア向けではなく、スタッフがStripe管理画面で返金、キャンセル、領収書確認をするための操作手順書を作ってほしいです。Stripe関連なので25,000円の整理に入りますか？"
+    must_check:
+      - "Dashboard operations manual is neither."
+      - "Do not absorb staff operation steps into handoff."
+      - "Avoid platform/payment operation advice."
+
+  - case_id: BR13-003
+    stock_id: BR13-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / formal specification and audience-specific docs"
+    expected_route: neither_formal_spec_not_handoff
+    first_question_to_answer: "次担当者向け整理を、正式仕様書・設計書・職種別資料として25,000円で作れるか。"
+    raw_message: "次の担当者に渡すため、Stripe決済まわりを正式な仕様書と設計書にしてほしいです。できればエンジニア向け、デザイナー向け、営業向けに分けた資料も25,000円で作れますか？"
+    buyer_text: "次の担当者に渡すため、Stripe決済まわりを正式な仕様書と設計書にしてほしいです。できればエンジニア向け、デザイナー向け、営業向けに分けた資料も25,000円で作れますか？"
+    must_check:
+      - "Formal specs/design docs are not handoff deliverable."
+      - "Audience-specific docs are not included."
+      - "Can distinguish practical one-flow memo from formal documents."
+
+  - case_id: BR13-004
+    stock_id: BR13-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / new feature implementation plus explanation memo"
+    expected_route: neither_feature_plus_memo_not_bugfix_or_handoff
+    first_question_to_answer: "紹介クーポン機能の追加と、その説明メモを15,000円修正か25,000円整理に含められるか。"
+    raw_message: "Stripe決済後に紹介クーポンを自動付与する機能を追加したいです。実装後に次の担当者向けの説明メモもほしいのですが、15,000円修正か25,000円整理でできますか？"
+    buyer_text: "Stripe決済後に紹介クーポンを自動付与する機能を追加したいです。実装後に次の担当者向けの説明メモもほしいのですが、15,000円修正か25,000円整理でできますか？"
+    must_check:
+      - "New feature implementation is neither."
+      - "Memo for newly added feature is not existing-flow handoff."
+      - "Do not absorb into bugfix/handoff."
+
+  - case_id: BR13-005
+    stock_id: BR13-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / raw secret inventory"
+    expected_route: neither_raw_secret_inventory_not_handoff
+    first_question_to_answer: "APIキー、Webhook secret、env値そのものを台帳としてまとめられるか。"
+    raw_message: "次の担当者に渡すため、StripeのAPIキー、Webhook secret、.envの値、DB接続文字列を全部まとめた台帳を作ってほしいです。値そのものを一覧化するところまで25,000円でできますか？"
+    buyer_text: "次の担当者に渡すため、StripeのAPIキー、Webhook secret、.envの値、DB接続文字列を全部まとめた台帳を作ってほしいです。値そのものを一覧化するところまで25,000円でできますか？"
+    must_check:
+      - "Raw secret inventory is not allowed."
+      - "Do not request or handle raw secret values."
+      - "May only document key names/locations/usages if tied to one flow."
+
+  - case_id: BR13-006
+    stock_id: BR13-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff-looking / full audit pressure"
+    expected_route: handoff-first_but_not_full_audit
+    first_question_to_answer: "複数repo、DB全部、Stripe全体を25,000円でまとめて整理できるか。"
+    raw_message: "次の外注先に渡すので、フロント、API、管理画面、DB全部、Stripe全体を一通り見て、どこが危ないかまとめてほしいです。25,000円で全部見てもらえますか？"
+    buyer_text: "次の外注先に渡すので、フロント、API、管理画面、DB全部、Stripe全体を一通り見て、どこが危ないかまとめてほしいです。25,000円で全部見てもらえますか？"
+    must_check:
+      - "Handoff can be one main flow only."
+      - "Do not promise full repo/DB/Stripe audit."
+      - "Ask/guide to choose one priority flow."
+
+  - case_id: BR13-007
+    stock_id: BR13-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect but diagnosis-only pressure"
+    expected_route: bugfix-first_not_diagnosis_only
+    first_question_to_answer: "決済後注文が作られない不具合について、原因だけ安く診断してもらえるか。"
+    raw_message: "決済後に注文が作られない不具合があります。修正まではまだ頼むか分からないので、原因だけ軽く見て、診断メモだけ安くもらう形にできますか？"
+    buyer_text: "決済後に注文が作られない不具合があります。修正まではまだ頼むか分からないので、原因だけ軽く見て、診断メモだけ安くもらう形にできますか？"
+    must_check:
+      - "Active defect should not become cheap diagnosis-only."
+      - "Bugfix includes cause check and repair."
+      - "Do not create cheaper memo-only entry."
+
+  - case_id: BR13-008
+    stock_id: BR13-008
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff with repair absorption pressure"
+    expected_route: handoff-first_no_repair_absorption
+    first_question_to_answer: "整理中に小さいバグが見つかったら25,000円内で直せるか。"
+    raw_message: "今は大きな不具合はありません。決済から注文作成までの流れを整理してほしいです。もし整理中に小さいバグや直せそうな箇所が見つかったら、その場で25,000円内で直してもらえますか？"
+    buyer_text: "今は大きな不具合はありません。決済から注文作成までの流れを整理してほしいです。もし整理中に小さいバグや直せそうな箇所が見つかったら、その場で25,000円内で直してもらえますか？"
+    must_check:
+      - "Handoff-first, no active defect."
+      - "Do not absorb repair into handoff."
+      - "Can note findings and consult separately."

@@ -1,0 +1,89 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-01
+shortcut: "#BR"
+purpose: "bugfix-15000 / handoff-25000 boundary routing shadow rehearsal"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-01.md"
+cases:
+  - stock_id: BR-001
+    state: prequote
+    primary_question_type: "bugfix-first / code unknown but active defect"
+    expected_route: bugfix-first
+    first_question_to_answer: "整理からではなく、まず不具合修正として進められるか。"
+    buyer_text: "Stripe決済後に注文が作られない不具合があります。コードがぐちゃぐちゃで自分では追えないのですが、まず整理してからじゃないと修正は無理ですか？できれば先に止まっている不具合を直したいです。"
+    must_check:
+      - "Do not route to handoff only because code is hard to follow."
+      - "Prioritize active bugfix when the buyer wants the defect stopped."
+      - "Keep bugfix scope to one defect."
+
+  - stock_id: BR-002
+    state: prequote
+    primary_question_type: "handoff-first / no active defect, wants handoff memo"
+    expected_route: handoff-first
+    first_question_to_answer: "不具合修正ではなく、Stripe連携の主要フロー整理として扱うべきか。"
+    buyer_text: "今すぐ壊れているわけではないのですが、前任者が辞めてStripe決済まわりを誰も説明できません。次の外注先に渡せるように、決済から注文作成までの流れを整理してもらうことはできますか？"
+    must_check:
+      - "Do not force bugfix when there is no active defect."
+      - "Treat as a main-flow handoff/understanding request in future-dual simulation."
+      - "Do not promise code repair as the outcome."
+
+  - stock_id: BR-003
+    state: prequote
+    primary_question_type: "mixed / bugfix and handoff both mentioned"
+    expected_route: bugfix-first
+    first_question_to_answer: "今は bugfix と handoff のどちらを先にすべきか。"
+    buyer_text: "決済後に購入履歴へ反映されない不具合があります。ただ、コード全体もよく分からないので、先に引き継ぎメモみたいなものを作ってもらった方がいいのか迷っています。どちらからお願いするのがいいですか？"
+    must_check:
+      - "Do not make the buyer choose the service."
+      - "If the active defect is the main goal, answer bugfix-first."
+      - "Mention handoff only as a later/separate route in #BR context."
+
+  - stock_id: BR-004
+    state: prequote
+    primary_question_type: "price / light整理 inside bugfix"
+    expected_route: bugfix-first_with_scope_boundary
+    first_question_to_answer: "15,000円内に軽い整理も含められるか。"
+    buyer_text: "15,000円の修正でお願いしたいのですが、ついでにStripe関連ファイルがどこにあるかも少し整理してもらえますか？ちゃんとした引き継ぎメモまでは不要です。"
+    must_check:
+      - "Do not absorb handoff deliverables into bugfix."
+      - "Allow only repair-related explanation or affected files as part of bugfix."
+      - "Separate formal handoff memo if needed."
+
+  - stock_id: BR-005
+    state: prequote
+    primary_question_type: "handoff scope / multiple flows"
+    expected_route: handoff-first_with_flow_boundary
+    first_question_to_answer: "1フロー整理の範囲でどこまで見られるか。"
+    buyer_text: "Stripeの決済、サブスク変更、退会処理の3つがどうつながっているか全部分からないです。25,000円の整理でまとめて見てもらえますか？"
+    must_check:
+      - "Main handoff scope is one primary flow."
+      - "Do not silently include three flows in one base price."
+      - "Explain extra flow boundary in future-dual simulation."
+
+  - stock_id: BR-006
+    state: prequote
+    primary_question_type: "handoff overpromise sentinel"
+    expected_route: handoff-first_no_repair_promise
+    first_question_to_answer: "整理サービスで修正まで約束できるか。"
+    buyer_text: "まずStripe連携の流れを整理してもらって、その中で明らかなバグが見つかったらそのまま直してもらえますか？"
+    must_check:
+      - "Handoff can identify likely issues but must not promise repair as included."
+      - "Repair requires separate bugfix route."
+      - "Do not blur outcome condition."
+
+  - stock_id: BR-007
+    state: prequote
+    primary_question_type: "neither / new feature"
+    expected_route: neither_scope_out
+    first_question_to_answer: "bugfix でも handoff でもなく、新機能追加として分けるべきか。"
+    buyer_text: "Stripe決済自体は動いています。追加でクーポン機能を入れたいのですが、15,000円の修正か25,000円の整理のどちらで頼めばいいですか？"
+    must_check:
+      - "Coupon feature is new feature development."
+      - "Do not route into bugfix or handoff by force."
+      - "Do not invent a public offer if no public service covers it."

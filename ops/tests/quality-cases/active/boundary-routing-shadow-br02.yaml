@@ -1,0 +1,110 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-02
+shortcut: "#BR"
+purpose: "bugfix-15000 / handoff-25000 boundary routing shadow rehearsal, second batch"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR2-001
+    stock_id: BR2-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "bugfix-first / active defect with handoff anxiety"
+    expected_route: bugfix-first
+    first_question_to_answer: "今は整理ではなく、checkout.session.completed 後の注文作成不具合を先に直すべきか。"
+    raw_message: "Stripeのcheckout.session.completedは届いているのに、注文テーブルにinsertされません。前任者のコードが読みにくくて、次の人に渡す資料も欲しいのですが、まずは注文が作られない不具合を直す方をお願いできますか？"
+    buyer_text: "Stripeのcheckout.session.completedは届いているのに、注文テーブルにinsertされません。前任者のコードが読みにくくて、次の人に渡す資料も欲しいのですが、まずは注文が作られない不具合を直す方をお願いできますか？"
+    must_check:
+      - "Active defect is the main goal, so answer bugfix-first."
+      - "Do not route to handoff just because handoff material is mentioned."
+      - "Separate later handoff memo from the 15,000 yen bugfix scope."
+
+  - case_id: BR2-002
+    stock_id: BR2-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff-first / no active defect, wants risk map"
+    expected_route: handoff-first
+    first_question_to_answer: "壊れていない現状で、次の担当者向けに危険箇所と関連ファイルを整理できるか。"
+    raw_message: "今のところ決済は動いています。ただ、Stripeまわりを触るのが怖くて、次の担当者に渡す前にどのファイルが危ないかだけ整理しておきたいです。修正ではなく、危険箇所と関連ファイルのメモを作ってもらえますか？"
+    buyer_text: "今のところ決済は動いています。ただ、Stripeまわりを触るのが怖くて、次の担当者に渡す前にどのファイルが危ないかだけ整理しておきたいです。修正ではなく、危険箇所と関連ファイルのメモを作ってもらえますか？"
+    must_check:
+      - "No active defect, so do not force bugfix."
+      - "Future-dual route should be handoff-first."
+      - "Do not promise code repair."
+
+  - case_id: BR2-003
+    stock_id: BR2-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "mixed / fix now, handoff later"
+    expected_route: bugfix-first
+    first_question_to_answer: "今回の相談では、まず二重メール送信の不具合を直し、整理は後で分けるべきか。"
+    raw_message: "Stripeのサブスク解約後メールが2通送られる不具合があります。これを直してもらったあと、同じ周辺の処理を次の担当者向けに整理してもらうこともできますか？まずはメール二重送信を止めたいです。"
+    buyer_text: "Stripeのサブスク解約後メールが2通送られる不具合があります。これを直してもらったあと、同じ周辺の処理を次の担当者向けに整理してもらうこともできますか？まずはメール二重送信を止めたいです。"
+    must_check:
+      - "Bugfix comes first because buyer says they want to stop duplicate email."
+      - "Handoff after bugfix is a separate later route in #BR."
+      - "Do not include handoff deliverable inside bugfix price."
+
+  - case_id: BR2-004
+    stock_id: BR2-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff-first / wants non-engineer readable map"
+    expected_route: handoff-first
+    first_question_to_answer: "非エンジニアでも追えるように、主要1フローの整理として対応できるか。"
+    raw_message: "Stripeの決済からユーザー権限が付くまでの流れを、非エンジニアの私でも次の人に説明できるように整理したいです。今壊れているわけではありません。こういう整理だけお願いできますか？"
+    buyer_text: "Stripeの決済からユーザー権限が付くまでの流れを、非エンジニアの私でも次の人に説明できるように整理したいです。今壊れているわけではありません。こういう整理だけお願いできますか？"
+    must_check:
+      - "No active bug, route handoff-first."
+      - "Keep scope to one main flow."
+      - "Avoid bugfix old template."
+
+  - case_id: BR2-005
+    stock_id: BR2-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "price separation / bugfix plus small map"
+    expected_route: bugfix-first_with_scope_boundary
+    first_question_to_answer: "不具合修正に、関連ファイル一覧や変更箇所説明をどこまで含められるか。"
+    raw_message: "Stripe Checkout後に会員プランが更新されない不具合を15,000円で直してほしいです。納品時に、どのファイルを見たかと変更した場所だけ軽く教えてもらうことはできますか？引き継ぎメモほどの整理は不要です。"
+    buyer_text: "Stripe Checkout後に会員プランが更新されない不具合を15,000円で直してほしいです。納品時に、どのファイルを見たかと変更した場所だけ軽く教えてもらうことはできますか？引き継ぎメモほどの整理は不要です。"
+    must_check:
+      - "Bugfix first, with repair-related explanation included."
+      - "Do not absorb formal handoff memo into bugfix."
+      - "Keep next action as purchase for bugfix."
+
+  - case_id: BR2-006
+    stock_id: BR2-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff scope / one main flow vs whole repository"
+    expected_route: handoff-first_with_scope_boundary
+    first_question_to_answer: "25,000円の整理でリポジトリ全体とStripe全処理を網羅できるか。"
+    raw_message: "次の担当者に渡すために、Stripe関連の全処理とリポジトリ全体の構造をまとめてほしいです。25,000円の整理で全部見てもらえるのでしょうか？"
+    buyer_text: "次の担当者に渡すために、Stripe関連の全処理とリポジトリ全体の構造をまとめてほしいです。25,000円の整理で全部見てもらえるのでしょうか？"
+    must_check:
+      - "Handoff scope is one main flow, not whole repository."
+      - "Do not silently accept all Stripe processes."
+      - "Ask buyer to choose priority flow or explain boundary."
+
+  - case_id: BR2-007
+    stock_id: BR2-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / new feature plus handoff request"
+    expected_route: neither_scope_out
+    first_question_to_answer: "新しい管理画面機能追加は bugfix / handoff のどちらにも吸収しないべきか。"
+    raw_message: "Stripe決済は問題なく動いています。管理画面に返金ボタンを新しく追加して、その流れもメモにしてほしいです。15,000円の修正か25,000円の整理のどちらで頼めますか？"
+    buyer_text: "Stripe決済は問題なく動いています。管理画面に返金ボタンを新しく追加して、その流れもメモにしてほしいです。15,000円の修正か25,000円の整理のどちらで頼めますか？"
+    must_check:
+      - "Refund button is new feature development."
+      - "Do not absorb into bugfix or handoff."
+      - "Do not invent a public offer if no public service covers it."

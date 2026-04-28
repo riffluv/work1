@@ -1,0 +1,110 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-08
+shortcut: "#BR"
+purpose: "boundary route rehearsal for bundle pressure, one-flow limits, cheap-route mismatch, and feature memo spillover"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR8-001
+    stock_id: BR8-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route mismatch / active defect asks if handoff is better"
+    expected_route: bugfix-first_not_handoff
+    first_question_to_answer: "コードが読めないので整理の方がいいか迷っているが、今止まっているWebhookエラーはどちらで進めるべきか。"
+    raw_message: "StripeのWebhook署名エラーで本番決済後の処理が止まっています。コードが読めないので25,000円の整理の方がいいのか迷っていますが、今止まっているエラーを直すならどちらですか？"
+    buyer_text: "StripeのWebhook署名エラーで本番決済後の処理が止まっています。コードが読めないので25,000円の整理の方がいいのか迷っていますが、今止まっているエラーを直すならどちらですか？"
+    must_check:
+      - "Active defect should go bugfix-first."
+      - "Do not imply handoff is needed before repair."
+      - "Avoid 'まず' that implies sequential upsell."
+
+  - case_id: BR8-002
+    stock_id: BR8-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff-first / broad flow request with refund and subscription"
+    expected_route: handoff-first_one-flow_limit
+    first_question_to_answer: "決済、返金、サブスク変更までまとめて25,000円で整理できるか。"
+    raw_message: "今は壊れていません。次の担当者に渡すために、Stripe決済、返金、サブスク変更まで一通り分かるメモを作ってほしいです。25,000円で全部まとめて整理できますか？"
+    buyer_text: "今は壊れていません。次の担当者に渡すために、Stripe決済、返金、サブスク変更まで一通り分かるメモを作ってほしいです。25,000円で全部まとめて整理できますか？"
+    must_check:
+      - "No active defect, handoff-first."
+      - "25,000 yen is one main flow, not all Stripe flows."
+      - "Ask buyer to choose one flow or explain additional flows."
+
+  - case_id: BR8-003
+    stock_id: BR8-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / Stripe Tax feature plus handoff memo"
+    expected_route: neither_new_feature_not_handoff
+    first_question_to_answer: "Stripe Tax対応追加とその説明メモを15,000円修正または25,000円整理に含められるか。"
+    raw_message: "Stripe Taxに対応して税率を自動計算できるようにしたいです。実装したあと、次の担当者向けにその処理メモもほしいです。これは15,000円の修正か25,000円の整理でできますか？"
+    buyer_text: "Stripe Taxに対応して税率を自動計算できるようにしたいです。実装したあと、次の担当者向けにその処理メモもほしいです。これは15,000円の修正か25,000円の整理でできますか？"
+    must_check:
+      - "Stripe Tax support is new feature."
+      - "Do not absorb feature implementation into bugfix or handoff."
+      - "Memo for newly implemented feature is not existing flow handoff."
+
+  - case_id: BR8-004
+    stock_id: BR8-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "bugfix-first / light explanation requested"
+    expected_route: bugfix-first_light_explanation
+    first_question_to_answer: "修正後に変更ファイルと確認順だけ教えてもらえれば、25,000円整理は不要か。"
+    raw_message: "Checkout完了後に注文履歴へ反映されない不具合だけ直してほしいです。修正後に、変更したファイルと確認順だけ教えてもらえれば十分です。25,000円の整理までは不要ですよね？"
+    buyer_text: "Checkout完了後に注文履歴へ反映されない不具合だけ直してほしいです。修正後に、変更したファイルと確認順だけ教えてもらえれば十分です。25,000円の整理までは不要ですよね？"
+    must_check:
+      - "Bugfix-first."
+      - "Light explanation can be included in bugfix."
+      - "Do not upsell handoff."
+
+  - case_id: BR8-005
+    stock_id: BR8-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff-first / asks if small cleanup can be included"
+    expected_route: handoff-first_no_cleanup_repair_absorption
+    first_question_to_answer: "壊れていない整理依頼で、不要そうなファイル削除や軽い整理まで25,000円内に含められるか。"
+    raw_message: "今は決済も注文作成も動いています。次の担当者に渡すために決済から注文作成までの流れを整理したいです。ついでに不要そうなファイルがあれば少し消してもらうところまで25,000円に含められますか？"
+    buyer_text: "今は決済も注文作成も動いています。次の担当者に渡すために決済から注文作成までの流れを整理したいです。ついでに不要そうなファイルがあれば少し消してもらうところまで25,000円に含められますか？"
+    must_check:
+      - "Handoff-first, no active defect."
+      - "Do not include cleanup edits in handoff."
+      - "Handoff can point out risky/unneeded-looking files without deleting."
+
+  - case_id: BR8-006
+    stock_id: BR8-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "bundle pressure / two bugfixes plus one handoff for one price"
+    expected_route: split_bugfixes_and_handoff_no_bundle
+    first_question_to_answer: "2つの不具合修正と1フロー整理をまとめて安くできるか。"
+    raw_message: "注文反映エラーと領収書メール不達を直して、そのあと決済から注文作成までの整理メモもほしいです。まとめてお願いするので少し安くできますか？"
+    buyer_text: "注文反映エラーと領収書メール不達を直して、そのあと決済から注文作成までの整理メモもほしいです。まとめてお願いするので少し安くできますか？"
+    must_check:
+      - "Multiple bugfix symptoms may be one or two bugfixes depending cause."
+      - "Handoff memo is separate deliverable."
+      - "Do not promise bundle discount."
+
+  - case_id: BR8-007
+    stock_id: BR8-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff-first / wants formal operations manual"
+    expected_route: handoff-first_but_not_formal_ops_manual
+    first_question_to_answer: "主要1フロー整理で、社内運用マニュアルのような正式資料まで作れるか。"
+    raw_message: "決済から注文作成までの流れを、社内の運用マニュアルとしてそのまま使えるくらい丁寧にまとめてほしいです。今は不具合はありません。25,000円でそこまでできますか？"
+    buyer_text: "決済から注文作成までの流れを、社内の運用マニュアルとしてそのまま使えるくらい丁寧にまとめてほしいです。今は不具合はありません。25,000円でそこまでできますか？"
+    must_check:
+      - "Handoff-first, no active defect."
+      - "25,000 yen is practical handoff memo, not formal operations manual."
+      - "Keep one main flow boundary."

@@ -98,6 +98,14 @@ mode の正本:
 - `#RE bugfix` の保存先は `/home/hr-hm/Project/work/サービスページ/rehearsal/bugfix-15000-返信学習/返信監査_batch-01.md`
 - `#RE handoff` の保存先は `/home/hr-hm/Project/work/サービスページ/rehearsal/handoff-25000-返信学習/返信監査_batch-01.md`
 - `#RE` の目的は「返信文を書くこと」ではなく、「外部監査に回すための batch を current rules で更新すること」
+- `#BR` は `bugfix-15000 / handoff-25000` の境界ルーティングを鍛える shadow rehearsal ショートカットとして扱う
+- `#BR` は live 返信ではなく、`handoff-25000` を `training-visible / future-dual simulation` として扱う検査レーン
+- `#BR` を実行しても `service-registry.yaml` の `handoff-25000 public: false` は変更しない
+- 通常の外向け返信では、引き続き `handoff-25000` のサービス名・25,000円・購入導線を出さない
+- `#BR` の保存先は `/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md`
+- `#BR` は最新 batch をこの1ファイルに上書きし、完了済みの過去 batch は必要な場合だけ `archive/` へ退避する
+- `#BR` の監査プロンプトは `/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/監査プロンプト_codex-xhigh.md` と `/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/監査プロンプト_claude.md`
+- `#BR` の正本メモは `/home/hr-hm/Project/work/docs/reply-quality/boundary-routing-shadow-rehearsal.ja.md`
 - `#RE` の直近運用メモは `/home/hr-hm/Project/work/docs/reply-quality/README.ja.md` の `#RE` 節と `/home/hr-hm/Project/work/docs/reply-quality/question-type-batch-plan-20260425.ja.md` を参照する。質問タイプは観察ラベルであり、router / rule / renderer の新設根拠にしない
 - Deep Research など外部調査結果は `/home/hr-hm/Project/work/docs/reply-quality/external-research-observation-plan-20260425.ja.md` のような観察メモへ分離し、`#RE` の stock / archetype / reviewer 観点としてだけ使う。外部調査をそのまま rule / renderer / validator へ入れない
 - `#R / #A / #D / #P` を優先し、相手文だけなら分析のみ

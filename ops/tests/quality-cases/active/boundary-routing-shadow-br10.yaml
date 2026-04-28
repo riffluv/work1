@@ -1,0 +1,110 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-10
+shortcut: "#BR"
+purpose: "boundary route rehearsal for diagnosis-only pressure, ops checklist, refactor requests, secrets handoff, and support manual spillover"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR10-001
+    stock_id: BR10-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect but asks diagnosis-only cheaper"
+    expected_route: bugfix-first_not_diagnosis_only
+    first_question_to_answer: "止まっているWebhook不具合について、修正なしの原因メモだけ安くできるか。"
+    raw_message: "Stripe Webhookが本番だけ失敗して注文が作られません。修正まではまだ頼むか分からないので、原因だけ見てメモをもらう形で安くできますか？"
+    buyer_text: "Stripe Webhookが本番だけ失敗して注文が作られません。修正まではまだ頼むか分からないので、原因だけ見てメモをもらう形で安くできますか？"
+    must_check:
+      - "Active defect should not become cheap diagnosis-only."
+      - "Bugfix price includes cause check and repair, not cheaper memo-only."
+      - "Do not promise investigation-only service."
+
+  - case_id: BR10-002
+    stock_id: BR10-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff plus refactor request"
+    expected_route: handoff-first_no_refactor_absorption
+    first_question_to_answer: "次の担当者向け整理と一緒に、読みやすくリファクタリングまで25,000円内に含められるか。"
+    raw_message: "今は動いています。次の担当者に渡すためにStripe決済から注文作成までを整理してほしいです。ついでに読みにくい関数名やフォルダ構成も少し直してもらえますか？25,000円に含めたいです。"
+    buyer_text: "今は動いています。次の担当者に渡すためにStripe決済から注文作成までを整理してほしいです。ついでに読みにくい関数名やフォルダ構成も少し直してもらえますか？25,000円に含めたいです。"
+    must_check:
+      - "Handoff-first."
+      - "Refactor/renaming/folder changes are not included in handoff."
+      - "Can note refactor candidates."
+
+  - case_id: BR10-003
+    stock_id: BR10-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / customer support FAQ"
+    expected_route: neither_support_faq_not_code_handoff
+    first_question_to_answer: "購入者対応用FAQや返答案を25,000円整理で作れるか。"
+    raw_message: "コードの整理というより、お客さんから決済について問い合わせが来た時のFAQや返答案を作ってほしいです。Stripeまわりの引き継ぎ資料として25,000円でできますか？"
+    buyer_text: "コードの整理というより、お客さんから決済について問い合わせが来た時のFAQや返答案を作ってほしいです。Stripeまわりの引き継ぎ資料として25,000円でできますか？"
+    must_check:
+      - "Support FAQ is not code flow handoff."
+      - "Do not absorb customer support manual into handoff."
+      - "Avoid legal/tax/payment advice."
+
+  - case_id: BR10-004
+    stock_id: BR10-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff with secrets inventory request"
+    expected_route: handoff-first_without_secret_values
+    first_question_to_answer: "次の担当者向けに環境変数やWebhook secret一覧を整理できるか。"
+    raw_message: "次の担当者に渡すため、StripeのWebhook secretやAPIキー、環境変数がどこで使われているか一覧にしてほしいです。値そのものもまとめてもらえますか？25,000円の整理でお願いしたいです。"
+    buyer_text: "次の担当者に渡すため、StripeのWebhook secretやAPIキー、環境変数がどこで使われているか一覧にしてほしいです。値そのものもまとめてもらえますか？25,000円の整理でお願いしたいです。"
+    must_check:
+      - "Handoff can document key names/locations."
+      - "Do not handle raw secret values."
+      - "Keep one-flow boundary."
+
+  - case_id: BR10-005
+    stock_id: BR10-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect plus support manual request"
+    expected_route: bugfix-first_support_manual_separate
+    first_question_to_answer: "決済不具合修正と、スタッフ向け問い合わせ対応マニュアルを同時に頼めるか。"
+    raw_message: "Checkout後に注文履歴が作られない不具合を直してほしいです。あと、同じような問い合わせが来た時にスタッフが返せる対応マニュアルも一緒に作れますか？"
+    buyer_text: "Checkout後に注文履歴が作られない不具合を直してほしいです。あと、同じような問い合わせが来た時にスタッフが返せる対応マニュアルも一緒に作れますか？"
+    must_check:
+      - "Bugfix-first for active defect."
+      - "Customer support manual is separate/not included."
+      - "Do not over-bundle."
+
+  - case_id: BR10-006
+    stock_id: BR10-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "multi-repo handoff scope"
+    expected_route: handoff-first_one_repo_or_one_flow_limit
+    first_question_to_answer: "フロントとAPIの2リポジトリにまたがる決済フローを25,000円で整理できるか。"
+    raw_message: "決済処理がフロントのリポジトリとAPI側のリポジトリに分かれています。次の担当者が追えるように、両方またいで決済から注文作成までを整理してほしいです。25,000円でできますか？"
+    buyer_text: "決済処理がフロントのリポジトリとAPI側のリポジトリに分かれています。次の担当者が追えるように、両方またいで決済から注文作成までを整理してほしいです。25,000円でできますか？"
+    must_check:
+      - "May be one flow even across repos if contiguous."
+      - "Do not promise broad two-repo audit."
+      - "Keep target flow constrained."
+
+  - case_id: BR10-007
+    stock_id: BR10-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "new integration / Stripe Connect"
+    expected_route: neither_new_integration
+    first_question_to_answer: "Stripe Connect導入と処理整理は15,000円修正か25,000円整理に入るか。"
+    raw_message: "今の決済は普通のStripe Checkoutですが、今後マーケットプレイス化したいのでStripe Connectを入れたいです。導入と処理の整理メモまで、15,000円か25,000円でできますか？"
+    buyer_text: "今の決済は普通のStripe Checkoutですが、今後マーケットプレイス化したいのでStripe Connectを入れたいです。導入と処理の整理メモまで、15,000円か25,000円でできますか？"
+    must_check:
+      - "Stripe Connect marketplace integration is new feature/large implementation."
+      - "Not bugfix or current-flow handoff."
+      - "Do not absorb into existing services."

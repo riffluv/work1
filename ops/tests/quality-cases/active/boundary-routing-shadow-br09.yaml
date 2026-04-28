@@ -1,0 +1,110 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-09
+shortcut: "#BR"
+purpose: "boundary route rehearsal for ops manual mismatch, one-flow interpretation, repair during handoff, feature retry, and package pressure"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR9-001
+    stock_id: BR9-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect plus post-fix notes"
+    expected_route: bugfix-first_light_explanation_not_handoff
+    first_question_to_answer: "二重注文の不具合修正後に、変更箇所メモだけほしい場合、25,000円整理も必要か。"
+    raw_message: "StripeのWebhookが二重に処理されて、注文が2つ作られることがあります。直したあと、変更したファイルと注意点だけメモしてもらえれば十分です。25,000円の整理も必要ですか？"
+    buyer_text: "StripeのWebhookが二重に処理されて、注文が2つ作られることがあります。直したあと、変更したファイルと注意点だけメモしてもらえれば十分です。25,000円の整理も必要ですか？"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Light change notes can be included in bugfix."
+      - "Do not push handoff."
+
+  - case_id: BR9-002
+    stock_id: BR9-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / Stripe dashboard operations manual"
+    expected_route: neither_or_handoff_limit_not_ops_manual
+    first_question_to_answer: "Stripe管理画面での返金操作マニュアルを25,000円整理で作れるか。"
+    raw_message: "コードではなく、スタッフ向けにStripe管理画面で返金する手順書を作ってほしいです。決済まわりの整理なので25,000円の方でお願いできますか？"
+    buyer_text: "コードではなく、スタッフ向けにStripe管理画面で返金する手順書を作ってほしいです。決済まわりの整理なので25,000円の方でお願いできますか？"
+    must_check:
+      - "Handoff is code-flow memo, not staff operations manual."
+      - "Do not absorb pure dashboard procedure into handoff."
+      - "Do not provide legal/tax-like operation advice."
+
+  - case_id: BR9-003
+    stock_id: BR9-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff one-flow interpretation / direct chain"
+    expected_route: handoff-first_one_payment_flow_with_boundaries
+    first_question_to_answer: "Checkout、Webhook、DB、完了メールまでを1つの主要フローとして整理できるか。"
+    raw_message: "次の担当者に渡すため、Checkoutで決済して、WebhookでDB更新して、最後に完了メールを送るところまで一連の流れで整理してほしいです。これは25,000円の1フローに入りますか？"
+    buyer_text: "次の担当者に渡すため、Checkoutで決済して、WebhookでDB更新して、最後に完了メールを送るところまで一連の流れで整理してほしいです。これは25,000円の1フローに入りますか？"
+    must_check:
+      - "Can treat direct purchase flow as one main flow if contiguous."
+      - "Do not expand to all email/payment flows."
+      - "Keep one-flow boundary."
+
+  - case_id: BR9-004
+    stock_id: BR9-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff with repair temptation / fix small bugs found during read"
+    expected_route: handoff-first_no_found-bug_repair_absorption
+    first_question_to_answer: "整理中に小さいバグを見つけたら25,000円内で直してもらえるか。"
+    raw_message: "今は大きな不具合は出ていません。決済から注文作成までの流れを整理してほしいのですが、読んでいる途中で小さいバグを見つけたら、その場で直してもらえますか？25,000円内に含めたいです。"
+    buyer_text: "今は大きな不具合は出ていません。決済から注文作成までの流れを整理してほしいのですが、読んでいる途中で小さいバグを見つけたら、その場で直してもらえますか？25,000円内に含めたいです。"
+    must_check:
+      - "Handoff-first, no active defect."
+      - "Do not repair found bugs within handoff."
+      - "Can note findings and consult separately."
+
+  - case_id: BR9-005
+    stock_id: BR9-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / webhook retry feature plus explanation"
+    expected_route: neither_new_feature_retry_not_bugfix_or_handoff
+    first_question_to_answer: "Webhook失敗時の自動リトライ機能追加と説明メモは15,000円修正か25,000円整理に入るか。"
+    raw_message: "Webhookが失敗した時に自動でリトライする機能を追加したいです。実装後に仕組みの説明もほしいのですが、これは15,000円修正か25,000円整理のどちらでできますか？"
+    buyer_text: "Webhookが失敗した時に自動でリトライする機能を追加したいです。実装後に仕組みの説明もほしいのですが、これは15,000円修正か25,000円整理のどちらでできますか？"
+    must_check:
+      - "Retry mechanism is new feature."
+      - "Do not absorb into bugfix/handoff."
+      - "Explanation for newly implemented mechanism is not existing handoff."
+
+  - case_id: BR9-006
+    stock_id: BR9-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "package pressure / bugfix plus handoff fixed budget"
+    expected_route: split_bugfix_and_handoff_no_package_discount
+    first_question_to_answer: "不具合修正と整理メモを合計30,000円でまとめられるか。"
+    raw_message: "注文履歴が作られない不具合を直して、そのあと決済から注文作成までのメモもほしいです。予算が30,000円なので、15,000円修正と25,000円整理をまとめて30,000円くらいにできませんか？"
+    buyer_text: "注文履歴が作られない不具合を直して、そのあと決済から注文作成までのメモもほしいです。予算が30,000円なので、15,000円修正と25,000円整理をまとめて30,000円くらいにできませんか？"
+    must_check:
+      - "Bugfix and handoff are separate deliverables."
+      - "Do not promise package discount."
+      - "Bugfix-first if active defect."
+
+  - case_id: BR9-007
+    stock_id: BR9-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "bugfix-first / asks if handoff needed because previous vendor changed many files"
+    expected_route: bugfix-first_not_automatic_handoff
+    first_question_to_answer: "前任者が多くのファイルを触っていても、今止まっている不具合修正に25,000円整理が必須か。"
+    raw_message: "前の外注先がいろいろなファイルを触っていて、自分では追えません。いまはStripe決済後に注文履歴が作られない状態です。修正するには25,000円の整理も必須になりますか？"
+    buyer_text: "前の外注先がいろいろなファイルを触っていて、自分では追えません。いまはStripe決済後に注文履歴が作られない状態です。修正するには25,000円の整理も必須になりますか？"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Handoff not automatically required."
+      - "Do not context bleed beyond stated prior vendor info."

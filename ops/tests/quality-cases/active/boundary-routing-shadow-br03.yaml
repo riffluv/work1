@@ -1,0 +1,110 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-03
+shortcut: "#BR"
+purpose: "bugfix-15000 / handoff-25000 boundary route state split rehearsal"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR3-001
+    stock_id: BR3-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route_match_decided / handoff-first explicit memo request"
+    expected_route: handoff-first
+    first_question_to_answer: "壊れていない状態で、決済完了から注文作成までのメモを作れるか。"
+    raw_message: "今は壊れていません。修正ではなく、Stripeの決済完了から注文作成までの流れを次の担当者に渡すメモにしたいです。決済まわりの危険箇所と関連ファイルだけ整理してもらえますか？"
+    buyer_text: "今は壊れていません。修正ではなく、Stripeの決済完了から注文作成までの流れを次の担当者に渡すメモにしたいです。決済まわりの危険箇所と関連ファイルだけ整理してもらえますか？"
+    must_check:
+      - "Buyer already selected handoff-like route, so do not say route is 合っています."
+      - "Do not force bugfix because no active defect."
+      - "Keep scope to one main flow."
+
+  - case_id: BR3-002
+    stock_id: BR3-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route_mismatch_decided / active defect but wants handoff"
+    expected_route: bugfix-first
+    first_question_to_answer: "今は整理ではなく、止まっている注文反映不具合を先に直すべきか。"
+    raw_message: "Stripe決済後に注文が作られず、今日も購入履歴が空のままです。コードが全然分からないので、25,000円の整理の方で見てもらった方がいいですか？まず止めたいのは注文反映の不具合です。"
+    buyer_text: "Stripe決済後に注文が作られず、今日も購入履歴が空のままです。コードが全然分からないので、25,000円の整理の方で見てもらった方がいいですか？まず止めたいのは注文反映の不具合です。"
+    must_check:
+      - "Buyer suggests handoff, but active defect is main goal, so guide to bugfix-first."
+      - "Do not accept handoff route just because code is unclear."
+      - "Separate later handoff from current bugfix."
+
+  - case_id: BR3-003
+    stock_id: BR3-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route_uncertain / asks which service first"
+    expected_route: bugfix-first
+    first_question_to_answer: "決済エラーが出ている状態で、修正と整理のどちらから始めるべきか。"
+    raw_message: "StripeのWebhookエラーが出ていて購入完了後の反映が止まっています。コードもぐちゃぐちゃなので、15,000円の修正と25,000円の整理のどちらからお願いするのがいいですか？"
+    buyer_text: "StripeのWebhookエラーが出ていて購入完了後の反映が止まっています。コードもぐちゃぐちゃなので、15,000円の修正と25,000円の整理のどちらからお願いするのがいいですか？"
+    must_check:
+      - "Buyer is uncertain, so propose order instead of asking them to choose."
+      - "Active defect means bugfix-first."
+      - "Do not mix both prices into one deliverable."
+
+  - case_id: BR3-004
+    stock_id: BR3-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route_match_decided / handoff one flow with explicit flow"
+    expected_route: handoff-first
+    first_question_to_answer: "決済成功から権限付与までの1フロー整理を依頼できるか。"
+    raw_message: "次の外注さんに渡すため、決済成功からユーザー権限付与までの1フローだけを整理したいです。今は動いているので修正は不要です。関連ファイルと触る順番をまとめてもらえますか？"
+    buyer_text: "次の外注さんに渡すため、決済成功からユーザー権限付与までの1フローだけを整理したいです。今は動いているので修正は不要です。関連ファイルと触る順番をまとめてもらえますか？"
+    must_check:
+      - "Buyer selected handoff and route is correct, so receive request naturally."
+      - "Do not say 合っています as a diagnosis."
+      - "Do not promise repair."
+
+  - case_id: BR3-005
+    stock_id: BR3-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "bridge / bugfix now plus later handoff"
+    expected_route: bugfix-first_with_later_handoff
+    first_question_to_answer: "まず webhook の二重登録を直し、その後に整理を分けられるか。"
+    raw_message: "Webhookが二重登録されているせいか、注文作成が2回走ります。まずこれを直してほしいです。直した後で、同じWebhook周辺を次の担当者向けに整理することもできますか？"
+    buyer_text: "Webhookが二重登録されているせいか、注文作成が2回走ります。まずこれを直してほしいです。直した後で、同じWebhook周辺を次の担当者向けに整理することもできますか？"
+    must_check:
+      - "Bugfix-first because buyer says first fix duplicate order creation."
+      - "Later handoff is separate."
+      - "Do not include handoff memo in bugfix price."
+
+  - case_id: BR3-006
+    stock_id: BR3-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / new feature with documentation request"
+    expected_route: neither_scope_out
+    first_question_to_answer: "新しい請求書CSV出力機能は bugfix / handoff のどちらにも含めないべきか。"
+    raw_message: "Stripe決済は問題なく動いています。管理画面に請求書CSVを出すボタンを新しく追加して、その処理の流れもメモにしてほしいです。15,000円の修正か25,000円の整理のどちらで頼めますか？"
+    buyer_text: "Stripe決済は問題なく動いています。管理画面に請求書CSVを出すボタンを新しく追加して、その処理の流れもメモにしてほしいです。15,000円の修正か25,000円の整理のどちらで頼めますか？"
+    must_check:
+      - "New CSV export button is feature development."
+      - "Do not absorb into bugfix or handoff."
+      - "State neither route and avoid inventing a public offer."
+
+  - case_id: BR3-007
+    stock_id: BR3-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route_mismatch_decided / wants handoff to include minor repair"
+    expected_route: handoff-first_with_no_repair_promise
+    first_question_to_answer: "整理中に小さいバグが見つかったら、その場で直せるか。"
+    raw_message: "Stripe連携の流れを25,000円で整理してほしいです。ついでに小さいバグが見つかったら、その場で軽く直してもらえますか？大きな修正までは考えていません。"
+    buyer_text: "Stripe連携の流れを25,000円で整理してほしいです。ついでに小さいバグが見つかったら、その場で軽く直してもらえますか？大きな修正までは考えていません。"
+    must_check:
+      - "Handoff-first is fine, but repair promise is not included."
+      - "Do not absorb repair into 25,000 yen handoff."
+      - "If repair is needed, separate consultation."

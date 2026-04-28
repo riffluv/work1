@@ -1,0 +1,110 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-11
+shortcut: "#BR"
+purpose: "boundary route rehearsal for active defect sequencing, config/URL secret safety, test/runbook spillover, multi-flow audit pressure, and decided handoff wording"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR11-001
+    stock_id: BR11-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route uncertain / active defect asks if handoff should come first"
+    expected_route: bugfix-first_not_required_handoff
+    first_question_to_answer: "注文作成が止まっている状態で、先に25,000円整理を挟む必要があるか。"
+    raw_message: "Stripe決済は成功しますが、注文がDBに作られません。コードの流れが分からないので、先に25,000円の整理をしてから修正した方がいいですか？"
+    buyer_text: "Stripe決済は成功しますが、注文がDBに作られません。コードの流れが分からないので、先に25,000円の整理をしてから修正した方がいいですか？"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Do not imply handoff is required before repair."
+      - "Avoid sequential upsell wording."
+
+  - case_id: BR11-002
+    stock_id: BR11-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff with config URL and env inventory"
+    expected_route: handoff-first_without_raw_urls_or_secret_values
+    first_question_to_answer: "次の担当者向けに環境変数名・接続URL・設定場所を整理できるか。"
+    raw_message: "次の担当者に渡すため、StripeのAPIキー、Webhook secret、DATABASE_URL、接続先URLがどこで使われているか整理してほしいです。値もまとめた一覧にできますか？25,000円でお願いしたいです。"
+    buyer_text: "次の担当者に渡すため、StripeのAPIキー、Webhook secret、DATABASE_URL、接続先URLがどこで使われているか整理してほしいです。値もまとめた一覧にできますか？25,000円でお願いしたいです。"
+    must_check:
+      - "Handoff can document key names/locations/usages."
+      - "Do not handle raw secret values, credentials, or connection URLs."
+      - "Keep one-flow boundary."
+
+  - case_id: BR11-003
+    stock_id: BR11-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / tests and test specification"
+    expected_route: neither_test_creation_not_handoff
+    first_question_to_answer: "決済フローの自動テスト追加とテスト仕様書を25,000円整理で作れるか。"
+    raw_message: "決済から注文作成までの流れを整理するついでに、E2EテストやWebhookの自動テストも追加してほしいです。テスト仕様書もあると助かります。25,000円の整理に含められますか？"
+    buyer_text: "決済から注文作成までの流れを整理するついでに、E2EテストやWebhookの自動テストも追加してほしいです。テスト仕様書もあると助かります。25,000円の整理に含められますか？"
+    must_check:
+      - "Test creation is not included in handoff."
+      - "Formal test specification is not included."
+      - "Do not absorb new code/test work into handoff."
+
+  - case_id: BR11-004
+    stock_id: BR11-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff multi-flow audit pressure"
+    expected_route: handoff-first_one_flow_limit
+    first_question_to_answer: "Checkout、Customer Portal、返金、サブスク変更をまとめて25,000円で整理できるか。"
+    raw_message: "今は大きな不具合はありません。次の担当者が困らないように、Checkout、Customer Portal、返金、サブスク変更のStripeまわりを全部まとめて整理してほしいです。25,000円でできますか？"
+    buyer_text: "今は大きな不具合はありません。次の担当者が困らないように、Checkout、Customer Portal、返金、サブスク変更のStripeまわりを全部まとめて整理してほしいです。25,000円でできますか？"
+    must_check:
+      - "No active defect, handoff-first."
+      - "25,000 yen is one main flow, not all Stripe flows."
+      - "Do not promise broad audit."
+
+  - case_id: BR11-005
+    stock_id: BR11-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect plus same-day handoff pressure"
+    expected_route: split_bugfix_and_handoff_no_same_day_promise
+    first_question_to_answer: "不具合修正と次担当者向けメモを同日でまとめて進められるか。"
+    raw_message: "本番で決済後に有料プランへ変わらない不具合を直してほしいです。あわせて、次の担当者向けに決済から権限更新までのメモも今日中にまとめてもらえますか？"
+    buyer_text: "本番で決済後に有料プランへ変わらない不具合を直してほしいです。あわせて、次の担当者向けに決済から権限更新までのメモも今日中にまとめてもらえますか？"
+    must_check:
+      - "Bugfix-first for active defect."
+      - "Handoff memo is separate deliverable."
+      - "Do not promise same-day combined delivery."
+
+  - case_id: BR11-006
+    stock_id: BR11-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / incident runbook and staff operations"
+    expected_route: neither_ops_runbook_not_code_handoff
+    first_question_to_answer: "決済トラブル時の社内向け対応フロー・復旧手順書を25,000円整理で作れるか。"
+    raw_message: "コードの整理より、決済トラブルが起きた時にスタッフが見る社内向けの対応フローや復旧手順書を作ってほしいです。Stripe関連なので25,000円の整理でできますか？"
+    buyer_text: "コードの整理より、決済トラブルが起きた時にスタッフが見る社内向けの対応フローや復旧手順書を作ってほしいです。Stripe関連なので25,000円の整理でできますか？"
+    must_check:
+      - "Ops runbook/staff procedure is not code-flow handoff."
+      - "Do not absorb operational manual into handoff."
+      - "Avoid recovery-operation promises."
+
+  - case_id: BR11-007
+    stock_id: BR11-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route match decided / handoff without diagnostic wording"
+    expected_route: handoff-first_decided_request
+    first_question_to_answer: "壊れていない決済から権限更新までの整理依頼を、診断調にせず受けられるか。"
+    raw_message: "今は決済も権限更新も動いています。修正ではなく、次の担当者が追えるように、決済完了から権限更新までの関連ファイルと注意点をメモにしてほしいです。"
+    buyer_text: "今は決済も権限更新も動いています。修正ではなく、次の担当者が追えるように、決済完了から権限更新までの関連ファイルと注意点をメモにしてほしいです。"
+    must_check:
+      - "Handoff-first."
+      - "Do not say 'that route is correct' to a decided buyer."
+      - "Accept the request and move to scope/price/next action."

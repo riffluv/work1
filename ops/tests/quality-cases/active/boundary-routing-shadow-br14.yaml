@@ -1,0 +1,124 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-14
+shortcut: "#BR"
+purpose: "mixed boundary route rehearsal for bugfix-first despite code confusion, valid handoff, light bugfix explanation, environment/setup boundary, repository work-surface boundary, architecture review mismatch, secret-safe settings map, and bundle pressure"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR14-001
+    stock_id: BR14-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect disguised as handoff because buyer cannot read code"
+    expected_route: bugfix-first_not_required_handoff
+    first_question_to_answer: "コードが分からない状態でも、決済後注文が作られない active defect は先に25,000円整理が必要か。"
+    raw_message: "AIで作ったコードで中身がよく分かっていません。Stripe決済は成功しますが注文が作られないので、まず25,000円の整理をしてからでないと修正は難しいですか？"
+    buyer_text: "AIで作ったコードで中身がよく分かっていません。Stripe決済は成功しますが注文が作られないので、まず25,000円の整理をしてからでないと修正は難しいですか？"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Do not make handoff a prerequisite just because buyer cannot read code."
+      - "Avoid sequential upsell wording."
+
+  - case_id: BR14-002
+    stock_id: BR14-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route match decided / valid one-flow handoff"
+    expected_route: handoff-first_decided_request
+    first_question_to_answer: "壊れていない決済完了から注文作成までの1フロー整理を25,000円で受けられるか。"
+    raw_message: "今は決済も注文作成も動いています。修正ではなく、次の担当者が追えるように、決済完了から注文作成までの関連ファイルと処理の流れだけ整理してほしいです。25,000円の方でお願いできますか？"
+    buyer_text: "今は決済も注文作成も動いています。修正ではなく、次の担当者が追えるように、決済完了から注文作成までの関連ファイルと処理の流れだけ整理してほしいです。25,000円の方でお願いできますか？"
+    must_check:
+      - "Handoff-first for a decided one-flow request."
+      - "Do not say 'that route is correct'."
+      - "Move to scope, deliverable, price, and purchase next action."
+
+  - case_id: BR14-003
+    stock_id: BR14-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect with light explanation request"
+    expected_route: bugfix-first_light_explanation_not_handoff
+    first_question_to_answer: "不具合修正後に変更箇所の軽い説明を付けることは15,000円修正内で足りるか。"
+    raw_message: "Stripe決済後に有料プランへ変わらない不具合を直してほしいです。納品時に、どのファイルを直したかと確認手順だけ簡単に教えてもらえれば大丈夫です。これは15,000円の修正で足りますか？"
+    buyer_text: "Stripe決済後に有料プランへ変わらない不具合を直してほしいです。納品時に、どのファイルを直したかと確認手順だけ簡単に教えてもらえれば大丈夫です。これは15,000円の修正で足りますか？"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Light explanation of changed files and check steps is okay in bugfix."
+      - "Do not upsell to handoff unnecessarily."
+
+  - case_id: BR14-004
+    stock_id: BR14-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff plus local setup and README guarantee pressure"
+    expected_route: handoff-first_but_not_environment_setup_support
+    first_question_to_answer: "主要1フロー整理に、ローカル環境構築手順・起動保証・README作成まで含められるか。"
+    raw_message: "決済完了から注文作成までの流れを次の担当者に渡したいです。あわせて、ローカルで必ず起動できる環境構築手順、README整備、起動できない時のサポートまで25,000円に含められますか？"
+    buyer_text: "決済完了から注文作成までの流れを次の担当者に渡したいです。あわせて、ローカルで必ず起動できる環境構築手順、README整備、起動できない時のサポートまで25,000円に含められますか？"
+    must_check:
+      - "Handoff can cover one flow."
+      - "Do not include local setup guarantee, README maintenance, or support."
+      - "Keep deliverable to one-flow handoff memo."
+
+  - case_id: BR14-005
+    stock_id: BR14-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff plus GitHub issue and PR work-surface pressure"
+    expected_route: handoff-first_memo_not_github_issue_or_pr_work
+    first_question_to_answer: "危険箇所整理を、GitHub Issue作成・PRコメント・ラベル付け作業として25,000円に含められるか。"
+    raw_message: "決済から注文作成までの危険箇所を整理してほしいです。できればGitHub上でIssueを作って、該当PRへコメントして、優先度ラベルも付けるところまで25,000円でお願いできますか？"
+    buyer_text: "決済から注文作成までの危険箇所を整理してほしいです。できればGitHub上でIssueを作って、該当PRへコメントして、優先度ラベルも付けるところまで25,000円でお願いできますか？"
+    must_check:
+      - "Handoff can return memo."
+      - "Do not promise direct GitHub issue/PR/label operations."
+      - "Avoid external repository work-surface commitments."
+
+  - case_id: BR14-006
+    stock_id: BR14-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / broad architecture review and improvement proposal"
+    expected_route: neither_architecture_review_not_one_flow_handoff
+    first_question_to_answer: "決済設計全体の良し悪しレビューと改善提案を25,000円整理でできるか。"
+    raw_message: "今すぐ壊れてはいませんが、Stripe決済、サブスク、返金、管理画面、DB設計まで全体的に設計が悪い気がします。25,000円で設計レビューと改善提案を一通り出してもらえますか？"
+    buyer_text: "今すぐ壊れてはいませんが、Stripe決済、サブスク、返金、管理画面、DB設計まで全体的に設計が悪い気がします。25,000円で設計レビューと改善提案を一通り出してもらえますか？"
+    must_check:
+      - "Broad architecture review is neither."
+      - "Do not absorb design consulting into one-flow handoff."
+      - "Do not promise broad improvement proposal."
+
+  - case_id: BR14-007
+    stock_id: BR14-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route match decided / secret-safe settings map"
+    expected_route: handoff-first_secret_safe_settings_map
+    first_question_to_answer: "値を渡さず、決済完了から注文作成までに関係する環境変数名・Webhook設定箇所・用途だけ整理できるか。"
+    raw_message: "修正は不要です。値そのものは共有しません。決済完了から注文作成までに関係する環境変数名、Webhook設定箇所、何に使われているかだけ次の担当者向けに整理してほしいです。"
+    buyer_text: "修正は不要です。値そのものは共有しません。決済完了から注文作成までに関係する環境変数名、Webhook設定箇所、何に使われているかだけ次の担当者向けに整理してほしいです。"
+    must_check:
+      - "Handoff-first decided request."
+      - "Do not request raw secret values."
+      - "Keep settings map tied to one main flow."
+
+  - case_id: BR14-008
+    stock_id: BR14-008
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "bundle pressure / active defect plus later handoff"
+    expected_route: bugfix-first_then_separate_handoff_no_bundle_discount
+    first_question_to_answer: "不具合修正と次担当者向け整理を、25,000円内やセット扱いで一緒にできるか。"
+    raw_message: "決済後に注文が作られない不具合を直したいです。そのあと次の外注先に渡すための整理メモもほしいです。15,000円修正と25,000円整理をまとめて、25,000円内でお願いできますか？"
+    buyer_text: "決済後に注文が作られない不具合を直したいです。そのあと次の外注先に渡すための整理メモもほしいです。15,000円修正と25,000円整理をまとめて、25,000円内でお願いできますか？"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Handoff memo is a separate deliverable."
+      - "Do not collapse both services into one 25,000 yen bundle."

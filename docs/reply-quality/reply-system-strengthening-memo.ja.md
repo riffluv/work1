@@ -164,6 +164,8 @@
 - 1回限りの違和感はすぐ恒久化せず、`再発性 × buyer視点 × 修正一方向` の3条件で上げる。
 
 ### both-public shadow rehearsal
+- この rehearsal のショートカットは `#BR` とする。
+- 正本メモは `/home/hr-hm/Project/work/docs/reply-quality/boundary-routing-shadow-rehearsal.ja.md`。
 - `bugfix-15000` と `handoff-25000` をどちらも公開している前提の mixed / boundary ケースは、live へ切り替える前に shadow batch で確認する。
 - ここで見るのは
   - `buyer の主目的` に沿った route 判定

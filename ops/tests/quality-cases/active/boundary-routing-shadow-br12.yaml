@@ -1,0 +1,110 @@
+batch_id: BR-2026-04-28-boundary-routing-shadow-12
+shortcut: "#BR"
+purpose: "boundary route rehearsal for direct-push/deploy pressure, PR review confusion, monitoring retainer, schema migration pressure, multi-repo one-flow limits, API migration, and no-repair handoff"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR12-001
+    stock_id: BR12-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect plus direct push and production deploy pressure"
+    expected_route: bugfix-first_no_direct_push_or_prod_deploy
+    first_question_to_answer: "決済後反映不具合は修正できるが、GitHub直接pushやVercel本番反映まで含められるか。"
+    raw_message: "決済後に有料プランへ変わらない不具合を直してほしいです。GitHubに招待するので、そのまま修正してmainにpushしてVercel本番まで反映してもらえますか？15,000円内でお願いしたいです。"
+    buyer_text: "決済後に有料プランへ変わらない不具合を直してほしいです。GitHubに招待するので、そのまま修正してmainにpushしてVercel本番まで反映してもらえますか？15,000円内でお願いしたいです。"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Do not promise direct GitHub push."
+      - "Do not promise production deploy."
+
+  - case_id: BR12-002
+    stock_id: BR12-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff / PR review and GitHub comment pressure"
+    expected_route: handoff-first_memo_not_github_pr_review
+    first_question_to_answer: "次担当者向けの危険箇所レビューを、GitHub PRコメントやコードレビューとして25,000円に含められるか。"
+    raw_message: "今は不具合は出ていません。次の担当者が修正する前に、決済から注文作成までの危険箇所を見てほしいです。GitHubのPRに直接コメントしてもらうコードレビューとして25,000円でできますか？"
+    buyer_text: "今は不具合は出ていません。次の担当者が修正する前に、決済から注文作成までの危険箇所を見てほしいです。GitHubのPRに直接コメントしてもらうコードレビューとして25,000円でできますか？"
+    must_check:
+      - "No active defect, handoff-first."
+      - "Return handoff memo, not direct GitHub PR comments."
+      - "Keep one-flow boundary."
+
+  - case_id: BR12-003
+    stock_id: BR12-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / monitoring and monthly maintenance"
+    expected_route: neither_monitoring_retainer
+    first_question_to_answer: "Stripe決済の月次監視やアラート対応を15,000円修正か25,000円整理に含められるか。"
+    raw_message: "Stripe決済がまた止まらないか不安です。月1回の動作確認、Slack通知の監視、エラーが出た時の一次対応までお願いしたいです。15,000円修正か25,000円整理のどちらでできますか？"
+    buyer_text: "Stripe決済がまた止まらないか不安です。月1回の動作確認、Slack通知の監視、エラーが出た時の一次対応までお願いしたいです。15,000円修正か25,000円整理のどちらでできますか？"
+    must_check:
+      - "Monitoring/maintenance retainer is neither."
+      - "Do not absorb ongoing operations into bugfix or handoff."
+      - "Do not promise Slack/external-channel operations."
+
+  - case_id: BR12-004
+    stock_id: BR12-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "active defect plus schema migration pressure"
+    expected_route: bugfix-first_but_schema_migration_not_promised
+    first_question_to_answer: "注文作成不具合は修正対象だが、DB設計変更やマイグレーションまで15,000円に含められるか。"
+    raw_message: "決済後に注文が作られない不具合を直したいです。もしordersテーブルの設計が悪いなら、DB設計の見直しやマイグレーションまで15,000円でやってもらえますか？"
+    buyer_text: "決済後に注文が作られない不具合を直したいです。もしordersテーブルの設計が悪いなら、DB設計の見直しやマイグレーションまで15,000円でやってもらえますか？"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Do not promise broad schema redesign/migration within bugfix."
+      - "Stop and consult if large design change is required."
+
+  - case_id: BR12-005
+    stock_id: BR12-005
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff multi-repo one-flow with admin app"
+    expected_route: handoff-first_one_flow_across_repos_no_whole_audit
+    first_question_to_answer: "Web、API、管理画面の3リポジトリをまたぐ決済から注文管理までを25,000円で整理できるか。"
+    raw_message: "決済から注文作成、その後に管理画面へ表示されるところまでが、Web、API、管理画面の3リポジトリに分かれています。次の担当者が追えるように25,000円で整理できますか？"
+    buyer_text: "決済から注文作成、その後に管理画面へ表示されるところまでが、Web、API、管理画面の3リポジトリに分かれています。次の担当者が追えるように25,000円で整理できますか？"
+    must_check:
+      - "May be handoff if it is one contiguous flow."
+      - "Do not promise broad three-repo audit."
+      - "Keep target flow constrained."
+
+  - case_id: BR12-006
+    stock_id: BR12-006
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither / Stripe API version and framework migration"
+    expected_route: neither_migration_not_bugfix_or_handoff
+    first_question_to_answer: "Stripe APIバージョン更新やNext.js移行を15,000円修正か25,000円整理に含められるか。"
+    raw_message: "Stripe APIのバージョンが古いので更新したいです。ついでにPages RouterのAPI RouteをApp Routerへ移行したいのですが、15,000円修正か25,000円整理でできますか？"
+    buyer_text: "Stripe APIのバージョンが古いので更新したいです。ついでにPages RouterのAPI RouteをApp Routerへ移行したいのですが、15,000円修正か25,000円整理でできますか？"
+    must_check:
+      - "Version/framework migration is neither."
+      - "Do not absorb migration into bugfix."
+      - "Do not call migration an existing-flow handoff deliverable."
+
+  - case_id: BR12-007
+    stock_id: BR12-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "route match decided / no-repair handoff with settings map"
+    expected_route: handoff-first_settings_map_without_secret_values
+    first_question_to_answer: "修正なしで、Webhook設定・環境変数名・処理のつながりだけを整理できるか。"
+    raw_message: "修正は不要です。次の担当者が迷わないように、Webhook設定、環境変数名、決済完了から注文作成までの処理のつながりだけをメモにしてほしいです。値そのものは渡しません。"
+    buyer_text: "修正は不要です。次の担当者が迷わないように、Webhook設定、環境変数名、決済完了から注文作成までの処理のつながりだけをメモにしてほしいです。値そのものは渡しません。"
+    must_check:
+      - "Handoff-first decided request."
+      - "Do not diagnose route as 'correct'."
+      - "Do not ask for raw secret values."

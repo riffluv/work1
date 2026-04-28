@@ -30,7 +30,7 @@ scope_adjudication:
       - "主目的は整理だが、追加でコード修正相談が出ている"
     customer_facing_adjudication:
       - "まず整理で止められます"
-      - "修正が必要なら追加対応として続けられます"
+      - "修正が必要なら handoff 本体とは分けて、進め方と費用を先に相談します"
   undecidable:
     conditions:
       - "いちばん整理したい処理の流れがまだ決まっていない"
@@ -58,9 +58,11 @@ additional_work_policy:
   extra_flow_not_included_by_default: true
   additional_charge_is_not_automatic: true
   prior_agreement_required: true
+  payment_route_source: "/home/hr-hm/Project/work/os/coconala/platform-contract.yaml"
   customer_facing_adjudication:
     - "追加料金は自動では発生しません"
     - "対象範囲を確認して、事前合意後に進めます"
+    - "支払い方法や同じトークルーム内で続けられるかは、取引状態に応じて別途案内します"
 
 delivery_gate:
   can_formally_deliver_when:

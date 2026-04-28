@@ -26,7 +26,8 @@ hard_no:
 boundary_principles:
   - "主目的が修正なら bugfix を先に勧める"
   - "コードが分からないだけでは handoff 送りの単独理由にしない"
-  - "整理後に修正が必要なら、同じトークルーム内で追加料金の修正として続けられる"
+  - "整理後に修正が必要でも、handoff 本体には含めず別対応として分ける"
+  - "追加対応の支払い導線は platform-contract に従い、service boundary の根拠にしない"
   - "主要1フローを超える場合は追加フローで切る"
 
 source_refs:

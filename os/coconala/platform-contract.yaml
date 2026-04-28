@@ -1,6 +1,6 @@
 version: 1
 platform: coconala
-last_verified: 2026-04-25
+last_verified: 2026-04-29
 
 purpose: >
   Coconala 全サービス共通の取引仕様と返信ガイダンス。
@@ -149,6 +149,18 @@ facts:
       - https://coconala-support.zendesk.com/hc/ja/articles/218723147-%E3%83%88%E3%83%BC%E3%82%AF%E3%83%AB%E3%83%BC%E3%83%A0%E3%81%AE%E3%82%AF%E3%83%AD%E3%83%BC%E3%82%BA%E5%BE%8C%E3%81%AB%E8%BF%BD%E5%8A%A0%E3%81%AE%E8%B3%AA%E5%95%8F%E3%82%84%E4%BE%9D%E9%A0%BC%E3%82%92%E3%81%97%E3%81%9F%E3%81%84
       - https://coconala-support.zendesk.com/hc/ja/articles/900001972863-%E3%81%8A%E3%81%B2%E3%81%AD%E3%82%8A-%E6%9C%89%E6%96%99%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3-%E4%B8%80%E9%83%A8%E9%87%91%E9%A1%8D%E3%81%AE%E3%82%AD%E3%83%A3%E3%83%B3%E3%82%BB%E3%83%AB%E6%96%B9%E6%B3%95-%E5%87%BA%E5%93%81%E8%80%85%E5%90%91%E3%81%91
 
+  service_scope_vs_payment_route:
+    summary: >
+      bugfix / handoff / neither の判定は、サービス範囲・成果物・料金単位の判定である。
+      同じトークルーム内で追加支払いできるか、有料オプションかおひねりか、新規依頼へ戻すかは、
+      取引状態に応じた支払い導線の判定であり、サービス範囲を混ぜる根拠にしない。
+      追加対応が可能な場合でも、自動追加料金、セット料金化、後続サービス前提、同日対応保証として案内しない。
+    confidence: operational
+    outward_assertion: cautious
+    source_refs:
+      - additional_payment_before_close
+      - /home/hr-hm/Project/work/os/core/service-registry.yaml
+
   cancel_refund_shape:
     summary: >
       キャンセルや返金はプラットフォーム手続きに沿う話として扱い、
@@ -211,6 +223,26 @@ guidance:
     based_on:
       - estimate_proposal_flow
       - category_minimum_price_exists
+
+  - id: keep_service_boundary_and_payment_route_separate
+    when:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    rule: >
+      サービス判定では、bugfix / handoff / neither を先に分ける。
+      「同じトークルーム内で続けられるか」「有料オプションかおひねりか」「新規依頼へ戻すか」は、
+      その後の取引状態に応じた支払い導線として扱う。
+      通常返信や #BR の route gold では、buyer が支払い方法を聞いていない限り、
+      「別成果物」「別対応」「進め方と費用を先に相談」までに留める。
+      取引中で buyer が追加対応方法を明示的に聞いた時だけ、状態に合わせてトークルーム内の追加支払い導線を案内する。
+      closed 後は旧トークルーム内のおひねりや追加購入へ誘導しない。
+    based_on:
+      - service_scope_vs_payment_route
+      - additional_payment_before_close
+      - closed_talkroom_locked
 
   - id: do_not_assert_refund_mechanics
     when:

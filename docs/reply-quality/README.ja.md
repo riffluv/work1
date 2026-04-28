@@ -125,6 +125,35 @@
 - Deep Research など外部調査の結果は、`external-research-observation-plan-20260425.ja.md` のように観察メモへ分離し、次の `#RE` の stock / archetype / reviewer 観点として使う
   - 外部調査結果をそのまま rule / renderer / validator へ入れない
 
+## `#BR` の扱い
+
+- `#BR` は `bugfix-15000 / handoff-25000` の境界ルーティングを鍛える shadow rehearsal ショートカット
+- 正式名は `Boundary Routing rehearsal`
+- `#RE` は通常の `bugfix-15000` 返信品質を回す
+- `#BR` は、将来 `bugfix-15000` と `handoff-25000` が両方公開された時の混在相談を、先に検査するためだけに使う
+- 現時点では `handoff-25000` は `public: false` のまま
+- `#BR` 内では `handoff-25000` を `training-visible / future-dual simulation` として扱う
+- 通常の外向け返信では、引き続き `handoff-25000` のサービス名・25,000円・購入導線を出さない
+- `#BR` を実行しても `service-registry.yaml` の公開状態を変更しない
+- 出力は 1 ファイルだけに絞る
+  - `/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md`
+- 最新 batch は常に `返信監査_batch-current.md` を更新する。完了済みの過去 batch は必要な場合だけ `archive/` へ退避し、監査対象としては current だけを見る
+- 監査プロンプトは同じフォルダに置く
+  - `監査プロンプト_codex-xhigh.md`
+  - `監査プロンプト_claude.md`
+- 正本メモは `boundary-routing-shadow-rehearsal.ja.md`
+- 見る観点は次の7つ
+  - buyer の主目的が `修正` か `把握/整理` か
+  - `bugfix-first` と `handoff-first` を buyer に丸投げせず返せているか
+  - buyer がすでに正しい route を選んでいる時に、`合っています` などの診断文を出していないか
+  - buyer がズレた route を選んでいる時に、受け流さず正しい入口へ誘導できているか
+  - `15,000円の不具合修正` と `25,000円の主要1フロー整理` を混ぜていないか
+  - `handoff-25000 public:false` の live 漏れがないか
+  - `整理後に修正が必要` / `修正後に整理が必要` の接続が自然か
+  - サービス境界と支払い導線を混ぜていないか
+  - 新機能追加・複数フロー・リポジトリ全体調査を誤って吸収していないか
+  - buyer が次に取る行動が迷子になっていないか
+
 ## 監査の固定 rubric
 1. 相手の質問や不安に正面から返しているか
 2. 次アクションが明確か
