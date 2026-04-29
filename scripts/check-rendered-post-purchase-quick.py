@@ -352,6 +352,11 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("admin login direct-operation request does not block login information sharing")
         if not has_any(rendered, ["修正済みファイル", "反映手順", "手順"]):
             errors.append("admin login direct-operation request does not provide a safe alternative")
+    if scenario == "direct_push_request" and has_any(raw, ["本番反映", "本番にも反映", "本番にも反映して"]):
+        if not has_any(rendered, ["本番反映はこちらでは行っていません", "本番反映はこちらでは行って", "本番への反映は"]):
+            errors.append("direct push compound request does not decline production deployment directly")
+        if not has_any(rendered, ["依頼者様側", "そちらをもとに"]):
+            errors.append("direct push compound request does not explain who performs production deployment")
     if has_any(raw, ["他のお客さん", "他のお客さま", "個人情報"]) and has_any(raw, ["ログ", "送ったログ", "さっき送った"]) and not has_any(rendered, ["広げず", "伏せた", "大丈夫です"]):
         errors.append("privacy concern case does not explain safe handling of the shared log")
     if "STRIPE_SECRET_KEY" in raw and "Vercel" in raw and has_any(raw, ["セットしておきました", "これで直るはず"]) and not has_any(rendered, ["直る可能性", "他の要因", "設定反映後"]):

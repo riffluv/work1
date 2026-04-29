@@ -1541,7 +1541,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "id": "a1",
                     "question_ids": question_ids,
-                    "ask_text": "特に分かりにくかった箇所があれば、そのまま送ってください。",
+                    "ask_text": "補足はこちらで先に整理します。追加で特に知りたい箇所があれば、そのまま送ってください。",
                     "why_needed": "補足の範囲で足りるかを判断するため",
                 }
             ],

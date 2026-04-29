@@ -1072,3 +1072,83 @@
 - きっかけ: r1 は hard boundary と public leak は問題なかったが、文量・重複・closed 後の費用表現に gold 寄せの余地が残っていた
 - 想定効果: `bugfix-15000` live の公開直前入口で、購入前診断拒否、複数症状の1件目設定、購入後追加症状、closed 後相談の次行動がさらに短く自然に伝わる
 - 非変更: 新規 rule 追加はしない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない
+
+### 2026-04-29 / CHG-125
+- 分類: `common`
+- レイヤ: Pro後 service-grounding sentries
+- 変更: `scripts/check-service-grounding-sentries.py` を追加し、`service-page-semantic-smoke`、`renderer-literal-drift-scan`、`public_false_shadow_lexeme` を1本の検知 suite として実装した。`bugfix-15000.live.txt` の価格・同一原因・修正済みファイル返却・secret 値禁止・原因だけ診断不可・追加作業の事前相談が facts / service-pack / rendered reply に落ちているかを確認する。renderer 内の価格・private/shadow 語彙は fail ではなく warn とし、live / #RE の代表 fixture では `handoff-25000` / 25,000円 / 主要1フロー / 引き継ぎメモ漏れを fail にする。`check-coconala-reply-role-suites.py` からも最後に1回だけ実行する。あわせて `service-registry.yaml` に `facts_service_id` を追加し、`bugfix-15000` と `next-stripe-bugfix` の alias を明文化した
+- きっかけ: Pro 分析で、サービス記憶領域と返信システムの接続はかなり強いが、renderer の第二正本化リスク、service page と返信文の semantic diff の弱さ、#BR shadow 語彙の live 漏れ sentry 固定化が残課題として示された
+- 想定効果: #RE / #BR をさらに増やす前に、サービス本丸 -> registry / facts -> renderer / validator / regression の意味接続を薄く検知できる。renderer のリテラルをすぐ全面動的化せず、warn として可視化しながら public leak だけは hard fail にできる
+- 非変更: renderer の全面 dynamic 化はしない。`handoff-25000` は public:false のまま。renderer 内の既存 `15,000円` リテラルは現時点では warn 扱いで、返信出力の live 漏れのみ fail とする
+
+### 2026-04-29 / CHG-126
+- 分類: `reply-only`
+- レイヤ: timestamp policy lint
+- 変更: `scripts/check-timestamp-policy.py` を追加し、購入後 / 納品後 / closed の代表 fixture を runtime で再描画して、`本日HH:MMまでに` が過去時刻や異常な時刻になっていないかを検査するようにした。renderer 内に `本日18:00までに` のような固定時刻リテラルがあれば fail、現在の監査用 md に残る固定時刻は warn として出す。`check-coconala-reply-role-suites.py` からも最後に1回だけ実行する
+- きっかけ: Pro 分析で、具体時刻コミットは runtime 生成なら有用だが、fixture / rehearsal に固定時刻として残ると stale deadline 事故や bot 感の原因になると指摘された
+- 想定効果: 実際の送信用返信では runtime 時刻の鮮度を維持しつつ、監査用 batch に残る固定時刻を可視化できる。固定時刻を全廃せず、外部監査前に必要なら再生成する判断材料にする
+- 非変更: 時刻コミットの運用自体は廃止しない。監査用 md の固定時刻は現時点では warn 扱いで、送信用 renderer の固定時刻だけ fail とする
+
+### 2026-04-29 / CHG-127
+- 分類: `reply-only`
+- レイヤ: #RE bugfix45 / post-Pro grounding sentry
+- 変更: `post-pro-grounding-bugfix45.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-45-post-pro-grounding-r0` へ更新した。service grounding / timestamp sentry 追加後の確認走行として、対象可否、コード出どころ不明、active defect + 新機能追加、quote_sent の購入前材料送付、purchased の進捗不安と直接 push / 本番反映依頼、delivered の承諾待ち、closed 後のおひねり継続圧力を検査対象にした。初回生成で出た `クーポン機能` 入力への `CSVダウンロードボタン` context bleed を、feature addon renderer と validator の最小補強として戻した。あわせて `eval-sources.yaml` と timestamp-policy の runtime fixture に接続した
+- きっかけ: Pro後ロードマップで service page -> facts -> renderer の接続と timestamp policy を入れたため、実際の `bugfix-15000` live 返信で本丸接地・public leak・phase・時刻が崩れないか確認する必要があった
+- 想定効果: `bugfix-15000` live で、サービス正本に接地した可否返答、新機能追加の吸収防止、購入前作業開始防止、直接 push / 本番デプロイ拒否、closed 後の実作業分離がさらに安定する
+- 非変更: `handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない。今回の補強は bugfix live の post-Pro sentry として扱う
+
+### 2026-04-29 / CHG-128
+- 分類: `reply-only`
+- レイヤ: #RE bugfix45 r1 / compound boundary fix
+- 変更: bugfix45 r0 外部監査で B06 / B08 が必須修正となったため r1 へ反映した。B06 は direct push だけでなく本番反映もこちらでは行わないと明示し、本番反映は返却した差分・手順をもとに依頼者側で行う形へ締めた。B08 は `クローズ後` も旧トークルームおひねり継続圧力として検知し、旧トークルーム内のおひねり追加で別件修正を進められないこと、実作業が必要なら見積り提案または新規依頼として対応方法と費用を先に相談することを明示した。軽微指摘として B01 の重複謝意、B02 の前任者/AI拾い漏れ、B03 の `この内容` 曖昧さも修正した
+- きっかけ: r0 は private leak や価格崩れはなかったが、buyer が明示した禁止事項への否定が compound question 内で一部落ちていた
+- 想定効果: `bugfix-15000` live で、直接 push + 本番反映、closed 後の旧トークルーム + おひねり追加のような複合危険質問に対して、禁止事項を破らないだけでなく主質問へ明示的に答えられる
+- 非変更: 新しい支払い導線は解禁しない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない
+
+### 2026-04-29 / CHG-129
+- 分類: `reply-only`
+- レイヤ: #RE bugfix45 r1 accepted / light naturalization
+- 変更: bugfix45 r1 外部再監査で採用圏・必須修正なしとなったため、軽微3点だけ反映した。B01 は購入前文脈をより明確にするため `ご購入後、必要情報がそろい次第...` に変更した。B06 は直接 push と本番反映の否定を短く切り、境界説明の読みやすさを上げた。B08 は `確認しました` 系の内部処理っぽさを避け、`クローズ後の別件相談ですね` へ自然化した
+- きっかけ: r1 で hard boundary と public leak は解消済みだったが、phase 明示、文量、語感に gold 寄せの余地が残っていた
+- 想定効果: `bugfix-15000` live で、購入前の作業開始誤解、直接 push / 本番反映の読みづらさ、closed 後の機械的な受けをさらに減らせる
+- 非変更: 新規 rule 追加はしない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない
+
+### 2026-04-29 / CHG-130
+- 分類: `reply-only`
+- レイヤ: Pro後 reviewer prompt soft lenses
+- 変更: bugfix-15000 と #BR の Codex xhigh 監査プロンプトに、Pro が挙げた5つの補助監査レンズを soft lens として追記した。対象は `source_traceability`、`commitment_budget`、`semantic_grounding_drift`、`shadow_to_live_contamination`、`evidence_minimality`。あわせて、これらを hard fail に直結させず、明確な public leak / phase drift / secret 値要求 / 保証断定など deterministic な事故だけ必須修正にする注意も追加した
+- きっかけ: Pro 分析では、監査精度を上げる候補として5レンズが示された一方、全レンズの hard validator 化や売上最大化 CTA / 汎用 empathy / 全 platform legal lens はノイズ化すると警告されていた
+- 想定効果: 返信生成や renderer を変えず、外部監査AIに見るべき観点だけを渡せる。骨格を壊さず、source traceability / commitment budget / evidence minimality のような実務違和感を拾いやすくする
+- 非変更: renderer / validator / service facts は変更しない。Pro後5レンズは生成 rule ではなく reviewer prompt の soft lens として扱う
+
+### 2026-04-29 / CHG-131
+- 分類: `reply-only`
+- レイヤ: #RE bugfix46 / post-Pro reviewer lens sentry
+- 変更: `post-pro-review-lenses-bugfix46.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-46-post-pro-review-lenses-r0` へ更新した。Pro後5レンズの確認走行として、保証・直らなかった場合、raw secret inventory、buyer 文内の25,000円/整理語、quote_sent の購入前材料送付、purchased の既出材料確認、キー名のみ共有、delivered の軽い補足説明、closed 後の関係確認を検査対象にした。local preflight で出た保証質問の追加作業境界不足、quote_sent の購入前材料送付検知順、`届いていますか` の表記揺れを最小補修した。あわせて `eval-sources.yaml`、service-grounding sentry、timestamp-policy の runtime fixture に接続した
+- きっかけ: 監査プロンプトに Pro後5レンズを追加したため、生成本体を変えずに外部監査の観点がノイズ化しないか確認する必要があった
+- 想定効果: `bugfix-15000` live で、source traceability / commitment budget / semantic grounding drift / shadow-to-live contamination / evidence minimality を、hard rule 化せず監査観点として扱えるか確認できる
+- 非変更: `handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない。Pro後5レンズは引き続き soft lens として扱う
+
+### 2026-04-29 / CHG-132
+- 分類: `reply-only`
+- レイヤ: #RE bugfix46 r1 / accepted audit light revision
+- 変更: bugfix46 r0 外部監査で採用圏・必須修正なしとなったため、軽微3点だけ r1 へ反映した。B01 は buyer が症状を書いている場面で聞き直さず、`この内容で進める場合は、そのままご購入ください` へ締めた。B03 は相手文にない `Webhookエラー` を足さず、`Stripe決済後に注文が作られない件` と buyer 文ベースへ戻した。B07 は補足説明を求める buyer に対し、追加質問を前提にせず、こちらで先に補足を整理する文へ寄せた
+- きっかけ: r0 は private leak や hard boundary の崩れはなかったが、Pro後5レンズが拾った evidence minimality / semantic grounding drift / commitment budget の軽微な違和感が残っていた
+- 想定効果: `bugfix-15000` live で、症状の聞き直し、相手文にない技術語の先読み、納品後補足の質問前提化を減らし、Pro後5レンズを soft lens として自然に活かせる
+- 非変更: 新規 rule 追加はしない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない
+
+### 2026-04-29 / CHG-133
+- 分類: `reply-only`
+- レイヤ: #RE bugfix46 r1 accepted / B08 preference polish
+- 変更: bugfix46 r1 外部再監査で採用・必須修正なしとなったため、B08 の `まず確認材料として見ます` だけを `まずは内容を確認します` へ自然化した
+- きっかけ: `確認材料` は内部処理語に近く、送信用文面では少し硬く見えるという preference 指摘があった
+- 想定効果: closed 後の関係確認で、内部ルール説明っぽさを減らし、購入者向けの自然な受けに寄せる
+- 非変更: 新規 rule 追加はしない。closed 後に修正作業や修正済みファイル返却を進めない境界は維持する
+
+### 2026-04-29 / CHG-134
+- 分類: `reply-only`
+- レイヤ: human audit / received-materials naturalization
+- 変更: B05 の `確認しました` 直後に `はい、昨日のログとスクショは確認できています` と重ねる二重受領を、`ログとスクショありがとうございます` -> `昨日のログとスクショは届いています` へ修正した。あわせて `japanese-chat-natural-ja`、`docs/reply-quality/ng-expressions.ja.md`、`reply_quality_lint_common.py` に、`確認しました` / `受け取りました` 直後の機械的な `はい、〜確認できています` を避ける rule / lint を追加した
+- きっかけ: 人間監査で、受領済みの文脈に `はい` を機械的に付けると日本語ネイティブには bot / AI 感が強く出ると指摘された
+- 想定効果: purchased 中の受領確認で、同じ確認を二重に言わず、相手の行動への短い謝意 -> 受領事実 -> 次の流れ、の順に自然化できる
+- 非変更: 受領確認、追加準備なし、次回時刻コミットの内容は変えない。`はい、` 全般を禁止するわけではなく、受領確認直後の重複だけを lint 対象にする

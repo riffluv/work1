@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC45-001
+    stock_id: HRC45-001
+    category: post_pro_grounding
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: subscription_bug_scope_question
+    question_type: service_grounded_scope_yes_no
+    primary_question: Stripeのサブスク決済後に会員状態が更新されない不具合が15,000円の対象になるか。
+    raw_message: "Stripeのサブスク決済後、支払いは成功しているのに会員状態が有料に変わりません。これは15,000円の不具合修正の対象になりますか？"
+    note: 通常 live / #RE。service facts に grounded した対象可否を短く返し、非公開 handoff 導線を出さないかを見る。
+
+  - id: HRC45-002
+    stock_id: HRC45-002
+    category: post_pro_grounding
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: provider_unknown_scope_question
+    question_type: code_origin_unknown_active_defect
+    primary_question: 前任者やAIで作られたコードでも、今起きている決済後不具合として依頼できるか。
+    raw_message: "前任者とAIで作ったNext.jsのコードなので中身がよく分かりません。Stripe決済後に注文が作られない状態ですが、それでもお願いできますか？"
+    note: active defect をコード整理や引き継ぎ必須に逃がさず、bugfix-first で受けられるかを見る。
+
+  - id: HRC45-003
+    stock_id: HRC45-003
+    category: post_pro_grounding
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: feature_addition_scope_question
+    question_type: feature_addition_with_bugfix
+    primary_question: 注文作成不具合の修正ついでに、クーポン機能追加も同じ15,000円でできるか。
+    raw_message: "Stripe決済後に注文が作られない不具合を直してほしいです。ついでにクーポン機能も追加したいのですが、同じ15,000円でできますか？"
+    note: active defect は受けつつ、新機能追加を bugfix に吸収しない境界を見る。
+
+  - id: HRC45-004
+    stock_id: HRC45-004
+    category: post_pro_grounding
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: prepayment_materials_before_payment
+    question_type: quote_sent_prepayment_materials
+    primary_question: 見積り提案後、購入前にコードやログを送れば先に見てもらえるか。
+    raw_message: "見積りありがとうございます。購入前ですが、先にコードとログを送れば軽く見てもらえますか？問題なければそのまま購入します。"
+    note: quote_sent。購入前作業開始へ滑らず、購入後に確認する phase 境界を返せるかを見る。
+
+  - id: HRC45-005
+    stock_id: HRC45-005
+    category: post_pro_grounding
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: progress_anxiety
+    question_type: purchased_progress_and_time
+    primary_question: 購入後、確認に入れているかと次にいつ状況が分かるかを知りたい。
+    raw_message: "購入後にコードとログを送りました。ちゃんと確認に入れているか不安です。次にいつ状況が分かるかだけ教えてください。"
+    note: purchased。現在地と次回時刻を出し、固定時刻や古い時刻へ滑らないかを見る。
+
+  - id: HRC45-006
+    stock_id: HRC45-006
+    category: post_pro_grounding
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: direct_push_request
+    question_type: purchased_direct_push_deploy_request
+    primary_question: GitHubへ直接 push して本番反映までしてもらえるか。
+    raw_message: "GitHubに招待したので、修正できたらそのままmainにpushして本番にも反映してもらえますか？"
+    note: purchased。直接 push / 本番デプロイ代行を吸収しないかを見る。
+
+  - id: HRC45-007
+    stock_id: HRC45-007
+    category: post_pro_grounding
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: approval_wait_request
+    question_type: delivered_approval_wait
+    primary_question: 納品後、正式な承諾前に少し確認時間を取ってよいか。
+    raw_message: "納品ありがとうございます。自分の環境で確認してから正式な承諾を押したいので、少し待ってもらえますか？"
+    note: delivered。承諾前確認を自然に受け、closed 扱いへ早戻ししないかを見る。
+
+  - id: HRC45-008
+    stock_id: HRC45-008
+    category: post_pro_grounding
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: closed_old_talkroom_ohineri
+    question_type: closed_old_talkroom_ohineri
+    primary_question: クローズ後に、前回トークルームの続きとしておひねり追加で修正できるか。
+    raw_message: "クローズ後ですみません。前回のトークルームの続きで、おひねりを追加して別のStripeエラーも直してもらえますか？"
+    note: closed。旧トークルーム継続や closed 後のおひねり実作業を約束せず、相談と実作業を分けられるかを見る。

@@ -102,6 +102,14 @@ def has_context_bleed_from_handoff_case(rendered: str, raw: str) -> bool:
     return not raw_allows_handoff_context
 
 
+def has_feature_addon_context_bleed(rendered: str, raw: str) -> bool:
+    if has_any(raw, ["クーポン", "coupon", "promotion code"]) and has_any(rendered, ["CSV", "csv"]):
+        return True
+    if has_any(raw, ["CSV", "csv"]) and has_any(rendered, ["クーポン", "coupon", "promotion code"]):
+        return True
+    return False
+
+
 def has_service_structure_question(text: str) -> bool:
     return has_any(
         text,
@@ -142,6 +150,9 @@ def collect_prequote_r0_stability_errors(rendered: str, raw: str) -> list[str]:
 
     if has_context_bleed_from_handoff_case(rendered, raw):
         errors.append("prequote r0 guard failed: rendered text contains context from a different handoff/outsourcing scenario")
+
+    if has_feature_addon_context_bleed(rendered, raw):
+        errors.append("prequote r0 guard failed: rendered text contains context from a different feature addon scenario")
 
     if has_non_stripe_provider(raw):
         accepts_broadly = has_any(rendered, ["この不具合なら15,000円で対応できます", "この不具合なら15,000円で進められます", "15,000円で対応できます"])

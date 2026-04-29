@@ -1997,7 +1997,7 @@ def next_action_now_for(case: dict) -> str:
     ):
         return "この前提で気になる点があれば、そのまま続けて聞いてください。"
     if src == "service":
-        return "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。"
+        return "この内容で進める場合は、そのままご購入いただいて大丈夫です。ご購入後、必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。"
     if src in {"profile", "message"}:
         return "進める場合は、この内容でご提案します。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。"
     return "必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。"
@@ -2164,6 +2164,14 @@ def compose_render_payload(payload: dict, *, use_fallback_editable: bool = False
     return "\n\n".join(sections)
 
 
+def acknowledgement_lines(case: dict) -> list[str]:
+    opener = opener_for(case)
+    acknowledgement = acknowledge_for(case)
+    if opener == "ご相談ありがとうございます。" and acknowledgement == "内容ありがとうございます。":
+        return [opener]
+    return [line for line in [opener, acknowledgement] if line.strip()]
+
+
 def render_budget_completion_gate_case(case: dict) -> str:
     raw = case.get("raw_message", "")
     opener = opener_for(case)
@@ -2252,8 +2260,9 @@ def render_fix_vs_structure_first_case(case: dict) -> str:
 def render_public_structure_scope_boundary_case(case: dict) -> str:
     raw = case.get("raw_message", "")
     opener = opener_for(case)
+    target = "Stripe決済後に注文が作られない件" if "Stripe" in raw and "注文" in raw else "今起きている不具合"
     paragraphs = [
-        "\n".join([opener, "はい、今回のWebhookエラーで注文が作られない件は、15,000円の不具合修正で確認できます。"]),
+        "\n".join([opener, f"はい、{target}は、15,000円の不具合修正で確認できます。"]),
         "コード全体を整理し直す前提ではなく、不具合修正に必要な範囲を確認します。",
         "今回の範囲だけでは修正完了まで進められないと分かった場合は、そこで止めてご説明します。\n勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
         "この内容で進める場合は、ご購入後にエラー内容やログを送ってください。",
@@ -2461,13 +2470,26 @@ def render_refund_cancel_prequote_case(case: dict) -> str:
 
 
 def render_feature_addon_scope_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    bugfix_target = (
+        "Stripe決済後に注文が作られない不具合"
+        if any(marker in raw for marker in ["注文が作られない", "注文データが作られない"])
+        else "決済後に注文履歴へ反映されない不具合"
+    )
+    feature_target = (
+        "クーポン機能の追加"
+        if any(marker in raw for marker in ["クーポン", "coupon", "promotion code"])
+        else "CSVダウンロードボタンの追加"
+        if "CSV" in raw or "csv" in raw
+        else "新しい機能の追加"
+    )
     return "\n\n".join(
         [
             "ご相談ありがとうございます。",
-            "決済後に注文履歴へ反映されない不具合については、15,000円で対応できます。",
-            "ただし、CSVダウンロードボタンの追加は、不具合修正ではなく新機能追加になります。\n不具合修正と機能追加は別の対応になるため、同じ15,000円内に含めることはできません。",
-            "まずは注文履歴への反映不具合を1件として進め、CSVダウンロード追加が必要であれば別途ご相談ください。",
-            "この内容で進める場合は、そのままご購入ください。",
+            f"{bugfix_target}については、15,000円で対応できます。",
+            f"ただし、{feature_target}は、不具合修正ではなく新機能追加になります。\n不具合修正と機能追加は別の対応になるため、同じ15,000円内に含めることはできません。",
+            f"まずは{bugfix_target}を1件として進め、{feature_target}が必要であれば別途ご相談ください。",
+            "不具合修正のみで進める場合は、そのままご購入ください。",
         ]
     )
 
@@ -2565,7 +2587,7 @@ def render_code_handoff_bugfix_scope_case(case: dict) -> str:
     return "\n\n".join(
         [
             "ご相談ありがとうございます。",
-            "AIで作ったコードで中身が分からない状態でも、Stripe決済後に注文データが作られない不具合として確認できます。",
+            "前任者やAIで作られたコードで中身が分からない状態でも、Stripe決済後に注文データが作られない不具合として確認できます。",
             "この内容なら、15,000円の不具合修正で対応できます。\nコード全体の整理を前提にせず、修正に必要な範囲をこちらで確認します。",
             "この内容で進める場合は、そのままご購入ください。\nご購入後に、関連しそうなファイルやログを送ってください。\n必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
         ]
@@ -2625,7 +2647,8 @@ def render_success_rate_or_guarantee_question_case(case: dict) -> str:
             "メッセージありがとうございます。",
             "100%直せるとはお約束しておらず、案件ごとに環境やコードの状態が違うため、原因特定率を一律の数字でお伝えすることもしていません。",
             "15,000円は、不具合1件について原因確認から修正、修正済みファイルの返却まで進める前提の料金です。\n原因や修正方針につながらず、修正済みファイルを返せない状態のまま、一方的に正式納品へ進めることはありません。",
-            "具体的な症状があれば、状況を教えてください。対応範囲に入りそうかを先にお返しします。",
+            "確認中に別原因や別作業が必要だと分かった場合も、勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+            "この内容で進める場合は、そのままご購入ください。",
         ]
     )
 
@@ -2669,7 +2692,7 @@ def build_estimate_render_payload(case: dict) -> dict:
 
     fixed_slots: dict[str, str] = {}
     editable_slots: dict[str, str] = {
-        "ack": "\n".join([opener_for(case), acknowledge_for(case)]),
+        "ack": "\n".join(acknowledgement_lines(case)),
         "bridge_to_hold": "",
         "bridge_to_ask": "",
         "closing": "",

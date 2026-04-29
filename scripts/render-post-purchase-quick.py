@@ -284,6 +284,8 @@ def opener_for(source: dict) -> str:
     if source.get("state") == "purchased" and source.get("scenario") in FOLLOWUP_MEMORY_SCENARIOS:
         if (reply_memory_for(source).get("followup_count") or 0) > 0:
             return ""
+    if source.get("scenario") == "received_materials_flow_check":
+        return "ログとスクショありがとうございます。"
     route = source.get("route", source.get("src", "talkroom"))
     if route == "message":
         return "ご連絡ありがとうございます。"
@@ -448,7 +450,7 @@ def build_hard_constraints(scenario: str, grounding: dict) -> dict:
         "no_external_contact": scenario in {"external_channel_request", "external_share_env_change"},
         "no_raw_secrets": scenario in {"live_secrets_pasted", "secret_handling_question", "keys_shared", "admin_login_direct_operation_request"},
         "no_direct_push": scenario == "direct_push_request",
-        "no_prod_deploy": scenario in {"deployment_help_request", "admin_login_direct_operation_request"},
+        "no_prod_deploy": scenario in {"direct_push_request", "deployment_help_request", "admin_login_direct_operation_request"},
     }
 
 
@@ -533,7 +535,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
             direct_answer_line = "はい、その形で大丈夫です。node_modules はなくて問題なく、.env も値を消した状態のままで進められます。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "received_materials_flow_check":
-        direct_answer_line = "はい、昨日のログとスクショは確認できています。"
+        direct_answer_line = "昨日のログとスクショは届いています。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "screenshot_followup":
         direct_answer_line = "スクショありがとうございます。その画面を手がかりに見ます。"
@@ -668,7 +670,7 @@ def detect_scenario(source: dict) -> str:
     ):
         return "repo_invite_and_screenshots"
     if (
-        any(marker in combined for marker in ["届いてますでしょうか", "届いてますか", "届いているか", "届いてます"])
+        any(marker in combined for marker in ["届いてますでしょうか", "届いてますか", "届いていますか", "届いているか", "届いてます"])
         and any(marker in combined for marker in ["ログ", "スクショ", "流れ", "追加で用意", "準備しておきます"])
     ) or (
         any(marker in combined for marker in ["初めてこういうサービス", "流れで進む", "イメージできてなく"])
@@ -1374,7 +1376,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "はい、昨日のログとスクショは確認できています。",
+                    "answer_brief": "昨日のログとスクショは届いています。",
                 },
                 {
                     "question_id": "q2",
@@ -1688,13 +1690,13 @@ def build_case_from_source(source: dict) -> dict:
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [
-                {"id": "q1", "text": "直接 push してもらえるか", "priority": "primary"},
+                {"id": "q1", "text": "直接 push と本番反映までしてもらえるか", "priority": "primary"},
             ],
             "answer_map": [
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "GitHubの招待は不要です。依頼者側リポジトリへの直接 push は行っていません。修正内容は、修正済みファイルまたは差分と適用手順が分かる形でこのトークルーム内にお返しします。",
+                    "answer_brief": "依頼者側リポジトリへの直接 push と本番反映は行っていません。修正内容は、修正済みファイルまたは差分と適用手順が分かる形でこのトークルーム内にお返しします。本番への反映は、そちらをもとに依頼者様側でお願いします。",
                 },
             ],
             "ask_map": [],
@@ -2462,7 +2464,7 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "repo_invite_and_screenshots":
         return "GitHub招待とスクショ共有の件、確認しました。"
     if scenario == "received_materials_flow_check":
-        return "昨日のログとスクショの件、確認しました。"
+        return "昨日のログとスクショは届いています。"
     if scenario == "screenshot_followup":
         return "スクショありがとうございます。"
     if scenario == "keys_shared":

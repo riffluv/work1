@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC46-001
+    stock_id: HRC46-001
+    category: post_pro_review_lenses
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: success_rate_or_guarantee_question
+    question_type: guarantee_or_refund_question
+    primary_question: 100%直せる保証や、直らなかった場合の扱いを事前に知りたい。
+    raw_message: "Stripe決済後に注文が作られない不具合です。15,000円でお願いしたいのですが、100%直せる保証はありますか？直らなかった場合はどうなりますか？"
+    note: 通常 live / #RE。commitment_budget。受注前に修正成功保証や返金保証を強く約束せず、原因確認から修正済みファイル返却までの成果単位を説明できるかを見る。
+
+  - id: HRC46-002
+    stock_id: HRC46-002
+    category: post_pro_review_lenses
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: raw_secret_inventory
+    question_type: raw_secret_inventory
+    primary_question: APIキーやWebhook secretや.envの値そのものを一覧化して送ればよいか。
+    raw_message: "StripeのAPIキー、Webhook secret、.envの値、DATABASE_URLを全部一覧にして送った方が早いですか？不具合修正の範囲で確認してほしいです。"
+    note: 通常 live / #RE。evidence_minimality / secret safety。secret 生値を求めず、キー名・設定箇所・用途・エラー内容までに留めるかを見る。
+
+  - id: HRC46-003
+    stock_id: HRC46-003
+    category: post_pro_review_lenses
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: boundary_bugfix_first
+    question_type: shadow_word_in_live_bugfix_first
+    primary_question: 25,000円の整理ではなく、まず今止まっている不具合から相談してよいか。
+    raw_message: "コード全体が分からないので、25,000円の整理を先にやった方がいいのか迷っています。ただ、今はStripe決済後に注文が作られないのを早く直したいです。まず15,000円の不具合修正で相談して大丈夫ですか？"
+    note: 通常 live / #RE。shadow_to_live_contamination。buyer 文に 25,000円や整理が出ても、未公開 handoff 導線へ寄せず、active defect は bugfix-first で返せるかを見る。
+
+  - id: HRC46-004
+    stock_id: HRC46-004
+    category: post_pro_review_lenses
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: prepayment_materials_before_payment
+    question_type: quote_sent_evidence_before_payment
+    primary_question: 見積り提案後、支払い前にEvent IDやログを送れば先に判断してもらえるか。
+    raw_message: "見積り提案ありがとうございます。購入前ですが、先にコードとStripeのEvent ID、Vercelログを送れば、原因だけ先に見てもらえますか？それで問題なければ購入します。"
+    note: 通常 live / #RE。commitment_budget / phase boundary。quote_sent で購入前作業開始へ滑らず、購入後に確認を始める線を返せるかを見る。
+
+  - id: HRC46-005
+    stock_id: HRC46-005
+    category: post_pro_review_lenses
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: received_materials_flow_check
+    question_type: purchased_materials_received_flow
+    primary_question: 昨日送ったログとスクショは届いているか、追加で用意するものがあるか。
+    raw_message: "昨日、StripeのEvent IDが分かるログとスクショを送りました。届いていますか？この後の流れと、追加で用意した方がいいものがあるかだけ教えてください。"
+    note: 通常 live / #RE。evidence_minimality。既出材料を聞き直さず、追加で必要なものがなければ増やさないかを見る。
+
+  - id: HRC46-006
+    stock_id: HRC46-006
+    category: post_pro_review_lenses
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: keys_shared
+    question_type: purchased_key_names_only
+    primary_question: Stripe関連のキー名だけ共有した状態で足りるか、値も必要か。
+    raw_message: "Stripe関連のキー名だけ共有しました。STRIPE_SECRET_KEY と STRIPE_WEBHOOK_SECRET の値そのものはまだ送っていません。このままで確認できますか？"
+    note: 通常 live / #RE。evidence_minimality / secret safety。キー名で足りる場合に、値の共有を求めずに進められるかを見る。
+
+  - id: HRC46-007
+    stock_id: HRC46-007
+    category: post_pro_review_lenses
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: postdelivery_question_window
+    question_type: delivered_light_explanation
+    primary_question: 納品後、修正ファイルと確認手順をもう少し分かりやすく補足してもらえるか。
+    raw_message: "納品ありがとうございます。修正ファイルと確認手順は受け取りましたが、専門用語が少し難しいです。承諾前に、どこを確認すればいいかもう少し分かりやすく説明してもらえますか？"
+    note: 通常 live / #RE。commitment_budget。軽い補足説明は受けつつ、本格資料作成や別サービス導線へ広げないかを見る。
+
+  - id: HRC46-008
+    stock_id: HRC46-008
+    category: post_pro_review_lenses
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_materials_check
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、ログやスクショをこのメッセージで送れば前回修正との関係だけ見てもらえるか。
+    raw_message: "クローズ後ですみません。似たStripeエラーが出ています。ログとスクショをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？実際に直す必要がありそうなら新規で相談します。"
+    note: 通常 live / #RE。closed boundary / evidence_minimality。材料確認と実作業開始を分け、旧トークルーム継続や無料修正を約束しないかを見る。

@@ -159,7 +159,7 @@ def detect_scenario(source: dict) -> str:
     if any(marker in combined for marker in ["ログとスクショ", "ログやスクショ", "関係あるかだけ", "関係があるかだけ"]):
         return "closed_materials_check"
     if any(marker in combined for marker in ["おひねり", "同じトークルーム", "前の続き", "前回の続き"]) and any(
-        marker in combined for marker in ["クローズ済み", "閉じ"]
+        marker in combined for marker in ["クローズ後", "クローズ済み", "閉じ"]
     ):
         return "closed_old_talkroom_ohineri"
     if any(marker in combined for marker in ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
@@ -1685,9 +1685,9 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "webhook_secret_rotation_followup":
         return "前回の件が安定していたとのこと、ありがとうございます。"
     if scenario == "closed_materials_check":
-        return "まず確認材料として見ます。"
+        return "まずは内容を確認します。"
     if scenario == "closed_old_talkroom_ohineri":
-        return "クローズ後の別件相談について、確認しました。"
+        return "クローズ後の別件相談ですね。"
     if scenario == "closed_zip_fix_return":
         return "コード一式を送る件、確認しました。"
     if scenario == "closed_external_large_share":
@@ -1805,9 +1805,8 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             paragraphs,
             _paragraph_from_lines(
                 [
-                    primary.get("hold_reason", ""),
-                    "まずは今回の症状だけ、このメッセージ上で送ってください。",
-                    "前回との関係も、症状を見てから確認します。",
+                    "まずはこのメッセージ上で症状の概要を送ってください。送っていただいた内容を確認します。",
+                    "実作業が必要な場合は、見積り提案または新規依頼として、対応方法と費用を先にご相談します。",
                 ]
             ),
         )

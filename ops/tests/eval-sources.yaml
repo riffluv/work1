@@ -128,6 +128,20 @@ primary_sources:
       - 短文価格質問、曖昧相談、secret 値、購入前作業開始、複数不具合、purchased / closed の状態境界を検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/post-pro-grounding-bugfix45.yaml
+    role: eval
+    purpose:
+      - Pro後の service grounding / timestamp sentry 追加後も、bugfix-15000 live 返信の本丸が崩れないか確認
+      - サービス正本接続、非公開語彙漏れなし、購入前/見積り後/購入後/納品後/closed の状態境界を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/post-pro-review-lenses-bugfix46.yaml
+    role: eval
+    purpose:
+      - Pro後に監査プロンプトへ追加した5つの soft lens が、通常 live #RE でノイズにならず実務違和感を拾えるか確認
+      - source traceability、commitment budget、semantic grounding drift、shadow-to-live contamination、evidence minimality を検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

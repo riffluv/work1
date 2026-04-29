@@ -88,6 +88,16 @@
 - `buyer_state_ack_gap`: buyer が不安・疲弊・不信を出しているのに状態シグナルを落としている
 - `context_bleed`: buyer 文にない別シナリオの情報が混入している
 
+## Pro後の補助監査レンズ
+
+次の5つは追加で見てよい soft lens です。必須修正に直結させず、scope / route / price / public leak / payment state の事故と結びつく場合だけ強く扱ってください。
+
+- `source_traceability`: 返信内の価格・scope・deliverable・禁止事項が、bugfix / handoff の service page・facts・platform-contract のどこから来たか追えるか
+- `commitment_budget`: `対応できます` `進めます` `修正します` `本日HH:MMまで` などの約束が、route・state・受領証拠量に対して強すぎないか
+- `semantic_grounding_drift`: service page / facts / service-pack / renderer の意味がずれ、bugfix と handoff の成果物や対象範囲が混ざっていないか
+- `shadow_to_live_contamination`: #BR 内では妥当な handoff / 25,000円 / 主要1フロー語彙が、通常 live / #RE へ戻すと危険な形になっていないか
+- `evidence_minimality`: buyer がすでに出した情報を聞き直していないか、route 判定や次アクションに必要な最小情報だけを依頼しているか。secret 値や過剰なコード一式要求に寄っていないかも見る
+
 ## 注意
 
 - `#BR` は通常 live 返信ではありません。25,000円や handoff の説明が出ただけで即 hard fail にしないでください。
@@ -99,6 +109,7 @@
 - 「とりあえず両方できます」のような曖昧回答は落としてください。
 - 「15,000円の修正で軽い整理も全部見ます」「25,000円整理でバグも直します」は事故です。
 - buyer が聞いていない内部条件を並べすぎる指摘は soft lens として扱い、必須修正は scope / route / price / public leak に絞ってください。
+- Pro後の補助監査レンズも soft lens として扱ってください。全ケース自動 hard rule 化、売上最大化 CTA、汎用 empathy score、全 platform 汎用 legal/compliance lens は入れないでください。
 
 ## 出力形式
 

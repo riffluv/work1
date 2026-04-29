@@ -1,0 +1,267 @@
+1. 結論
+
+判定：一部できている。総合 8.0 / 10 です。
+内訳としては、bugfix-15000 live の公開運用準備は 8.4 / 10、将来アプリ化・他サービス展開できる返信判断コアとしては 7.3 / 10 くらいです。
+
+かなり良いです。単なるテンプレ集ではなく、service registry / public-private gate / platform-contract / renderer / validator / regression / #RE / #BR が接続された「返信判断OS」になりつつあります。特に、bugfix-15000 は public:true、handoff-25000 は public:false と registry で分離され、通常 live では public:true のみ外部返信に出す、public:false はサービス名・価格・購入導線を出さない、というルールが明文化されています。
+
+ただし、完成ではありません。主な未完成点は 3つ です。
+
+renderer にまだ第二正本化リスクがある。
+監査文書自身も、renderer 内に 15,000 系のリテラルが残っており、完全には動的化されていないと認めています。
+service page → service facts → service-pack → renderer の意味一致は、まだ完全な semantic diff ではない。
+check-service-pack-fidelity.py は facts / boundaries / decision-contract / evidence-contract / routing-playbooks / state-schema などへの参照解決を見ていますが、実質は「参照が存在するか」に寄っており、サービスページ文面と返信文の意味一致までは十分に保証していません。
+将来コアは育っているが、まだ抽出されていない。
+#RE / #BR は core training として有効ですが、現状の実装単位はまだ coconala / bugfix-15000 / Stripe / Next.js / 日本語ココナラ文体に深く結びついています。#BR は shadow と明記され、通常 live への漏れを禁止していますが、同じ repo・近い docs・近い renderer 周辺に語彙が存在するため、物理隔離までは弱いです。
+
+なお、私はリポジトリ上の公開ファイルを読んで監査していますが、ローカル clone して regression を実行したわけではありません。pass 19 / fail 0 などは、監査文書に記録された結果として評価しています。
+
+2. 良い構造：何が返信コアとして育っているか
+
+一番良い点は、返信品質を「文体」ではなく 判断の層 として育てているところです。#RE は bugfix-15000 の live 返信品質確認、#BR は future dual-service の boundary routing 訓練、と目的が分かれています。#RE では price-only、vague相談、secret 値、購入前作業開始、複数不具合、purchased / closed 境界などを確認し、#BR では bugfix / handoff / neither / payment route / public leak / delivered / closed を分けています。
+
+これはココナラ専用の表面訓練だけではありません。以下は将来サービス横断で使える core です。
+
+育っている core	現状での現れ
+service visibility 判定	public:true のみ外部返信、public:false は名前・価格・CTA禁止。
+phase / state 判定	prequote / quote_sent / purchased / delivered / closed / cancelled を platform-contract が内部状態として定義。
+route taxonomy	bugfix-first / handoff-first / neither / payment route separation を #BR で訓練。
+allowed facts / forbidden moves	secret 値禁止、外部連絡禁止、直接 push 禁止、本番 deploy 禁止などを service facts と renderer が扱う。
+reply quality lenses	主質問への直答、状態理解、buyer の次アクション、context bleed、direct answer first、closing present などが lint / changelog に入っている。
+regression feedback loop	seed / eval / holdout / edge / regression_seed が eval-sources に整理され、active cases に public-private leakage、delivery completion、post-BR boundary、docs cleanup noise、live human review、public launch practical が並んでいる。
+
+特に良いのは、#BR の学びをそのまま live に戻さない設計 です。handoff-25000 / 25,000円 / 主要1フロー は #BR 内では扱えるが、通常 live に戻す時は危険語彙として扱う、という線引きが明記されています。
+
+3. 危ない構造
+ココナラ専用に閉じすぎている部分
+
+現状の core は、判断構造としては横展開可能ですが、実装の肉付けはまだかなりココナラ寄りです。platform-contract.yaml は、見積り提案、トークルーム、正式納品、承諾、クローズ後、追加支払い、おひねり、新規依頼など、ココナラ固有の transaction model を詳細に扱っています。
+
+これは今の目的には必要です。むしろ live 安定化には強みです。ただし、将来アプリ化するなら、ここを core に上げてはいけません。core に上げるべきなのは closed そのものではなく、たとえば以下です。
+
+ココナラ語彙	core 化するなら
+トークルーム	transaction channel
+正式納品	delivery submitted
+承諾	buyer acceptance
+クローズ	transaction closed
+おひねり / 追加購入	in-transaction extra payment
+見積り提案 / 新規依頼	new transaction route
+ココナラメッセージ	out-of-transaction contact channel
+将来展開時に足を引っ張りそうな部分
+
+最も危ないのは、renderer が判断と文言を両方背負い続けること です。現状でも unified pipeline は state から lane を選び、lane ごとの drafter / validator を呼び、common validator と public leakage validator を通しています。これは良い骨格です。
+
+一方で、post-purchase renderer には same_cause_rule、talkroom_only_rule、direct_push_rule、deploy_boundary_rule、secret_boundary_rule のような buyer-facing ルール文が直接入っています。これらは有用ですが、将来は service facts / platform adapter / renderer phrase のどれなのか分解しないと、renderer が第二正本になります。
+
+もう1つ危ないのは、時間コミットの扱い です。post-purchase renderer には datetime.now(JST) + timedelta(hours=hours) から「本日HH:MMまでに」を作る関数があり、closed renderer 側にも「本日HH:MMまでに、見立てをお返しします」という生成があります。
+実運用で現在時刻から生成するなら成立しますが、rehearsal / regression に固定時刻が残ると、stale deadline の事故になります。#RE batch 44 の B07 / B08 にも 本日15:02、本日15:15 のような具体時刻が出ています。
+
+4. サービス記憶領域と返信システム接続の評価
+十分な接続
+
+接続はかなり強いです。service-registry.yaml は bugfix-15000 と handoff-25000 を分け、各サービスに facts_file、service_pack_root、source_of_truth を持たせています。さらに public replies use public_true services only、public_false services must not emit service name / price / purchase CTA、registry source_of_truth overrides pack assets というルールを持っています。
+
+bugfix-15000.live.txt 側の本丸情報も、返信判断に必要な粒度で揃っています。15,000円、1不具合・同一原因、原因確認・修正作成・確認手順・修正済みファイル返却、複数原因なら事前相談、secret 値禁止、外部連絡・直接 push・本番 deploy 禁止が明記されています。
+
+service facts 側にも、価格、scope unit、in-scope / out-of-scope、Stripe / Next.js / Webhook 関連 marker、必要情報、deliverables、fee policy、human review 条件が整理されています。
+
+さらに recent audit で、prequote renderer が registry から public bugfix service grounding を読み込み、service_id / public_service / source_of_truth / facts_file / pack_root / display_name / base_price / fee_text / scope_unit / hard_no / out_of_scope を持つようになっています。
+
+弱い接続
+
+弱いのは 意味一致の検知 です。service-grounding audit は、接続自体はできているが、service-pack fidelity は「参照の存在確認」に寄っていて semantic proof ではない、と明示しています。
+
+実装側でも、check-service-pack-fidelity.py は fidelity 対象ファイルとして facts / boundaries / decision-contract / evidence-contract / routing-playbooks / state-schema を許可し、参照がその pack 内で解決できるかを確認しています。これは重要ですが、「サービスページに書いた 原因だけ安く不可 が rendered reply で本当に守られているか」までは別テストが必要です。
+
+また、registry の service id は bugfix-15000 ですが、facts file 内の service id は next-stripe-bugfix です。これは「registry id」と「internal facts id」を分けているなら問題ありませんが、alias として明文化しないと、将来サービス増加時に接続バグの温床になります。
+
+第二正本化リスク
+
+第二正本化リスクは 中程度 です。危険度が高い順に並べるとこうです。
+
+価格・scope・deliverable の renderer 直書き
+audit は 15,000 リテラルが残っていると明記しています。
+post-purchase / closed renderer 内の buyer-facing rule 文
+direct_push_rule、deploy_boundary_rule、secret_boundary_rule、closed_room_boundary_rule は有用ですが、facts / platform-contract との責務境界を崩す可能性があります。
+#BR の shadow 語彙
+#BR では 25,000円 や 主要1フロー整理 を使ってよいとされていますが、通常 live では出してはいけないと明記されています。論理分離はできていますが、語彙が近い場所にあるため、live renderer / skill / docs cleanup の sentry は継続必須です。
+追加すべき最小テスト
+
+追加は大きくしなくてよいです。最小で十分です。
+
+追加テスト	目的
+service-page-semantic-smoke	bugfix-15000.live.txt の価格、1不具合、同一原因、deliverables、secret 禁止、原因だけ安く不可が service facts と rendered reply に一致するかを見る。
+renderer-literal-drift-scan	renderer 内の価格・サービス名・scope unit のリテラルを registry / facts と照合し、不一致なら fail、残存なら warn。
+public-false-shadow-lexeme	live / #RE で handoff-25000、25,000円、主要1フロー、引き継ぎメモ、private CTA が出ないことを確認。
+platform-state-payment-route	delivered と closed、closed 後の旧トークルーム・おひねり・追加購入、quote_sent と作業開始の混線を確認。
+timestamp-policy-lint	具体時刻を出す場合、runtime current_time / deadline source があるかを確認。rehearsal 固定時刻は warn。
+5. コアとして残すべきもの
+
+将来アプリ化しても残すべき core は以下です。
+
+残すべき core	理由
+service registry / service catalog	どのサービスが公開可能か、どの facts を読むか、source of truth は何かを一元管理するため。
+public/private gate	未公開サービス語彙・価格・CTA の漏れを防ぐ最重要安全装置。
+platform-contract as adapter	platform 固有の transaction state / channel / payment route を core から分離するため。
+phase/state 判定	prequote / purchased / delivered / closed のような状態差が返信品質を大きく左右するため。
+route taxonomy	bugfix / handoff / neither / payment route を分ける判断はサービス横断で使えるため。
+allowed facts / forbidden moves	価格、scope、deliverables、secret 禁止、外部連絡禁止などを返信前に制御するため。
+renderer は adapter として残す	判断結果を自然文に落とす層は必要。ただし facts の第二正本にしてはいけない。
+validator / lint	public leak、secret、state drift、direct answer、closing、context bleed を検出するため。
+regression / eval-sources	seed / eval / holdout / edge / regression_seed の役割分担は、運用品質を維持する core です。
+reply quality lenses	主質問直答、状態理解、次アクション、宙ぶらりん感、secret 安全などは、platform を変えても効きます。
+6. ココナラ固有として隔離すべきもの
+
+隔離すべきなのは、判断の原理ではなく、platform 固有語彙と transaction route です。
+
+隔離対象	置き場所
+トークルーム、メッセージ、見積り提案、新規依頼、正式納品、承諾、クローズ	platform-contract / platform adapter
+おひねり、追加購入、クローズ後の追加支払い不可	platform-contract / payment-route adapter
+ココナラのキャンセル・返金・承諾後不可の言い方	platform-contract
+ココナラ向け文体、購入導線、出品ページ FAQ 表現	Coconala renderer / tone adapter
+#RE / #BR のショートカット名	rehearsal tooling
+bugfix-15000 / handoff-25000 の価格・scope・deliverables	service facts / service registry
+Next.js / Stripe / Webhook / Vercel marker	service-specific facts, not general core
+
+逆に、secret 禁止、外部連絡禁止、直接 push 禁止、本番 deploy 禁止は、ココナラ固有ではなく service safety policy として再利用できます。bugfix-15000 のサービスページと service facts の両方に、この種の hard no が明記されています。
+
+7. 足りない監査レンズ候補
+追加すべきもの
+
+今の lens は良いです。特に、主質問への直答、状態理解、buyer の次アクション、secret 値、診断だけ安く、複数症状一括確約防止は、live 品質に直結しています。#RE batch 44 でもこの辺りを見ています。
+
+追加するなら、次の 5つだけ で十分です。
+
+追加 lens	目的
+source traceability lens	返信内の価格・scope・deliverable・禁止事項が registry / facts / platform-contract のどこから来たか追えるか。
+commitment budget lens	「対応できます」「本日HH:MMまで」「修正まで」など、約束の強さが state と証拠量に合っているか。
+semantic grounding drift lens	service page を変更した時、facts / service-pack / renderer の意味がずれていないか。
+shadow-to-live contamination lens	#BR の handoff 語彙・25,000円・主要1フローが live / #RE に戻っていないか。
+evidence minimality lens	buyer がすでに出した情報を再質問していないか、聞く情報が最小か。
+追加しない方がよいもの
+
+今は以下を入れない方がよいです。
+
+入れない方がよい lens	理由
+汎用 empathy score	文体改善に引っ張られ、判断品質がぼやけます。
+売上最大化 / CTA 強化 lens	public/private gate と scope boundary を壊すリスクが高いです。
+全 platform 汎用 legal/compliance lens	今は Coconala contract を安定させる段階で、抽象化が早すぎます。
+全ケース自動 hard rule 化	changelog でも、人間レビュー観点として有用だが hard rule にはまだしない、という判断がされています。
+8. 完成条件
+bugfix-15000 live としての完成条件
+
+最低限、次を満たせば公開運用に耐えると言えます。
+
+public leak zero
+live / #RE で handoff-25000、25,000円、主要1フロー、private handoff CTA が出ない。public-private leakage case はすでに active にあります。
+service grounding green
+15,000円、1不具合・同一原因、原因確認から修正済みファイル返却、secret 値禁止、直接 push / 本番 deploy / 外部連絡禁止、原因不明時に勝手に正式納品しない、が rendered reply に出せる。
+state boundary green
+prequote / quote_sent / purchased / delivered / closed の違いが崩れない。特に closed 後は、材料確認と実作業開始を分け、旧トークルーム内のおひねり・追加購入へ誘導しない。
+危険な buyer 圧力に耐える
+secret をそのまま送る、購入前に原因だけ見る、複数症状を15,000円で全部確約、診断だけ安く、原因だけ安く、closed 後に無料で直す、に崩れない。#RE batch 44 はここを実戦入口として見ています。
+直答と次アクションが自然
+回答が policy だけで終わらず、「今 buyer が何を送ればよいか」「買うべきか、待つべきか、相談すべきか」が明確。common validator に direct answer、buyer questions、known info reask、closing などが入っています。
+将来展開可能な返信コアとしての完成条件
+
+こちらはまだ未完成です。完成条件は次です。
+
+core interface が明文化されている
+input → decision → allowed facts → forbidden moves → reply → lint の形で、Coconala なしでも説明できる。
+platform adapter が分離されている
+Coconala の talkroom / formal delivery / closed / ohineri が core ではなく adapter にある。
+service registry が複数 service に耐える
+public:true / false、service facts、source of truth、service-pack が service_id ごとに一貫している。
+renderer が facts consumer になっている
+価格・scope・deliverables の正本は service page / facts / registry で、renderer は出力変換だけ。
+service-neutral regression がある
+「public false leak」「phase drift」「secret」「scope bundling」「diagnosis-only pressure」などを、Coconala 語彙なしでも検査できる。
+9. 実装者向け invariant
+壊してはいけない条件
+層	invariant
+service registry	public:false は live / #RE に名前・価格・CTA・deliverables を出さない。source_of_truth は service page 本丸を指す。registry の public flag が唯一の外部公開 gate。
+public/private gate	#BR は shadow。#BR で扱える語彙を live に戻してはいけない。
+platform-contract	platform 状態・channel・payment route だけを扱い、service price / service scope の正本にしない。contract 自身も price/scope は registry / service.yaml と分けると書いています。
+renderer	service facts と platform state を消費する。価格・scope・禁止事項の第二正本にしない。naturalizer は意味を変えない。現状も semantic-safe naturalization は identity-only になっています。
+validator	public leak、private語彙、state drift、secret、direct answer、known info reask、context bleed を検出する。
+regression	active source の role を維持する。seed / eval / holdout / edge / regression_seed を混ぜない。
+#RE	bugfix-15000 live 品質確認だけ。private handoff の販売導線を混ぜない。
+#BR	future-dual の訓練。registry の public:false を変えない。live 反映は generic boundary だけ。
+新しい学びの反映先ルール
+学びの種類	戻す層
+公開ページの約束、価格、scope、FAQ、納品物が変わった	service page
+service の公開状態、facts_file、source_of_truth、service_pack_root が変わった	service-registry
+Coconala の取引状態、トークルーム、正式納品、closed、支払い route が変わった	platform-contract
+繰り返し起きる判断ミス、Codex が読むべき運用知識	skill / AGENTS / next-codex-prompt
+出力文の構成・順番・言い回しが再発的に崩れる	renderer
+事故リスクが文字列・state で検出できる	validator / lint
+再発性があり、公開運用で落としたくない	regression
+何を採用・保留・却下したかの履歴	docs / changelog
+
+この考え方は、change log が reply-only / common / delivery-only を分けて記録する思想と合っています。
+
+壊れやすい接続点
+
+危険度順です。
+
+service page → service facts / service-pack
+参照は通っても、意味がずれる可能性があります。
+registry bugfix-15000 → facts next-stripe-bugfix
+alias が明示されていないと、将来 service_id 増加時に壊れます。
+registry → renderer
+prequote は最近強化済みですが、recent change なので regression 継続が必要です。
+platform-contract → delivered / closed 判断
+closed 後の材料確認と実作業開始、delivered 承諾前確認は事故りやすいです。
+#BR shadow 語彙 → live leak
+BR16 ではまさにこの観点を監査しています。
+renderer 固定文 → 第二正本化
+audit で残課題として挙がっています。
+具体時刻の生成 → stale deadline
+runtime 生成ならよいが、fixture / rehearsal に固定時刻が残ると危険です。
+10. 次の最小ロードマップ
+1週間以内
+renderer-literal-drift-scan を warn で追加する。いきなり全 dynamic 化しない。
+timestamp-policy-lint を追加し、本日HH:MM が runtime 由来か fixture 固定かを区別する。
+registry_service_id と facts_service_id の alias を service-registry か service facts に明記する。
+公開前
+public-launch-practical-bugfix44.yaml、live-core-human-review-bugfix43.yaml、post-docs-cleanup-noise-bugfix42.yaml、post-br-live-boundary-bugfix41.yaml を最小公開前 suite にする。これらは active eval-sources に入っており、公開直前・human review・docs cleanup・BR戻しの観点を持っています。
+service-page-semantic-smoke を追加し、bugfix-15000.live.txt の本丸情報が reply に落ちるかを見る。
+#RE 最新 batch で、private handoff leak zero と、価格・secret・複数症状・closed 境界を確認する。
+公開後
+実会話 stock を seed / eval / holdout / edge に分ける。next-codex-prompt も、inbox → seed / eval / holdout / edge → eval-sources → regression という流れを示しています。
+1件の違和感で renderer を増改築しない。再発タグが付いたものだけ、skill / renderer / validator / regression に戻す。
+#BR は継続するが、live 反映は generic boundary のみにする。
+アプリ化前
+最小 interface を定義する。
+Coconala platform adapter を core から分離する。
+service-neutral regression を作る。
+renderer を facts consumer に寄せ、価格・scope・deliverables の直書きを警告から fail へ段階的に上げる。
+11. やってはいけないこと
+
+今いちばん避けるべきなのは、良くしようとして骨格を広げること です。next-codex-prompt でも、過去に広げすぎて壊れたことを踏まえ、改善は reply-only / common / delivery-only に分類し、再発性・ノイズ抑制・主質問への効き・互換性がある時だけ入れる、としています。
+
+やってはいけないことは明確です。
+
+NG	理由
+handoff-25000 を今 live 化する	public/private gate の安定確認中で、BR shadow の語彙漏れリスクが残る。
+renderer を一気に全面 dynamic 化する	第二正本化対策として正しい方向だが、今やると既存返信品質を壊しやすい。まず drift scan。
+#BR の成功文を live 文体へ移植する	#BR は training-visible / future-dual simulation であり、通常 live とは公開条件が違う。
+全 lens を hard validator 化する	human review と hard rule の境界が崩れ、false positive で開発が止まる。
+アプリ化を先に作る	core interface がまだ明文化されていないため、Coconala 実装をそのままアプリに移植する危険がある。
+sales CTA を強化する	public/private gate と buyer safety を壊しやすい。
+platform-contract に service price / scope を入れる	contract 自身が price/scope は registry / service.yaml 側と分ける設計です。
+
+まだ general core に上げない方がよいものは、正式納品、おひねり、見積り提案、トークルーム、ココナラ文体、bugfix-15000 の 15,000円、handoff-25000 の主要1フロー です。逆に renderer にまだ残してよいものは、状態別の自然文構成、buyer への短い案内文、Coconala での丁寧な言い回しです。
+
+12. 最後に：骨格を保ったまま一番効果が高い改善 3つ
+1. renderer-literal-drift-scan を warn で入れる
+
+今すぐ全リファクタしないでください。まず、renderer 内の 15,000円、25,000円、service 名、scope unit、deliverable phrase を scan し、registry / facts と照合して warn にするのが最小で安全です。audit でも、renderer の 15,000 リテラル残存が注意点として出ています。
+
+2. service-page-semantic-smoke を追加する
+
+service-pack fidelity は既にありますが、現状は参照解決寄りです。bugfix-15000.live.txt から、価格、1不具合・同一原因、修正済みファイル返却、secret 禁止、原因だけ安く不可、複数原因事前相談を抜き、facts と rendered reply に落ちているかを見る薄い semantic test を追加するのが効果大です。
+
+3. #BR shadow 語彙の live 漏れ sentry を固定 suite 化する
+
+handoff-25000 / 25,000円 / 主要1フロー / 引き継ぎメモ / handoff CTA は、#BR では必要ですが live では最大事故要因です。BR16 もこの境界を監査しています。これを毎回全部ではなく、registry / skill / renderer / docs 変更時だけ必須 の最小 suite にしてください。

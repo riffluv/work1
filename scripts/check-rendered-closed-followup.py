@@ -206,6 +206,14 @@ def lint_case(module, source: dict) -> list[str]:
         if not has_any(rendered, ["見積り前", "原因調査", "症状の概要", "見立て"]):
             errors.append("closed pre-estimate cause-check request does not separate lightweight triage from actual investigation")
 
+    if has_any(raw, ["おひねり", "同じトークルーム", "前回のトークルームの続き", "前回の続き"]) and has_any(raw, ["クローズ後", "クローズ済み", "閉じ"]):
+        if scenario != "closed_old_talkroom_ohineri":
+            errors.append("closed old-talkroom ohineri request did not trigger the boundary scenario")
+        if not has_any(rendered, ["おひねり追加", "旧トークルーム", "前回のトークルーム"]):
+            errors.append("closed old-talkroom ohineri request is not declined directly")
+        if not has_any(rendered, ["見積り提案", "新規依頼"]):
+            errors.append("closed old-talkroom ohineri request is missing estimate/new-request path")
+
     if has_any(raw, ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
         if not has_any(
             rendered,

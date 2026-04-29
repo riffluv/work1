@@ -38,6 +38,13 @@
 - `buyer_state_ack_gap`: buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満などを明示しているのに、症状・価格・手順だけを受けて状態シグナルを落としている。QA-07 温度感ズレの下位観点として見る
 - `unnamed_discomfort`: 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある。最大1〜2件まで、実務リスクを説明できる場合だけ観察メモとして挙げてください
 
+Pro後の補助監査レンズ:
+- `source_traceability`: 返信内の価格・scope・deliverable・禁止事項が、service-registry / facts / service page / platform-contract のどこから来たか追えるか。根拠不明の条件が混ざる場合だけ指摘してください
+- `commitment_budget`: `対応できます` `本日HH:MMまで` `修正まで進めます` などの約束が、state と受領証拠量に対して強すぎないか。購入前作業開始、未確認の修正成功保証、古い固定時刻に見える場合を優先して見てください
+- `semantic_grounding_drift`: サービスページ・facts・service-pack・renderer の意味がずれていないか。特に 15,000円 / 不具合1件 / 同一原因 / 修正済みファイル返却 / secret 値不要 / 直接 push・本番反映不可の意味ズレを見る
+- `shadow_to_live_contamination`: `#BR` や `handoff-25000` 側の語彙、25,000円、主要1フロー、引き継ぎメモ、private CTA が通常 live / #RE に戻っていないか
+- `evidence_minimality`: buyer がすでに出した情報を聞き直していないか、依頼している材料が見積り判断・修正判断に必要な最小限か。secret 値や過剰なコード一式要求に寄っていないかも見る
+
 注意:
 - `phase_answer_gap` は生成 rule ではなく監査レンズです。毎回説明を増やす方向ではなく、buyer が実際に迷う場面だけ指摘してください
 - `transaction_model_gap` は writer rule ではなく監査レンズです。単なる接続語や文体の好みには使わず、取引導線として buyer が誤解・停滞しそうな場合だけ指摘してください
@@ -47,6 +54,7 @@
 - `response_weight_mismatch` は hard fail ではありません。文字数・文数・`はい` の有無だけで落とさず、必要な safety boundary が残ることを確認した上で、軽微または gold 候補として扱ってください
 - `buyer_state_ack_gap` は共感文を増やすための rule ではありません。状態を受ける場合も1文だけにし、謝罪・過失認定・返金断定・無料対応約束には広げないでください
 - `unnamed_discomfort` はその場で rule 化しないでください。好み差は必須修正・採点・validator 戻しにせず、まず観察メモとして扱ってください
+- Pro後の補助監査レンズは hard fail に直結させないでください。明確な public leak、phase drift、secret 値要求、保証断定など deterministic な事故だけ必須修正にし、それ以外は軽微・観察・gold 候補として扱ってください
 - hard fail と soft lens を分けてください。hard fail は phase drift、非公開サービス漏れ、返金/無料/保証の断定、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続など deterministic な事故に限ります。`response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort` は soft lens として扱ってください
 
 優先順位:

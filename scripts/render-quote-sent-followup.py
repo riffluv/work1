@@ -755,6 +755,12 @@ def detect_scenario(source: dict) -> str:
             "ウェブソケット",
         ]
     )
+    if (
+        any(marker in combined for marker in ["支払い", "入金", "購入前"])
+        and any(marker in combined for marker in ["先に", "支払い前", "入金前"])
+        and any(marker in combined for marker in ["コード", "ログ", "原因"])
+    ):
+        return "prepayment_materials_before_payment"
     has_bugfix_surface = any(
         marker in combined
         for marker in [
@@ -1003,12 +1009,6 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["管理画面の設定", "設定が間違ってる", "自分で直せるなら", "お金かけずに"])
     ):
         return "price_not_found_self_fix_question"
-    if (
-        any(marker in combined for marker in ["支払い", "入金", "購入前"])
-        and any(marker in combined for marker in ["先に", "支払い前", "入金前"])
-        and any(marker in combined for marker in ["コード", "ログ", "原因"])
-    ):
-        return "prepayment_materials_before_payment"
     if "別原因" in combined and ("金額が増える" in combined or "キャンセル" in combined or "怖くて" in combined):
         return "extra_fee_fear"
     if any(
