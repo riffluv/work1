@@ -1216,3 +1216,43 @@
 - きっかけ: 意味と境界は安全だが、`こちらからお願いします` が実務文として少し不自然という preference 指摘があった
 - 想定効果: secret 値を求めない境界と追加材料の最小化を維持したまま、購入者向けの自然な案内に寄せる
 - 非変更: 新規 rule / lint は追加しない。単発の語感調整として扱う
+
+### 2026-04-29 / CHG-143
+- 分類: `reply-only`
+- レイヤ: Deep Research + Pro後 conversation flow naturalness
+- 変更: Deep Research と Pro 分析を受け、`japanese-chat-natural-ja` に `会話の流れを作る（意味保存）` を追加した。目的は文をやさしくすることではなく、短い受け止め -> 主質問への直答 -> 条件・理由 -> 次アクションの流れを、価格・scope・phase・secret・payment route を変えずに整えること。bugfix-15000 / #BR の監査プロンプトには `conversation_flow_naturalness` を soft lens として追加し、hard fail / fix recommended / preference の線引きを明記した。料金＋納期 renderer の代表文は `日数はサービス上3日が目安ですが、コードの状態やエラー内容によって前後します` に寄せ、`必要情報がそろい次第` を `コードとエラー内容を確認できた時点` へ具体化した。Gold Reply 36 と warning-only lint collector も追加した
+- きっかけ: 人間監査で、句点の有無そのものではなく、短文断定が続いて会話の流れが切れるとマニュアル的・AI的に見える問題が見えた。Pro は、これを全面自然化ではなく、会話フロー補助レイヤとして限定採用すべきと整理した
+- 想定効果: `bugfix-15000` live / #BR で、固定価格・範囲・phase・非公開境界を保ったまま、金額＋納期、受領確認、追加情報依頼、scope out、進捗報告、納品後補足、closed 後再相談の文章が会話として読みやすくなる
+- 非変更: 句点「。」は全面禁止しない。`はい、` `まずは` `です` を blanket NG にしない。固定価格を `想定しています` に弱めない。renderer 全体を自然化エンジン化しない。warning lint は hard fail ではなく、監査・gold・human audit で扱う
+
+### 2026-04-29 / CHG-144
+- 分類: `reply-only`
+- レイヤ: #RE bugfix49 / conversation flow naturalness sentry
+- 変更: `conversation-flow-naturalness-bugfix49.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-49-conversation-flow-naturalness-r0` へ更新した。Deep Research + Pro 後の確認走行として、金額＋納期、原因不明相談、quote_sent の支払い前診断、購入後の受領確認、短い進捗確認、secret 値なしのキー名共有、delivered の補足説明、closed 後の関係確認を検査対象にした。あわせて `eval-sources.yaml`、service-grounding sentry、timestamp-policy の runtime fixture に接続した
+- きっかけ: 会話フロー補助レイヤを入れた後、通常 live の `bugfix-15000` で、自然化が境界を壊さず効いているかを外部監査にかける必要があった
+- 想定効果: `conversation_flow_naturalness` が hard fail 化せず、短文断定の連続、確認語密集、次アクション不足、曖昧な待機条件を拾えるか確認できる
+- 非変更: `handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない。自然化のために service / scope / price / secret / payment route の判断は変更しない
+
+### 2026-04-29 / CHG-145
+- 分類: `reply-only`
+- レイヤ: #RE bugfix49 r1 / accepted conversation flow polish
+- 変更: bugfix49 r0 外部監査で採用圏・必須修正なしとなったため、軽微4点だけ r1 へ反映した。B02 は原因不明相談に対して `原因が分からない状態でも相談できます` と先に直答し、15,000円の不具合修正へ自然につないだ。B04 は `こちらからお願いします` を `こちらからお伝えします` へ修正した。B05 は `まず状況を整理します` を避け、短い進捗希望に対して現在見ている箇所へ寄せた。B07 は `資料が少し難しかったとのこと、確認しました` を `確認手順が少し分かりにくかったとのこと、承知しました` へ自然化した。B02 は Gold 36 に anchor として追加した
+- きっかけ: r0 は hard boundary と public leak に問題はなかったが、conversation_flow_naturalness の soft lens として、処理語の硬さ・主質問直答の薄さが残っていた
+- 想定効果: `bugfix-15000` live で、原因不明相談、受領確認、短い進捗確認、納品後補足が、意味と境界を変えずに実務チャットとして自然になる
+- 非変更: 新規 hard rule は追加しない。`conversation_flow_naturalness` は引き続き soft lens として扱う。句点・`はい`・`まず` を blanket NG にしない
+
+### 2026-04-29 / CHG-146
+- 分類: `reply-only`
+- レイヤ: #RE bugfix49 r2 / human audit B08 closed flow repair
+- 変更: 人間監査で B08 の closed 後関係確認が、安全境界は守れている一方で `まずは内容を確認します`、`ログやスクショを送ってください`、`見立てを短くお返しします` などの部品列挙になっていると判明したため、`closed_materials_check` renderer を修正した。先に `ログやスクショは、このメッセージで送っていただいて大丈夫です` と主質問へ答え、届いた範囲で前回修正との関係を見立てる文に圧縮し、その後で closed 境界と実作業時の見積り提案 / 新規依頼を示す順番へ変更した。Gold Reply 36 と `japanese-chat-natural-ja` に closed 後の関係確認 anchor を追加し、warning-only lint には旧型の `閉じているため` + `ログやスクショを送ってください` + `見積り提案または新規依頼` の部品列挙を拾う警告を追加した
+- きっかけ: 外部監査では採用圏だったが、送信用文面として見ると句点で区切られた安全部品の羅列になり、Deep Research / Pro で狙った `会話の流れ` が B08 に届いていなかった
+- 想定効果: `bugfix-15000` live の closed 後相談で、旧トークルーム継続・無料修正・修正済みファイル返却を約束せずに、buyer の「ここに送ってよいか」へ自然に答えられる
+- 非変更: `conversation_flow_naturalness` は引き続き soft lens / warning として扱う。句点「。」を blanket NG にしない。closed 後に実作業や修正済みファイル返却をこの場で約束しない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-29 / CHG-147
+- 分類: `reply-only`
+- レイヤ: #RE bugfix49 r3 / renderer-level chat flow repair
+- 変更: r2 でも batch 全体が `安全パーツを段落ごとに並べた文章` に見えていたため、B01/B02/B03/B04/B05/B06/B07 の各 renderer も会話型の段落へ寄せた。B01 は金額・対象不具合・3日目安を自然につなぎ、B02 は原因不明相談と15,000円案内を1段落にまとめた。B03 は quote_sent で `提案内容と...の件ですね` を外し、支払い前原因確認不可と購入後開始を同じ段落で説明した。B04 は受領確認と今後の確認行動を接続し、B05 は短い進捗希望に対して `先に現状だけお伝えします` から入る形へ修正した。B06 は `値の方` を `値そのもの` へ自然化し、B07 は `補足できます -> 補足はこちらで整理します` の重複を、承諾前の確認ポイント補足としてまとめた。`返信監査_batch-01.md` を r3 へ更新し、Gold Reply 36 も r3 の代表文へ差し替えた
+- きっかけ: ユーザー監査で、Deep Research / Pro 後にもかかわらず `。` で区切られた処理文が多く、チャット文として流れていないと判明した
+- 想定効果: `conversation_flow_naturalness` を後処理だけでなく renderer の段落設計へ戻し、#RE r0/r1 で出る文章そのものをチャット寄りにする
+- 非変更: 句点や短文を blanket NG にしない。価格・scope・phase・secret・支払い導線・作業可否の判断は変えない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない

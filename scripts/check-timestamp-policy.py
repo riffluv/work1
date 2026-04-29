@@ -21,6 +21,7 @@ RUNTIME_FIXTURES = [
     ROOT_DIR / "ops/tests/quality-cases/active/post-pro-review-lenses-bugfix46.yaml",
     ROOT_DIR / "ops/tests/quality-cases/active/post-pro-native-naturalness-bugfix47.yaml",
     ROOT_DIR / "ops/tests/quality-cases/active/live-practical-naturalness-bugfix48.yaml",
+    ROOT_DIR / "ops/tests/quality-cases/active/conversation-flow-naturalness-bugfix49.yaml",
 ]
 CURRENT_REHEARSAL_FILES = [
     ROOT_DIR / "サービスページ/rehearsal/bugfix-15000-返信学習/返信監査_batch-01.md",

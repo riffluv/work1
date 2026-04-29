@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC49-001
+    stock_id: HRC49-001
+    category: conversation_flow_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: price_timeline_active_defect
+    question_type: prequote_price_and_timeline
+    primary_question: Stripe決済後に注文が作られない不具合の金額と大まかな日数を知りたい。
+    raw_message: "Stripe決済後に注文が作られないです。金額だけと、だいたい何日かかるかだけ先に教えてください。"
+    note: 通常 live / #RE。conversation_flow_naturalness。15,000円を弱めず、3日目安と変動条件だけ自然につながるかを見る。
+
+  - id: HRC49-002
+    stock_id: HRC49-002
+    category: conversation_flow_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: unknown_cause_can_consult
+    question_type: prequote_unknown_cause_can_consult
+    primary_question: 原因が分からない状態でも相談してよいか、15,000円で見てもらえるか。
+    raw_message: "Stripe決済後に注文が作られないのですが、原因がまったく分かっていません。この状態でも相談して大丈夫ですか？15,000円で見てもらえますか？"
+    note: 通常 live / #RE。原因不明でも bugfix-first にしつつ、短文断定が続く受付文に戻らないかを見る。
+
+  - id: HRC49-003
+    stock_id: HRC49-003
+    category: conversation_flow_naturalness
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: prepayment_materials_before_payment
+    question_type: quote_sent_evidence_before_payment
+    primary_question: 見積り提案後、支払い前にログを送れば先に原因だけ見てもらえるか。
+    raw_message: "見積り提案ありがとうございます。購入前ですが、先にVercelログとStripeのEvent IDを送れば、原因だけ先に見てもらえますか？購入するかはその後に決めたいです。"
+    note: 通常 live / #RE。quote_sent。支払い前作業開始を止めつつ、主質問に直答し、次に何をするかが見えるかを見る。
+
+  - id: HRC49-004
+    stock_id: HRC49-004
+    category: conversation_flow_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: received_materials_flow_check
+    question_type: purchased_materials_received_flow
+    primary_question: 昨日送ったログとスクショは届いているか、この後の流れと追加準備の有無を知りたい。
+    raw_message: "昨日、StripeのEvent IDが分かるログとスクショを送りました。届いていますか？この後の流れと、追加で用意した方がいいものがあるかだけ教えてください。"
+    note: 通常 live / #RE。human audit 起点。`確認しました` 直後の `はい、確認できています`、二重受領、確認語密集が再発しないかを見る。
+
+  - id: HRC49-005
+    stock_id: HRC49-005
+    category: conversation_flow_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: progress_anxiety
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、今どこまで分かっているかを短く知りたい。
+    raw_message: "昨日購入してログも送りました。今どこまで見ていますか？長い説明はいりません。現時点で分かっていることだけ短く教えてください。"
+    note: 通常 live / #RE。進捗不安。短文断定の連続、確認語密集、現在地と次回時刻の切れ方を見る。
+
+  - id: HRC49-006
+    stock_id: HRC49-006
+    category: conversation_flow_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: keys_shared
+    question_type: purchased_key_names_only
+    primary_question: Stripe関連のキー名だけ共有した状態で足りるか、値も必要か。
+    raw_message: "Stripe関連のキー名だけ共有しました。値そのものは送っていません。このままで確認できますか？追加で必要なものがあれば教えてください。"
+    note: 通常 live / #RE。secret safety。値を求めず、受領・次の確認・追加依頼の流れが自然かを見る。
+
+  - id: HRC49-007
+    stock_id: HRC49-007
+    category: conversation_flow_naturalness
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: postdelivery_question_window
+    question_type: delivered_light_explanation
+    primary_question: 納品後、承諾前に確認手順をもう少し分かりやすく補足してもらえるか。
+    raw_message: "納品ありがとうございます。修正ファイルと確認手順は受け取りましたが、専門用語が少し難しいです。承諾前に、どこを確認すればいいかもう少し分かりやすく説明してもらえますか？"
+    note: 通常 live / #RE。delivered。軽い補足説明を受けつつ、本格資料作成へ広げず、説明がぶつ切りにならないかを見る。
+
+  - id: HRC49-008
+    stock_id: HRC49-008
+    category: conversation_flow_naturalness
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_materials_check
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、ログやスクショをこのメッセージで送れば前回修正との関係だけ見てもらえるか。
+    raw_message: "クローズ後ですみません。似たStripeエラーが出ています。ログとスクショをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？実際に直す必要がありそうなら新規で相談します。"
+    note: 通常 live / #RE。closed。旧トークルーム継続や原因調査に滑らず、概要見立てと実作業の境界を自然につなげるかを見る。

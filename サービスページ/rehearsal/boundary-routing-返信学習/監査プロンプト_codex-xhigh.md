@@ -98,6 +98,7 @@
 - `shadow_to_live_contamination`: #BR 内では妥当な handoff / 25,000円 / 主要1フロー語彙が、通常 live / #RE へ戻すと危険な形になっていないか
 - `evidence_minimality`: buyer がすでに出した情報を聞き直していないか、route 判定や次アクションに必要な最小情報だけを依頼しているか。secret 値や過剰なコード一式要求に寄っていないかも見る
 - `jp_business_native_naturalness`: 日本の実務チャットとして、内容が正しいだけでなく担当者が普通に書いたように読めるか。`確認しました` 直後の `はい、確認できています` のような二重受領、機械的な `はい、`、`確認します / 確認できます / 確認結果` の密集、`確認材料` `進め方になります` などの内部処理語・PM語彙が浮いていないかを見る。ただし route / scope / price / public leak の判定を変えるためには使わず、意味を変えない最小修正だけを提案してください
+- `conversation_flow_naturalness`: 返信の意味・価格・scope・phase・secret・public/private・payment route を変えずに、buyer が自然に読めて次に動ける流れになっているかを見る soft lens。短い受け止め -> 主質問への直答 -> 条件・理由 -> 次アクションの流れがあるか、短文断定が3文以上続いてマニュアル的に見えないか、関係が強い情報だけ自然につながっているか、金額・納期・scope・作業可否が自然化で曖昧になっていないか、確認語や `お返しします` `進めます` が近距離で密集していないかを見る。句点「。」そのものは悪いと判断せず、buyer 固有の情報を拾うために事実を創作していないかも確認してください
 
 ## 注意
 
@@ -112,6 +113,7 @@
 - buyer が聞いていない内部条件を並べすぎる指摘は soft lens として扱い、必須修正は scope / route / price / public leak に絞ってください。
 - Pro後の補助監査レンズも soft lens として扱ってください。全ケース自動 hard rule 化、売上最大化 CTA、汎用 empathy score、全 platform 汎用 legal/compliance lens は入れないでください。
 - `jp_business_native_naturalness` も soft lens です。`はい、` や `まずは` を全面禁止せず、二重受領・機械的な yes・近接反復など再発性のある違和感だけを拾ってください。自然化のために service boundary / payment route / public:false 境界を弱めないでください。
+- `conversation_flow_naturalness` も soft lens です。自然化によって route / scope / price / phase / payment route / secret handling / public-private boundary が変わる場合だけ deterministic な事故として扱ってください。修正提案は最小差分にし、つなぐのは同じ役割で強く関係する文だけにしてください。
 
 ## 出力形式
 

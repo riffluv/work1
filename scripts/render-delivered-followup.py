@@ -1512,10 +1512,10 @@ def build_case_from_source(source: dict) -> dict:
         asks_fee = any(marker in raw for marker in ["追加料金", "費用", "料金", "別料金"])
         explicit_questions = [{"id": "q1", "text": "もう少しかみ砕いた説明をお願いできるか", "priority": "primary"}]
         answer_map = [
-            {
-                "question_id": "q1",
-                "disposition": "answer_now",
-                "answer_brief": "修正ファイルと確認手順を、もう少し分かりやすく補足できます。",
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "承諾前に、確認するポイントをもう少し分かりやすく補足できます。",
             }
         ]
         question_ids = ["q1"]
@@ -1541,7 +1541,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "id": "a1",
                     "question_ids": question_ids,
-                    "ask_text": "補足はこちらで先に整理します。追加で特に知りたい箇所があれば、そのまま送ってください。",
+                    "ask_text": "専門用語を減らしてこちらで整理します。追加で特に知りたい箇所があれば、そのまま送ってください。",
                     "why_needed": "補足の範囲で足りるかを判断するため",
                 }
             ],
@@ -1720,7 +1720,7 @@ def reaction_line(case: dict) -> str:
     if scenario == "future_architecture_question":
         return "次のご相談も考えていただいている件、ありがとうございます。"
     if scenario == "doc_explanation_request":
-        return "資料が少し難しかったとのこと、確認しました。"
+        return "確認手順が少し分かりにくかったとのこと、承知しました。"
     if scenario == "postdelivery_question_window":
         return "後から出た質問の扱いについての確認ありがとうございます。"
     if scenario == "same_cause_check":
@@ -1914,7 +1914,7 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "future_architecture_question":
         return "次のご相談も考えていただいている件、ありがとうございます。"
     if scenario == "doc_explanation_request":
-        return "資料が少し難しかったとのこと、確認しました。"
+        return "確認手順が少し分かりにくかったとのこと、承知しました。"
     if scenario == "postdelivery_question_window":
         return "後から出た質問の扱いについての確認、ありがとうございます。"
     if scenario == "same_cause_check":
@@ -2003,6 +2003,16 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                     direct_answer,
                     "対象のWebhookエンドポイントを開くと、イベントごとの送信結果やレスポンスも確認できます。",
                 ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "doc_explanation_request":
+        _append_unique(
+            paragraphs,
+            (
+                f"{direct_answer}専門用語を減らしてこちらで整理します。\n"
+                "追加で特に知りたい箇所があれば、そのまま送ってください。"
             ),
         )
         return paragraphs

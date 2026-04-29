@@ -263,7 +263,7 @@ def next_action_line(case: dict, hours: int = 2) -> str:
         if any(marker in case.get("raw_message", "") for marker in ["diff", "差分", "変更予定ファイル"]):
             return f"本日{target:%H:%M}までに、分かっている点と次に見る箇所をお送りします。"
         if any(marker in case.get("raw_message", "") for marker in ["長い説明はいりません", "長い説明はいい", "分かっているかだけ", "わかっているかだけ"]):
-            return f"本日{target:%H:%M}までに、見えている点だけ短くお返しします。"
+            return f"本日{target:%H:%M}までに、確認できている点だけ短くお返しします。"
         return f"本日{target:%H:%M}までに、状況を整理してお送りします。"
     if case.get("scenario") == "feature_addon_scope":
         return f"本日{target:%H:%M}までに、注文反映の件の現時点の確認結果をお返しします。"
@@ -1385,7 +1385,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q2",
                     "disposition": "answer_now",
-                    "answer_brief": "まず受け取っている内容をこちらで確認して、追加で必要なものがあればその時点でこちらからお願いします。",
+                    "answer_brief": "この後はこちらで内容を確認し、追加で必要なものが出た場合だけお伝えします。",
                 },
                 {
                     "question_id": "q3",
@@ -1999,7 +1999,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "この情報で確認を進めます。値の方は引き続き送らなくて大丈夫です。",
+                    "answer_brief": "この情報で確認を進めます。値そのものは引き続き送らなくて大丈夫です。",
                 },
             ],
             "ask_map": [],
@@ -2388,7 +2388,10 @@ def draft_opening_anchor(case: dict) -> str:
             if deadline_phrase:
                 lines.append(deadline_phrase)
             return "\n".join(lines)
-        lines = ["お待たせしてすみません。まず状況を整理します。"]
+        if any(marker in raw for marker in ["長い説明はいりません", "長い説明はいい", "短く教えて", "分かっていることだけ", "わかっていることだけ"]):
+            lines = ["お待たせしてすみません。先に現状だけお伝えします。"]
+        else:
+            lines = ["お待たせしてすみません。まず状況を整理します。"]
         if deadline_phrase:
             lines.append(deadline_phrase)
         return "\n".join(lines)
@@ -2623,12 +2626,9 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "received_materials_flow_check":
         _append_unique(
             paragraphs,
-            _paragraph_from_lines(
-                [
-                    direct_answer,
-                    "まず受け取っている内容をこちらで確認して、追加で必要なものがあればその時点でこちらからお願いします。",
-                    "いまの時点で、追加で準備いただくものはありません。",
-                ]
+            (
+                f"{direct_answer}この後はこちらで内容を確認し、追加で必要なものが出た場合だけお伝えします。\n"
+                "いまの時点で、追加で準備いただくものはありません。"
             ),
         )
         return paragraphs

@@ -156,6 +156,13 @@ primary_sources:
       - 金額＋納期、前任者不信、新機能追加吸収、quote_sent 本番反映、購入後ZIP/env値抜き、直接push/本番反映、delivered承諾、closed原因だけ圧力を検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/conversation-flow-naturalness-bugfix49.yaml
+    role: eval
+    purpose:
+      - Deep Research + Pro後の conversation_flow_naturalness が通常 live #RE でノイズにならず機能するか確認
+      - 金額＋納期、原因不明相談、quote_sent 支払い前診断、購入後受領確認、進捗、secret safety、delivered補足、closed再相談を検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

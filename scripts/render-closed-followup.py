@@ -466,7 +466,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "トークルームは閉じていますが、まずこのメッセージ上でエラー内容を見て、前回の修正とつながるか確認します。"
     elif scenario == "closed_materials_check":
         blocking_missing_facts = ["log_or_screenshot"]
-        direct_answer_line = "このメッセージ上で、前回の修正と関係がありそうかを見立てます。"
+        direct_answer_line = "ログやスクショは、このメッセージで送っていただいて大丈夫です。"
     elif scenario == "closed_old_talkroom_ohineri":
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "前回のトークルームは閉じているため、旧トークルーム内のおひねり追加でそのまま別件修正を進めることはできません。"
@@ -1277,16 +1277,16 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "このメッセージ上で、前回の修正と関係がありそうかを見立てます。",
-                    "hold_reason": "トークルームは閉じているため、ここで修正作業や修正済みファイルの返却までは進めません。",
-                    "revisit_trigger": "確認後、実作業が必要な場合は見積り提案または新規依頼としてご案内します。",
+                    "answer_brief": "ログやスクショは、このメッセージで送っていただいて大丈夫です。",
+                    "hold_reason": "トークルームは閉じているため、この場で修正作業や修正済みファイルの返却までは進めません。",
+                    "revisit_trigger": "送っていただいた範囲で前回の修正との関係を見立て、実作業が必要そうな場合は見積り提案または新規依頼として対応方法をご相談します。",
                 }
             ],
             "ask_map": [
                 {
                     "id": "a1",
                     "question_ids": ["q1"],
-                    "ask_text": "ログやスクショを送ってください。",
+                    "ask_text": "ログやスクショをこのメッセージで送ってください。",
                     "why_needed": "前回の修正との関係を確認するため",
                 }
             ],
@@ -1685,7 +1685,7 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "webhook_secret_rotation_followup":
         return "前回の件が安定していたとのこと、ありがとうございます。"
     if scenario == "closed_materials_check":
-        return "まずは内容を確認します。"
+        return "クローズ後のご相談ですね。"
     if scenario == "closed_old_talkroom_ohineri":
         return "クローズ後の別件相談ですね。"
     if scenario == "closed_zip_fix_return":
@@ -1786,16 +1786,13 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     paragraphs: list[str] = []
 
     if scenario == "closed_materials_check":
-        _append_unique(paragraphs, direct_answer)
         _append_unique(
             paragraphs,
-            _paragraph_from_lines(
-                [
-                    primary.get("hold_reason", ""),
-                    "ログやスクショを送ってください。",
-                    "実作業が必要と分かった場合は、見積り提案または新規依頼としてご案内します。",
-                ]
-            ),
+            f"{direct_answer}届いた範囲で、前回の修正と関係がありそうかを見立てます。",
+        )
+        _append_unique(
+            paragraphs,
+            f"{with_period(primary.get('hold_reason', ''))}実作業が必要そうな場合は、見積り提案または新規依頼として対応方法をご相談します。",
         )
         return paragraphs
 
@@ -2120,7 +2117,9 @@ def render_case(case: dict) -> str:
     for paragraph in draft_body_paragraphs(case):
         _append_unique(body_paragraphs, paragraph)
 
-    if case.get("scenario") in {"closed_materials_check", "closed_old_talkroom_ohineri", "closed_pre_estimate_cause_check"}:
+    if case.get("scenario") == "closed_materials_check":
+        next_action = ""
+    elif case.get("scenario") in {"closed_old_talkroom_ohineri", "closed_pre_estimate_cause_check"}:
         next_action = "送っていただいた範囲で、見立てを短くお返しします。"
     elif case.get("scenario") == "new_issue_repeat_client" and asks_to_send_symptoms_in_message(case.get("raw_message", "")):
         next_action = "症状を送っていただいた後、確認して見立てをお返しします。"

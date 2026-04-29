@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 from reply_quality_lint_common import (
+    collect_conversation_flow_warnings,
     collect_report_anchor_warnings,
     collect_secondary_answer_projection_warnings,
     collect_technical_explanation_warnings,
@@ -98,6 +99,7 @@ def main() -> int:
             warnings.extend(collect_secondary_answer_projection_warnings(rendered, case.get("reply_contract")))
             warnings.extend(collect_technical_explanation_warnings(rendered))
             warnings.extend(collect_report_anchor_warnings(rendered))
+            warnings.extend(collect_conversation_flow_warnings(rendered))
             warnings = list(dict.fromkeys(warnings))
             if not warnings:
                 continue
@@ -113,6 +115,8 @@ def main() -> int:
                     tag_counter["report_verb_has_concrete_anchor"] += 1
                 elif item.startswith("technical line"):
                     tag_counter["technical_speculation"] += 1
+                elif item.startswith("conversation_flow"):
+                    tag_counter["conversation_flow"] += 1
 
     if tag_counter:
         print("")

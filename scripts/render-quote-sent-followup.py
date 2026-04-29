@@ -2167,7 +2167,7 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "dashboard_scope_question":
         return "Webhook受信口に加えて、Stripeダッシュボード設定の件ですね。"
     if scenario == "prepayment_materials_before_payment":
-        return "提案内容と、支払い前に原因だけ見てもらえるかの件ですね。"
+        return ""
     if scenario == "extra_fee_fear":
         return "金額が増えるのが不安という点を先に整理します。"
     if scenario == "self_edit_fee_anxiety":
@@ -2406,7 +2406,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
 
     if scenario == "prepayment_materials_before_payment":
         return [
-            f"{direct_answer}\n原因確認や作業は、ご購入後に始めます。".strip(),
+            f"見積り提案について、{direct_answer}原因確認や作業は、ご購入後に始めます。".strip(),
             "この内容で問題なければ、お支払い完了後にトークルームでVercelログやStripeのEvent IDなど、必要情報を送ってください。",
         ]
 

@@ -393,6 +393,7 @@ def lint_case(module, case: dict) -> list[str]:
         "vercel_webhook_signature_400",
         "frontend_stripe_mixed_scope",
         "price_only_active_defect",
+        "unknown_cause_can_consult",
         "vague_can_fix_question",
         "scope_only_target_question",
         "previous_fix_failed_trust",

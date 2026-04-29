@@ -1,0 +1,391 @@
+1. 結論
+採用すべきです。
+ただし、Deep Research の結論を「自然な文体ルール」として丸ごと入れるのではなく、返信OSの既存骨格を守るための “会話フロー補助レイヤ” として限定採用するのが安全です。
+今回の改善で狙うべきものは、次の3点に絞るべきです。
+
+
+短文断定の連続を減らす
+
+
+関係が強い事実だけ自然につなぐ
+
+
+相手が次に何をすればよいかを、最後に明確にする
+
+
+逆に、以下は採用しない方がよいです。
+
+
+「文をやさしくする」一般指示
+
+
+句点「。」の削除方針
+
+
+価格・納期・scope を弱める言い換え
+
+
+想定しています の固定価格への適用
+
+
+ご案内します の汎用終止化
+
+
+naturalizer による意味再判断
+
+
+添付 Deep Research 自体も「raw research / not yet implemented」であり、そのまま renderer / lint / skill / prompt に反映しない扱いになっています。なので、正しい落とし込みは 調査結果を正本化することではなく、既存OSの safety contract の下に soft lens と gold を追加することです。
+
+2. Deep Research 結果の採用可否
+採用する
+Deep Research の中心結論である、
+
+短く受け止める → 結論 → 条件・理由 → 次アクション
+
+は、返信OSにかなり相性がよいです。
+理由は、この構造が「やわらかさ」ではなく、buyer が迷わず次に動ける構造だからです。
+既存の japanese-chat-natural-ja もすでに「事実を変えない」「結論→理由→次アクション」「相手固有の情報を1点拾う」「naturalizer は service / scope / phase の再判断をしない」という方向に寄っています。つまり、今回の調査結果は新規思想ではなく、既存思想の 文体面の精度を上げる補強として使えます。
+ただし、採用は限定する
+特に注意すべきは、Deep Research の代表 After をそのまま gold / renderer に入れないことです。
+危険1：15,000円での対応を想定しています
+固定価格の bugfix-15000 では、これは弱めすぎです。
+buyer が「15,000円なのか、変わるのか」を不安に感じる余地が出ます。
+使い分けはこうです。
+状況表現base price が固定金額は15,000円です。base price 内で対応可否が高い15,000円で対応できます。内容確認後に別見積りの可能性あり内容を確認したうえで、必要であれば別途お見積りします。未確定・仮置き現時点では〜を想定しています。
+危険2：必要情報がそろい次第
+これは現行 ng-expressions 側で、待機条件がぼやける表現としてすでに危険寄りです。必要情報がそろい次第 ではなく、何を確認できた時点かを具体化した方がよいです。
+例：
+ご購入後、コードとエラー内容を確認できた時点で、より正確な見通しをお返しします。
+危険3：ご案内します
+ご案内します 自体は悪くありません。
+ただし、単独終止や汎用締めにすると、何を返すのかがぼやけます。現行 NG にも ご案内します。 単独終止への警戒が入っています。
+使うなら、
+修正方針をご案内します。次回の確認結果をご連絡します。より正確な見通しをお返しします。
+のように、対象を具体化する必要があります。
+
+3. 返信OSへの落とし込み方針
+今回の方針は、こう切るのが安全です。
+
+hard rule は safety / fact / boundary に限定する。
+会話の流れは soft lens と gold で育てる。
+lint は高確度の反復・短文断定だけ warning にする。
+renderer は代表的な固定ケースだけ最小修正する。
+
+hard rule / soft lens / lint / gold 分類
+項目分類理由短く受け止める → 結論 → 条件・理由 → 次アクションsoft lens + gold全ケースで固定順にすると不自然。buyer の主質問直答だけは hard 寄り短文断定の3連続以上を避けるlint warning + soft lens高確度だが、scope / secret / refund では短く切る必要がある句点を全面禁止しないhard guard金額・納期・scope・断りでは句点を残すべき。Deep Research も「句点そのもの」ではなく短文断定連続を問題化している関係が強い2文は自然につなぐsoft lens + goldsemantic 判定が必要。lint 化すると誤検知が多い金額・納期・範囲・作業可否は曖昧にしないhard rule返信OSの安全境界そのもの同じ文末や同じ語の近距離反復を避けるlint warning + skill機械的検出しやすいが、hard fail には不向き確認しました / お返しします / 進めます の密集を避けるlint warning + ng例示禁止ではなく密度制御相手固有の情報を1つ拾うskill + human audit + gold機械 lint では判定困難。既存 skill にすでに近いルールあり毎回同じ段落構成を避けるhuman audit + gold1通単位ではなく batch 単位で見るべきメール文体をチャットへ持ち込みすぎないskill + ng-expressions + audit平素より / ご査収 などは lint 化できるが、全体トーンは audit 対象
+
+4. 層ごとの判断表
+層入れるか強さ入れる内容入れない内容renderer一部のみ弱〜中高頻度・固定事実の 料金＋納期回答 だけ直接改善汎用自然化、接続判断、言い換えエンジンjapanese-chat-natural-ja入れる中意味保存の会話フロー、短文断定の扱い、接続してよい/悪い条件価格・納期・scope を弱める言い換えng-expressions少量入れる弱固定価格での 想定しています、抽象的な ご案内します、反復例です。 や句点の禁止reply_quality_lint_common.pywarning として入れる弱〜中反復・短文断定・同文末密集の検出「流れがない」全般の hard lintCodex xhigh 監査プロンプト入れる中conversation_flow_naturalness soft lenshard fail の増殖gold replies入れる中〜強7カテゴリの安全な型を保存Deep Research After の丸写しhuman audit入れる中safety を先に見たうえで自然さを見る「もっとやさしく」主観評価だけ#RE / #BR fixture入れる中live bugfix / future-dual で regression文体だけを見る孤立テスト
+renderer は service facts / service registry / boundaries を読み込んで base price や scope を固定する役割が強く、すでに public bugfix service 前提で grounding されています。ここに自然化判断を広く入れると、renderer が第二正本化します。
+post-purchase や closed follow-up も、phase / secret / closed room boundary / external channel などを明示的に扱っています。自然化でここを再判断させるのは危険です。
+
+5. japanese-chat-natural-ja 追記案
+入れるなら、既存 SKILL.md に 「会話の流れを作る（意味保存）」 という節を追加するのがよいです。
+位置は、既存の fixed rules / NG rules の前後ではなく、自然化の実行手順の後、NG表現の前がよいです。理由は、これは禁止語ではなく、自然化時の判断 lens だからです。
+追記案
+## 会話の流れを作る（意味保存）日本語チャット自然化では、文章を「やさしくする」ことを目的にしない。目的は、buyer が主質問への答え・条件・次アクションを迷わず読めるように、事実を変えずに流れを整えること。### 基本順序原則として、次の流れを意識する。1. 短く受け止める2. buyer の主質問に直答する3. 条件・理由・変動要因を置く4. buyer または seller の次アクションを明示するただし、毎回この順序を機械的に固定しない。buyer が金額・可否・納期を聞いている場合は、前置きを短くし、先に直答する。### つないでよい文次のように、同じ役割で強く関係する事実は、意味が変わらない範囲で自然につないでよい。- 納期目安 + 変動条件  - OK: `日数はサービス上3日が目安ですが、コードの状態やエラー内容によって前後します。`- 受領 + 次の確認行動  - OK: `スクリーンショットは受け取りました。内容を確認し、追加で必要な点があればこちらからご連絡します。`- 範囲外 + 代替ルート  - OK: `その部分は今回の料金内では対応していません。必要であれば、進める前に追加対応としてご相談します。`### つないではいけない文次の事実は、接続によって因果や約束が増えやすいため、安易につながない。- 金額と追加対応- scope boundary と別料金- phase boundary と購入導線- secret safety と作業継続- public service と private / unpublished service- 作業可否と納期保証- 修正方針と成功保証NG:`範囲外なので別料金で対応します。`OK:`その部分は今回の料金内では対応していません。必要な場合は、内容を確認したうえで追加対応としてご相談します。`### 固定価格の扱いbase price が固定されている場合、価格を弱める表現に変えない。NG:`現時点では、15,000円での対応を想定しています。`OK:`金額は15,000円です。`OK:`15,000円で対応できます。``想定しています` は、価格・範囲・作業可否が source 上でも未確定のときだけ使う。### 句点の扱い句点「。」は全面的に減らさない。金額、納期、scope、断り、依頼、納品案内、secret safety、payment route では、誤読防止のため句点を残してよい。問題は句点そのものではなく、短い断定文が連続して会話の流れが切れること。短文断定が3文以上続く場合は、次のいずれかを検討する。- 同じ役割の2文だけつなぐ- 条件や理由を直後に置く- buyer / seller の次アクションを明示する- 不要な反復語を削る### 次アクションの書き方締めは `よろしくお願いいたします` だけにしない。誰が、何を、いつ／どの条件で行うかを明示する。OK:`この内容で進める場合は、そのままご購入ください。`OK:`ご購入後、コードとエラー内容を確認できた時点で、より正確な見通しをお返しします。`OK:`追加で必要な点があれば、こちらからご連絡します。`### 反復の扱い近い範囲で同じ語尾・同じ動詞を繰り返しすぎない。注意語:- `確認しました`- `確認します`- `確認結果`- `お返しします`- `進めます`- `ご案内します`ただし、禁止語にしない。意味が必要な場合は残し、近距離で密集している場合だけ言い換えや削除を検討する。例:`確認しました。確認します。確認結果をお返しします。`のような連続は避ける。### 自然化で絶対にしてはいけないこと- 金額を弱める- 納期保証を強める- scope を広げる- phase をまたぐ- secret / public-private / payment route を変える- 未公開サービスへの導線を足す- 約束していない作業を足す- buyer の主質問への直答を消す
+この追記は、既存 skill の「自然化は facts を変えない」「service/scope/phase 再判断をしない」という方針と整合します。
+
+6. 監査プロンプト soft lens 追記案
+Codex xhigh 監査プロンプトには、入れるべきです。
+ただし、hard fail lens ではなく soft lens にします。
+現行監査プロンプトはすでに、direct answer、phase gap、transaction model gap、buyer state ack、semantic grounding drift、shadow-to-live contamination などを分けています。hard fail も、phase drift / public leak / refund/free/warranty / external share / direct push / prod deploy などの安全事故に限定されています。
+なので、追加するなら次の文面が安全です。
+追記案
+## conversation_flow_naturalness（soft lens）この lens は、返信の意味・価格・scope・phase・secret・public/private・payment route を変えずに、buyer が自然に読めて次に動ける流れになっているかを見る。優先順位:1. service / scope / phase / price / secret / public-private / payment route の保持2. buyer の主質問への直答3. 次アクションの明示4. 日本語チャットとしての自然さ見る観点:- 短い受け止め → 主質問への直答 → 条件・理由 → 次アクションの流れがあるか- 短文断定が3文以上続き、マニュアル的・AI的に見えていないか- 関係が強い情報だけ自然につながっているか- 金額・納期・scope・作業可否が、自然化によって曖昧になっていないか- `確認しました` / `確認します` / `確認結果` / `お返しします` / `進めます` が近距離で密集していないか- 句点「。」そのものを悪いと判断していないか- buyer 固有の情報を1点拾えているか。ただし、拾うために事実を創作していないか- チャットなのにメール文体へ寄りすぎていないかHard fail:- 自然化により price / scope / phase / payment route / secret handling / public-private boundary が変わった- 未公開サービス、handoff、private 導線が live 返信に漏れた- 固定価格を `想定しています` などで不当に弱めた- buyer の主質問への直答が消えた- 次アクションが誤った導線になった- 約束していない作業、無料対応、返金、保証、直接作業、外部共有を追加したFix recommended:- 料金・納期・条件が `Aです。Bです。Cです。` のように短文断定で3文以上続き、少しつなぐだけで意味保存したまま自然になる- 受領確認や進捗報告で `確認しました` / `進めます` が密集し、何が終わって次に何が起きるか見えにくい- 最後が `よろしくお願いいたします` だけで、buyer または seller の次アクションが見えない- 段落がすべて1文ずつで、説明書のように切れている- `ご案内します` などが抽象的で、何を返すのか分かりにくいPreference only:- 句点の有無だけの好み- 1文がやや硬いが、意味・導線・安全境界が明確- 同じ構成に見えるが、今回のケースでは buyer が迷わない- より自然な言い換え候補はあるが、修正すると price / scope / phase が揺れそうな場合修正提案のルール:- 修正は最小差分にする- price / scope / phase / secret / payment route の語句は原則そのまま保持する- つなぐのは、同じ役割で強く関係する文だけにする- `やさしくするための曖昧化` を禁止する
+
+7. lint 候補と非候補
+lint 化してよいもの
+すべて warning にしてください。
+hard error にすると、scope / secret / phase の安全文まで壊す危険があります。
+候補lint 可否条件severity短文断定が3文以上連続可同一段落または隣接短段落で、各文30字以下、文末が です/ます/ません/できます/しました 系warning同じ文末が3文以上連続可末尾2〜6文字が同一。箇条書き・列挙は除外warning確認しました/確認します/確認結果 密集可250〜300字内に3回以上、または隣接文で2回以上warningお返しします 近距離連続可300字内に2回以上warning進めます 近距離連続可300字内に2回以上。ただし scope direct answer 1回は除外warningです。です。です。 型の単調可sentence ending streak の特殊ケースwarningメール文体の持ち込み一部可平素より / ご査収 / 何卒よろしくお願い申し上げます など完全一致warning
+現行 lint はすでに internal terms、service binding、burden shift、technical speculation、near-echo、buyer question direct answer などを扱っています。今回の追加は、その系統に style warning として足すのが自然です。
+lint 化しない方がよいもの
+項目理由代替「関係が強い2文はつなぐ」semantic 判定が必要audit soft lens / gold「相手固有の情報を1つ拾う」入力依存。創作誘発リスクskill / human audit「毎回同じ段落構成を避ける」batch 横断評価が必要human audit / gold「段落がすべて1文ずつで流れがない」誤検知が多い。scope/secretでは短段落が正しいlow-confidence warning か audit「チャットらしさがない」主観が強いaudit lensご案内します 全禁止文脈次第で使えるNG例示 + warning
+実装イメージ
+reply_quality_lint_common.py に追加するなら、既存 error 系ではなく、独立した warning collector にします。
+CONVERSATION_FLOW_WARNING_RULES = [    {        "id": "short_assertive_streak",        "severity": "warning",        "description": "短い断定文が3文以上連続しています。意味を変えずに、関係が強い文だけ接続できるか確認してください。",    },    {        "id": "repeated_sentence_ending",        "severity": "warning",        "description": "同じ文末が近距離で続いています。必要な事実を保ったまま文末を分散できるか確認してください。",    },    {        "id": "confirmation_term_density",        "severity": "warning",        "description": "確認系の語が近距離で密集しています。受領・確認・結果返答の役割を分けられるか確認してください。",    },]
+除外条件は必ず入れてください。
+除外:- 箇条書き- 引用- secret safety- refund / cancellation- scope boundary- price direct answer- payment route- closed room boundary- hard_no- internal validator output
+ここを入れないと、守るべき安全文まで「自然化対象」と誤判定します。
+
+8. renderer 修正候補
+判断
+代表例の 料金＋納期回答 は、renderer 側で最小修正してよいです。
+理由は、これは高頻度・固定事実・既存 batch で明確に観測されているパターンだからです。
+現行 batch でも、B01 がまさに 金額は15,000円です。、日数はサービス上の目安として3日です。 型の短文断定を含むケースになっています。監査観点にも jp_business_native_naturalness が入っているため、renderer の代表出力として改善対象にする価値があります。
+ただし、renderer でやるのは この固定パターンの文面修正までです。
+修正前の問題
+金額は15,000円です。日数はサービス上の目安として3日です。コードとエラー内容によって前後します。ご購入後、必要情報がそろった時点で、より正確な見通しをお返しします。
+問題は、価格が明確なことではありません。
+問題は、金額・納期・変動条件・次アクションがすべて独立短文になっていて、会話の流れが切れることです。
+renderer に入れてよい修正版
+ご相談ありがとうございます。金額は15,000円です。Stripe決済後に注文が作られない不具合として、原因確認から修正済みファイルの返却まで進めます。日数はサービス上3日が目安ですが、コードの状態やエラー内容によって前後します。ご購入後、コードとエラー内容を確認できた時点で、より正確な見通しをお返しします。この内容で進める場合は、そのままご購入ください。
+なぜこの形か
+
+
+金額は15,000円です。 は固定価格として残す
+
+
+想定しています は使わない
+
+
+日数は3日が目安ですが、〜で前後します で納期と変動条件だけ接続する
+
+
+必要情報がそろい次第 ではなく、コードとエラー内容を確認できた時点 と具体化する
+
+
+ご案内します ではなく、既存の 見通しをお返しします 系を残す
+
+
+最後に購入導線を明示する
+
+
+renderer に入れると危険なこと
+危険理由すべての短文を renderer で接続するrenderer が自然化エンジン化し、facts の第二正本になる想定しています を価格回答テンプレに入れるfixed price が弱まるご案内します を汎用締めにする何を返すか不明瞭になるscope外なので別料金 のように接続するscope boundary と価格判断の因果が強くなりすぎるhandoff / future service の自然な導線を renderer が作るlive public に未公開サービスが漏れるphase をまたいだ導線を自然化で足すclosed room / purchased / prequote の境界が崩れる
+
+9. gold reply 候補
+gold 化は強く推奨です。
+ただし、Deep Research After をそのまま保存するのではなく、安全境界を守った OS 版 gold にします。
+カテゴリgold 化抽出すべき標準文体料金＋納期回答必須固定価格は明確に言い切る。納期目安と変動条件だけ接続。購入後の見通し条件を具体化受領確認必須受け取ったものを1点具体化し、次にこちらが何をするかを書く追加情報依頼必須なぜ必要か → 必要項目 → 送付後どうなるか対応範囲外の断り必須確認した → 今回の範囲外 → 必要なら進める前に別相談進捗報告必須完了したこと / 今見ていること / 次回連絡時刻納品後の補足必須何を送ったか / 何を直したか / 想定と違う場合の連絡先クローズ後の再相談必須感謝 / closed boundary / 新規見積り導線 / 関連範囲の扱い
+gold 例：料金＋納期回答
+ご相談ありがとうございます。金額は15,000円です。今回の不具合は、原因確認から修正済みファイルの返却までをこの料金内で進めます。日数はサービス上3日が目安ですが、コードの状態やエラー内容によって前後します。ご購入後、コードとエラー内容を確認できた時点で、より正確な見通しをお返しします。この内容で進める場合は、そのままご購入ください。
+gold 例：受領確認
+スクリーンショットとエラー文、受け取りました。まずは該当箇所を確認し、追加で必要な点があればこちらからご連絡します。
+gold 例：追加情報依頼
+このまま原因確認を進めるために、あと3点だけお願いします。- エラー画面のスクリーンショット- 該当箇所のコード- どの操作で再現するかお送りいただいた内容を確認したうえで、修正方針をお返しします。
+gold 例：対応範囲外の断り
+ご希望の内容は確認しました。ただ、今回の料金内で対応できるのは既存コード上の不具合修正までです。新しい機能追加や画面全体の作り直しは、この範囲には含めていません。必要であれば、進める前に追加対応として対応可否と金額を確認します。
+gold 例：進捗報告
+進捗をご共有します。現在、エラーの再現確認までは完了しています。修正箇所の切り分けにもう少し時間が必要です。次回は明日18時までに、確認できた内容と見通しをご連絡します。
+gold 例：納品後の補足
+修正版をお送りしました。今回の対応内容は、〇〇の修正と△△の調整です。表示崩れや想定と違う動きがあれば、このトークルームでそのままお知らせください。
+gold 例：クローズ後の再相談
+このたびはご依頼ありがとうございました。クローズ後に新しい不具合や追加のご相談がある場合は、まず症状と該当箇所をメッセージでお送りください。内容を確認したうえで、新規のお見積りとして対応可否をお返しします。
+クローズ後だけは、Deep Research の「このトークルームでそのまま」系をそのまま使わない方がよいです。closed renderer は closed room boundary を明確に持っているため、phase をまたぐ表現は特に慎重に扱うべきです。
+
+10. #RE / #BR 検証案
+通常 live bugfix-15000 で回すケース
+まずは bugfix-15000 live に限定して、以下の #RE batch を作るのがよいです。
+RE-2026-04-29-bugfix-conversation-flow-r1
+見るべきケースはこのあたりです。
+ケース目的料金＋納期質問15,000円 が弱まらず、納期条件だけ自然につながるか料金だけ聞かれたケース想定しています が出ないか納期だけ聞かれたケース3日目安と変動条件が両方残るかscope 内 bugfix直答が残り、作業範囲が広がらないかscope 外：新機能追加断りが自然でも boundary が弱まらないかscope 外：調査だけ依頼約束していない作業が増えないか購入後の資料受領受領確認が機械的にならず、次アクションが見えるか追加情報依頼なぜ必要か、何を送るか、送った後どうなるかが見えるか進捗不安謝罪・共感が過剰にならず、次回連絡が明確かsecret pasted自然化で secret handling が薄まらないか外部共有 / 直接修正依頼payment route / platform boundary が壊れないか納品後補足何を直したか、どこに連絡するかが明確かクローズ後再相談closed boundary と新規見積り導線が残るか
+post-purchase renderer は direct answer / next action / secret / external channel などをかなり細かく分岐しているため、文体改善がこの分岐を上書きしないことを確認する必要があります。
+future-dual #BR で見るケース
+future-dual は、特に bugfix-15000 と handoff-25000 の境界を見るべきです。
+ケース確認点buyer が「引き継ぎ資料もほしい」と言うlive では未公開 handoff 導線が漏れないかbuyer が「修正ではなく全体整理」と言うbugfix と future service が自然化で混ざらないかbuyer が「今の価格で全部やって」と言う15,000円 scope が弱まらないかbuyer が秘密情報を貼るfuture service 側の表現に寄って secret route が変わらないかbuyer がクローズ後に関連相談closed phase と repeat/new estimate の境界が残るか
+prequote renderer には handoff / boundary / future branch の処理があり、public reply に shadow 側の語彙が漏れる危険があります。自然化後も handoff、25,000円、未公開サービス導線が live に出ないことを regression で見るべきです。
+public/private や handoff 導線漏れの確認
+自動チェックは最低限これを入れます。
+live bugfix output must not contain:- handoff- 25,000円- 引き継ぎ- 主要1フロー- 別サービス- 未公開- private- direct push- Google Driveで共有してください
+ただし、引き継ぎ は buyer の原文引用に出ることがあるので、返信本文側だけを対象にした方がよいです。
+scope / price / phase が弱まらないかの確認
+採用基準は以下です。
+基準合格条件非公開サービス漏れなしlive 出力に handoff / future service 導線がないprice 保持15,000円 が消えない、想定 化されないscope 保持原因確認〜修正済みファイル返却の範囲を勝手に広げないphase 保持prequote / purchased / closed の導線が混ざらないbuyer 主質問への直答金額・納期・可否への答えが前半にある次アクションbuyer / seller のどちらが次に何をするか明確secret safety秘密情報の扱いが自然化で薄まらないpublic/privatehidden service / internal label が出ない自然さ短文断定3連続や近距離反復が減る説明過多でない文量が増えすぎない。追加事実を作らない再発性同種ケースで同じ改善が安定する
+
+11. やらない方がいいこと
+ここは強めに切った方がよいです。
+やらない
+
+
+句点「。」の全面禁止
+
+
+すべての短文を接続する
+
+
+です。 を悪者扱いする
+
+
+固定価格を 想定しています にする
+
+
+納期目安をぼかして「状況次第です」だけにする
+
+
+できる限り対応します のような曖昧な善意表現を増やす
+
+
+ChatGPTっぽい共感文を足す
+
+
+ご不安かと思いますが を濫用する
+
+
+丁寧にご案内します のような中身のない締めを増やす
+
+
+平素よりお世話になっております などメール文体へ寄せる
+
+
+ご案内します を万能終止にする
+
+
+確認しました を毎回冒頭に置く
+
+
+renderer に汎用 naturalizer を入れる
+
+
+lint の hard fail を増やしすぎる
+
+
+Deep Research After をそのまま正本化する
+
+
+gold reply を「文面固定テンプレ」として扱う
+
+
+human audit で「もっとやさしく」だけを見る
+
+
+Deep Research の重要な制約にも、絵文字や過剰な感嘆符に頼らない、くだけすぎない、謝りすぎない、約束や対応範囲を増やさない、メール文体とチャット文体を混ぜない、という条件が入っています。これはそのまま守るべきです。
+
+12. 最短ロードマップ
+Step 1：japanese-chat-natural-ja に soft rule を追加
+最初にやるべきです。
+リスクが低く、renderer や lint より広く効きます。
+対象：
+/home/hr-hm/Project/work/.codex/skills/japanese-chat-natural-ja/SKILL.md
+追加内容：
+
+
+会話の流れを作る
+
+
+つないでよい文 / つないではいけない文
+
+
+固定価格では 想定しています を使わない
+
+
+句点全面禁止しない
+
+
+次アクションの actor / trigger を明示
+
+
+反復語の密集を避ける
+
+
+Step 2：監査プロンプトに conversation_flow_naturalness を追加
+次にやるべきです。
+理由は、skill 追加だけだと「良い自然化」と「危険な自然化」の評価軸が曖昧なままだからです。
+対象：
+/home/hr-hm/Project/work/サービスページ/rehearsal/bugfix-15000-返信学習/監査プロンプト_codex-xhigh.md
+追加内容：
+
+
+soft lens
+
+
+hard fail / fix recommended / preference only の分離
+
+
+修正提案は最小差分
+
+
+price / scope / phase / secret を保持
+
+
+Step 3：料金＋納期の renderer 代表文だけ最小修正
+3番目です。
+先に renderer を直すと、なぜその文が正しいのかを audit / skill が説明できません。
+対象：
+/home/hr-hm/Project/work/scripts/render-prequote-estimate-initial.py
+修正範囲：
+
+
+料金＋納期質問 の代表 branch
+
+
+15,000円です は維持
+
+
+日数はサービス上3日が目安ですが、〜で前後します にする
+
+
+必要情報がそろい次第 を具体条件に置換
+
+
+購入導線を維持
+
+
+Step 4：gold reply を7カテゴリ追加
+4番目です。
+renderer と skill の中間に、実例としての正解を置きます。
+対象候補：
+/home/hr-hm/Project/work/docs/reply-quality/gold-replies/
+または既存 gold reply 管理ファイル。
+追加カテゴリ：
+
+
+prequote price + timeline
+
+
+receipt
+
+
+additional-info-request
+
+
+scope-out
+
+
+progress-update
+
+
+post-delivery-note
+
+
+closed-followup-repeat
+
+
+Step 5：lint warning を限定追加し、#RE / #BR で回す
+最後に lint です。
+lint は便利ですが、誤検知で安全文を壊しやすいので後回しがよいです。
+対象：
+/home/hr-hm/Project/work/scripts/reply_quality_lint_common.py
+追加は warning のみ。
+
+
+short assertive streak
+
+
+repeated sentence ending
+
+
+confirmation density
+
+
+お返しします density
+
+
+進めます density
+
+
+その後、#RE と future-dual #BR を回します。
+後回しにするもの
+
+
+ng-expressions の大規模追加
+
+
+renderer 全体の自然化
+
+
+段落構造の lint
+
+
+batch 横断の「毎回同じ構成」自動判定
+
+
+ChatGPTっぽさスコアのような抽象 metric
+
+
+
+13. 追加で確認すべきファイル
+今回の指定ファイルに加えて、実装前に見るべきものは以下です。
+ファイル理由docs/reply-quality/gold-replies/ 配下gold reply の保存形式と命名規則確認.codex/skills/japanese-chat-natural-ja/references/ 配下既存の tone template / replace dictionary と衝突しないかos/core/service-registry.yamlprice / public service / hidden service の正本確認os/coconala/platform-contract.yamlpayment route / public-private / 外部共有境界確認サービスページ/bugfix-15000.live.txtlive service の実際の表現と renderer のズレ確認サービスページ/handoff-25000.ready.txtfuture-dual / private leakage test 用os/services/bugfix-15000/ 配下の facts / boundariesrenderer 文言の正本確認validator / regression scriptslint warning が fail 扱いにならないか確認既存 #RE / #BR archive過去に「自然化で境界が崩れた」パターン確認
+補足として、この環境では /home/hr-hm/Project/work/... のローカル実体は直接参照できなかったため、添付 Deep Research を正本として読み、公開リポジトリ上の該当ファイルを確認対象にしました。reply-change-log 側にも、外部調査は観察として保存し、renderer / validator には #RE 後に最小変更だけ入れる方針が残っているため、今回もその運用に合わせるのが安全です。

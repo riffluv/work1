@@ -272,6 +272,8 @@ def detect_prequote_scenario(source: dict) -> str:
         return "frontend_stripe_mixed_scope"
     if is_price_only_active_defect_case(source):
         return "price_only_active_defect"
+    if is_unknown_cause_can_consult_case(source):
+        return "unknown_cause_can_consult"
     if is_vague_can_fix_question_case(source):
         return "vague_can_fix_question"
     if is_scope_only_target_question_case(source):
@@ -1102,6 +1104,16 @@ def is_price_only_active_defect_case(source: dict) -> bool:
     price_only = any(marker in combined for marker in ["金額だけ", "料金だけ", "いくらですか", "いくらか"])
     active_defect = any(marker in combined for marker in ["注文が作られない", "反映されない", "更新されない", "エラー", "止ま"])
     return price_only and active_defect and any(marker in combined for marker in ["Stripe", "決済", "Webhook", "webhook"])
+
+
+def is_unknown_cause_can_consult_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    return (
+        any(marker in combined for marker in ["原因がまったく分か", "原因が全く分か", "原因が分からない", "原因がわからない"])
+        and any(marker in combined for marker in ["相談して大丈夫", "相談できますか", "見てもらえますか"])
+        and any(marker in combined for marker in ["15,000円", "15000円"])
+        and any(marker in combined for marker in ["Stripe", "決済", "注文が作られない", "反映されない"])
+    )
 
 
 def is_vague_can_fix_question_case(source: dict) -> bool:
@@ -2427,14 +2439,28 @@ def render_price_only_active_defect_case(case: dict) -> str:
     raw = case.get("raw_message", "")
     paragraphs = [
         "ご相談ありがとうございます。",
-        "金額は15,000円です。",
-        "Stripe決済後に注文が作られない不具合として、原因確認から修正済みファイルの返却まで進めます。",
+        "Stripe決済後に注文が作られない不具合であれば、金額は15,000円です。",
     ]
     if any(marker in raw for marker in ["何日", "いつ", "納期", "どれくらい", "どのくらい", "何時間"]):
-        paragraphs.append("日数はサービス上の目安として3日です。コードとエラー内容によって前後します。")
-        paragraphs.append("ご購入後、必要情報がそろった時点で、より正確な見通しをお返しします。")
+        paragraphs.append(
+            "原因確認から修正済みファイルの返却まで、この料金内で進めます。日数はサービス上3日が目安ですが、コードの状態やエラー内容によって前後します。"
+        )
+        paragraphs.append("ご購入後にコードとエラー内容を確認し、より正確な見通しをお返しします。")
+    else:
+        paragraphs.append("原因確認から修正済みファイルの返却まで、この料金内で進めます。")
     paragraphs.append("この内容で進める場合は、そのままご購入ください。")
     return "\n\n".join(paragraphs)
+
+
+def render_unknown_cause_can_consult_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "原因が分からない状態でも相談できます。Stripe決済後に注文が作られない不具合として、15,000円で進められます。",
+            "ご購入後にコードとエラー内容を見て、どこで止まっているかを確認します。確認できた時点で、一次結果は48時間以内を目安にお返しします。",
+            "この内容で進める場合は、そのままご購入ください。",
+        ]
+    )
 
 
 def render_vague_can_fix_question_case(case: dict) -> str:
@@ -2842,6 +2868,9 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "price_only_active_defect":
         case["rendered_reply_validator_mode"] = "price_only_active_defect"
         return render_price_only_active_defect_case(case)
+    if case.get("scenario") == "unknown_cause_can_consult":
+        case["rendered_reply_validator_mode"] = "unknown_cause_can_consult"
+        return render_unknown_cause_can_consult_case(case)
     if case.get("scenario") == "vague_can_fix_question":
         case["rendered_reply_validator_mode"] = "vague_can_fix_question"
         return render_vague_can_fix_question_case(case)

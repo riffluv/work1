@@ -97,6 +97,52 @@ TECHNICAL_SPECULATION_RULES: list[tuple[re.Pattern[str], str]] = [
     ),
 ]
 
+FLOW_WARNING_SAFETY_MARKERS = [
+    "15,000円",
+    "25,000円",
+    "範囲外",
+    "含まれません",
+    "対応できません",
+    "返金",
+    "無料",
+    "保証",
+    "secret",
+    "Secret",
+    "APIキー",
+    "Webhook secret",
+    ".env",
+    "直接push",
+    "直接 push",
+    "本番反映",
+    "クローズ",
+    "旧トークルーム",
+]
+
+FLOW_WARNING_EMAIL_PHRASES: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"平素より"), "conversation_flow warning: email-style phrase `平素より` appears in chat reply"),
+    (re.compile(r"ご査収"), "conversation_flow warning: email-style phrase `ご査収` appears in chat reply"),
+    (
+        re.compile(r"何卒よろしくお願い申し上げます"),
+        "conversation_flow warning: heavy email closing `何卒よろしくお願い申し上げます` appears in chat reply",
+    ),
+]
+
+FLOW_ASSERTIVE_ENDING_RE = re.compile(
+    r"(?:です|ます|ません|できます|しました|しています|なります|ありません|ください)[。！？!?]?$"
+)
+
+FLOW_REPEATED_ENDINGS = [
+    "確認します",
+    "確認しました",
+    "お返しします",
+    "進めます",
+    "ご連絡します",
+    "お願いします",
+    "ください",
+    "対応できます",
+    "対応できません",
+]
+
 INTERNAL_TERM_RULES: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(r"公開サービス"),
@@ -721,6 +767,113 @@ def collect_technical_explanation_warnings(rendered: str) -> list[str]:
         for pattern, message in TECHNICAL_SPECULATION_RULES:
             if pattern.search(segment):
                 warnings.append(f"{message}: {segment}")
+    return list(dict.fromkeys(warnings))
+
+
+def _conversation_flow_sentence_units(rendered: str) -> list[str]:
+    units: list[str] = []
+    for raw_line in rendered.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith((">", "- ", "・", "* ")):
+            continue
+        parts = re.split(r"(?<=[。！？!?])\s*", line)
+        for part in parts:
+            sentence = part.strip()
+            if sentence:
+                units.append(sentence)
+    return units
+
+
+def _conversation_flow_paragraph_units(rendered: str) -> list[str]:
+    units: list[str] = []
+    for block in re.split(r"\n\s*\n", rendered):
+        paragraph = " ".join(line.strip() for line in block.splitlines() if line.strip())
+        if not paragraph or paragraph.startswith((">", "- ", "・", "* ")):
+            continue
+        if len(re.findall(r"[。！？!?]", paragraph)) > 1:
+            continue
+        units.append(paragraph)
+    return units
+
+
+def _flow_segment_is_safety_boundary(segment: str) -> bool:
+    return any(marker in segment for marker in FLOW_WARNING_SAFETY_MARKERS)
+
+
+def _nearby_repetition_count(rendered: str, term: str, distance: int) -> int:
+    positions = [match.start() for match in re.finditer(re.escape(term), rendered)]
+    count = 0
+    for left, right in zip(positions, positions[1:]):
+        if right - left <= distance:
+            count += 1
+    return count + 1 if count else 0
+
+
+def collect_conversation_flow_warnings(rendered: str) -> list[str]:
+    warnings: list[str] = []
+
+    for pattern, message in FLOW_WARNING_EMAIL_PHRASES:
+        if pattern.search(rendered):
+            warnings.append(message)
+
+    if all(
+        marker in rendered
+        for marker in [
+            "トークルームは閉じているため",
+            "ログやスクショを送ってください",
+            "見積り提案または新規依頼",
+        ]
+    ):
+        warnings.append(
+            "conversation_flow warning: closed follow-up materials reply is split into rule / request / route; "
+            "answer that logs/screenshots can be sent here first, then keep the closed-room boundary"
+        )
+
+    sentences = _conversation_flow_sentence_units(rendered)
+    paragraphs = _conversation_flow_paragraph_units(rendered)
+    streak: list[str] = []
+    for paragraph in paragraphs:
+        stripped = paragraph.rstrip("。！？!?")
+        if _flow_segment_is_safety_boundary(paragraph):
+            streak = []
+            continue
+        if len(stripped) <= 28 and FLOW_ASSERTIVE_ENDING_RE.search(paragraph):
+            streak.append(paragraph)
+            if len(streak) >= 3:
+                sample = " / ".join(streak[-3:])
+                warnings.append(
+                    "conversation_flow warning: short one-sentence paragraphs appear three times in a row; "
+                    f"consider connecting only strongly related facts: {sample}"
+                )
+                streak = []
+        else:
+            streak = []
+
+    for ending in FLOW_REPEATED_ENDINGS:
+        count = sum(1 for sentence in sentences if sentence.rstrip("。！？!?").endswith(ending))
+        if count >= 3:
+            warnings.append(
+                f"conversation_flow warning: repeated sentence ending `{ending}` appears {count} times"
+            )
+
+    if all(term in rendered for term in ["確認しました", "確認します", "確認結果"]):
+        positions = [rendered.find(term) for term in ["確認しました", "確認します", "確認結果"]]
+        if max(positions) - min(positions) <= 360:
+            warnings.append(
+                "conversation_flow warning: `確認しました` / `確認します` / `確認結果` appear nearby; "
+                "separate receipt, checking, and reporting roles only if needed"
+            )
+
+    if _nearby_repetition_count(rendered, "お返しします", 420) >= 3:
+        warnings.append(
+            "conversation_flow warning: `お返しします` repeats nearby; consider varying the report verb"
+        )
+
+    if _nearby_repetition_count(rendered, "進めます", 420) >= 3:
+        warnings.append(
+            "conversation_flow warning: `進めます` repeats nearby; clarify which action is being progressed"
+        )
+
     return list(dict.fromkeys(warnings))
 
 

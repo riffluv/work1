@@ -129,7 +129,7 @@ def lint_case(module, source: dict) -> list[str]:
         "closed_pre_estimate_cause_check",
     } and has_any(
         rendered,
-        ["送っていただいた範囲で", "いただけた範囲で"],
+        ["送っていただいた範囲で", "いただけた範囲で", "届いた範囲で"],
     )
     if (
         primary["disposition"] == "answer_after_check" or (contract.get("ask_map") and decision_plan.get("blocking_missing_facts"))
@@ -154,11 +154,11 @@ def lint_case(module, source: dict) -> list[str]:
                 errors.append("direct answer appears after ask")
 
     if primary["disposition"] == "answer_after_check":
-        if not has_any(rendered, ["確認します", "確認して", "断定", "状況確認", "見て", "見たい"]):
+        if not has_any(rendered, ["確認します", "確認して", "断定", "状況確認", "見て", "見たい", "見立て"]):
             errors.append("answer_after_check exists but defer language is weak")
         if not has_any(rendered, ["トークルーム", "閉じて"]):
             errors.append("closed defer case does not mention closed-room boundary")
-        if contract.get("ask_map") and decision_plan.get("blocking_missing_facts") and not has_any(rendered, ["送ってください", "教えてください"]):
+        if contract.get("ask_map") and decision_plan.get("blocking_missing_facts") and not has_any(rendered, ["送ってください", "教えてください", "送っていただいて大丈夫"]):
             errors.append("answer_after_check case has ask_map but no ask request")
 
     if primary["disposition"] in {"answer_now", "decline"}:

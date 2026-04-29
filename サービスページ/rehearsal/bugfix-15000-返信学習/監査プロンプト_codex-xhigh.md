@@ -45,6 +45,7 @@ Pro後の補助監査レンズ:
 - `shadow_to_live_contamination`: `#BR` や `handoff-25000` 側の語彙、25,000円、主要1フロー、引き継ぎメモ、private CTA が通常 live / #RE に戻っていないか
 - `evidence_minimality`: buyer がすでに出した情報を聞き直していないか、依頼している材料が見積り判断・修正判断に必要な最小限か。secret 値や過剰なコード一式要求に寄っていないかも見る
 - `jp_business_native_naturalness`: 日本の実務チャットとして、内容が正しいだけでなく担当者が普通に書いたように読めるか。`確認しました` 直後の `はい、確認できています` のような二重受領、機械的な `はい、`、`確認します / 確認できます / 確認結果` の密集、`確認材料` `進め方になります` などの内部処理語・PM語彙が浮いていないかを見る。ただし hard fail ではなく soft lens とし、意味を変えない最小修正だけを提案してください
+- `conversation_flow_naturalness`: 返信の意味・価格・scope・phase・secret・public/private・payment route を変えずに、buyer が自然に読めて次に動ける流れになっているかを見る soft lens。短い受け止め -> 主質問への直答 -> 条件・理由 -> 次アクションの流れがあるか、短文断定が3文以上続いてマニュアル的に見えないか、関係が強い情報だけ自然につながっているか、金額・納期・scope・作業可否が自然化で曖昧になっていないか、`確認しました` / `確認します` / `確認結果` / `お返しします` / `進めます` が近距離で密集していないかを見る。句点「。」そのものは悪いと判断せず、buyer 固有の情報を1点拾えているか、ただし拾うために事実を創作していないかも確認してください
 
 注意:
 - `phase_answer_gap` は生成 rule ではなく監査レンズです。毎回説明を増やす方向ではなく、buyer が実際に迷う場面だけ指摘してください
@@ -58,6 +59,9 @@ Pro後の補助監査レンズ:
 - Pro後の補助監査レンズは hard fail に直結させないでください。明確な public leak、phase drift、secret 値要求、保証断定など deterministic な事故だけ必須修正にし、それ以外は軽微・観察・gold 候補として扱ってください
 - `jp_business_native_naturalness` は、価格・scope・phase・secret・public/private・支払い導線・作業可否を変えるために使わないでください。`はい、` や `まずは` を全面禁止せず、二重受領・機械的な yes・近接反復など再発性のある違和感だけを拾ってください
 - hard fail と soft lens を分けてください。hard fail は phase drift、非公開サービス漏れ、返金/無料/保証の断定、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続など deterministic な事故に限ります。`response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort`、`jp_business_native_naturalness` は soft lens として扱ってください
+- `conversation_flow_naturalness` は hard fail ではありません。ただし、自然化によって price / scope / phase / payment route / secret handling / public-private boundary が変わった、固定価格を `想定しています` などで不当に弱めた、buyer の主質問への直答が消えた、誤った次アクションや未約束の作業・無料対応・返金・保証・外部共有を足した場合は deterministic な事故として扱ってください
+- `conversation_flow_naturalness` の修正提案は最小差分にしてください。つなぐのは同じ役割で強く関係する文だけにし、価格・scope・phase・secret・payment route の語句は原則保持してください。`やさしくするための曖昧化` は禁止です
+- `conversation_flow_naturalness` の preference only: 句点の有無だけの好み、やや硬いが意味・導線・安全境界が明確な文、より自然な言い換えはあるが修正すると price / scope / phase が揺れそうな文。これらは必須修正にしないでください
 
 優先順位:
 - 1件ごとの好みより、構造・scope・service facts との整合を優先してください
