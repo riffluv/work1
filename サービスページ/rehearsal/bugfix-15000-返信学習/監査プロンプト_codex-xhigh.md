@@ -9,6 +9,12 @@
 あなたの役割は reviewer です。  
 新しい設計者として全面改稿するのではなく、既存の返信骨格が current rules に照らして安定しているかを監査してください。
 
+`candidate_source` が batch に書かれている場合は、必ず監査前に確認してください。
+- `candidate_source: renderer_baseline` の候補は、#R 本丸の writer 品質ではなく renderer baseline の文面です。自然さの違和感を見つけても、すぐ共通 skill / rule に戻す前提にせず、`#RE only` の可能性を残してください。
+- `candidate_source: writer_v1` または `writer_candidate` の候補は、#R 相当の外向け返信候補として監査してください。
+- public leak、secret 値要求、phase drift、価格・scope 崩れなど deterministic な事故は、candidate_source に関係なく必須修正として扱ってください。
+- 自然さ・ぶつ切り感・bot 感の指摘は、`#RE only / #R reproduced / candidate / preference` のどれに近いかを可能なら学習判定に添えてください。
+
 特に重く見る点:
 - 主質問への直答が速いか
 - 直答を速くするために可否だけを独立文にしすぎていないか。可否・価格・対応方針が同じ答えの一部なら、一息でまとめた方が自然かを見る

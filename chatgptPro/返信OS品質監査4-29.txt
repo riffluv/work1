@@ -1,0 +1,150 @@
+公開 repo の main を見た範囲での監査です。結論から言うと、返信OSの骨格は残すべきです。ただし、#RE / renderer / naturalizer 周りは設計変更した方がよいです。特に今の #RE は、#R の実返信品質を検証しているというより、かなりの割合で deterministic renderer の文面品質を監査している状態に見えます。⚠️
+1. 結論
+判定は 複合問題です。優先順位をつけると、こうです。
+論点判定優先度単なる日本語自然化不足か部分的には yes。ただし根本ではないP1#RE / #R の生成経路ズレかyes。今回の主因P0renderer の責務過多かyes。かなり大きいP0naturalizer が効いていないかyes。現状は実質 identityP0/P1lint / gold / audit の戻し方不足かyes。ただし後段の問題P1
+かなりはっきり言うと、今の設計思想は repo 上では正しい方向に書かれていますが、実装経路がそれに追いついていません。 coconala-reply-bugfix-ja/SKILL.md では、renderer / reviewer は section order と facts 保全の guardrail であり、本文の主生成は Codex の freeform draft を優先すると書かれています。また Classifier -> Writer -> Reviewer 分離、renderer を section/order/ask/主質問位置の guardrail に留める方針も明記されています。
+一方で、統合側の render-coconala-reply.py は draft_case() で drafter.render_case(case) を呼び、lane ごとに drafter と renderer が同じモジュールとしてロードされています。さらに apply_semantic_safe_naturalization() は「typed naturalizer ができるまで identity-only」とコメントされ、実際にそのまま reply を返しています。つまり現行 #RE の候補は、少なくともこのパイプライン上では writer / naturalizer を通った #R 相当文ではなく、renderer 出力 + identity naturalizer です。
+したがって、今回の B08 の違和感は「日本語自然化ルールが足りない」だけでは説明しきれません。#RE で鍛えた内容が #R に直結しない危険が実際にあります。
+
+2. 現状構成の評価
+強い点
+まず、土台はかなり良いです。ここは壊さない方がいいです。✅
+レイヤ強い点service factsbugfix-15000 が public:true、handoff-25000 が public:false と明確に分かれており、public reply では public true のみを使うルールもある。scope / pricenext-stripe-bugfix/service.yaml に base price 15,000円、scope unit、in_scope、deliverables、hard_no 系がかなり具体的にある。phase / closed boundaryclosed 後は旧トークルーム継続・おひねり導線にしない、メッセージ上で前回修正との関係を見る、実作業なら見積り提案または新規依頼へ戻す、というルールが明確。skill 方針Writer / Reviewer 分離、思考保全、renderer を guardrail に留める方針が既に書かれている。naturalizer 方針japanese-chat-natural-ja は価格・保証・禁止事項・scope を自然化で変えない、final naturalizer として使う、という制約を持っている。gold36_conversation-flow-naturalness には、今回の B08 に近い closed 後関係確認の模範が既にあり、「送ってよいかへ先に答える」まで明文化されている。
+危ない点
+危ないのは、設計書の理想と実装の実態がズレていることです。
+レイヤ危ない点writer#R では Codex/LLM が自然に書けているのに、#RE 統合経路では writer stage が明示的に見えない。rendereranswer_brief / direct_answer_line / ask_text が外向け文そのものになっており、意味スロットではなく文面スロットになっている。naturalizer名前はあるが、統合側では identity-only。つまり「自然化レイヤを入れたつもり」でも実返信候補には効いていない。lintr0_local_lint: OK でも B08 のような bot 感・処理ログ感が残っている。これは hard constraint lint と会話品質 lint がまだ分離しきれていない証拠。goldgold は良いが、renderer がその思想を意味契約として使っておらず、文面テンプレにも validator にも十分変換されていない。external / human audit現在の #RE candidate が renderer 由来なら、人間監査は #R の writer 品質ではなく renderer 品質を見てしまう。
+特に B08 では、render-closed-followup.py の closed_materials_check が direct_answer_line = "このメッセージ上で、前回の修正と関係がありそうかを見立てます。" になっています。これは「ログとスクショをこのメッセージで送ってよいか？」への直答ではなく、「こちらが何をするか」の処理文です。ここで既に流れが崩れています。
+
+3. #RE / #R alignment の設計案
+基本方針
+理想形は、りふさんが書いている通りで合っています。
+#RE:固定 fixture  -> deterministic classifier / contract builder  -> #R と同じ writer  -> #R と同じ final naturalizer  -> validator / lint  -> external audit / human audit#R:実相手文  -> same classifier / contract builder  -> same writer  -> same final naturalizer  -> validator / lint
+#RE は #R と同じ writer / naturalizer を使うべきです。
+そうしないと、#RE の学習・監査結果が #R に反映されません。
+ただし、deterministic renderer を捨てる必要はありません。むしろ残すべきです。残し方が重要です。
+deterministic renderer に残すべき役割
+renderer は、candidate writer ではなく contract generator / baseline generator / regression oracle に寄せるのがよいです。
+renderer に残すrenderer から外すservice facts 解決外向け返信全文phase 判定段落ごとの完成文scope / hard_no / forbidden movesご案内します などの汎用締めpublic/private gate送ってください のような自然文 askresponse decision planまずは確認します 系の処理文answer coverage contract会話の温度・自然な接続semantic required slotshuman-readable final wordingregression 用 expected constraints完全一致の gold 本文
+危険なのは deterministic renderer そのもの ではありません。危険なのは、deterministic renderer が作った全文を #R 相当の候補として human audit に出すことです。
+#RE 表示を変える
+#RE の出力には、最低限これを明示した方がいいです。
+candidate_source: writer_v1 | renderer_baselinecontract_source: deterministic_renderernaturalizer: japanese-chat-natural-ja | identityvalidation:  hard_constraints: OK/NG  soft_naturalness_warnings: [...]
+人間監査の対象は原則 writer_v1 にします。renderer_baseline は appendix / debug / regression 用に残します。
+
+4. renderer の責務整理
+現在の責務問題移動先理由優先度scenario detection必要。ここは deterministic でよいrenderer / classifier に残す再現性が必要P0 keepservice facts 解決必要。ここは deterministic でよいrenderer / classifier に残すpublic/private, price, scope の事故防止P0 keepphase boundary 判定必要。ここは deterministic でよいrenderer / classifier に残すclosed / purchased / delivered の事故防止P0 keepdirect_answer_line を完成文で持つ主質問への直答が「処理文」になりやすいsemantic slot に変換writer が自然な文脈で直答するためP0answer_brief を完成文で持つそのまま文面に流れ、slot filling になるanswer intent / disposition に変換#R の思考を削らないP0ask_text を命令文で持つ「送ってください」が急に命令的に見えるask intent / allowed_materials / missing_fact に変換permission answer と依頼文を writer が調整できるP0closed 後 boundary 文を固定文で出す境界説明が前に出すぎ、主質問が埋もれるvalidator + semantic boundary境界は必須だが順序と接続は writer が決めるP0private handoff 文面の生成public mode leak のリスクが増える#BR 専用 contract / gated rendererpublic:false は通常 live / #RE で外向け文にしないP0返信全文の deterministic generation#RE と #R がズレるwriter / naturalizer自然な会話品質は LLM writer が担当P0phrase NG の実装renderer 修正だとパターンごとに膨らむlint / skill表面パターンは lint、思想は skillP1gold 模範の吸収テンプレ化すると硬くなるgold anchor / audit lens例として参照し、完全一致させないP1naturalness scoringrenderer には不向きsoft lint / audit lens主観性が高く hard fail 化しすぎるとノイズP1
+
+5. conversation_flow_naturalness の実装方針
+今回の本質は「句点が多い」ではなく、意味スロットが会話として接続されていないことです。
+B08 での正しい意味順は、こうです。
+primary_question:  buyer_asks: このメッセージでログ/スクショを送ってよいか  direct_answer: 送って大丈夫triage:  allowed_action: 届いた範囲で前回修正との関係を見立てる  limit: 実作業・修正済みファイル返却はしないclosed_boundary:  room_closed: true  if_work_needed: 見積り提案または新規依頼で相談next_action:  buyer_action: ログとスクショをこのメッセージで送る
+これを renderer が文章化すると、処理ログになります。writer に渡すと、こういう流れになります。
+
+ご連絡ありがとうございます。
+ログとスクショは、このメッセージで送っていただいて大丈夫です。
+届いた内容をもとに、前回の修正と関係がありそうかをまず見立てます。トークルームはクローズ済みのため、この場で修正作業や修正済みファイルの返却までは進められません。実作業が必要そうな場合は、見積り提案または新規依頼として対応方法をご相談します。
+
+この方向は、既存 gold の 7.5 closed 後の関係確認 とも一致しています。gold 側では「ログやスクショは、このメッセージで送っていただいて大丈夫です」と先に答え、境界説明を後段で接続しています。
+層ごとの入れ方
+層入れる内容優先度japanese-chat-natural-ja「主質問への直答 → その理由/境界 → 次アクション」を、別々の処理文にせず会話として接続する ruleP0coconala-reply-bugfix-ja#RE と #R は同じ writer / naturalizer を使う、renderer は contract まで、という運用 ruleP0render-closed-followup.pyclosed_materials_check の direct_answer_line を完成文から semantic slot へ変更P0reply_quality_lint_common.py確認語密集、見立て/返す/案内の密集、短文処理ログ風を warning として検出P1ng-expressions高信号の再発パターンだけ追加。広い禁止語辞書にしないP1gold replies模範文として残す。完全一致やテンプレ流用はしないP1audit promptsoft lens として「直答が埋もれていないか」「境界が前に出すぎていないか」を見るP1renderer 文面修正最小限。代表固定パターンだけP2
+Deep Research ファイル自体も「raw research / not yet implemented」であり、そのまま renderer / lint / skill / prompt に反映しない扱いになっています。この扱いは正しいです。
+また Pro 分析側でも、自然化レイヤは service / phase / scope / price / secret / public-private を変えない意味保存型の final layer として置くべき、lint は広げすぎると誤検知になる、と整理されています。これは今回の方針と整合します。
+
+6. lint / skill / gold / audit lens の分類
+自然さ問題は、全部を hard fail にすると OS が壊れます。分類基準はこう置くのがよいです。
+基準
+分類基準hard fail送ると信頼・取引・安全境界を壊す。価格、scope、phase、secret、public/private、支払い導線、主質問未回答などfix recommended事故ではないが、bot 感・冷たさ・処理ログ感が明確に出るpreference好み差。句点量、少し硬い/柔らかい程度lint candidate表面パターンで高精度に検出できるskill rule candidatewriter / naturalizer の判断を補助する思想gold candidate場面ごとの模範として残すと学習効果が高いaudit lens only自動化しにくい全体印象、流れ、温度感
+個別分類
+パターン分類置き場所hard fail?handoff-25000 / 25,000円 / handoff購入導線が通常 live / #RE に出るpublic/private leakvalidator / hard lintyes料金・scope・phase・secret・支払い導線を変える自然化safety / contract violationvalidatoryesclosed 後の「送ってよいか」への返答が境界説明に埋もれるanswer coverage failurevalidator + audit lens基本 yes確認しました 直後に はい、確認できていますrepeated receipt / bot feellint warning + skillno。再発時 fix recommendedありがとうございます の連続repetitionlint warningnoまずは の連打repetitionlint warningno確認します / 確認できます / 確認結果 の密集process verb densitylint warning + skillno。ただし主質問が埋もれたら hardお返しします / ご案内します の連続report verb densitylint warning + audit lensno1文ごとに 。 で区切られた処理ログ風conversation flow issuesoft lint + audit lens + goldno。ただし主質問未回答なら hard確認材料 のような内部語internal-ish wordinglint candidate原則 fix recommended。内部 contract 名なら hard必要なものだけこちらからお願いしますunnatural practical wordingskill + goldnoログやスクショを送ってください が permission answer 後に命令的に出るask phrasing issueskill + soft lintno。ただし closed 境界を誤読させるなら hard
+既存 ng-expressions には、確認しました 直後の はい、確認できています や内部スコープ語の漏出など、すでに高信号な NG が入っています。ここは良い方向ですが、確認 や まずは のような広い語を blanket ban にしない方が安全です。
+
+7. 具体的な実装ロードマップ
+Step 1: #RE の candidate provenance を明示する
+まず render-coconala-reply.py の出力に、候補がどこから来たかを必ず出してください。
+candidate_source: renderer_baselinenaturalizer: identitywriter_used: false
+現状のままなら、#RE の candidate は renderer_baseline と明示すべきです。これだけで human audit のズレが見えるようになります。
+Step 2: render-coconala-reply.py に writer stage を追加する
+現状は drafted_reply = tool["draft_fn"](drafter, case) で renderer 出力が draft になり、その後 naturalizer identity です。ここを変えます。
+推奨構造:
+case = deterministic_contract_builder(source)writer_brief = build_writer_brief(case)drafted_reply = writer_adapter.generate(writer_brief)sendable_reply = naturalizer.apply(drafted_reply, case)validation = validators.run(sendable_reply, case)
+Codex CLI 運用では、完全自動 LLM call にしなくても実装できます。Codex CLI はローカル terminal で repo を読み、編集し、コマンド実行できる coding agent です。Skills も reusable workflow として CLI / IDE extension / app で使えるため、writer_brief を出力して Codex が候補を書く運用は現実的です。
+Step 3: render-closed-followup.py の B08 系を最優先で縮小する
+closed_materials_check は P0 です。今は direct_answer_line が完成文で、しかも「送ってよいか」ではなく「見立てます」に寄っています。
+変更後は、完成文ではなくこうします。
+answer_intent:  can_send_logs_and_screenshots_in_message: true  triage_relation_to_previous_fix_only: trueboundary:  closed_room_no_fix_work: true  closed_room_no_fixed_file_return: true  if_work_needed_route: estimate_or_new_requestask:  requested_materials:    - logs    - screenshots  phrasing_hint: permission_answer_not_command
+Step 4: lint は warning から入れる
+reply_quality_lint_common.py は既に style rules、internal term rules、service binding errors、projection warnings などを持っています。ここに自然さ系を足すなら、最初は hard fail ではなく warning が安全です。
+追加候補:
+confirmation_density warningreport_verb_density warningguidance_verb_density warningshort_assertive_streak warningpermission_answer_buried warningclosed_send_permission_commandish warning
+ただし permission_answer_buried は、主質問 coverage と絡む場合だけ hard fail に昇格してよいです。
+Step 5: #RE fixture は固定、expected は semantic contract にする
+conversation-flow-naturalness-bugfix49.yaml の HRC49-008 は、今回の closed 後ログ/スクショ確認ケースを既に fixture 化しています。ここに expected hard constraints / semantic slots を足し、本文完全一致は求めないのがよいです。
+例:
+expected_semantics:  must_answer:    - logs_and_screenshots_can_be_sent_in_message    - relation_check_only_before_work    - no_closed_room_fix_or_file_return    - if_work_needed_estimate_or_new_request  must_not_emit:    - handoff_service_name    - 25000_yen    - old_talkroom_ohineri    - free_fix_promise
+Step 6: gold は template ではなく style anchor にする
+36_conversation-flow-naturalness の B08 相当 gold はかなり良いです。ただし、これを renderer に全文登録しないでください。writer が温度感を見る 1 本の例として使うべきです。
+Step 7: renderer shrink を段階的に広げる
+最初に触る順番はこれです。
+
+
+render-coconala-reply.py
+
+
+render-closed-followup.py
+
+
+reply_quality_lint_common.py
+
+
+japanese-chat-natural-ja/SKILL.md
+
+
+conversation-flow-naturalness-bugfix49.yaml
+
+
+gold-replies/36...
+
+
+render-prequote-estimate-initial.py
+
+
+render-post-purchase-quick.py / render-delivered-followup.py
+
+
+まだ触らない方がいいのは、service-registry.yaml、platform-contract.yaml、service.yaml の hard boundary 本体です。ここは現時点で強いです。
+
+8. ファイル単位の指摘
+ファイル指摘優先度os/core/service-registry.yaml維持。bugfix-15000 public:true / handoff-25000 public:false の境界は正しい。public mode で private service が writer context に混ざらない gate をテストで強化する。P0 keepos/coconala/platform-contract.yaml維持。closed 後の「確認材料は受け取れるが実作業は見積り/新規依頼へ戻す」は正しい。追加するなら「送ってよいかへの直答を境界説明より先に置く」程度。P1サービスページ/bugfix-15000.live.txt今回は触らない。外向け正本として維持。keepサービスページ/handoff-25000.ready.txt通常 live / #RE では writer context に出さない。#BR 専用 simulation として gating を強める。P0ops/services/next-stripe-bugfix/service.yaml維持。price/scope/deliverables/hard_no の正本。writer へは「facts」として渡し、文章断片として渡しすぎない。P0 keep.codex/skills/coconala-reply-bugfix-ja/SKILL.md既に良い方針がある。追加するなら「#RE は #R と同じ writer/naturalizer を使う」「renderer candidate は baseline であり送信用候補ではない」を明記。P0.codex/skills/japanese-chat-natural-ja/SKILL.mdconversation_flow_naturalness の主戦場。直答・境界・次アクションを会話として接続する rule を追加。P0docs/reply-quality/ng-expressions.ja.md高信号の表現だけ追加。確認 まずは 。 の広域 ban はしない。P1docs/reply-quality/reply-change-log.ja.md今回は「文面修正」ではなく「#RE/#R alignment + renderer shrink」として記録する。P1scripts/render-coconala-reply.py最重要。writer stage を追加し、naturalizer identity を解消または明示。candidate_source を出す。P0scripts/render-closed-followup.pyB08 の直接原因。closed_materials_check の完成文 direct_answer_line を semantic slot 化する。P0scripts/render-prequote-estimate-initial.pyhandoff / 料金 / 納期などの全文生成が膨らみやすい。P0 完了後に contract 化を進める。private service 文面は特に gating。P1scripts/render-post-purchase-quick.pyreply_contract の answer_brief / ask_text が完成文寄り。closed 完了後に順次 semantic 化。P2scripts/render-delivered-followup.pydelivered は比較的安全だが、承諾・補足・将来相談の文面が固定化しやすい。後続で shrink。P2scripts/reply_quality_lint_common.pynaturalness warning を追加。ただし最初は hard fail にしない。P1scripts/check-coconala-reply-full-regression.pyfull regression に semantic contract / soft naturalness warning の集計欄を追加。本文完全一致テストへ寄せない。P1返信監査_batch-01.mdr0_local_lint: OK でも B08 が不自然なので、lint OK を「送れる品質」と誤認しない表示にする。P0conversation-flow-naturalness-bugfix49.yamlHRC49-008 に expected semantic slots を追加。gold 本文完全一致は不要。P0gold-replies/36_conversation-flow-naturalness.ja.md良い。style anchor として残す。renderer テンプレへ昇格させない。P1research / chatgptPro方針抽出には使う。ただし raw research / Pro 例文をそのまま正本化しない。P1
+
+9. 最終判断
+返信OSの骨格は維持するべきです。
+service boundary / payment route / public:false / secret safety / phase boundary はかなり良い位置まで来ています。ここを壊して全面リライトする必要はありません。
+ただし、#RE / renderer / naturalizer 周りは設計変更した方がいいです。
+最終判断はこれです。
+維持する:- service-registry- platform-contract- service.yaml- public/private gate- hard validator- deterministic regression- gold examples- human / external audit変える:- #RE candidate の生成経路- renderer の全文生成責務- naturalizer identity 状態- lint の hard/soft 分離- #RE human audit の対象
+次に実装者が触る順番は、かなり明確です。
+
+
+render-coconala-reply.py に candidate_source と writer stage を入れる
+
+
+render-closed-followup.py の closed_materials_check を semantic slot 化する
+
+
+reply_quality_lint_common.py に naturalness warning を追加する
+
+
+japanese-chat-natural-ja/SKILL.md に conversation flow rule を追加する
+
+
+HRC49-008 fixture に expected semantic slots を追加する
+
+
+gold は模範例として維持し、完全テンプレ化しない
+
+
+#RE では writer candidate を human audit 対象にし、renderer baseline は debug 用に下げる
+
+
+一番大事なのは、#RE を「固定文 renderer の監査」から「#R 相当 writer の監査」に戻すことです。
+ここを直せば、#RE で見つけた違和感が #R の実返信品質にちゃんと戻る構造になります。

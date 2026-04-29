@@ -50,15 +50,11 @@ def load_active_sources(
 
 
 def render_case(tools: dict[str, dict], module, source: dict) -> tuple[str, dict] | None:
-    state = source.get("state")
-    if state not in tools:
+    result = module.run_pipeline(source, tools=tools, lint=False)
+    if result.get("lane") is None:
         return None
-    tool = tools[state]
-    case = tool["prepare_case_fn"](tool["drafter"], source)
-    lane = module.choose_lane(case)
-    if lane not in tools:
-        return None
-    rendered = tools[lane]["draft_fn"](tools[lane]["drafter"], case)
+    rendered = result.get("sendable_reply") or ""
+    case = result.get("case") or {}
     return rendered, case
 
 

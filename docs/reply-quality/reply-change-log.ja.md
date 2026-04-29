@@ -1256,3 +1256,67 @@
 - きっかけ: ユーザー監査で、Deep Research / Pro 後にもかかわらず `。` で区切られた処理文が多く、チャット文として流れていないと判明した
 - 想定効果: `conversation_flow_naturalness` を後処理だけでなく renderer の段落設計へ戻し、#RE r0/r1 で出る文章そのものをチャット寄りにする
 - 非変更: 句点や短文を blanket NG にしない。価格・scope・phase・secret・支払い導線・作業可否の判断は変えない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-29 / CHG-148
+- 分類: `reply-only`
+- レイヤ: #RE/#R alignment / renderer provenance
+- 変更: Pro の `返信OS品質監査4-29` を受け、`render-coconala-reply.py` の #RE 出力に `candidate_source / audit_target / contract_source / writer_used / naturalizer` を明示するようにした。現行 #RE 候補は `renderer_baseline`、`writer_used=false`、`naturalizer=identity_only` と表示される。`closed_materials_check` には `semantic_slots` を持たせ、HRC49-008 fixture に `expected_semantics` を追加した。`check-reply-projection-warnings.py` は統合 pipeline 経由の出力を見るように変更し、監査プロンプトには `renderer_baseline` の自然さ指摘をすぐ共通 rule 化しない注意を追加した
+- きっかけ: #RE の文面が安全パーツの組み立てになり、#R より不自然に見える問題が発生した。Pro は、現行 #RE が #R 実返信品質ではなく deterministic renderer の文面品質を監査している状態に近いと指摘した
+- 想定効果: 人間監査と外部監査で、いま見ている候補が #R 相当の writer 候補なのか renderer baseline なのかを取り違えにくくなる。#RE only の自然さ問題を共通 skill / rule に戻しすぎて #R の思考を削る事故を防ぐ
+- 非変更: 本物の LLM writer stage はまだ自動化しない。現時点で `writer_v1` と偽装せず、renderer baseline として明示する。service-registry / platform-contract / service facts の hard boundary は変更しない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-29 / CHG-149
+- 分類: `reply-only`
+- レイヤ: #RE/#R alignment / writer brief + manual candidate validation
+- 変更: `render-coconala-reply.py` に `--writer-brief` と `--candidate-file` を追加した。`--writer-brief` は固定 fixture から buyer 原文、service facts、reply_contract、response_decision_plan、semantic slots、expected semantics、write rules をまとめ、#R 相当の writer candidate を作るための意味契約を出力する。`--candidate-file` は手動で作った writer candidate を同じ fixture / contract / lint / expected semantics で検査し、`candidate_source: writer_candidate_manual` として provenance を表示する。`ops/tests/README.ja.md` と `docs/reply-quality/README.ja.md` に運用を追記した
+- きっかけ: `#RE` と `#R` の出力経路がズレると、人間監査の指摘が #R 本丸に効かない、または本来問題ない #R を過剰矯正するリスクがあると判明した
+- 想定効果: renderer baseline の違和感を見つけた時に、同じ fixture から writer brief を出し、#R 相当の候補でも再現するかを検証できる。#RE only / #R reproduced / safety deterministic / preference の切り分けが実装運用上可能になる
+- 非変更: LLM writer の自動呼び出しはまだ行わない。writer candidate は Codex / 人間が brief を見て作る手動候補として扱う。自然化 warning は hard fail 化しない
+
+### 2026-04-29 / CHG-150
+- 分類: `reply-only`
+- レイヤ: #RE/#R alignment / writer candidate batch validation
+- 変更: `render-coconala-reply.py` に `--candidate-batch-file` を追加し、`#RE` markdown batch 内の `stock_id` と `返信候補` を読み取って、各返信候補を `writer_candidate_manual` として同じ fixture / contract / lint に通せるようにした。`返信監査_batch-01.md` は r6 として、監査対象を `renderer_baseline` ではなく `writer_candidate_manual` に修正し、batch 全体の検証コマンドを明記した
+- きっかけ: 仕組み上は writer brief と単体 candidate 検証ができても、実際の監査 batch のメタデータが `renderer_baseline` のままだと、監査者が #R 本丸ではない文章を見て自然さ指摘を戻すリスクが残るため
+- 想定効果: 外部監査に出す batch の候補が、#R 相当の writer 候補なのか renderer baseline なのかを取り違えにくくなる。人間監査で見つけた自然さの問題を、本丸に戻してよいか判断しやすくなる
+- 非変更: LLM writer stage はまだ自動化しない。`--candidate-batch-file` は batch 内に明示された手動 writer 候補を検証する入口であり、定形文生成を増やすものではない
+
+### 2026-04-29 / CHG-151
+- 分類: `reply-only`
+- レイヤ: #RE/#R alignment / Pro checklist
+- 変更: `docs/reply-quality/re-alignment-checklist-20260429.ja.md` を追加し、Pro の `返信OS品質監査4-29` で出た `#RE / #R` 生成経路ズレ、renderer 責務過多、naturalizer identity 状態を、反映済み / 一部反映 / 未反映のチェックリストに整理した。`README.ja.md` からも参照できるようにし、古い「#RE は生成本体の再設計ではない」という説明を、`writer_candidate` へ寄せる移行中という説明へ更新した
+- きっかけ: `#R` 実出力では自然化が効いている一方、`#RE` の renderer baseline が本丸より機械的に見える問題があり、次の作業順を曖昧にしない必要があった
+- 想定効果: 次回以降、外部監査へ出す前に `#R` スモーク、writer candidate 化、batch validation、戻し先分類の順で進められる。`#RE only` の自然さ問題を共通 skill へ戻しすぎる事故を防ぐ
+- 非変更: 自動 LLM writer stage はまだ実装しない。チェックリストは実装順と運用判断の正本であり、renderer に固定文を増やすものではない
+
+### 2026-04-29 / CHG-152
+- 分類: `reply-only`
+- レイヤ: #RE revival / #R smoke style anchors
+- 変更: `#R` スモークで自然に出た 5 件を `docs/reply-quality/r-smoke-style-anchors-20260429.ja.md` として保存し、`返信監査_batch-01.md` を r7 に更新した。r7 では B01/B02/B04/B05/B06/B07/B08 を中心に、サービスページ調・処理文調ではなく、相手文を1点拾って主質問へ答える `#R` 相当 writer candidate に寄せた。`README.ja.md` と `re-alignment-checklist-20260429.ja.md` も更新し、style anchor がテンプレではなく writer 判断の基準であることを明記した
+- きっかけ: `#RE` を学習場として復活させるには、監査候補が本丸 `#R` より機械的なままでは不十分だったため。`#R` スモークでは Deep Research / Pro 後の会話自然化が効いており、その標準を `#RE` writer candidate 側へ合わせる必要があった
+- 想定効果: `#RE` で自然さを監査した時に、renderer baseline の癖ではなく、実際の `#R` に近い文面品質を見られる。今後の外部監査結果を `#R reproduced / #RE only / safety deterministic / preference` に分けやすくなる
+- 非変更: style anchor は Gold Reply や固定テンプレではない。renderer に職人風の固定文を大量登録しない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-29 / CHG-153
+- 分類: `reply-only`
+- レイヤ: #RE bugfix50 / realistic live writer candidate batch
+- 変更: 実際に来そうな `bugfix-15000` live 相談文として `live-realistic-r-smoke-bugfix50.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-50-realistic-live-r-smoke-r0` に更新した。価格・範囲・納期、急ぎと成功保証圧力、複数症状、購入前 GitHub 招待、購入後 secret-safe 材料、短い進捗確認、delivered 後の同症状、closed 後の前回修正との関係確認を検査対象にした。batch は `writer_candidate_manual` とし、`candidate-batch-file` 検証で 8 件通過した。あわせて eval-sources と service-grounding sentry に接続した
+- きっかけ: r7 採用後、さらに実戦で来そうな文章を使って、#RE が本丸 #R に近い学習場として機能するか確認する必要があった。closed 後のスクショ相談では、action-first で「このメッセージで送って大丈夫です」と先に答える方が自然なため、closed renderer / checker も同じ意味契約へ寄せた
+- 想定効果: 人間監査と外部監査で、実務に近い相談文に対して `#R` 相当の返信品質、public:false 境界、secret safety、phase 境界、会話フロー自然さを同時に見られる。closed 後の資料送付可否で、感謝や状態説明より先に主質問へ答える型を検査できる
+- 非変更: `handoff-25000` は public:false のまま通常 live / #RE へ出さない。`writer_candidate_manual` は固定テンプレではなく、fixture の意味契約をもとに作った監査候補として扱う。conversation flow は soft lens のままで、句点や短文を blanket NG にしない
+
+### 2026-04-29 / CHG-154
+- 分類: `reply-only`
+- レイヤ: #RE bugfix50 r1 / minor precision polish
+- 変更: 外部監査で `RE-2026-04-29-bugfix-50-realistic-live-r-smoke-r0` が採用圏・必須修正なしとなったため、B03 のみ軽微修正した。複数症状相談で buyer が優先度を明示していないのに `一番困っている` と推測していた箇所を、`まずは「注文が作られない」症状を起点に見る形でよければ` へ変更した
+- きっかけ: scope / price 事故ではないが、相手が言っていない優先度をこちらで断定しない方が `jp_business_native_naturalness` と grounding の両面で安定するため
+- 想定効果: 複数症状の入口で、buyer の優先順位を断定せず、こちらの確認起点だけを自然に提示できる
+- 非変更: 新規 rule は追加しない。固定価格・複数症状の同一原因判定・別原因時の事前相談の扱いは変更しない
+
+### 2026-04-29 / CHG-155
+- 分類: `reply-only`
+- レイヤ: #RE bugfix50 r2 / guarantee vs deliverable wording
+- 変更: B02 の成功保証圧力に対する返信で、`確実に直ることまではお約束できません` の直後に `原因確認から修正済みファイルの返却まで進められます` と続けると、成功保証を否定しながら修正完了を約束しているように読めるため、`まず原因確認から進められます。修正できる箇所が特定できた場合は、修正済みファイルをお返しします` へ修正した
+- きっかけ: 人間監査で、論理上は「作業範囲」と「成功保証」の違いでも、buyer 視点では矛盾に見える可能性があると分かったため
+- 想定効果: 急ぎ・成功保証圧力の場面で、保証断定を避けつつ、15,000円の不具合修正として原因確認から入ることと、修正可能時の成果物を自然に分けて案内できる
+- 非変更: 15,000円、不具合1件、修正済みファイル返却というサービス軸は変更しない。購入前に成功保証・返金保証・原因断定はしない

@@ -105,7 +105,12 @@ def lint_case(module, source: dict) -> list[str]:
         if not hard_constraints.get("ask_only_if_blocking"):
             errors.append("hard_constraints lost ask_only_if_blocking")
 
-    if not has_any(rendered, ["ありがとうございます", "確認しました", "承知しました"]):
+    first_line = next((line.strip() for line in rendered.splitlines() if line.strip()), "")
+    action_first_reply = scenario == "closed_materials_check" and has_any(
+        first_line,
+        ["このメッセージで送っていただいて大丈夫です"],
+    )
+    if not action_first_reply and not has_any(rendered, ["ありがとうございます", "確認しました", "承知しました"]):
         errors.append("missing brief reaction at the top")
     if has_near_echo(rendered):
         errors.append("near_echo_check failed: adjacent sections still overlap too much")

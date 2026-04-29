@@ -43,6 +43,57 @@ PUBLIC_MODE_LEAK_MARKERS = [
     "future-dual",
 ]
 
+EXPECTED_SEMANTIC_MARKERS: dict[str, list[str]] = {
+    "logs_and_screenshots_can_be_sent_in_this_message": [
+        "ログやスクショは、このメッセージで送っていただいて大丈夫です",
+        "ログとスクショは、このメッセージで送っていただいて大丈夫です",
+    ],
+    "screenshots_can_be_sent_in_this_message": [
+        "スクショは、このメッセージで送っていただいて大丈夫です",
+        "スクショをこのメッセージで送っていただいて大丈夫です",
+    ],
+    "relation_to_previous_fix_only_before_work": [
+        "前回の修正と関係がありそうか",
+        "前回の修正との関係",
+        "前回との関係",
+    ],
+    "no_closed_room_fix_work": [
+        "この場で修正作業",
+        "修正作業",
+    ],
+    "no_closed_room_fixed_file_return": [
+        "修正済みファイルの返却",
+        "修正済みファイル",
+    ],
+    "if_work_needed_estimate_or_new_request": [
+        "見積り提案または新規依頼",
+        "見積り提案",
+        "新規依頼",
+    ],
+}
+
+EXPECTED_FORBIDDEN_MARKERS: dict[str, list[str]] = {
+    "handoff_service_name": ["handoff-25000"],
+    "25000_yen": ["25,000円", "25000円"],
+    "old_talkroom_ohineri": ["旧トークルーム内のおひねり", "おひねり追加でそのまま"],
+    "free_fix_promise": ["無料で修正します", "無料で直します", "無料対応します"],
+    "raw_secret_request": ["secret の値を送って", "APIキーの値を送って", ".env の値を送って"],
+}
+
+WRITER_BRIEF_LINES = [
+    "主質問に先に答える",
+    "buyer の語彙や観測事実を1点は拾い、既出情報は聞き直さない",
+    "buyer が次に何をすればよいか分かる言葉で書く",
+    "内部語や判定ラベルを書かない",
+    "next action は1つだけ置く",
+    "次アクションは buyer の判断サイクルに合わせる",
+    "外向けに出す安全条件は、主質問に必要なものを最大2個までにする",
+    "不安が明示されている時は、今返せる範囲を先に返す",
+    "受け止めは1文までにして、本題を薄めない",
+    "phase / service / forbidden_moves は守る",
+    "詳細 guidance は必要な時だけ見る",
+]
+
 COMMON_BUYER_WORD_MARKERS: dict[str, list[str]] = {
     "proposal_change": ["提案", "同じ原因", "別原因", "メール", "決済"],
     "dashboard_scope_question": ["Webhook", "ダッシュボード", "設定"],
@@ -509,6 +560,30 @@ def collect_public_mode_leakage_errors(rendered: str, source: dict, case: dict) 
     return [f"public_mode_leakage failed: private/shadow wording leaked into public reply: {', '.join(leaked)}"]
 
 
+def collect_expected_semantic_errors(rendered: str, source: dict) -> list[str]:
+    expected = source.get("expected_semantics") or {}
+    if not expected:
+        return []
+
+    errors: list[str] = []
+    for item in expected.get("must_answer") or []:
+        markers = EXPECTED_SEMANTIC_MARKERS.get(item)
+        if not markers:
+            continue
+        if not has_any(rendered, markers):
+            errors.append(f"expected_semantics failed: required semantic slot `{item}` is not visible")
+
+    for item in expected.get("must_not_emit") or []:
+        markers = EXPECTED_FORBIDDEN_MARKERS.get(item)
+        if not markers:
+            continue
+        leaked = [marker for marker in markers if marker in rendered]
+        if leaked:
+            errors.append(f"expected_semantics failed: forbidden semantic `{item}` emitted: {', '.join(leaked)}")
+
+    return errors
+
+
 def has_negation_only_answer(rendered: str) -> bool:
     answer_window = opening_window(rendered, sections=3)
     if not has_any(answer_window, NEGATION_MARKERS):
@@ -637,7 +712,181 @@ def apply_semantic_safe_naturalization(reply: str, case: dict, lane: str) -> str
     return reply
 
 
-def run_pipeline(source: dict, tools: dict[str, dict] | None = None, lint: bool = False) -> dict:
+def build_pipeline_metadata(drafted_reply: str, sendable_reply: str) -> dict:
+    naturalizer = "identity_only"
+    if drafted_reply != sendable_reply:
+        naturalizer = "semantic_safe_naturalizer"
+    return {
+        "candidate_source": "renderer_baseline",
+        "audit_target": "renderer_baseline",
+        "contract_source": "deterministic_renderer",
+        "writer_used": False,
+        "naturalizer": naturalizer,
+    }
+
+
+def build_manual_candidate_metadata() -> dict:
+    return {
+        "candidate_source": "writer_candidate_manual",
+        "audit_target": "writer_candidate",
+        "contract_source": "deterministic_renderer",
+        "writer_used": True,
+        "naturalizer": "external_or_manual",
+    }
+
+
+def _compact_mapping(value):
+    if isinstance(value, dict):
+        return {key: _compact_mapping(item) for key, item in value.items() if item not in (None, "", [], {})}
+    if isinstance(value, list):
+        return [_compact_mapping(item) for item in value if item not in (None, "", [], {})]
+    return value
+
+
+def build_writer_brief(source: dict, case: dict, lane: str, renderer_baseline: str, metadata: dict) -> dict:
+    contract = case.get("reply_contract") or {}
+    decision_plan = case.get("response_decision_plan") or {}
+    grounding = case.get("service_grounding") or source.get("service_grounding") or {}
+    hard_constraints = case.get("hard_constraints") or {}
+    semantic_slots = decision_plan.get("semantic_slots") or {}
+
+    return _compact_mapping(
+        {
+            "brief_version": 1,
+            "purpose": "writer_candidate_for_RE_alignment",
+            "candidate_source_to_create": "writer_candidate",
+            "renderer_baseline_status": metadata.get("candidate_source"),
+            "naturalizer_required": "japanese-chat-natural-ja",
+            "case_id": source.get("case_id") or source.get("id") or case.get("id"),
+            "state": source.get("state") or case.get("state"),
+            "lane": lane,
+            "scenario": case.get("scenario") or source.get("scenario"),
+            "service": {
+                "service_id": grounding.get("service_id") or case.get("service_id") or source.get("service_id"),
+                "public_service": grounding.get("public_service"),
+                "base_price": grounding.get("base_price"),
+                "fee_text": grounding.get("fee_text"),
+                "scope_unit": grounding.get("scope_unit"),
+            },
+            "buyer_message": source.get("raw_message") or case.get("raw_message"),
+            "writer_principles": WRITER_BRIEF_LINES,
+            "primary_concern": decision_plan.get("primary_concern") or source.get("primary_question"),
+            "facts_known": decision_plan.get("facts_known") or case.get("known_facts"),
+            "buyer_emotion": decision_plan.get("buyer_emotion") or case.get("emotional_tone") or source.get("emotional_tone"),
+            "reply_contract": {
+                "primary_question_id": contract.get("primary_question_id"),
+                "explicit_questions": contract.get("explicit_questions"),
+                "answer_map": contract.get("answer_map"),
+                "ask_map": contract.get("ask_map"),
+                "required_moves": contract.get("required_moves"),
+                "forbidden_moves": contract.get("forbidden_moves"),
+            },
+            "response_decision_plan": {
+                "direct_answer_line": decision_plan.get("direct_answer_line"),
+                "response_order": decision_plan.get("response_order"),
+                "blocking_missing_facts": decision_plan.get("blocking_missing_facts"),
+                "semantic_slots": semantic_slots,
+            },
+            "expected_semantics": source.get("expected_semantics"),
+            "hard_constraints": hard_constraints,
+            "write_rules": [
+                "renderer_baseline は debug 参照であり、本文テンプレとしてコピーしない",
+                "price / scope / phase / secret / public-private / payment route を変更しない",
+                "未公開の handoff-25000 / 25,000円 / 主要1フロー整理を通常 live 返信に出さない",
+                "自然化は意味保存に限定し、約束・無料対応・返金・外部共有・直接 push・本番反映を足さない",
+                "closed 後は、確認材料の受領と実作業を分ける",
+            ],
+            "renderer_baseline_for_debug": renderer_baseline,
+        }
+    )
+
+
+def _format_scalar(value) -> str:
+    if value is True:
+        return "true"
+    if value is False:
+        return "false"
+    if value is None:
+        return "null"
+    return str(value)
+
+
+def _format_markdown_value(value, indent: int = 0) -> list[str]:
+    prefix = " " * indent
+    if isinstance(value, dict):
+        lines: list[str] = []
+        for key, item in value.items():
+            if isinstance(item, (dict, list)):
+                lines.append(f"{prefix}{key}:")
+                lines.extend(_format_markdown_value(item, indent + 2))
+            elif isinstance(item, str) and "\n" in item:
+                lines.append(f"{prefix}{key}: |")
+                lines.extend(f"{' ' * (indent + 2)}{line}" for line in item.splitlines())
+            else:
+                lines.append(f"{prefix}{key}: {_format_scalar(item)}")
+        return lines
+    if isinstance(value, list):
+        lines = []
+        for item in value:
+            if isinstance(item, (dict, list)):
+                lines.append(f"{prefix}-")
+                lines.extend(_format_markdown_value(item, indent + 2))
+            elif isinstance(item, str) and "\n" in item:
+                lines.append(f"{prefix}- |")
+                lines.extend(f"{' ' * (indent + 2)}{line}" for line in item.splitlines())
+            else:
+                lines.append(f"{prefix}- {_format_scalar(item)}")
+        return lines
+    return [f"{prefix}{_format_scalar(value)}"]
+
+
+def format_writer_brief(brief: dict) -> str:
+    lines = [
+        f"# writer brief: {brief.get('case_id', '<unknown>')}",
+        "",
+        "この brief は #RE / #R alignment 用です。",
+        "`renderer_baseline_for_debug` はコピー用テンプレではありません。Writer は buyer 文と意味契約から自然文を作ってください。",
+        "",
+        "```yaml",
+        *_format_markdown_value(brief),
+        "```",
+    ]
+    return "\n".join(lines)
+
+
+def parse_candidate_batch(path: Path) -> dict[str, str]:
+    text = path.read_text(encoding="utf-8")
+    sections = re.split(r"(?m)^##\s+B\d+\s*$", text)
+    candidates: dict[str, str] = {}
+    for section in sections[1:]:
+        stock_match = re.search(r"(?m)^stock_id:\s*([A-Za-z0-9_-]+)\s*$", section)
+        if not stock_match:
+            continue
+        reply_match = re.search(r"(?ms)^返信候補:\s*\n\n(?P<body>.*?)(?:\n---\s*$|\n##\s+B\d+\s*$|\Z)", section)
+        if not reply_match:
+            continue
+        lines: list[str] = []
+        for raw_line in reply_match.group("body").splitlines():
+            if raw_line.startswith("> "):
+                lines.append(raw_line[2:])
+            elif raw_line == ">":
+                lines.append("")
+            elif raw_line.strip() == "":
+                lines.append("")
+            else:
+                break
+        candidate = "\n".join(lines).strip()
+        if candidate:
+            candidates[stock_match.group(1)] = candidate
+    return candidates
+
+
+def run_pipeline(
+    source: dict,
+    tools: dict[str, dict] | None = None,
+    lint: bool = False,
+    candidate_reply: str | None = None,
+) -> dict:
     tools = tools or load_tools()
     enriched_source = dict(source)
     enriched_source["buyer_questions"] = extract_buyer_questions(source.get("raw_message", ""), source.get("state"))
@@ -654,8 +903,17 @@ def run_pipeline(source: dict, tools: dict[str, dict] | None = None, lint: bool 
             "case": None,
             "drafted_reply": "",
             "sendable_reply": "",
+            "pipeline_metadata": {
+                "candidate_source": "unsupported",
+                "audit_target": "unsupported",
+                "contract_source": "none",
+                "writer_used": False,
+                "naturalizer": "none",
+            },
             "lane_errors": [],
             "common_errors": [],
+            "mode_errors": [],
+            "expected_semantic_errors": [],
             "errors": ["unsupported state / reply_skeleton combination"],
         }
 
@@ -665,12 +923,20 @@ def run_pipeline(source: dict, tools: dict[str, dict] | None = None, lint: bool 
     if case is not None and not case.get("buyer_questions"):
         case["buyer_questions"] = list(enriched_source.get("buyer_questions") or [])
     drafted_reply = tool["draft_fn"](drafter, case)
-    sendable_reply = apply_semantic_safe_naturalization(drafted_reply, case, lane)
+    if candidate_reply is None:
+        sendable_reply = apply_semantic_safe_naturalization(drafted_reply, case, lane)
+        pipeline_metadata = build_pipeline_metadata(drafted_reply, sendable_reply)
+    else:
+        sendable_reply = candidate_reply.strip()
+        pipeline_metadata = build_manual_candidate_metadata()
+    case["pipeline_metadata"] = dict(pipeline_metadata)
+    writer_brief = build_writer_brief(enriched_source, case, lane, drafted_reply, pipeline_metadata)
 
     lane_errors = tool["lane_validator_fn"](enriched_source) if lint else []
     common_errors = collect_common_validator_errors(sendable_reply, enriched_source, case, lane_errors) if lint else []
     mode_errors = collect_public_mode_leakage_errors(sendable_reply, enriched_source, case) if lint else []
-    errors = list(dict.fromkeys([*lane_errors, *common_errors, *mode_errors]))
+    expected_semantic_errors = collect_expected_semantic_errors(sendable_reply, enriched_source) if lint else []
+    errors = list(dict.fromkeys([*lane_errors, *common_errors, *mode_errors, *expected_semantic_errors]))
 
     return {
         "case_id": case_id,
@@ -679,9 +945,12 @@ def run_pipeline(source: dict, tools: dict[str, dict] | None = None, lint: bool 
         "case": case,
         "drafted_reply": drafted_reply,
         "sendable_reply": sendable_reply,
+        "pipeline_metadata": pipeline_metadata,
+        "writer_brief": writer_brief,
         "lane_errors": lane_errors,
         "common_errors": common_errors,
         "mode_errors": mode_errors,
+        "expected_semantic_errors": expected_semantic_errors,
         "errors": errors,
     }
 
@@ -694,8 +963,24 @@ def lint_pipeline_case(lane: str, source: dict, tools: dict[str, dict] | None = 
     return result["errors"]
 
 
-def format_block(case_id: str, state: str, lane: str, reply: str) -> str:
-    return f"case_id: {case_id}\nstate: {state}\nlane: {lane}\n{reply}"
+def format_block(case_id: str, state: str, lane: str, reply: str, metadata: dict | None = None) -> str:
+    lines = [
+        f"case_id: {case_id}",
+        f"state: {state}",
+        f"lane: {lane}",
+    ]
+    if metadata:
+        lines.extend(
+            [
+                f"candidate_source: {metadata.get('candidate_source', 'unknown')}",
+                f"audit_target: {metadata.get('audit_target', 'unknown')}",
+                f"contract_source: {metadata.get('contract_source', 'unknown')}",
+                f"writer_used: {str(bool(metadata.get('writer_used'))).lower()}",
+                f"naturalizer: {metadata.get('naturalizer', 'unknown')}",
+            ]
+        )
+    lines.append(reply)
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -705,6 +990,10 @@ def main() -> int:
     parser.add_argument("--limit", type=int)
     parser.add_argument("--lint", action="store_true")
     parser.add_argument("--save", action="store_true")
+    parser.add_argument("--hide-provenance", action="store_true")
+    parser.add_argument("--writer-brief", action="store_true")
+    parser.add_argument("--candidate-file", help="Validate a manually written #R / writer candidate against the selected single case.")
+    parser.add_argument("--candidate-batch-file", help="Validate reply candidates embedded in a #RE markdown batch.")
     args = parser.parse_args()
 
     tools = load_tools()
@@ -718,18 +1007,48 @@ def main() -> int:
     if not cases:
         print("[NG] no cases selected")
         return 1
+    if args.candidate_file and len(cases) != 1:
+        print("[NG] --candidate-file requires exactly one selected case")
+        return 1
+    if args.candidate_file and args.candidate_batch_file:
+        print("[NG] choose either --candidate-file or --candidate-batch-file")
+        return 1
+    if args.writer_brief and args.candidate_batch_file:
+        print("[NG] --writer-brief cannot be combined with --candidate-batch-file")
+        return 1
+
+    candidate_reply = None
+    if args.candidate_file:
+        candidate_reply = Path(args.candidate_file).read_text(encoding="utf-8").strip()
+    candidate_batch = parse_candidate_batch(Path(args.candidate_batch_file)) if args.candidate_batch_file else {}
 
     rendered_blocks: list[str] = []
     lint_errors: list[str] = []
     save_payload: tuple[str, str, dict | None] | None = None
 
     for source in cases:
-        result = run_pipeline(source, tools=tools, lint=args.lint)
+        case_key = source.get("case_id") or source.get("id")
+        batch_candidate = candidate_batch.get(case_key) if args.candidate_batch_file else None
+        if args.candidate_batch_file and not batch_candidate:
+            lint_errors.append(f"[NG] {case_key}: candidate not found in batch file")
+            continue
+        result = run_pipeline(source, tools=tools, lint=args.lint, candidate_reply=candidate_reply or batch_candidate)
         if result["lane"] is None:
             lint_errors.extend(f"[NG] {result['case_id']}: {error}" for error in result["errors"])
             continue
 
-        rendered_blocks.append(format_block(result["case_id"], result["state"], result["lane"], result["sendable_reply"]))
+        if args.writer_brief:
+            rendered_blocks.append(format_writer_brief(result["writer_brief"]))
+        else:
+            rendered_blocks.append(
+                format_block(
+                    result["case_id"],
+                    result["state"],
+                    result["lane"],
+                    result["sendable_reply"],
+                    None if args.hide_provenance else result.get("pipeline_metadata"),
+                )
+            )
 
         if args.lint and result["errors"]:
             lint_errors.extend(f"[NG] {result['case_id']}: {error}" for error in result["errors"])

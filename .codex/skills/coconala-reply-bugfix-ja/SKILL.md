@@ -80,6 +80,13 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - Reviewer は `/home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md` と ban / fact lint を使って検査する。
 - `self-check` は Writer に読ませるのではなく、draft 後に通す。
 
+## #RE / #R alignment
+- `#RE` の固定 fixture は残すが、外向け文面の監査対象は原則 `#R` と同じ Writer / final naturalizer 経路の候補に寄せる。
+- `renderer_baseline` は regression / debug / hard constraint 確認用であり、送信用 `#R` と同等の自然文候補として扱わない。
+- `#RE` で自然さの違和感が出た場合は、共通 rule へ戻す前に `#R` でも再現するかを見る。`#RE only` なら renderer / fixture 側の問題として隔離する。
+- renderer は全文テンプレ生成器ではなく、`reply_contract` / `response_decision_plan` / semantic slots / forbidden moves / answer coverage の guardrail に寄せる。
+- human audit の指摘は、`#R reproduced` / `#RE only` / `safety deterministic` / `preference` / `candidate` に分けて戻し先を決める。
+
 ## 標準ルート
 1. 可能なら先に `coconala-intake-router-ja` を使い、経路・状態・`case_type`・`certainty`・`reply_stance`・`reply_contract` を確定する。
 2. モードを判定する。

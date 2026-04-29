@@ -54,17 +54,24 @@
   - こちら起点の進捗共有・補足・完了報告の最小構成。
 - `skill-thought-preservation-minimal.ja.md`
   - skill が Codex の判断を邪魔しないための最小方針。
+- `re-alignment-checklist-20260429.ja.md`
+  - Pro の `#RE / #R` 生成経路ズレ指摘を、反映済み / 一部反映 / 未反映に分けた作業チェックリスト。
+- `r-smoke-style-anchors-20260429.ja.md`
+  - `#R` 実出力の自然な文体を、`#RE` writer candidate へ戻すための一時 style anchor。
 
 ## #RE
 - `#RE` は、通常 live の `bugfix-15000` 返信品質確認。
 - `handoff-25000` のサービス名・25,000円・購入導線は出さない。
+- `#RE` の deterministic renderer 出力は `renderer_baseline` として扱う。自然さの人間監査を #R 本丸へ戻す前に、同じ fixture の `writer-brief` から作った writer candidate でも再現するかを確認する。
+- `renderer_baseline` の違和感は `#RE only` の可能性があるため、すぐ共通 skill / rule へ戻さない。public leak / secret 値要求 / phase drift / price・scope 崩れは candidate_source に関係なく必須修正として扱う。
+- markdown batch 内の `writer_candidate_manual` は `--candidate-batch-file` で同じ fixture / contract / lint に通してから監査に出す。
 - 出力先:
   - `/home/hr-hm/Project/work/サービスページ/rehearsal/bugfix-15000-返信学習/返信監査_batch-01.md`
 - 観察計画:
   - `question-type-batch-plan-20260425.ja.md`
   - `phase-contract-batch-plan-20260425.ja.md`
   - `external-research-observation-plan-20260425.ja.md`
-- `#RE` は生成本体の再設計ではなく、current rules で外部監査 batch を組む作業。
+- 現在の `#RE` は、固定 fixture を残しつつ、文章品質の監査対象を `#R` 相当の `writer_candidate` へ寄せる移行中。詳細は `re-alignment-checklist-20260429.ja.md` を見る。
 
 ## #BR
 - `#BR` は `bugfix-15000 / handoff-25000` の境界ルーティングを鍛える shadow rehearsal。

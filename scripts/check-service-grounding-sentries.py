@@ -29,6 +29,7 @@ LIVE_SHADOW_FIXTURES = [
     ROOT_DIR / "ops/tests/quality-cases/active/post-pro-native-naturalness-bugfix47.yaml",
     ROOT_DIR / "ops/tests/quality-cases/active/live-practical-naturalness-bugfix48.yaml",
     ROOT_DIR / "ops/tests/quality-cases/active/conversation-flow-naturalness-bugfix49.yaml",
+    ROOT_DIR / "ops/tests/quality-cases/active/live-realistic-r-smoke-bugfix50.yaml",
 ]
 RENDERER_FILES = [
     ROOT_DIR / "scripts/render-prequote-estimate-initial.py",

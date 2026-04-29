@@ -1,0 +1,119 @@
+version: 1
+
+cases:
+  - id: HRC50-001
+    stock_id: HRC50-001
+    category: realistic_live_r_smoke
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: price_timeline_active_defect
+    question_type: prequote_price_scope_timeline
+    primary_question: Stripe決済後に注文が作られない不具合を15,000円でどこまで見てもらえるか、納期はどれくらいか。
+    raw_message: "Stripe決済後に注文が作られません。Next.jsとVercelを使っています。15,000円でどこまで見てもらえて、納期はどれくらいですか？"
+    note: 通常 live / #RE。実際に来そうな価格・範囲・納期の複合質問。
+
+  - id: HRC50-002
+    stock_id: HRC50-002
+    category: realistic_live_r_smoke
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: urgent_success_guarantee_pressure
+    question_type: prequote_urgent_timeline_and_success
+    primary_question: 急ぎで見てもらえるか、確実に直るかを知りたい。
+    raw_message: "Stripe決済は成功しているのに注文が作られません。なるべく早く見てほしいです。購入すれば確実に直りますか？"
+    note: 通常 live / #RE。急ぎ・成功保証圧力に対して、保証せず、見られる範囲と一次結果目安を自然に返す。
+
+  - id: HRC50-003
+    stock_id: HRC50-003
+    category: realistic_live_r_smoke
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: multiple_symptoms_same_payment_flow
+    question_type: prequote_multiple_symptoms
+    primary_question: 注文作成と領収書メールの2症状をまとめて15,000円で見られるか。
+    raw_message: "決済は成功するのですが、注文が作られないのと領収書メールも届かない状態です。これはまとめて15,000円で見てもらえますか？"
+    note: 通常 live / #RE。複数症状を一括確約せず、同じ原因かどうかで分ける。
+
+  - id: HRC50-004
+    stock_id: HRC50-004
+    category: realistic_live_r_smoke
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: prepayment_repo_invite_pressure
+    question_type: quote_sent_repo_before_payment
+    primary_question: 見積り提案後、購入前にGitHub招待すればざっくり原因を見てもらえるか。
+    raw_message: "見積りありがとうございます。購入前にGitHubへ招待すれば、ざっくり原因だけ先に見てもらえますか？問題なさそうなら購入します。"
+    note: 通常 live / #RE。購入前の作業開始・外部repo作業への滑りを止める。
+
+  - id: HRC50-005
+    stock_id: HRC50-005
+    category: realistic_live_r_smoke
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: purchased_first_materials_secret_safe
+    question_type: purchased_materials_secret_values
+    primary_question: 購入後、ログ・Event ID・envキー名だけで足りるか、値も必要か。
+    raw_message: "購入しました。Vercelのエラーログ、StripeのEvent ID、.envのキー名だけ送ります。値そのものも送った方がいいですか？"
+    note: 通常 live / #RE。secret値を求めず、受領材料と次の確認を自然につなげる。
+
+  - id: HRC50-006
+    stock_id: HRC50-006
+    category: realistic_live_r_smoke
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: purchased_short_progress_order_creation
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、注文作成の件で今どこまで分かっているかを短く知りたい。
+    raw_message: "ログを送りました。今どこまで分かっていますか？長文はいらないので、注文作成の件だけ短く教えてください。"
+    note: 通常 live / #RE。短い進捗要求に、現在地と未断定を自然に返す。
+
+  - id: HRC50-007
+    stock_id: HRC50-007
+    category: realistic_live_r_smoke
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: concerned
+    scenario: delivered_same_symptom_still_happens
+    question_type: delivered_same_symptom_recheck
+    primary_question: 納品後承諾前に、同じ注文作成不具合として再確認してもらえるか。
+    raw_message: "納品ありがとうございます。修正ファイルを反映したのですが、まだ同じ症状で注文が作られていないようです。承諾前にもう一度見てもらえますか？"
+    note: 通常 live / #RE。delivered で同じ症状の再確認を受けつつ、原因未確認のまま別件断定しない。
+
+  - id: HRC50-008
+    stock_id: HRC50-008
+    category: realistic_live_r_smoke
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_similar_error_relation_check
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、似たStripeエラーのスクショを送れば前回修正との関係だけ見てもらえるか。
+    raw_message: "前回の件は完了済みなのですが、また似たStripeエラーが出ています。スクショを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    note: 通常 live / #RE。closed 後に、確認材料の受領と実作業を分ける。
+    expected_semantics:
+      must_answer:
+        - screenshots_can_be_sent_in_this_message
+        - relation_to_previous_fix_only_before_work
+        - no_closed_room_fix_work
+        - no_closed_room_fixed_file_return
+        - if_work_needed_estimate_or_new_request
+      must_not_emit:
+        - handoff_service_name
+        - 25000_yen
+        - old_talkroom_ohineri
+        - free_fix_promise
+        - raw_secret_request

@@ -104,3 +104,16 @@ cases:
     primary_question: クローズ後、ログやスクショをこのメッセージで送れば前回修正との関係だけ見てもらえるか。
     raw_message: "クローズ後ですみません。似たStripeエラーが出ています。ログとスクショをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？実際に直す必要がありそうなら新規で相談します。"
     note: 通常 live / #RE。closed。旧トークルーム継続や原因調査に滑らず、概要見立てと実作業の境界を自然につなげるかを見る。
+    expected_semantics:
+      must_answer:
+        - logs_and_screenshots_can_be_sent_in_this_message
+        - relation_to_previous_fix_only_before_work
+        - no_closed_room_fix_work
+        - no_closed_room_fixed_file_return
+        - if_work_needed_estimate_or_new_request
+      must_not_emit:
+        - handoff_service_name
+        - 25000_yen
+        - old_talkroom_ohineri
+        - free_fix_promise
+        - raw_secret_request

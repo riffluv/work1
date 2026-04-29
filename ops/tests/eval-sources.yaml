@@ -163,6 +163,13 @@ primary_sources:
       - 金額＋納期、原因不明相談、quote_sent 支払い前診断、購入後受領確認、進捗、secret safety、delivered補足、closed再相談を検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/live-realistic-r-smoke-bugfix50.yaml
+    role: eval
+    purpose:
+      - #RE 復旧後に、実際に来そうな bugfix-15000 live 相談文で writer_candidate_manual が機能するか確認
+      - 価格/納期、保証圧力、複数症状、quote_sent 購入前原因確認、secret safety、進捗、delivered再確認、closed再相談を検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

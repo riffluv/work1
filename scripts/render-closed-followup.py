@@ -94,6 +94,18 @@ def symptom_flow_ask(raw: str) -> str:
     return "今出ている症状や操作の流れをそのまま送ってください。"
 
 
+def material_subject_for_message(raw: str) -> str:
+    has_log = "ログ" in raw
+    has_screenshot = any(marker in raw for marker in ["スクショ", "スクリーンショット", "画面"])
+    if has_log and has_screenshot:
+        return "ログやスクショ"
+    if has_screenshot:
+        return "スクショ"
+    if has_log:
+        return "ログ"
+    return "ログやスクショ"
+
+
 def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
     if scenario == "feedback_for_next_time":
         plan = shared.build_temperature_plan(source, case_type="after_close")
@@ -398,6 +410,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     primary = next(item for item in answer_map if item["question_id"] == primary_id)
     blocking_missing_facts: list[str] = []
     direct_answer_line = primary["answer_brief"]
+    semantic_slots: dict[str, object] = {}
 
     if primary["disposition"] in {"answer_now", "decline"}:
         response_order = ["opening", "direct_answer", "answer_detail"]
@@ -465,8 +478,20 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "トークルームは閉じていますが、まずこのメッセージ上でエラー内容を見て、前回の修正とつながるか確認します。"
     elif scenario == "closed_materials_check":
+        material_subject = material_subject_for_message(raw)
         blocking_missing_facts = ["log_or_screenshot"]
-        direct_answer_line = "ログやスクショは、このメッセージで送っていただいて大丈夫です。"
+        direct_answer_line = f"{material_subject}は、このメッセージで送っていただいて大丈夫です。"
+        semantic_slots = {
+            "primary_answer": "can_send_logs_and_screenshots_in_this_message",
+            "triage_limit": "relation_to_previous_fix_only",
+            "closed_boundary": [
+                "no_fix_work_in_closed_room",
+                "no_fixed_file_return_in_closed_room",
+            ],
+            "if_work_needed_route": "estimate_or_new_request",
+            "buyer_next_action": "send_logs_and_screenshots_in_this_message",
+            "phrasing_hint": "answer_permission_before_boundary",
+        }
     elif scenario == "closed_old_talkroom_ohineri":
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "前回のトークルームは閉じているため、旧トークルーム内のおひねり追加でそのまま別件修正を進めることはできません。"
@@ -524,6 +549,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         "blocking_missing_facts": blocking_missing_facts,
         "direct_answer_line": direct_answer_line,
         "response_order": response_order,
+        "semantic_slots": semantic_slots,
     }
 
 
@@ -1270,6 +1296,7 @@ def build_case_from_source(source: dict) -> dict:
         return case
 
     if scenario == "closed_materials_check":
+        material_subject = material_subject_for_message(source.get("raw_message", ""))
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [{"id": "q1", "text": "ログやスクショを送れば前回との関係を見てもらえるか", "priority": "primary"}],
@@ -1277,7 +1304,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "ログやスクショは、このメッセージで送っていただいて大丈夫です。",
+                    "answer_brief": f"{material_subject}は、このメッセージで送っていただいて大丈夫です。",
                     "hold_reason": "トークルームは閉じているため、この場で修正作業や修正済みファイルの返却までは進めません。",
                     "revisit_trigger": "送っていただいた範囲で前回の修正との関係を見立て、実作業が必要そうな場合は見積り提案または新規依頼として対応方法をご相談します。",
                 }
@@ -1286,7 +1313,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "id": "a1",
                     "question_ids": ["q1"],
-                    "ask_text": "ログやスクショをこのメッセージで送ってください。",
+                    "ask_text": f"{material_subject}は、このメッセージで送っていただいて大丈夫です。",
                     "why_needed": "前回の修正との関係を確認するため",
                 }
             ],
@@ -1782,13 +1809,16 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     ask_map = contract.get("ask_map") or []
     blocking_missing_facts = decision_plan.get("blocking_missing_facts") or []
     direct_answer = with_period(decision_plan.get("direct_answer_line") or primary["answer_brief"])
+    semantic_slots = decision_plan.get("semantic_slots") or {}
     focus_line = current_focus_line(case)
     paragraphs: list[str] = []
 
     if scenario == "closed_materials_check":
+        if semantic_slots.get("primary_answer") == "can_send_logs_and_screenshots_in_this_message":
+            direct_answer = decision_plan.get("direct_answer_line") or direct_answer
         _append_unique(
             paragraphs,
-            f"{direct_answer}届いた範囲で、前回の修正と関係がありそうかを見立てます。",
+            "届いた範囲で、前回の修正と関係がありそうかを見立てます。",
         )
         _append_unique(
             paragraphs,
@@ -2081,6 +2111,7 @@ def build_closed_render_payload(case: dict, opening_block: str, body_paragraphs:
     if next_action:
         fixed_slots["next_action"] = next_action
     return {
+        "semantic_slots": (case.get("response_decision_plan") or {}).get("semantic_slots") or {},
         "fixed_slots": fixed_slots,
         "editable_slots": {
             "ack": opening_block,
@@ -2109,6 +2140,9 @@ def render_case(case: dict) -> str:
     first_lines = [opener_for(case)]
     reaction = draft_opening_anchor(case)
     direct_answer = decision_plan.get("direct_answer_line") or ""
+    if case.get("scenario") == "closed_materials_check":
+        first_lines = [direct_answer]
+        reaction = ""
     if reaction and not _same_meaning(reaction, direct_answer):
         first_lines.append(reaction)
     opening_block = "\n".join(line for line in first_lines if line.strip())
