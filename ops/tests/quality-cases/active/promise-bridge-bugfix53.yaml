@@ -1,0 +1,119 @@
+version: 1
+
+cases:
+  - id: HRC53-001
+    stock_id: HRC53-001
+    category: promise_consistency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: failed_previous_vendor_bridge_to_answer
+    question_type: prequote_success_guarantee_with_ack_bridge
+    primary_question: 他の人に原因不明と言われた状態で、必ず直るかと無理な場合を知りたい。
+    raw_message: "別の方に見てもらったのですが、原因が分からないと言われました。Stripe決済後に注文が作られない状態です。15,000円で必ず直せますか？もし無理だった場合はどうなりますか？"
+    note: 通常 live / #RE。状態受けから保証否定へ飛ばず、短い橋を置きつつ promise level を分ける。
+
+  - id: HRC53-002
+    stock_id: HRC53-002
+    category: promise_consistency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: urgent_price_timeline_success_pressure
+    question_type: prequote_price_timeline_and_guarantee
+    primary_question: 急ぎの不具合について、金額・日数・直る保証の有無を知りたい。
+    raw_message: "本番でStripe決済後に注文が作られず困っています。急ぎで、金額と日数、購入すれば直ると思っていいかだけ先に教えてください。"
+    note: 通常 live / #RE。価格・日数・保証の複合質問に直答し、成功保証だけ条件づける。
+
+  - id: HRC53-003
+    stock_id: HRC53-003
+    category: promise_consistency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: multiple_symptoms_which_start_bridge
+    question_type: prequote_multiple_symptoms_start_point
+    primary_question: 複数症状のうち、どこから見て、同じ15,000円内に入るかを知りたい。
+    raw_message: "決済後に注文が作られないのと、購入完了メールも届かない状態です。どちらから見てもらうのがいいですか？同じ原因なら15,000円内で見てもらえますか？"
+    note: 通常 live / #RE。購入前に確認開始へ滑らず、購入後の起点と条件付き scope を自然につなげる。
+
+  - id: HRC53-004
+    stock_id: HRC53-004
+    category: promise_consistency
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: quote_sent_pay_then_start_clarity
+    question_type: quote_sent_when_work_starts
+    primary_question: 見積り提案後、支払い前に何か送るべきか、支払い後に本当に始まるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。まだ支払い前ですが、先にログを送った方がいいですか？支払ったらそこから原因確認と修正に入ってもらえる認識で大丈夫ですか？"
+    note: 通常 live / #RE。購入前材料送付・作業開始 promise の phase を分け、支払い後の流れへ橋を置く。
+
+  - id: HRC53-005
+    stock_id: HRC53-005
+    category: promise_consistency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: received_materials_flow_check
+    question_type: purchased_materials_sufficiency_no_secret
+    primary_question: 送った Event ID とログで足りるか、secret 値なしで進められるかを知りたい。
+    raw_message: "Event IDとVercelログの該当行を送りました。StripeのsecretやDB接続文字列の値は送っていません。この状態で足りますか？追加があれば教えてください。"
+    note: 通常 live / #RE。受領済み材料・secret safety・追加依頼条件を、二重受領や確認語密集なしでつなげる。
+
+  - id: HRC53-006
+    stock_id: HRC53-006
+    category: promise_consistency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: multiple_new_issues
+    question_type: purchased_additional_symptom_same_cause_boundary
+    primary_question: 作業中に追加で見つかった症状が同じ原因なら同じ範囲で直せるか。
+    raw_message: "注文作成の件を見てもらっている途中で、購入完了メールも届いていないことに気づきました。これも同じ原因なら一緒に直せますか？別原因なら追加になる前に教えてほしいです。"
+    note: 通常 live / #RE。追加症状を、同じ原因なら今回範囲、別原因なら先に相談として条件を最後まで残す。
+
+  - id: HRC53-007
+    stock_id: HRC53-007
+    category: promise_consistency
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: concerned
+    scenario: redelivery_same_error
+    question_type: delivered_same_error_and_acceptance
+    primary_question: 納品後承諾前に、同じ症状が残っている場合はどう進むかを知りたい。
+    raw_message: "納品ありがとうございます。反映したのですが、まだ同じ症状で注文が作られないように見えます。承諾前にもう一度見てもらえますか？もし修正側の問題なら、このまま直してもらえる認識で大丈夫ですか？"
+    note: 通常 live / #RE。承諾前の再確認、修正側なら対応、別原因なら説明という条件を自然につなげる。
+
+  - id: HRC53-008
+    stock_id: HRC53-008
+    category: promise_consistency
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_relation_bridge_free_pressure
+    question_type: closed_relation_check_and_free_fix
+    primary_question: クローズ後にログやスクショを送り、前回修正との関係と無償修正可否を知りたい。
+    raw_message: "クローズ後にすみません。前回と似たStripeエラーがまた出ています。ログやスクショを送れば、前回の修正と関係あるかだけ見てもらえますか？もし前回側の問題なら無償で直してもらえますか？"
+    note: 通常 live / #RE。closed 後の関係確認と無償/実作業 promise を分け、冷たくない橋を置く。
+    expected_semantics:
+      must_answer:
+        - logs_and_screenshots_can_be_sent_in_this_message
+        - relation_to_previous_fix_only_before_work
+        - no_closed_room_fix_work
+        - no_closed_room_fixed_file_return
+        - if_work_needed_estimate_or_new_request
+      must_not_emit:
+        - handoff_service_name
+        - 25000_yen
+        - old_talkroom_ohineri
+        - free_fix_promise
+        - raw_secret_request

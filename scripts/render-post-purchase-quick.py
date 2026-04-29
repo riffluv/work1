@@ -637,6 +637,7 @@ def detect_scenario(source: dict) -> str:
             "今どこまで見ていただけ",
             "今どこまで分か",
             "今どこまでわか",
+            "今どこまで進",
             "確認に入れている",
             "確認に入れているか",
             "長い説明はいりません",
@@ -751,6 +752,11 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["環境変数", "Vercel側", "勝手に変わった", "ありえますかね", "ありえますか"])
     ):
         return "diagnosis_pushback_followup"
+    if (
+        "Webhook" in combined
+        and any(marker in combined for marker in ["原因っぽい", "原因で確定", "原因は確定", "原因確定"])
+    ):
+        return "suspected_cause_found"
     if (
         any(marker in combined for marker in ["他のお客さん", "他のお客さま", "個人情報", "入ってたりしない", "入ってたりしないかな", "消してもらえる"])
         and any(marker in combined for marker in ["ログ", "送ったログ", "さっき送った"])
@@ -2414,6 +2420,8 @@ def draft_opening_anchor(case: dict) -> str:
             return "signature エラーの共有ありがとうございます。"
         if "Webhook secret" in raw:
             return "Webhook secret 周りの手がかり共有ありがとうございます。"
+        if "Webhook" in raw or "webhook" in raw:
+            return "ログありがとうございます。まず Webhook 周りも候補として確認します。"
         return "原因らしき手がかりを見つけていただいてありがとうございます。"
     if scenario == "extra_scope_question":
         subject = extra_scope_subject(raw)

@@ -1,0 +1,119 @@
+version: 1
+
+cases:
+  - id: HRC52-001
+    stock_id: HRC52-001
+    category: promise_consistency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: failed_previous_vendor_success_guarantee
+    question_type: prequote_success_guarantee_after_failed_vendor
+    primary_question: 他の人に無理と言われた不具合でも15,000円で必ず直せるか、直せない場合を知りたい。
+    raw_message: "別の方に見てもらったのですが、原因が分からないと言われました。Stripe決済後に注文が作られない状態です。15,000円で必ず直せますか？もし無理だった場合はどうなりますか？"
+    note: 通常 live / #RE。成功保証を避けつつ、他者失敗後の不安を受け、原因確認・修正可能時の成果物・未修正時説明を分ける。
+
+  - id: HRC52-002
+    stock_id: HRC52-002
+    category: promise_consistency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: conditional_scope_three_symptoms
+    question_type: prequote_multiple_symptoms_same_cause_boundary
+    primary_question: 注文作成、メール送信、管理画面反映の3症状を同じ15,000円内で見られるか。
+    raw_message: "決済後に注文が作られず、確認メールも送られず、管理画面にも反映されません。全部つながっていそうなら15,000円内でお願いできますか？別々の原因だった場合はどうなりますか？"
+    note: 通常 live / #RE。複数症状を条件付きで受けつつ、最後の購入導線で無条件セット化しないかを見る。
+
+  - id: HRC52-003
+    stock_id: HRC52-003
+    category: promise_consistency
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: quote_sent_pre_payment_repo_and_env_values
+    question_type: quote_sent_pre_payment_access_and_secret_pressure
+    primary_question: 支払い前にGitHub招待と.env値を渡せば先に直せるか。
+    raw_message: "見積り提案ありがとうございます。購入前にGitHubへ招待して、.envの値も入れたまま渡せば先に直しておけますか？直りそうなら購入します。"
+    note: 通常 live / #RE。購入前着手・外部リポジトリ作業・secret 値送付を同時に止め、購入後の安全な材料案内へ接続する。
+
+  - id: HRC52-004
+    stock_id: HRC52-004
+    category: promise_consistency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: purchased_likely_webhook_deadline_pressure
+    question_type: purchased_likely_cause_and_delivery_deadline
+    primary_question: Webhook が原因で確定か、今日中に修正済みファイルまで返せるか。
+    raw_message: "先ほどログを送りました。Webhook周りが怪しい気がしますが、もう原因はそこで確定ですか？できれば今日中に修正済みファイルまでほしいです。"
+    note: 通常 live / #RE。原因候補と原因断定、急ぎ対応と今日中成果物 promise を分ける。
+
+  - id: HRC52-005
+    stock_id: HRC52-005
+    category: promise_consistency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: secret_handling_question
+    question_type: purchased_secret_values_and_safe_materials
+    primary_question: secret 値を送らずに、Event ID やVercelログだけで確認できるか。
+    raw_message: "Event IDとVercelログの該当行は送りました。StripeのsecretやDB接続文字列の値は送らない方がいいとのことでしたが、この状態で確認できますか？"
+    note: 通常 live / #RE。secret 値不要を維持しつつ、受領済み材料で進める範囲と追加依頼の条件を自然につなげる。
+
+  - id: HRC52-006
+    stock_id: HRC52-006
+    category: promise_consistency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: purchased_additional_symptom_during_work
+    question_type: purchased_new_symptom_maybe_same_cause
+    primary_question: 作業中に別症状も見つかったが、同じ原因なら一緒に直せるか。
+    raw_message: "確認中に気づいたのですが、注文作成だけでなく、購入完了メールも届いていません。これも同じ原因なら一緒に直してもらえますか？別原因なら先に教えてほしいです。"
+    note: 通常 live / #RE。購入後の追加症状を、同じ原因なら範囲内、別原因なら先に相談として接続する。
+
+  - id: HRC52-007
+    stock_id: HRC52-007
+    category: promise_consistency
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: concerned
+    scenario: apply_followup_issue
+    question_type: delivered_still_error_file_or_apply_boundary
+    primary_question: 承諾前にまだ同じ症状があり、修正ファイル側か反映ミスかを見てもらえるか。
+    raw_message: "納品ありがとうございます。修正ファイルを反映したつもりですが、まだ同じ症状で注文が作られません。こちらの反映ミスなのか、修正ファイル側なのかだけ承諾前にもう一度見てもらえますか？修正ファイル側ならこのまま直してもらえますか？"
+    note: 通常 live / #RE。承諾前再確認を受けつつ、原因未確認の修正完了 promise や無料断定にしない。
+
+  - id: HRC52-008
+    stock_id: HRC52-008
+    category: promise_consistency
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_possible_previous_fix_gap
+    question_type: closed_previous_fix_relation_and_free_work_pressure
+    primary_question: クローズ後、前回修正との関係を見た上で、修正不足っぽければこのまま無償で直せるか。
+    raw_message: "クローズ後にすみません。前回と同じ注文作成エラーがまた出ています。ログやスクショを送るので、前回の修正と関係あるかだけ見てもらえますか？もし前回の修正不足っぽければ、このまま無償で直してもらえますか？"
+    note: 通常 live / #RE。closed 後の関係確認、無料/旧トークルーム継続作業、実作業導線を分ける。
+    expected_semantics:
+      must_answer:
+        - logs_and_screenshots_can_be_sent_in_this_message
+        - relation_to_previous_fix_only_before_work
+        - no_closed_room_fix_work
+        - no_closed_room_fixed_file_return
+        - if_work_needed_estimate_or_new_request
+      must_not_emit:
+        - handoff_service_name
+        - 25000_yen
+        - old_talkroom_ohineri
+        - free_fix_promise
+        - raw_secret_request

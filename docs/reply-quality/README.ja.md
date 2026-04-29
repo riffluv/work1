@@ -101,6 +101,14 @@
   - 温度感、情報量、質問数、次アクションの基準になる良い返信例。
 - 古い gold が現行ルールと矛盾した場合は、良い例として残さない。
 
+## Lens Notes
+- `promise-consistency-lens-20260429.ja.md`
+  - 留保・不可・条件付き回答を、後段の成果物・納期・料金・次アクションが上書きして見えないかを見る soft lens。
+  - 現時点では #RE / #BR 監査プロンプト + Gold 37 で運用し、lint / renderer / common skill へは再発 subtype を確認してから戻す。
+- `pro-analysis-queue-20260430.ja.md`
+  - `promise_consistency` / `conditional_scope_clarity` / `ack_to_answer_bridge` / `permission_benefit_alignment` など、次に Pro へまとめて聞く候補を保持する一時キュー。
+  - すぐ投げるプロンプトではなく、#RE / #BR / human audit の実例をためてから相談内容へ変換する。
+
 ## 固定ルール
 - Writer に self-check 全文を常駐させない。
 - Reviewer はまず `self-check-core-always-on.ja.md` を使い、必要な時だけ詳細へ降りる。

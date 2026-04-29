@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC54-001
+    stock_id: HRC54-001
+    category: permission_benefit_alignment
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: unknown_cause_can_consult_without_permission_tone
+    question_type: prequote_unknown_cause_can_consult
+    primary_question: 原因不明でも相談できるか、15,000円で見てもらえるかを知りたい。
+    raw_message: "Stripe決済後に注文が作られないのですが、原因がまったく分かっていません。この状態でも相談して大丈夫ですか？15,000円で見てもらえますか？"
+    note: 通常 live / #RE。buyer の「大丈夫ですか」に引きずられず、許可調ではなく相談可否と価格を自然に返す。
+
+  - id: HRC54-002
+    stock_id: HRC54-002
+    category: permission_benefit_alignment
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: price_timeline_purchase_flow_without_casual_ok
+    question_type: prequote_price_timeline_and_purchase_flow
+    primary_question: 金額・日数・購入後に送るものを知りたい。
+    raw_message: "Stripe決済後に注文が作られません。金額と日数だけ先に知りたいです。購入する場合、ログやコードは支払い後に送れば大丈夫ですか？"
+    note: 通常 live / #RE。支払い後の材料共有を「大丈夫です」で許可調にせず、手順として自然に案内する。
+
+  - id: HRC54-003
+    stock_id: HRC54-003
+    category: permission_benefit_alignment
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: quote_sent_pay_then_send_materials
+    question_type: quote_sent_payment_then_start
+    primary_question: 見積り提案後、支払い前にログを送るべきか、支払い後に開始されるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。まだ支払い前ですが、先にログを送った方がいいですか？支払ったらそこから原因確認と修正に入ってもらえる認識で大丈夫ですか？"
+    note: 通常 live / #RE。HRC53 B04 の再検査。`お支払い完了後で大丈夫です` へ戻らないかを見る。
+
+  - id: HRC54-004
+    stock_id: HRC54-004
+    category: permission_benefit_alignment
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: helpful
+    scenario: quote_sent_github_invite_before_payment
+    question_type: quote_sent_github_invite_before_payment
+    primary_question: 支払い前に GitHub 招待やコード共有を先にした方がよいかを知りたい。
+    raw_message: "見積り内容を確認しました。お願いするつもりです。支払い前にGitHub招待やコード一式を先に送っておいた方がスムーズですか？それとも支払い後で大丈夫ですか？"
+    note: 通常 live / #RE。購入前作業開始へ滑らず、支払い後共有の手順を売り手都合の許可調にしない。
+
+  - id: HRC54-005
+    stock_id: HRC54-005
+    category: permission_benefit_alignment
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: purchased_secret_values_not_needed
+    question_type: purchased_secret_values_not_needed
+    primary_question: secret 値を送らなくても進められるか、追加で必要なものがあるかを知りたい。
+    raw_message: "購入しました。StripeのEvent IDとVercelログは送っています。APIキーやWebhook secret、DB接続文字列の値は送っていません。このままで大丈夫ですか？"
+    note: 通常 live / #RE。ここでは `値そのものは送らなくて大丈夫です` が buyer 負担を減らす自然な用法として残せるかを見る。
+
+  - id: HRC54-006
+    stock_id: HRC54-006
+    category: permission_benefit_alignment
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: quote_sent_screenshot_after_payment
+    question_type: quote_sent_screenshot_after_payment
+    primary_question: 見積り提案後、支払い前にスクショを送るべきか、支払い後共有でよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。追加でStripeのスクショもあります。これは支払い前に送った方がいいですか？支払い後にトークルームで共有する流れで問題ありませんか？"
+    note: 通常 live / #RE。支払い前の材料送付を止めつつ、支払い後共有を `大丈夫です` の許可調ではなく手順として返す。
+
+  - id: HRC54-007
+    stock_id: HRC54-007
+    category: permission_benefit_alignment
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: unsure
+    scenario: delivered_acceptance_before_extra_screenshot
+    question_type: delivered_acceptance_before_extra_screenshot
+    primary_question: 承諾前に追加スクショを送って確認してもらえるかを知りたい。
+    raw_message: "納品ありがとうございます。承諾は、こちらで反映した画面のスクショを確認してからでもいいですか？少し待ってもらえますか？問題なければその後に承諾します。"
+    note: 通常 live / #RE。承諾前の確認は受けつつ、本格作業 promise へ広げず、`大丈夫です` だけで済ませない。
+
+  - id: HRC54-008
+    stock_id: HRC54-008
+    category: permission_benefit_alignment
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_send_materials_and_new_request
+    question_type: closed_send_materials_then_new_request
+    primary_question: クローズ後に材料をこのメッセージで送ってよいか、実作業は新規相談でよいかを知りたい。
+    raw_message: "クローズ後ですみません。似たStripeエラーが出ています。ログとスクショをこのメッセージで送っても大丈夫ですか？実際に直す必要がありそうなら新規で相談します。"
+    note: 通常 live / #RE。closed 後の材料受領と実作業の境界を、冷たくなく、許可調に寄りすぎずにつなげる。

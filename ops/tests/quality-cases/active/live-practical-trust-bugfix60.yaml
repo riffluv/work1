@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC60-001
+    stock_id: HRC60-001
+    category: live_practical_trust
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: general_bugfix_scope_question
+    question_type: prequote_refused_elsewhere_can_request
+    primary_question: 他の方に断られた Stripe 注文作成不具合でも、15,000円で依頼できるかを知りたい。
+    raw_message: "別の方に見てもらったのですが、Stripe決済後に注文が作られない原因が分からないと言われました。この状態でも15,000円で依頼できますか？"
+    note: 通常 live / #RE。他者が原因不明でも bugfix-first で受けつつ、成功保証にしない。
+
+  - id: HRC60-002
+    stock_id: HRC60-002
+    category: live_practical_trust
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: confused
+    scenario: general_bugfix_scope_question
+    question_type: prequote_non_engineer_error_message
+    primary_question: 英語エラーやログの意味が分からない状態でも相談してよいかを知りたい。
+    raw_message: "StripeのWebhookっぽい英語エラーが出ているのですが、正直ログの意味が分かっていません。こういう状態でも相談して大丈夫ですか？"
+    note: 通常 live / #RE。原因不明・非エンジニア不安を受け、既出症状を聞き直さず相談可能へ戻す。
+
+  - id: HRC60-003
+    stock_id: HRC60-003
+    category: live_practical_trust
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: zip_share_question
+    question_type: quote_sent_zip_and_secret_safe
+    primary_question: 支払い後に zip 共有でよいか、.env の値を抜いてよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後にコード一式をzipで送る形でいいですか？.env の値は抜いて送ればよいですか？"
+    note: 通常 live / #RE。支払い前作業に入らず、支払い後トークルーム内 zip と secret 値不要を自然に案内する。
+
+  - id: HRC60-004
+    stock_id: HRC60-004
+    category: live_practical_trust
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: response_speed_anxiety
+    question_type: purchased_progress_nudge
+    primary_question: 購入後にログを送ったが、進んでいるかと現時点の状況を短く知りたい。
+    raw_message: "購入してログも送りました。急かしてすみませんが、今どこまで進んでいますか？まだ原因が分かっていなくても、現時点の状況だけ短く教えてください。"
+    note: 通常 live / #RE。催促を受けつつ、抽象的な調査中だけにせず、現在地と次回時刻を短く返す。
+
+  - id: HRC60-005
+    stock_id: HRC60-005
+    category: live_practical_trust
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: diagnosis_assertion_drift
+    question_type: purchased_likely_cause_and_today_fix
+    primary_question: Webhookが原因なのか、今日中に直るのかを知りたい。
+    raw_message: "Webhookまわりが原因っぽいと言っていましたが、もうそこが原因で確定ですか？今日中に直せそうかも知りたいです。"
+    note: 通常 live / #RE。原因候補を確定扱いせず、今日中修正完了も保証せず、見えている範囲と次の見通しへ分ける。
+
+  - id: HRC60-006
+    stock_id: HRC60-006
+    category: live_practical_trust
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: apologetic
+    scenario: additional_file_offer
+    question_type: purchased_forgot_file_extra_fee
+    primary_question: 送り忘れた関係ファイルを追加で送ってよいか、追加料金になるかを知りたい。
+    raw_message: "すみません、Stripe関連のファイルを1つ送り忘れていました。今から追加で送ってもいいですか？それだけで追加料金になりますか？"
+    note: 通常 live / #RE。追加ファイル受領を自然に案内しつつ、それだけで追加料金とは断定しない。
+
+  - id: HRC60-007
+    stock_id: HRC60-007
+    category: live_practical_trust
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: delivered_light_explanation
+    question_type: delivered_apply_point_short
+    primary_question: 承諾前に、修正ファイルのどこを反映すればよいかだけ短く補足してほしい。
+    raw_message: "納品ありがとうございます。承諾前に確認したいのですが、修正ファイルはどこを反映すればよいかだけ、もう少し短く教えてもらえますか？本番反映の代行は不要です。"
+    note: 通常 live / #RE。承諾前の軽い補足は受け、運用マニュアルや本番反映代行へ広げない。
+
+  - id: HRC60-008
+    stock_id: HRC60-008
+    category: live_practical_trust
+    route: talkroom
+    state: closed
+    user_type: non_engineer
+    emotional_tone: worried
+    scenario: closed_relation_check_before_new_request
+    question_type: closed_repeat_symptom_free_or_new
+    primary_question: クローズ後に似た症状が出たが、無料対応か新規相談か分からないので関係だけ見てほしい。
+    raw_message: "クローズ後ですみません。前回直ったと思っていたのですが、似たように注文が作られない症状がまた出ています。無料対応なのか新規相談なのか分からないので、まず関係だけ見てもらえますか？"
+    note: 通常 live / #RE。closed 後の不安を受けつつ、無料/新規を確認前に断定せず、概要見立てと実作業導線を分ける。

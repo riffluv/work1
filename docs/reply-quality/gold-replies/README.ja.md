@@ -60,6 +60,7 @@
 - `34_post-chg068-near-miss.ja.md`
 - `35_response-weight-mismatch.ja.md`
 - `36_conversation-flow-naturalness.ja.md`
+- `37_promise-consistency.ja.md`
 
 ## Gold 26-33 family index
 
@@ -75,6 +76,7 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 | boundary_transfer | 32, 33, 34 | 仕様/不具合境界、quote_sent 語彙、closed 後の別件・割引・新規導線、怒り気味 buyer、複数質問混在への回収を扱う時 | phase が単純な通常 prequote の時 |
 | response_weight | 35 | 安全境界は守れているが、buyer の文量・温度・質問数に対して返信が重い時。短くても安全な例と、重くても必要な例を比べる時 | 返金/保証/closed/秘密情報などの必要境界を削る理由にする時 |
 | conversation_flow | 36 | 内容は正しいが、短文断定の連続・確認語密集・次アクション不足で会話の流れが切れている時 | 価格・scope・phase・secret・payment route を弱めて自然化する理由にする時 |
+| promise_consistency | 37 | 先に置いた留保・不可・条件付き回答を、後段の成果物・納期・料金・次アクションが上書きして見える時 | 固定価格・対応可能範囲・修正済みファイル成果物を弱める理由にする時 |
 
 ### 抽出して validator / renderer へ戻す候補
 
@@ -85,3 +87,4 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 - Gold 34: 複合質問で、返金・料金・Slack・秘密情報・closed 後導線など事故りやすい明示質問を落とさない。
 - Gold 35: `response_weight_mismatch` は validator 化せず、短くても安全 / 重くても必要の対比 anchor として使う。
 - Gold 36: `conversation_flow_naturalness` は hard validator 化せず、固定価格・scope・phase を保ったまま、短文断定の連続、確認語密集、次アクション不足を最小差分で整える anchor として使う。
+- Gold 37: `promise_consistency` は hard validator 化せず、成功保証・原因未確定・購入前着手・closed 後作業などの留保と、後段の成果物・作業 promise の約束レベルを分ける anchor として使う。

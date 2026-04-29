@@ -1320,3 +1320,147 @@
 - きっかけ: 人間監査で、論理上は「作業範囲」と「成功保証」の違いでも、buyer 視点では矛盾に見える可能性があると分かったため
 - 想定効果: 急ぎ・成功保証圧力の場面で、保証断定を避けつつ、15,000円の不具合修正として原因確認から入ることと、修正可能時の成果物を自然に分けて案内できる
 - 非変更: 15,000円、不具合1件、修正済みファイル返却というサービス軸は変更しない。購入前に成功保証・返金保証・原因断定はしない
+
+### 2026-04-29 / CHG-156
+- 分類: `reply-only`
+- レイヤ: promise_consistency / soft lens rollout
+- 変更: Pro の `Promise Consistency Analysis4-29` を受け、`promise_consistency` を #RE / #BR の外部監査プロンプトへ soft lens として追加した。1文ごとの事実ではなく、留保・不可・条件付き回答を後段の成果物・納期・料金・次アクションが上書きして見えないかを確認する。subtype は `success_guarantee_shadow / deliverable_promise_shadow / diagnosis_assertion_drift / phase_promise_drift / secret_request_contradiction / closed_work_promise / scope_bundle_promise / payment_scope_promise / production_action_shadow` とした。あわせて `docs/reply-quality/promise-consistency-lens-20260429.ja.md` と Gold 37 を追加し、今回の成功保証 shadow 修正文を gold anchor として保存した
+- きっかけ: #RE bugfix50 の B02 で、成功保証を否定した直後に修正済みファイル返却まで無条件に進めるように読める接続が見つかった。既存の scope / phase / secret / naturalness では拾い切れない「約束レベルの接続」だったため
+- 想定効果: #RE / #BR で、文章単体は安全でも buyer に未約束の約束として読まれる drift を拾える。hard boundary を弱めず、固定価格・対応可能範囲・購入後開始できる作業は明確に保ったまま、未確認の成果だけ条件づけられる
+- 非変更: hard validator / renderer rule / lint はまだ追加しない。`進められます`、`対応できます`、`修正済みファイル` を blanket NG にしない。`japanese-chat-natural-ja` へ common rule としてはまだ戻さない。ng-expressions への追加は同型再発後に判断する
+
+### 2026-04-29 / CHG-157
+- 分類: `reply-only`
+- レイヤ: #RE bugfix51 / promise_consistency rehearsal
+- 変更: `promise-consistency-bugfix51.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-51-promise-consistency-r0` へ更新した。成功保証と未修正時対応、固定価格と修正完了保証、複数症状の条件付き scope、quote_sent の購入前原因確認、secret 値不要、原因未確定と今日中成果物、delivered の承諾前再確認、closed 後の関係確認と実作業分離を検査対象にした。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した。fixture は eval-sources と service-grounding sentry に接続した
+- きっかけ: `promise_consistency` を監査プロンプトへ soft lens として追加した直後に、実際に同レンズがノイズ化せず live bugfix 文脈で機能するかを見る必要があったため
+- 想定効果: #RE で、成功保証 shadow、条件付き scope の曖昧化、購入前着手 promise、secret request contradiction、diagnosis assertion drift、closed work promise を本番 #R 寄りの候補文で監査できる
+- 非変更: `promise_consistency` は引き続き soft lens。lint / renderer rule / ng-expressions への追加はまだ行わない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-29 / CHG-158
+- 分類: `reply-only`
+- レイヤ: #RE bugfix51 r1 / prequote next action polish
+- 変更: 外部監査で `RE-2026-04-29-bugfix-51-promise-consistency-r0` が採用圏・必須修正なしとなったため、B02 のみ軽微修正した。固定価格と修正完了保証の説明後、prequote として次アクションが少し弱かったため、末尾に `この前提で問題なければ、そのままご購入ください` を追加した
+- きっかけ: promise consistency / scope / price は崩れていなかったが、購入前返信として buyer が次に進む導線を明確にする余地があったため
+- 想定効果: 15,000円の内容、未確認の修正完了保証をしない線、修正済みファイル返却条件を保ったまま、prequote の締めが自然になる
+- 非変更: 新規 rule は追加しない。`promise_consistency` の lint / ng / renderer 反映はまだ行わない
+
+### 2026-04-30 / CHG-159
+- 分類: `reply-only`
+- レイヤ: #RE bugfix52 / promise_consistency second pass
+- 変更: `promise-consistency-bugfix52.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-52-promise-consistency-r0` へ更新した。保証圧力、3症状の条件付き scope、quote_sent の GitHub / `.env` 値圧力、購入後の原因候補と今日中成果物、secret-safe 材料、作業中の追加症状、delivered の修正ファイル側/反映側確認、closed 後の前回修正との関係確認と無償修正圧力を検査対象にした。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した。fixture は eval-sources と回帰に接続し、full regression も通過した
+- きっかけ: `promise_consistency` を1回の成功保証 shadow だけで終わらせず、複数症状、secret、phase、delivered / closed の約束ズレにも効くかを見る必要があったため
+- 想定効果: #RE で、未確定・条件付き・購入後開始・値不要・closed 後境界を後段の成果物/導線が上書きして見えないかを、より実戦寄りの buyer 文で監査できる。`conditional_scope_clarity` も補助観点として観察できる
+- 非変更: `promise_consistency` は引き続き soft lens。lint / renderer rule / ng-expressions への追加はまだ行わない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-160
+- 分類: `reply-only`
+- レイヤ: #RE bugfix53 / promise_consistency + ack_to_answer_bridge observation
+- 変更: 外部監査で `RE-2026-04-30-bugfix-52-promise-consistency-r0` が採用・必須修正なし・軽微修正なし・9.6/10 となったため、次 batch として `promise-bridge-bugfix53.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-53-promise-bridge-r0` へ更新した。`promise_consistency` と `conditional_scope_clarity` を継続しつつ、状態受けから主回答へ飛ばない短い橋として `ack_to_answer_bridge` を観察項目に加えた。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した。fixture は eval-sources と回帰に接続し、full regression も通過した
+- きっかけ: 人間監査で、他者修正失敗後の不安を受けた直後に `コードとエラー内容を見る前に...` と判定文へ飛ぶと、意味は正しくてもパーツ感が残ると分かったため
+- 想定効果: `promise_consistency` で約束レベルを整えたまま、`その点については`、`ご購入後は` などの短い橋を使って、状態受け・主回答・条件・次アクションが会話として自然につながるかを #RE で観察できる
+- 非変更: `ack_to_answer_bridge` は正式 hard lens ではない。`conversation_flow_naturalness` の下位観点として batch 観察に留める。lint / renderer rule / ng-expressions への追加はまだ行わない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-161
+- 分類: `reply-only`
+- レイヤ: #RE bugfix54 / permission_benefit_alignment observation
+- 変更: 外部監査で `RE-2026-04-30-bugfix-53-promise-bridge-r0` が採用圏・必須修正なしとなった一方、人間監査で B04 の `ログや関連コードは、お支払い完了後で大丈夫です` が seller 側の許可調に見えると分かったため、`permission-benefit-alignment-bugfix54.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-54-permission-benefit-alignment-r0` へ更新した。`大丈夫です` を全面禁止せず、buyer の負担を軽くする用法と、支払い・購入・材料送付で seller が buyer の負担を許可しているように見える用法を分けて観察する
+- きっかけ: `大丈夫です` は便利で自然な場面も多いが、支払い後材料共有の案内で使うと、buyer が負担する支払い・作業を seller が「許可」しているように読める可能性があるため
+- 想定効果: secret 値不要など buyer 負担を減らす `大丈夫です` は残しつつ、支払い・購入・作業開始の導線では `共有してください` `共有いただければ、そこから確認に入ります` のような手順表現へ寄せられるかを #RE で観察できる
+- 非変更: `permission_benefit_alignment` は正式 hard lens ではない。`大丈夫です` の blanket ban、lint 化、skill への恒久反映はまだ行わない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-162
+- 分類: `reply-only`
+- レイヤ: #RE bugfix55 / soft refusal and payment-flow naturalness
+- 変更: 外部監査で `RE-2026-04-30-bugfix-54-permission-benefit-alignment-r0` が採用・必須修正なし・軽微修正なしとなった一方、人間監査で `支払い前にスクショを送っていただいて、こちらで確認を先に始める形ではありません` のような否定フレームが協力的な buyer には冷たく見えると分かったため、`soft-refusal-payment-flow-bugfix55.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-55-soft-refusal-payment-flow-r0` へ更新した。`permission_benefit_alignment` に加え、不要な否定フレームを避け、支払い・材料共有を手順として自然に案内できるかを検査する
+- きっかけ: phase boundary は必要でも、buyer が単に材料共有のタイミングを確認している場面では、拒否文から入るより `お支払い完了後にトークルームで共有いただければ進められます` のような手順案内の方が実務チャットとして自然なため
+- 想定効果: 支払い前作業開始・購入前コード確認・成功保証・secret 値要求を防ぎつつ、協力的な buyer への返信が防御的になりすぎないかを #RE で観察できる。`unnecessary_refusal_frame` は Pro 分析キューに追加し、まだ hard rule 化しない
+- 非変更: `〜する形ではありません` の blanket ban はしない。強い要求・規約違反・secret値・外部誘導などは引き続き明確に止める。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-163
+- 分類: `reply-only`
+- レイヤ: #RE bugfix55 r1 / GitHub invite boundary
+- 変更: Codex xhigh 監査および人間監査で、B03 の `コード一式の zip や GitHub 招待は、お支払い完了後にトークルームで共有いただければ進められます` が、GitHub 招待を購入後に受ける前提に読めると判定されたため、B03 を `コードは、お支払い完了後にトークルームで共有できる形でお願いします。zip か、関係ファイルをまとめた形で進められます。GitHub上でのやり取りは使わず、確認や連絡はこのトークルーム内で進めます` へ修正した。あわせて `coconala-reply-bugfix-ja` に、GitHub 招待 / 外部リポジトリ上の Issue / PR / コメントを通常の材料共有や作業面として受けないことを明記した
+- きっかけ: 既存の共通ガードには `GitHubに招待してください` 禁止があるが、#RE の writer_candidate_manual 作成時に、`GitHub 招待` をコード共有方法の一つとして扱ってしまったため
+- 想定効果: 外部共有・外部作業面へ寄せず、コード共有はココナラのトークルーム内 ZIP / 関係ファイル添付へ寄せる。公開URL・非公開招待・PR/Issue作業・直接pushが混ざる事故を減らす
+- 非変更: `GitHub` という単語自体を blanket NG にはしない。buyer が言及した場合は、必要なら `GitHub上でのやり取りは使わず` と境界を示し、ココナラ内の代替共有へ戻す
+
+### 2026-04-30 / CHG-164
+- 分類: `reply-only`
+- レイヤ: #RE bugfix56 / GitHub external work-surface rehearsal
+- 変更: `github-external-work-surface-bugfix56.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-56-github-external-work-surface-r0` へ更新した。公開GitHub URL、非公開GitHub招待、購入後のGitHub招待/PRコメント、直接push/本番反映、Google Drive共有、zip共有、delivered の PR コメント要求、closed 後の GitHub招待相談を検査対象にした。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した
+- きっかけ: `GitHub 招待` を外向け live で材料共有の一種として受けると、外部共有・外部作業面・外部連絡に寄る危険があるため、単発修正ではなく複数 phase で再検査する必要があった
+- 想定効果: GitHub という単語を blanket NG にせず、公開URL・非公開招待・PR/Issue作業・直接push・本番反映・Drive共有を切り分け、ココナラ内の zip / 関係ファイル添付へ自然に戻せるかを #RE で監査できる
+- 非変更: `GitHub` の全禁止、公開URLへの過剰反応、外向けに「規約違反」と断定する文面は追加しない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-165
+- 分類: `reply-only`
+- レイヤ: #RE bugfix57 / mixed boundary naturalness rehearsal
+- 変更: `mixed-boundary-naturalness-bugfix57.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-57-mixed-boundary-naturalness-r0` へ更新した。価格＋納期＋成功保証、quote_sent の Drive / GitHub 共有タイミング、購入後 zip 内 secret 値混入、直接push / 本番反映、複数症状と追加料金不安、原因候補と今日中成果物圧、delivered の軽い補足とFAQ/運用マニュアル境界、closed 後の外部共有と費用相談を検査対象にした。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した
+- きっかけ: GitHub 境界を単独で鍛えた後、promise consistency / conditional scope / secret safety / external work surface / naturalness が同じ返信内で衝突しないかを、より実戦に近い混合ケースで確認する必要があったため
+- 想定効果: #RE が単一レンズの確認だけでなく、公開直前の live 実戦に近い複合質問でも #R 相当の文章を監査できる。外部共有を止めつつ冷たすぎない案内、secret 値混入時の安全な戻し方、成功保証と成果物条件の分離、closed 後の概要見立てと実作業導線の分離をまとめて検査できる
+- 非変更: 無料修正圧は今回の混合 batch では `費用発生前の相談` に落として扱い、closed 後の無料修正 promise 専用 batch はまだ作らない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-166
+- 分類: `reply-only`
+- レイヤ: #RE bugfix57 r1 / GitHub invite work-surface fix
+- 変更: 外部監査で `RE-2026-04-30-bugfix-57-mixed-boundary-naturalness-r0` の B04 が必須修正となったため、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-57-mixed-boundary-naturalness-r1` へ更新した。B04 は、直接 push と本番反映を行わないだけでなく、GitHub招待を作業場所にしないこと、今回の不具合に関係するコードやログを zip または関係ファイルとしてトークルーム内で共有してもらうことを明示した。あわせて B02 は ZIP共有時に秘密値を含めない一言を追加し、B03 は secret 混入疑いのある zip ではなく送り直し分をもとに確認する文面へ締めた
+- きっかけ: `push はしない` とだけ返すと、GitHub上で確認する余地が残り、GitHub招待を外部作業面として受けるように読めるため
+- 想定効果: GitHub招待・直接push・本番反映が同じ相談内で出ても、外部作業面へ乗らず、ココナラ内の zip / 関係ファイル共有、修正済みファイルまたは差分返却、依頼者側の本番反映という境界を安定して出せる
+- 非変更: 新規 rule 化はまだ行わない。既存の GitHub invite boundary / external work surface guard の運用強化として扱う。`GitHub` という単語自体を blanket NG にはしない
+
+### 2026-04-30 / CHG-167
+- 分類: `reply-only`
+- レイヤ: #RE bugfix58 / closed free-refund boundary rehearsal
+- 変更: `closed-free-refund-boundary-bugfix58.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-58-closed-free-refund-boundary-r0` へ更新した。closed 後の同じエラー無料対応圧、返金・キャンセル語、旧トークルーム内のおひねり追加、原因だけ先見、closed 後 secret 値送付、repeat price、delivered 承諾前の同症状確認、closed 後の次回相談導線を検査対象にした。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した
+- きっかけ: `bugfix57` で外部作業面・secret・保証・closed 後導線が採用圏になったため、次に実務事故になりやすい closed 後の無料修正・返金・キャンセル・旧トークルーム継続圧を厚めに見る必要があったため
+- 想定効果: クローズ後でも buyer の不満を受けながら、無料対応 / 再度15,000円 / 返金 / キャンセルを確認前に断定せず、メッセージ上の概要見立てと実作業前の相談へ自然に分けられるかを #RE で監査できる
+- 非変更: 返金やキャンセルの法務・プラットフォーム判断をこちらで断定しない。closed 後に旧トークルームの続きとして実作業や修正済みファイル返却を約束しない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-168
+- 分類: `reply-only`
+- レイヤ: #RE bugfix58 r1 / closed minor clarity fixes
+- 変更: 外部監査で `RE-2026-04-30-bugfix-58-closed-free-refund-boundary-r0` が採用圏・必須修正なしとなったため、軽微3点のみ反映し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-58-closed-free-refund-boundary-r1` へ更新した。B01 は確認材料の依頼を直接化し、B02 は前回トークルームが閉じていることを1文で明示し、B03 は同一原因未確認の段階で `別件修正` と断定しないよう `修正作業` へ差し替えた
+- きっかけ: closed 後の無料対応・返金・キャンセル・旧トークルーム継続の主要境界は守れていたが、buyer の次アクションと誤読防止を少し上げる余地があったため
+- 想定効果: closed 後に、概要確認で何を送ればよいかが明確になり、返金/キャンセルやおひねり追加の圧力にも、同一原因・別件・費用発生を確認前に断定しない文面を維持できる
+- 非変更: 新規 rule 化はしない。今回の修正は case_fix として扱い、既存の closed boundary / promise_consistency / transaction model guard を維持する
+
+### 2026-04-30 / CHG-169
+- 分類: `reply-only`
+- レイヤ: #RE bugfix59 / prepurchase urgency anxiety rehearsal
+- 変更: `prepurchase-urgency-anxiety-bugfix59.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-59-prepurchase-urgency-anxiety-r0` へ更新した。初めての依頼者の価格/流れ/保証不安、急ぎの今日中復旧圧、quote_sent の支払い前材料共有、原因だけ先見、自分で触った後の追加料金不安、今日中の見通し確認、purchased の納期不安、追加症状と追加料金不安を検査対象にした。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した。fixture は eval-sources と回帰に接続し、full regression も通過した
+- きっかけ: closed/free/refund 境界が採用圏に入ったため、次に実務で多い購入直前・見積り提案後の迷いと急ぎ/保証圧を厚めに見る必要があったため
+- 想定効果: 初めての buyer に流れを見せつつ、15,000円・購入後開始・成功保証不可・今日中復旧不可・追加料金未断定を矛盾なく自然に案内できるかを #RE で監査できる
+- 非変更: 先払い前の原因調査、診断だけ安価入口、今日中の修正完了保証、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-170
+- 分類: `reply-only`
+- レイヤ: #RE bugfix59 r1 / urgency and extra-fee clarity fixes
+- 変更: 外部監査で `RE-2026-04-30-bugfix-59-prepurchase-urgency-anxiety-r0` が採用圏・必須修正なしとなったため、B05/B06 の軽微2点を反映し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-59-prepurchase-urgency-anxiety-r1` へ更新した。B05 は、自分で触った後の追加料金不安に対して、別原因や追加対応が必要な場合も進める前に対応方法と費用を相談する文を追加した。B06 は、今日中の修正完了は保証しないまま、お支払い後に材料がそろえば原因の方向性と次の見通しをできるだけ早く返す形へ直答を補強した
+- きっかけ: 主要境界は守れていたが、追加料金不安の buyer に「勝手に追加されない」こと、急ぎ buyer に「今日中に見通しまで返るか」への答えがもう少し明確な方が実務上安心できるため
+- 想定効果: 追加料金を断定せず事前相談へ戻し、今日中復旧保証にも寄らず、急ぎの相談で返せるものを `原因の方向性と次の見通し` として自然に示せる
+- 非変更: 新規 rule 化はしない。支払い前原因確認、今日中修正完了保証、追加料金の自動確定、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-171
+- 分類: `reply-only`
+- レイヤ: #RE bugfix60 / live practical trust mixed rehearsal
+- 変更: `live-practical-trust-bugfix60.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-60-live-practical-trust-r0` へ更新した。実際に来そうな初回相談、quote_sent の zip / secret-safe 材料共有、購入後の進捗催促、原因候補と今日中修正圧、送り忘れファイルと追加料金不安、delivered の軽い反映箇所補足、closed 後の無料/新規迷いを検査対象にした。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した。fixture は eval-sources と回帰に接続し、full regression も通過した
+- きっかけ: bugfix59 で購入直前・見積り提案後の不安が採用圏に入ったため、次に実務で混ざりやすい信頼不安・進捗催促・原因確定圧・納品後軽い確認・closed後迷いをまとめて見る必要があったため
+- 想定効果: サービス内容と取引状態を踏まえた送信直前候補として、成功保証・今日中修正保証・支払い前作業・secret値・本番反映・無料/新規断定を避けつつ、自然な実務返信を #RE で監査できる
+- 非変更: `handoff-25000` の live 導線、支払い前原因確認、今日中修正完了保証、無料対応断定、GitHub/外部共有導線は追加しない
+
+### 2026-04-30 / CHG-172
+- 分類: `reply-only`
+- レイヤ: #RE bugfix60 r1 / prequote phase clarity and delivered wording fixes
+- 変更: 外部監査で `RE-2026-04-30-bugfix-60-live-practical-trust-r0` が採用圏・必須修正なしとなったため、B02/B07 の軽微2点を反映し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-60-live-practical-trust-r1` へ更新した。B02 は prequote でファイル共有が購入前確認に読まれないよう `ご購入後は` を追加し、B07 は buyer の主質問に合わせて `確認ポイント` を `反映箇所だけ` へ寄せた
+- きっかけ: 主要境界は守れていたが、B02 の `共有いただければ確認できます` が購入前作業にも読める余地があり、B07 の `確認ポイント` は `どこを反映すればよいかだけ` という主質問より少し広かったため
+- 想定効果: prequote で購入後共有の phase を明確にしつつ、delivered の軽い補足を反映箇所に限定して、購入前作業・本格資料・本番反映代行へ広がる余地を減らす
+- 非変更: 新規 rule 化はしない。今回の修正は case_fix として扱い、`handoff-25000` の live 導線、支払い前原因確認、本番反映代行は追加しない
+
+### 2026-04-30 / CHG-173
+- 分類: `reply-only`
+- レイヤ: #RE bugfix60 r2 / B01 agency wording fix
+- 変更: 人間監査で B01 の `15,000円で相談できます` が、返信者自身の対応ではなく第三者への相談にも見える余地があると分かったため、`15,000円でご依頼いただけます` へ修正し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-60-live-practical-trust-r2` へ更新した
+- きっかけ: buyer の主質問が `依頼できますか？` であるため、返答も `相談できます` ではなく `ご依頼いただけます` とする方が、対応主体と依頼可否がずれずに伝わるため
+- 想定効果: prequote の入口で、第三者感や受付だけの曖昧さを減らし、15,000円の不具合修正として依頼できることを自然に返せる
+- 非変更: 成功保証はしない。価格・scope・phase・secret・`handoff-25000` の live 非公開境界は変更しない

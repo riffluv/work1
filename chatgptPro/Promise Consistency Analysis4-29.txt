@@ -1,0 +1,311 @@
+1. 結論
+promise_consistency は、正式な監査レンズとして入れる価値があります。
+ただし、最初から hard validator / renderer rule / Writer 常駐ルールにするのは危険です。まずは #RE / #BR の外部監査プロンプトに soft lens として追加し、再発した subtype だけを ng-expressions / gold / lint へ落とすのがよいです。
+今回の問題は、厳密には単純な local_semantic_contradiction ではありません。
+
+「確実に直ることは約束できません」
+→ 「修正済みファイルの返却まで進められます」
+
+これは論理的には「不可能な矛盾」ではなく、buyer が読むと、後段の成果物表現が前段の留保を上書きして見える問題です。つまり本体は promise_consistency、下位現象として local_promise_shadow / success_guarantee_shadow と呼ぶのが適切です。
+現行リポジトリ上でも、#RE は live bugfix-15000 の品質確認、#BR は handoff-25000 を future-dual simulation として分ける構造になっており、public leak / secret / phase / price・scope 崩れは candidate_source に関係なく必須修正扱いです。したがって、新レンズもこの hard boundary を弱めず、「文ごとは安全だが連続で読むと未約束の約束に見える」ものだけを拾う soft lensとして入れるのが自然です。
+将来コアとしても、promise_consistency はかなり強いです。メール返信、SaaSサポート、受託案件、問い合わせ対応、カスタマーサポートのすべてで、**「未確定と言った直後に確定成果を約束する」「条件付きと言った直後に無条件に戻る」**は事故になります。ドメイン非依存レイヤになり得ます。
+ただし、名前は promise_consistency を正式名にし、local_semantic_contradiction は内部 subtype 程度に留めるのがよいです。local_semantic_contradiction は広すぎて、「文体の不自然さ」「単なる接続の好み」「自然化の言い換え」まで巻き込みやすいです。⚠️
+
+2. 今回の例の評価
+今回の候補は hard fail ではなく、fix recommended に近いです。
+理由はこうです。
+観点評価成功保証を明示しているか「確実に直ることまでは約束できません」と否定しているので、明示保証ではないただし後段が保証っぽく見えるかはい。「原因確認から修正済みファイルの返却まで進められます」が、buyer には「直して返すところまで約束」と読めるservice fact と矛盾しているか直せる場合に修正済みファイルを返すこと自体は問題ない問題の本質無条件成果物表現が、直前の成功保証否定を弱めているseverityfix recommendedrule 化いきなり rule / lint ではなく、まず監査 prompt + gold 反映
+元文の問題点
+
+Stripe決済は成功しているのに注文が作られない症状であれば、15,000円の不具合修正として原因確認から修正済みファイルの返却まで進められます。
+
+ここで危ないのは、原因確認 と 修正済みファイルの返却 が同じ強さで並んでいることです。
+
+
+原因確認：購入後に始められる作業
+
+
+修正済みファイル返却：修正箇所が特定でき、修正可能だった場合の成果物
+
+
+この2つは promise level が違います。
+それを「〜まで進められます」で一本化したため、「保証はしない」と言った直後に「でも直して返します」と見えるわけです。
+暫定修正案の評価
+
+ただ、Stripe決済は成功しているのに注文が作られない症状であれば、15,000円の不具合修正として、まず原因確認から進められます。修正できる箇所が特定できた場合は、修正済みファイルをお返しします。
+
+これは適切です。かなり良いです。✅
+さらに少しだけ強くするなら、こうです。
+ただ、Stripe決済は成功しているのに注文が作られない症状であれば、15,000円の不具合修正として、購入後にまず原因確認から入れます。修正箇所を特定でき、こちらで直せる範囲であれば、修正済みファイルをお返しします。
+差分は2点です。
+
+
+**「購入後に」**を入れて phase を固定する
+
+
+**「こちらで直せる範囲であれば」**を入れて scope と成功保証を分ける
+
+
+ただし、ここまで条件を足すと少し重くなるので、通常返信では暫定案のままでも十分です。
+
+3. promise_consistency の定義案
+正式定義は、こう置くのがよいです。
+promise_consistency:  1通の返信内、または直近の会話文脈内で、  先に明示した「未確定・不可・条件付き・購入後・値不要・範囲外・先に相談」と、  後段の「対応します・進めます・直します・返します・確認します・送ってください・追加なし・原因です」などの promise-bearing 表現が、  buyer にとって同じ約束レベルとして整合して読めるかを見る監査レンズ。  1文ごとの事実誤りではなく、前後接続によって  成功保証、購入前着手、closed後作業、secret値要求、無条件追加対応、支払い導線、scope拡張などを  暗黙に約束していないかを確認する。
+重要な分解
+promise_consistency で見る対象は、単なる「矛盾」ではなく、次の promise ledger です。
+種類例outcome promise直ります、解消できます、成功しますdeliverable promise修正済みファイルを返します、原因を特定しますphase promise購入前に見ます、購入後に始めますscope promise2件まとめて対応します、同じ原因なら対応しますpayment promise追加料金なし、そのまま対応しますevidence promiseログを見て判断します、コード確認後に返しますsecret promise値は不要です、.env を送ってくださいproduction promise本番反映します、反映後に確認しますsupport-state promiseclosed 後も直します、この場で続けますtimeline promise48時間以内に一次結果、今日中に修正完了
+この lens の目的は、すべてを弱くすることではありません。
+固定してよい約束は強く言う。
+未確認の約束だけ条件を付ける。
+これが中心です。
+
+4. 既存レンズとの役割分担
+promise_consistency は既存レンズに近いですが、完全には吸収しない方がよいです。
+既存レンズ見ているものpromise_consistency との違いscope_boundaryその作業がサービス範囲内かpromise_consistency は、範囲内の作業でも「無条件に直す」と見えるかを見るphase_boundaryprequote / purchased / delivered / closed の状態ズレpromise_consistency は、phase 正常でも「購入前に見ます」など後段で phase を上書きしていないかを見るsecret_safetysecret 値を求めないかpromise_consistency は「値は不要」と言った直後に .env送ってください と言うような接続矛盾を見るpayment_route支払い導線・追加料金導線の安全性promise_consistency は「先に相談します」と言った後に「そのまま対応します」と言っていないかを見るconversation_flow_naturalnessbuyer が自然に読める流れかpromise_consistency は自然さではなく、約束の強さが前後で整合しているかを見るjp_business_native_naturalness日本語実務チャットとして bot 感がないかpromise_consistency は語感ではなく、未約束の成果物・作業・支払いを暗黙に約束していないかを見るcommitment_budgetstate / 証拠量に対して約束が強すぎないかpromise_consistency はその局所版。前段の留保と後段の約束が同じ返信内で食い違うかを見るtransaction_model_gap取引構造全体がつながっているかpromise_consistency は、取引構造の中の「約束文どうしの整合」だけを見る
+現行監査プロンプトにはすでに commitment_budget、semantic_grounding_drift、conversation_flow_naturalness、jp_business_native_naturalness があり、hard fail に直結させない注意も入っています。promise_consistency はこの流れに追加しやすいです。特に japanese-chat-natural-ja 側にも「修正方針と成功保証」は安易につながない、という近い思想がすでに入っています。
+結論
+独立レンズとして追加。ただし、階層は commitment_budget の下位・近縁 lens。
+おすすめ表記はこれです。
+promise_consistency:  soft lens。  commitment_budget の局所版として扱う。  deterministic な public leak / phase drift / secret 値要求 / 保証断定 / payment route 事故が出た場合だけ hard fail へ昇格する。
+
+5. hard fail / soft lens / lint の分類基準
+hard fail にすべき矛盾
+次は hard fail でよいです。既存の acceptance gate でも、事実 gate / phase gate / prohibited action / scope 事故 / public-private 事故は major fail 扱いです。
+hard fail例成功保証の明示購入すれば確実に直ります未確認なのに原因断定コードを見る前ですがWebhookが原因ですprequote で作業開始購入前にログを見て原因確認しますsecret 値要求sk_... の値を送ってください / .envをそのまま送ってくださいclosed 後の旧トークルーム継続作業クローズ後ですが、この場に送っていただければ直しますpublic:false サービスの導線漏れ通常 live / #RE で 25,000円のhandoffを購入してください本番反映・直接 push を約束こちらで本番に反映します追加料金・返金・無料対応の断定追加料金なしで全部対応します / 全額返金します同一原因未確認なのに複数件を定額確約2つまとめて15,000円で対応できます
+fix recommended に留めるべき矛盾
+これは今回の中心です。
+fix recommended例成功保証は否定しているが、後段の成果物表現が無条件に見える保証はできません。ただ、修正済みファイルの返却まで進められます未確定と言った後、可能性表現なしで原因候補を強めすぎるまだ断定できません。Webhook周りが原因です購入後作業のつもりだが、文面上は購入前にも読めるログを見て原因を確認します追加料金相談のつもりだが、後段で無料吸収っぽい先に相談します。そのまま対応します本番反映はしないが、反映後確認の主体が曖昧本番反映はしません。反映後に確認します
+preference として扱うもの
+preference理由条件は明確だが、もっと自然な順序にできる実務リスクは低いまず の有無だけpromise ではなく語感対応できます vs 対応できそうです の好みservice facts 上、対応可能なら強く言ってよい文が少し硬いjp_business_native_naturalness 側で見る句点や段落の好みhard boundary と無関係
+lint 化してよい高精度パターン
+高精度 lint は、**「単語」ではなく「危ない組み合わせ」**で拾うべきです。
+
+
+保証できません + 無条件の 修正済みファイルを返します
+
+
+値は不要 + .envを送ってください
+
+
+購入後に始めます + 購入前に原因確認します
+
+
+closed / クローズ後 + 送っていただければ直します
+
+
+本番反映はしません + こちらで本番反映します
+
+
+追加料金は先に相談 + 追加分もそのまま対応します
+
+
+lint 化すると危険なパターン
+これは入れない方がよいです。🚫
+危険な lint理由進められます 全般正しい service 可否まで落とす修正済みファイル 全般bugfix サービスの成果物説明を弱める対応できます 全般価格・範囲の明確さを失うログを見ます 全般purchased では正常反映後に確認します 全般「お客様側で反映後に確認」は正常原因です 全般購入後・証拠ありでは正常購入前に見ます 全般「相談文だけ見ます」は正常
+
+6. 監査プロンプトへ入れる実文面
+#RE / #BR の Codex xhigh 監査プロンプトには、以下をそのまま入れられます。
+### promise_consistency（soft lens）1通の返信内で、先に置いた留保・不可・条件付き回答と、後段の作業可否・成果物・納期・料金・次アクションが、同じ promise level として整合しているかを見てください。1文ごとの事実が正しくても、前後をつなげて読むと buyer に次のような未約束の約束として見える場合は `promise_consistency` として指摘してください。- 成功保証はしないと言った直後に、無条件で「直します」「修正済みファイルを返します」と読める- 原因は未確定と言った直後に、特定原因を断定している- 購入後に始めると言った直後に、購入前のログ確認・原因確認・コード確認を約束している- secret 値は不要と言った直後に、`.env` や API キー値の送付を求めている- closed 後は旧トークルームで作業しないと言った直後に、送れば直すと読める- 追加料金は先に相談すると言った直後に、そのまま追加作業を進めると読める- 本番反映や直接 push はしないと言った直後に、こちらが反映・push するように読めるただし、この lens は hard fail ではありません。次の場合だけ hard fail に昇格してください。- public/private 事故- phase drift- secret 値要求- 成功保証・返金保証・無料対応の断定- scope / price / payment route の事実変更- 外部共有、直接 push、本番デプロイ誘導- closed 後の旧トークルーム継続作業の約束それ以外で、無条件に読めるが明示断定ではないものは `fix recommended` としてください。単により自然な順序にできる、語感を整えられる、という程度なら `preference` に留めてください。修正提案では、料金・scope・phase・secret・payment route・public/private 境界を弱めないでください。成功保証を避けるために、固定価格・対応可能範囲・購入後に開始できる作業まで曖昧にしないでください。望ましい修正は、曖昧化ではなく、条件・順序・対象を最小限足すことです。例:- `まず原因確認から進められます。修正できる箇所が特定できた場合は、修正済みファイルをお返しします。`- `購入後にログと関連コードを確認します。`- `.env は値を伏せ、キー名だけ分かる形で送ってください。`- `本番反映はお客様側でお願いします。反映後に出た結果は、この場で確認します。`出力時は、可能なら subtype を添えてください。subtype:- success_guarantee_shadow- deliverable_promise_shadow- diagnosis_assertion_drift- phase_promise_drift- secret_request_contradiction- closed_work_promise- scope_bundle_promise- payment_scope_promise- production_action_shadow
+この文面のポイントは、hard fail 化しすぎないことです。現行プロンプトでも hard fail と soft lens を分け、conversation_flow_naturalness は hard fail ではないが、自然化によって price / scope / phase / payment route / secret handling / public-private boundary が変われば deterministic 事故として扱う、という整理になっています。この既存思想と同じ置き方で追加できます。
+
+7. lint 候補
+reply_quality_lint_common.py に入れるなら、最初は warning / fix_recommended 中心が安全です。現行の change log でも、進め方 lint を blanket 検知から狭い PM 語彙寄りパターンに絞った経緯があり、今回も同じく narrow-first がよいです。
+候補1：成功保証否定 + 無条件の修正済み成果物
+項目内容検知しやすさ中誤検知リスク中推奨 severitywarning / fix_recommended例文確実に直ることまではお約束できません。ただ、修正済みファイルの返却まで進められます。検知案`保証
+注意点：
+修正済みファイル 自体は成果物として正常なので、単独 lint は禁止です。
+
+候補2：未確定原因 + 原因断定
+項目内容検知しやすさ中誤検知リスク中推奨 severitywarning例文原因はまだ断定できません。Webhookが原因です。検知案`原因.*断定できません
+注意点：
+購入後に証拠がある場合は原因断定が正常なので、phase / evidence なしで error にしない。
+
+候補3：secret 値不要 + .env 送付要求
+項目内容検知しやすさ高誤検知リスク低〜中推奨 severityerror if 値要求 / warning if 曖昧例文secret値は不要です。.envを送ってください。検知案`値は不要
+より確実な error 対象：
+.envをそのまま送ってくださいsk_ の値を送ってくださいwhsec_ の値を送ってください秘密鍵の値を送ってください
+
+候補4：購入後開始 + 購入前原因確認
+項目内容検知しやすさ中誤検知リスク中推奨 severitywarning、prequote 確定なら error例文購入後に作業を始めます。購入前にログを見て原因を確認します。検知案`購入後
+除外したい正常例：
+購入前は、相談文の範囲で対象になりそうかだけ見ます。
+
+候補5：closed 後 + 修正作業 promise
+項目内容検知しやすさ高誤検知リスク低推奨 severityerror例文クローズ後ですが、送っていただければこの場で直します。検知案`クローズ後
+これは lint 価値が高いです。closed 後の旧トークルーム継続作業は、現行 self-check でも常時コアに近い扱いです。
+
+候補6：本番反映不可 + こちらで反映
+項目内容検知しやすさ高、ただし条件付き誤検知リスク中推奨 severityerror if こちらで本番反映 / warning if 主体不明例文本番反映はしません。こちらで反映後に確認します。検知案`本番反映
+危険な broad lint：
+反映後に確認します
+これは buyer 側反映後の確認なら正常なので、単独検知しない。
+
+候補7：追加料金相談 + 追加分そのまま対応
+項目内容検知しやすさ中誤検知リスク中推奨 severitywarning例文追加料金が必要な場合は先に相談します。追加分もそのまま対応します。検知案`追加料金
+これは hard ではなく warning から。
+今回の範囲内なのでそのまま対応します は正常です。
+
+候補8：同じ原因条件 + 複数件定額確約
+項目内容検知しやすさ中誤検知リスク中推奨 severitywarning例文同じ原因なら対応できます。2つまとめて15,000円で対応できます。検知案`同じ原因
+
+8. skill / ng-expressions / gold に戻す候補
+#RE / #BR 外部監査プロンプト
+今すぐ追加。P0。
+#RE は通常 live の bugfix-15000 品質確認で、#BR は future-dual 境界訓練として分離されています。通常 live / #RE には handoff-25000 のサービス名・25,000円・購入導線を戻さない運用なので、promise_consistency もこの分離を壊さない soft lens として入れるべきです。
+coconala-reply-bugfix-ja
+P1。短い Gotcha として追加。
+入れるならこの程度で十分です。
+* 成功保証・原因未確定・購入後開始などの留保を書いた直後に、無条件の `直します` `修正済みファイルを返します` `原因です` へ戻さない。必要なら `まず原因確認`、`修正箇所が特定できた場合`、`こちらで直せる範囲であれば` のように条件と順序を分ける。
+長く入れると Writer が過度に萎縮します。現行 skill は Writer / Reviewer 分離を前提にしていて、Writer へ self-check 全文を背負わせず、draft 後に reviewer / lint を通す設計です。この骨格は維持した方がよいです。
+japanese-chat-natural-ja
+P2。急がない。
+すでに「金額と追加対応」「phase boundary と購入導線」「secret safety と作業継続」「修正方針と成功保証」は安易につながない、という汎用思想が入っています。今回の問題はそこにかなり近いです。
+追加するなら、1文だけ。
+* 留保・条件付き回答の直後に成果物や完了を述べる場合は、条件が消えないように接続する。自然化のために未確認の成功保証へ見える表現へ変えない。
+ng-expressions
+P1.5。1回だけなら入れない。2回再発したら入れる。
+入れる場合は、単語禁止ではなく組み合わせ禁止にします。
+### 保証不可の直後に無条件の成果物返却を書く* 問題: `確実に直ることは約束できません` と言った直後に `修正済みファイルの返却まで進められます` と書くと、buyer には結局直して返すと約束しているように見える。* 避けたい例: `確実に直ることまではお約束できません。ただ、修正済みファイルの返却まで進められます。`* 推奨: `まず原因確認から進められます。修正できる箇所が特定できた場合は、修正済みファイルをお返しします。`* 注記: `修正済みファイル` 自体は禁止しない。無条件成果物として見える接続だけ避ける。
+gold replies
+今すぐ反映。P0。
+今回の暫定修正案は gold に向いています。
+README 上でも gold は温度感・情報量・質問数・次アクションの基準として使い、古い gold が現行ルールと矛盾したら良い例として残さない方針です。今回のような「保証否定 + 条件付き成果物」は、gold で見せる価値が高いです。
+gold に入れるなら、次の型です。
+確実に直ることまでは、コードとエラー内容を見る前にはお約束できません。ただ、Stripe決済は成功しているのに注文が作られない症状であれば、15,000円の不具合修正として、まず原因確認から進められます。修正できる箇所が特定できた場合は、修正済みファイルをお返しします。
+
+9. やらない方がいいこと
+かなり重要です。ここを間違えると、返信OSの骨格が崩れます。
+1. promise_consistency を hard fail にしすぎない
+今回の例は hard fail ではありません。
+hard fail にすると、Writer が全部を弱くしてしまいます。
+悪い方向：
+直るかは分かりません。対応できるかも確認後になります。金額も状況によります。
+これは fixed price / service scope / buyer の判断材料を壊します。
+2. 修正済みファイル を禁止しない
+bugfix サービスでは成果物説明として必要です。
+禁止すべきなのは、未確認・保証不可の直後に無条件成果物として出すことです。
+3. 対応できます を弱めすぎない
+15,000円で対応できます が正しい場面では、はっきり言うべきです。
+すべてを 対応できる可能性があります にすると、商売上も UX 上も弱くなります。
+4. renderer に全面実装しない
+renderer は guardrail であり、全文テンプレ生成器に戻さない方がよいです。現行 skill でも、文面は Codex が freeform に近い形で下書きし、renderer / validator は guardrail として使う設計です。
+5. lint を broad にしない
+保証できません と 進めます が同じ返信にあるだけで警告する、みたいな lint は危険です。
+正しい例まで落ちます。
+確実な修正保証はしていませんが、購入後に原因確認から進められます。
+これは正常です。
+6. 自然化レンズへ吸収しきらない
+conversation_flow_naturalness や jp_business_native_naturalness で拾える部分はありますが、今回の問題は「自然かどうか」ではなく、約束の整合性です。自然な日本語に直しても、約束が強すぎれば事故は残ります。
+7. 成功保証回避のためにサービス内容まで弱くしない
+この制約はかなり大事です。
+promise_consistency は、固定事実を弱めるレンズではありません。
+強く言ってよいもの：
+15,000円です。購入後に原因確認から進めます。不具合1件として対応できます。
+条件を付けるもの：
+修正できる箇所が特定できた場合は、修正済みファイルをお返しします。同じ原因と分かれば、同じ不具合として扱えます。
+
+10. 最短ロードマップ
+今すぐやるべきこと
+1. #RE 監査プロンプトへ soft lens 追加
+最優先。
+今回の問題は #RE live 品質に直結します。
+入れるラベル：
+promise_consistency
+subtype：
+success_guarantee_shadowdeliverable_promise_shadowdiagnosis_assertion_driftphase_promise_driftsecret_request_contradictionclosed_work_promisescope_bundle_promisepayment_scope_promiseproduction_action_shadow
+2. #BR 監査プロンプトへも追加
+同時に入れてよいです。
+#BR は future-dual simulation なので、特に次の promise drift が出やすいです。
+
+
+handoff なのに修正も含むように見える
+
+
+bugfix なのに整理・メモまで含むように見える
+
+
+private service の購入導線が live へ漏れる
+
+
+25,000円整理で repair promise が混ざる
+
+
+同日完了 / まとめ対応を約束する
+
+
+3. 今回の暫定修正を gold replies へ反映
+即反映推奨。
+理由は、今回の例が promise_consistency の最小正解形だからです。
+まず原因確認から進められます。修正できる箇所が特定できた場合は、修正済みファイルをお返しします。
+この2文は gold 化に向いています。
+4. human audit の再発基準を作る
+ログにはこう残すのがよいです。
+lens: promise_consistencysubtype: success_guarantee_shadowdenied_or_limited_promise: 確実に直ることは約束できないlater_promise_phrase: 修正済みファイルの返却まで進められますbuyer_risk: 直して返す保証に見えるseverity: fix_recommendedfix: まず原因確認 / 特定できた場合は返却return_candidate: reviewer_prompt + gold
+再発基準：
+条件戻し先1回のみbatch 修正 + gold 候補同 batch で2回ng-expressions 候補2 batch 連続coconala-reply-bugfix-ja Gotcha3 subtype 以上promise_consistency を reviewer prompt の正式レンズに固定lint で拾える同型が2回以上warning lint 実装false positive が多いlint 化しない / prompt のみに戻す
+後でよいこと
+5. coconala-reply-bugfix-ja への追加
+1〜2 batch 回して再発を見てからでよいです。
+入れる場合は Gotcha 1文だけ。
+6. japanese-chat-natural-ja への追加
+これは common 化できたら でよいです。
+ココナラ以外でも出ることが確認できたら、汎用 skill に戻す。
+7. ng-expressions への追加
+今回1件だけなら急がない。
+ただし、同型がもう1回出たら入れてよいです。
+8. lint 実装
+まずは warning のみ。
+error にしてよいのは以下だけです。
+
+
+secret 値要求
+
+
+closed 後の旧トークルーム継続作業
+
+
+本番反映 / 直接 push の明示 promise
+
+
+public:false 導線漏れ
+
+
+成功保証の明示
+
+
+それ以外は fix_recommended warning。
+9. reply_contract / response_decision_plan への追加
+今は不要です。
+ただし、将来追加するならこの形です。
+promise_ledger:  denied:    - success_guarantee  allowed_unconditional:    - purchase_after_diagnosis    - fixed_price_15000  allowed_conditional:    - fixed_file_return_if_fixable  forbidden_implications:    - guaranteed_repair    - pre_purchase_code_review
+これは強いですが、今入れると schema が重くなります。
+やらない方がよいこと
+やらない理由いきなり hard fail 化過剰修正で固定価格・対応可能範囲まで弱くなるrenderer template に組み込む文章が硬くなり、現行の freeform writer 方針を壊す進められます / 対応できます / 修正済みファイル を blanket lint誤検知が多い成功保証回避のために購入導線を曖昧化buyer が次に動けなくなるlocal_semantic_contradiction という広い名前で正式化好み・文体・自然化まで巻き込む1回の違和感で japanese-chat-natural-ja へ戻すcommon 判定前に汎用 skill が膨らむ
+Pro に再相談すべきタイミング
+次のどれかが起きたら再相談でよいです。
+
+
+promise_consistency を入れた #RE / #BR を 2〜3 batch 回した
+
+
+fix recommended が増えたが、hard boundary との線引きが揺れている
+
+
+lint 候補を error に上げるか迷う
+
+
+japanese-chat-natural-ja へ common として戻すか迷う
+
+
+reply_contract / response_decision_plan に promise_ledger を追加したくなった
+
+
+他サービス展開時に、同じ lens が SaaSサポート / メール返信 / 受託案件でも再発した
+
+
+
+最終判断
+入れるべきです。
+ただし、最初の置き場所は #RE / #BR の外部監査プロンプト + gold です。
+promise_consistency は、既存の commitment_budget をより実務的に使うための局所レンズです。
+hard boundary を弱めず、固定価格・対応範囲・購入導線を曖昧にせず、**「約束していない成果を、接続のせいで約束したように見せない」**ためのレイヤとして扱うのが最適です。

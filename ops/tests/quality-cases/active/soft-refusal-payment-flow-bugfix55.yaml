@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC55-001
+    stock_id: HRC55-001
+    category: soft_refusal_payment_flow
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: helpful
+    scenario: prequote_log_before_purchase_or_after
+    question_type: prequote_price_and_material_timing
+    primary_question: 金額と、ログや関連コードを購入前に送るべきかを知りたい。
+    raw_message: "Stripe決済は成功しているのに注文が作られません。先にログを送れば見積りしやすいですか？それとも購入後でいいですか？金額も教えてください。"
+    note: 通常 live / #RE。購入前ログ送付を冷たく否定せず、15,000円と購入後材料共有の流れへ自然につなぐ。
+
+  - id: HRC55-002
+    stock_id: HRC55-002
+    category: soft_refusal_payment_flow
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: polite
+    scenario: quote_sent_screenshot_timing_polite
+    question_type: quote_sent_material_timing_without_harsh_refusal
+    primary_question: 見積り提案後、スクショを今送るべきか、支払い後でよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。Stripeのスクショもあります。今送っておいた方がやり取りがスムーズですか？支払い後に送る流れでも問題ないでしょうか。"
+    note: 通常 live / #RE。協力的な buyer に対して `先に確認する形ではありません` のような否定フレームに戻らないかを見る。
+
+  - id: HRC55-003
+    stock_id: HRC55-003
+    category: soft_refusal_payment_flow
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: helpful
+    scenario: quote_sent_zip_or_github_before_payment
+    question_type: quote_sent_code_share_timing
+    primary_question: 支払い前に zip や GitHub 招待を送るべきか、支払い後共有でよいかを知りたい。
+    raw_message: "お願いする方向で考えています。コード一式のzipかGitHub招待は、支払い前に送っておいた方がいいですか？支払い後にトークルームで共有する形で進められますか？"
+    note: 通常 live / #RE。支払い後共有を売り手都合の許可調にせず、GitHub招待を当然に受ける文面へ寄せず、ココナラ上の手順として案内できるかを見る。
+
+  - id: HRC55-004
+    stock_id: HRC55-004
+    category: promise_bridge
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: previous_failed_fix_success_concern
+    question_type: prequote_guarantee_after_previous_failure
+    primary_question: 別の人で原因不明だった不具合を、15,000円で必ず直せるか、無理な場合どうなるかを知りたい。
+    raw_message: "別の方に見てもらったのですが、原因が分からないと言われました。Stripe決済後に注文が作られない状態です。15,000円で必ず直せますか？もし無理だった場合はどうなりますか？"
+    note: 通常 live / #RE。promise_consistency と ack_to_answer_bridge。成功保証否定から成果物条件へ飛びすぎないかを見る。
+
+  - id: HRC55-005
+    stock_id: HRC55-005
+    category: permission_benefit_alignment
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: keys_shared
+    question_type: purchased_secret_values_not_needed
+    primary_question: secret 値を送らないままで確認できるか、追加で必要なものがあるかを知りたい。
+    raw_message: "購入後にStripe関連のキー名だけ共有しました。Webhookの設定箇所も送っています。値そのものは送っていません。このままで確認できますか？追加で必要なものがあれば教えてください。"
+    note: 通常 live / #RE。secret 値不要の `大丈夫です` は buyer 負担軽減として自然に残せるかを見る。
+
+  - id: HRC55-006
+    stock_id: HRC55-006
+    category: conversation_flow_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: purchased_short_progress_update
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、今どこまで見ているかを短く知りたい。
+    raw_message: "昨日購入してログも送りました。いまどこまで見ていますか？長い説明はいらないので、現時点で分かっていることだけ短く教えてください。"
+    note: 通常 live / #RE。処理語の密集やぶつ切り感なく、現在地・未確定点・次回連絡を短く返せるかを見る。
+
+  - id: HRC55-007
+    stock_id: HRC55-007
+    category: delivered_light_explanation
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: unsure
+    scenario: delivered_light_explanation_without_manual
+    question_type: delivered_light_explanation
+    primary_question: 納品後、承諾前に確認手順をもう少し分かりやすく補足してもらえるかを知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルと確認手順は受け取りました。専門用語が少し難しいので、承諾前にどこを見ればいいかだけ、もう少し分かりやすく教えてもらえますか？"
+    note: 通常 live / #RE。軽い補足を受けつつ、本格マニュアルや運用資料へ広げない。
+
+  - id: HRC55-008
+    stock_id: HRC55-008
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite
+    scenario: closed_thanks_relation_check
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後にログやスクショを送れば、前回修正との関係だけ見てもらえるかを知りたい。
+    raw_message: "前回はありがとうございました。クローズ後ですみませんが、似たStripeエラーが出ています。ログとスクショをこのメッセージで送れば、前回の修正と関係ありそうかだけ見てもらえますか？直す必要がありそうなら新規で相談します。"
+    note: 通常 live / #RE。前回への感謝を軽く受けつつ、closed 後の材料確認と実作業境界を自然につなぐ。

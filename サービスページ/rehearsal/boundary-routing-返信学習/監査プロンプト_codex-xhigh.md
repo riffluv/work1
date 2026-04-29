@@ -90,10 +90,11 @@
 
 ## Pro後の補助監査レンズ
 
-次の5つは追加で見てよい soft lens です。必須修正に直結させず、scope / route / price / public leak / payment state の事故と結びつく場合だけ強く扱ってください。
+次の soft lens は追加で見てよい観点です。必須修正に直結させず、scope / route / price / public leak / payment state の事故と結びつく場合だけ強く扱ってください。
 
 - `source_traceability`: 返信内の価格・scope・deliverable・禁止事項が、bugfix / handoff の service page・facts・platform-contract のどこから来たか追えるか
 - `commitment_budget`: `対応できます` `進めます` `修正します` `本日HH:MMまで` などの約束が、route・state・受領証拠量に対して強すぎないか
+- `promise_consistency`: 返信内で先に置いた留保・不可・条件付き回答と、後段の作業可否・成果物・納期・料金・次アクションが、同じ promise level として整合しているかを見る soft lens。1文ごとの事実が正しくても、前後接続で buyer に未約束の約束として読まれる場合は指摘してください。特に #BR では、handoff で修正完了を約束していないか、bugfix で整理・引き継ぎ資料まで含むように見えないか、25,000円整理で repair promise が混ざらないか、追加料金・同日完了・複数サービス一括対応を暗黙に約束していないかを見てください。subtype は必要に応じて `success_guarantee_shadow / deliverable_promise_shadow / diagnosis_assertion_drift / phase_promise_drift / secret_request_contradiction / closed_work_promise / scope_bundle_promise / payment_scope_promise / production_action_shadow` を使ってください
 - `semantic_grounding_drift`: service page / facts / service-pack / renderer の意味がずれ、bugfix と handoff の成果物や対象範囲が混ざっていないか
 - `shadow_to_live_contamination`: #BR 内では妥当な handoff / 25,000円 / 主要1フロー語彙が、通常 live / #RE へ戻すと危険な形になっていないか
 - `evidence_minimality`: buyer がすでに出した情報を聞き直していないか、route 判定や次アクションに必要な最小情報だけを依頼しているか。secret 値や過剰なコード一式要求に寄っていないかも見る
@@ -112,6 +113,8 @@
 - 「15,000円の修正で軽い整理も全部見ます」「25,000円整理でバグも直します」は事故です。
 - buyer が聞いていない内部条件を並べすぎる指摘は soft lens として扱い、必須修正は scope / route / price / public leak に絞ってください。
 - Pro後の補助監査レンズも soft lens として扱ってください。全ケース自動 hard rule 化、売上最大化 CTA、汎用 empathy score、全 platform 汎用 legal/compliance lens は入れないでください。
+- `promise_consistency` は hard fail ではありません。ただし、public/private 事故、phase drift、secret 値要求、成功保証・返金保証・無料対応の断定、scope / price / payment route の事実変更、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続作業の約束が出た場合だけ deterministic な事故として扱ってください。無条件に読めるが明示断定ではないものは `fix recommended`、単なる順序・語感の改善は `preference` に留めてください。
+- `promise_consistency` の修正提案では、bugfix / handoff の固定価格・対応可能範囲・購入後に開始できる作業まで曖昧にしないでください。望ましい修正は、条件・順序・対象を最小限足して、未確認の成果物・修正完了・追加作業を約束して見えないようにすることです。
 - `jp_business_native_naturalness` も soft lens です。`はい、` や `まずは` を全面禁止せず、二重受領・機械的な yes・近接反復など再発性のある違和感だけを拾ってください。自然化のために service boundary / payment route / public:false 境界を弱めないでください。
 - `conversation_flow_naturalness` も soft lens です。自然化によって route / scope / price / phase / payment route / secret handling / public-private boundary が変わる場合だけ deterministic な事故として扱ってください。修正提案は最小差分にし、つなぐのは同じ役割で強く関係する文だけにしてください。
 

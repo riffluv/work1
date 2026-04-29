@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC59-001
+    stock_id: HRC59-001
+    category: prepurchase_urgency_anxiety
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: guarantee_or_refund_question
+    question_type: prequote_first_time_flow_price_guarantee
+    primary_question: 初めての依頼で、金額・購入後の流れ・必ず直るかを知りたい。
+    raw_message: "初めてココナラで依頼します。Stripe決済後に注文が作られない不具合なのですが、金額と購入後の流れを教えてください。購入すれば必ず直りますか？"
+    note: 通常 live / #RE。初めての buyer の不安を受けつつ、15,000円、購入後の流れ、成功保証不可、修正可能時の成果物を矛盾なく出す。
+
+  - id: HRC59-002
+    stock_id: HRC59-002
+    category: prepurchase_urgency_anxiety
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: emergency_recovery_time
+    question_type: prequote_urgent_today_recovery_price
+    primary_question: 今日中に復旧できるか、金額はいくらかを知りたい。
+    raw_message: "Stripe決済後に注文が作られず、売上に直結していて急いでいます。今日中に復旧できますか？金額も先に教えてください。"
+    note: 通常 live / #RE。急ぎ圧に対して今日中復旧を保証せず、15,000円と一次結果/見通しの出し方へ分ける。
+
+  - id: HRC59-003
+    stock_id: HRC59-003
+    category: prepurchase_urgency_anxiety
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: helpful
+    scenario: prepayment_materials_before_payment
+    question_type: quote_sent_materials_timing_and_work_start
+    primary_question: 見積り提案後、支払い前にログやコードを送るべきか、支払い後に本当に作業が始まるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にログやコードを先に送った方がいいですか？支払ったら、そこから原因確認と修正に入ってもらえる認識で大丈夫ですか？"
+    note: 通常 live / #RE。購入前作業開始へ滑らず、支払い後の材料共有と作業開始を手順として自然に案内する。
+
+  - id: HRC59-004
+    stock_id: HRC59-004
+    category: prepurchase_urgency_anxiety
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: prepayment_materials_before_payment
+    question_type: quote_sent_cause_only_before_purchase
+    primary_question: 購入するか迷っているため、支払い前に原因だけ先に見てもらえるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。購入するか少し迷っているので、支払い前にコードとログを送って、原因だけ先に見てもらうことはできますか？直りそうなら購入したいです。"
+    note: 通常 live / #RE。支払い前の原因だけ先見・診断だけ入口に崩れず、購入後に原因確認から進める形へ戻す。
+
+  - id: HRC59-005
+    stock_id: HRC59-005
+    category: prepurchase_urgency_anxiety
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: worried
+    scenario: self_edit_fee_anxiety
+    question_type: quote_sent_self_edit_fee_anxiety
+    primary_question: 自分で触って悪化したかもしれない場合も、見積り金額のまま進められるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。提案後に自分で少し触ってしまい、余計に壊している可能性があります。このままお願いしても大丈夫ですか？追加料金になりますか？"
+    note: 通常 live / #RE。buyer の不安を受けつつ、追加料金を即断せず、購入後に今の状態から確認する形へ戻す。
+
+  - id: HRC59-006
+    stock_id: HRC59-006
+    category: prepurchase_urgency_anxiety
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: timeline_question
+    question_type: quote_sent_urgent_timeline_before_payment
+    primary_question: 支払い後すぐに見てもらえるか、今日中に結果が出るかを知りたい。
+    raw_message: "見積り提案ありがとうございます。今日中に見てもらえると助かります。今支払った場合、今日中に原因や修正の見通しまで出せそうですか？"
+    note: 通常 live / #RE。急ぎに寄り添いつつ、今日中の修正完了や成果物返却を保証せず、一次結果/見通しへ分ける。
+
+  - id: HRC59-007
+    stock_id: HRC59-007
+    category: prepurchase_urgency_anxiety
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: timeline_anxiety
+    question_type: purchased_urgent_completion_timeline
+    primary_question: 購入後、今日中に直るか、あとどれくらいかを知りたい。
+    raw_message: "購入しました。ログも送りました。できれば今日中に直したいのですが、あとどれくらいかかりそうですか？目安だけでも教えてください。"
+    note: 通常 live / #RE。購入後の急ぎ圧に対して、修正完了時刻を保証せず、現在地・次に返す見通し・時刻を分ける。
+
+  - id: HRC59-008
+    stock_id: HRC59-008
+    category: prepurchase_urgency_anxiety
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: extra_scope_question
+    question_type: purchased_extra_symptom_fee_fear
+    primary_question: 作業中に別画面のエラーも出たが、同じ原因なら範囲内か、追加料金なら先に知りたい。
+    raw_message: "購入後に気づいたのですが、注文が作られない件とは別に、管理画面の注文一覧もエラーになっています。同じ原因なら一緒に見てもらえますか？追加料金になるなら先に知りたいです。"
+    note: 通常 live / #RE。購入後の追加症状を、同一原因なら範囲内、別原因/追加対応なら先に相談として自然に分ける。

@@ -170,6 +170,76 @@ primary_sources:
       - 価格/納期、保証圧力、複数症状、quote_sent 購入前原因確認、secret safety、進捗、delivered再確認、closed再相談を検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/promise-consistency-bugfix51.yaml
+    role: eval
+    purpose:
+      - Pro後に追加した promise_consistency soft lens が通常 live #RE でノイズにならず機能するか確認
+      - 成功保証 shadow、条件付き scope、購入前原因確認、secret 値、原因未確定と成果物 promise、delivered/closed の作業 promise を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/promise-consistency-bugfix52.yaml
+    role: eval
+    purpose:
+      - promise_consistency soft lens の2回目の通常 live #RE。保証・条件付き scope・購入前着手・secret・本番/成果物 promise を実戦寄り文面で確認
+      - 他者修正失敗後の不安、3症状の条件付き scope、quote_sent の GitHub/.env 圧力、purchased の追加症状、delivered/closed の作業 promise を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/promise-bridge-bugfix53.yaml
+    role: eval
+    purpose:
+      - promise_consistency と conversation_flow_naturalness の接続確認。状態受けから回答へ飛ばず、短い橋で主回答へつながるかを通常 live #RE で確認
+      - 成功保証、価格＋日数＋保証、複数症状の開始点、quote_sent 作業開始、secret-safe 材料、追加症状、delivered/closed の promise 境界を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/permission-benefit-alignment-bugfix54.yaml
+    role: eval
+    purpose:
+      - permission_benefit_alignment の通常 live #RE。`大丈夫です` を全面禁止せず、支払い・購入・材料送付で売り手側が buyer の負担を許可しているように見えないかを確認
+      - 原因不明相談、価格＋日数＋購入後材料共有、quote_sent 支払い後開始、GitHub招待、secret-safe 材料、purchased/delivered/closed の材料送付境界を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/soft-refusal-payment-flow-bugfix55.yaml
+    role: eval
+    purpose:
+      - permission_benefit_alignment と不要な否定フレームの通常 live #RE。協力的な buyer に対して `〜する形ではありません` へ戻らず、支払い・材料共有を自然な手順として案内できるかを確認
+      - 購入前/quote_sent の材料共有、成功保証不安、secret-safe 材料、購入後進捗、delivered の軽い補足、closed 後の関係確認を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/github-external-work-surface-bugfix56.yaml
+    role: eval
+    purpose:
+      - GitHub invite boundary / external work surface の通常 live #RE。公開URL・非公開招待・PR/Issue作業・直接push・Drive共有を混同せず、ココナラ内のZIP/関係ファイル共有へ戻せるかを確認
+      - prequote / quote_sent / purchased / delivered / closed で、GitHub招待・PRコメント・直接push・本番反映・外部共有・closed後関係確認を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/mixed-boundary-naturalness-bugfix57.yaml
+    role: eval
+    purpose:
+      - promise_consistency / conditional_scope_clarity / external work surface / secret safety / closed boundary を混ぜた通常 live #RE の総合確認
+      - 価格＋納期＋保証、quote_sent の外部共有、購入後 secret 混入、直接push/本番反映、複数症状、原因候補と納期圧、delivered軽い補足、closed後費用相談を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/closed-free-refund-boundary-bugfix58.yaml
+    role: eval
+    purpose:
+      - closed 後の無料修正圧 / 返金・キャンセル語 / 旧トークルーム継続 / おひねり追加 / 原因だけ先見を通常 live #RE で確認
+      - closed後の関係見立てと実作業導線、secret値拒否、repeat price、delivered承諾前確認を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/prepurchase-urgency-anxiety-bugfix59.yaml
+    role: eval
+    purpose:
+      - 購入直前 / 見積り提案後の迷い、初めての依頼者不安、急ぎ圧と保証圧を通常 live #RE で確認
+      - prequote の価格/流れ/保証、quote_sent の支払い前材料共有/原因だけ先見/自分で触った不安/急ぎ見通し、purchased の納期不安/追加症状を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/live-practical-trust-bugfix60.yaml
+    role: eval
+    purpose:
+      - 実際に来そうな初回相談、quote_sent の安全な材料共有、購入後の催促/不安、納品後の軽い確認、closed 後の関係確認を通常 live #RE で確認
+      - 他者が原因不明、非エンジニアのログ不安、zip/env値共有、購入後進捗、原因候補と今日中修正圧、送り忘れファイル、delivered補足、closed後無料/新規迷いを検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

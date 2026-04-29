@@ -324,6 +324,10 @@ def detect_scenario(source: dict) -> str:
             any(marker in combined for marker in ["分かりやすく説明", "わかりやすく説明", "専門用語"])
             and any(marker in combined for marker in ["修正ファイル", "確認手順", "説明"])
         )
+        or (
+            any(marker in combined for marker in ["どこを反映", "反映すれば", "反映箇所"])
+            and "修正ファイル" in combined
+        )
     ):
         return "doc_explanation_request"
     if "質問が出たら聞いてもいいですか" in combined:

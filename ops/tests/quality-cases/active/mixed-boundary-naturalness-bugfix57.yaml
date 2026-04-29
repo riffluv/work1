@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC57-001
+    stock_id: HRC57-001
+    category: mixed_boundary_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: price_timeline_success_guarantee
+    question_type: prequote_price_timeline_success_guarantee
+    primary_question: 金額と大まかな日数、購入すれば必ず直るかを知りたい。
+    raw_message: "Stripe決済後に注文が作られません。金額と、だいたい何日かかるかを教えてください。購入すれば必ず直りますか？"
+    note: 通常 live / #RE。15,000円・3日目安・成功保証不可・修正可能時の成果物を矛盾なくつなげる。
+
+  - id: HRC57-002
+    stock_id: HRC57-002
+    category: mixed_boundary_naturalness
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: helpful
+    scenario: quote_sent_external_share_timing
+    question_type: quote_sent_drive_github_or_talkroom_zip
+    primary_question: 支払い前にDriveやGitHub招待で送るべきか、支払い後のトークルーム共有でよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。コード一式が大きいので、支払い前にGoogle DriveのURLかGitHub招待を送っておいた方がいいですか？支払い後にトークルームで共有する形でも進められますか？"
+    note: 通常 live / #RE。協力的な buyer に冷たい否定から入らず、購入前作業・外部共有・GitHub招待を避けてトークルーム共有へ戻す。
+
+  - id: HRC57-003
+    stock_id: HRC57-003
+    category: mixed_boundary_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: worried
+    scenario: live_secrets_pasted
+    question_type: purchased_zip_may_include_env_values
+    primary_question: 送ったzipに .env の値が入っていたかもしれないが、このままでよいかを知りたい。
+    raw_message: "購入後にzipを送りましたが、もしかすると .env.local にAPIキーやWebhook secretの値が入ったままだったかもしれません。このままで確認できますか？送り直した方がいいですか？"
+    note: 通常 live / #RE。raw secret値を扱わず、キー名・設定箇所・関係ファイルへ戻し、buyerの不安を煽りすぎない。
+
+  - id: HRC57-004
+    stock_id: HRC57-004
+    category: mixed_boundary_naturalness
+    route: talkroom
+    state: purchased
+    user_type: engineer
+    emotional_tone: practical
+    scenario: direct_push_request
+    question_type: purchased_direct_push_prod_deploy
+    primary_question: GitHubへ直接pushして、本番反映までしてもらえるかを知りたい。
+    raw_message: "GitHubに招待しました。修正できたら、そのままpushしてVercel本番にも反映してもらえますか？こちらで触るのが不安です。"
+    note: 通常 live / #RE。直接push・本番反映を止め、修正済みファイルまたは差分と適用手順へ戻す。
+
+  - id: HRC57-005
+    stock_id: HRC57-005
+    category: mixed_boundary_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: extra_scope_question
+    question_type: purchased_multiple_symptoms_extra_fee_anxiety
+    primary_question: 注文作成、メール、管理画面反映が同じ原因なら同じ範囲で見られるか、別原因ならどうなるかを知りたい。
+    raw_message: "注文が作られない件でお願いしていますが、購入完了メールも届かず、管理画面にも反映されていません。同じ原因なら一緒に見てもらえますか？別原因なら追加料金になる前に教えてほしいです。"
+    note: 通常 live / #RE。同一原因なら範囲内、別原因なら先に相談を自然に出し、追加料金やセット修正を断定しない。
+
+  - id: HRC57-006
+    stock_id: HRC57-006
+    category: mixed_boundary_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: purchased_likely_webhook_deadline_pressure
+    question_type: purchased_suspected_webhook_today_file
+    primary_question: Webhookが原因で確定か、今日中に修正済みファイルまで返せるかを知りたい。
+    raw_message: "ログを見るとWebhookっぽい気がします。もう原因はWebhookで確定ですか？できれば今日中に修正済みファイルまでほしいです。"
+    note: 通常 live / #RE。原因候補と原因確定、急ぎ対応と今日中の成果物promiseを分ける。
+
+  - id: HRC57-007
+    stock_id: HRC57-007
+    category: mixed_boundary_naturalness
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: polite
+    scenario: doc_explanation_request
+    question_type: delivered_light_explanation_not_manual
+    primary_question: 承諾前に確認手順を補足してほしいが、顧客向けFAQや運用マニュアルも作れるかを知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルと確認手順は受け取りました。専門用語が少し難しいので、承諾前にどこを確認すればいいか、もう少し分かりやすく説明してもらえますか？ついでに顧客向けFAQや運用マニュアルも作ってもらえますか？"
+    note: 通常 live / #RE。承諾前の軽い補足は受けつつ、FAQ/運用マニュアル作成へ広げない。
+
+  - id: HRC57-008
+    stock_id: HRC57-008
+    category: mixed_boundary_naturalness
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_external_large_share
+    question_type: closed_relation_check_external_share_free_fix
+    primary_question: クローズ後、DriveやGitHubで材料を送れば前回修正との関係を見てもらえるか、費用が発生する場合は先に分かるかを知りたい。
+    raw_message: "クローズ後ですみません。似たStripeエラーが出ています。Google DriveかGitHub招待でログとコードを送れば、前回の修正と関係ありそうか見てもらえますか？実作業が必要で費用が発生する場合は先に教えてほしいです。"
+    note: 通常 live / #RE。closed後に外部共有・旧トークルーム継続・実作業promiseへ滑らず、概要見立てと費用発生前の相談を分ける。

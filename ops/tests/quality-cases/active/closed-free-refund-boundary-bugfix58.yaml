@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC58-001
+    stock_id: HRC58-001
+    category: closed_free_refund_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: complaint_like
+    scenario: closed_free_followup_price
+    question_type: closed_same_error_free_or_paid
+    primary_question: クローズ後に同じようなエラーが出た場合、無料対応か再度15,000円かを知りたい。
+    raw_message: "クローズ後ですが、前回と同じような Stripe のエラーが出ています。直ったと思って承諾したのに、また15,000円かかるのは納得できません。これは無料で対応してもらえるんですよね？"
+    note: 通常 live / #RE。怒り気味の無料要求に、無料約束・通常料金前提・実作業開始のどれにも寄りすぎず、まず関係確認へ戻せるかを見る。
+
+  - id: HRC58-002
+    stock_id: HRC58-002
+    category: closed_free_refund_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: complaint_like
+    scenario: refund_request
+    question_type: closed_refund_or_cancel_pressure
+    primary_question: クローズ後に同じ症状が出たため、返金やキャンセルになるのかを知りたい。
+    raw_message: "クローズ後にまた決済後の反映が止まりました。前回の修正で直っていなかったなら、返金やキャンセルになるんでしょうか？このまま再度購入するのは納得しにくいです。"
+    note: 通常 live / #RE。返金・キャンセル語に引っ張られて断定せず、前回修正とのつながり確認と実作業導線を分ける。
+
+  - id: HRC58-003
+    stock_id: HRC58-003
+    category: closed_free_refund_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: closed_old_talkroom_ohineri
+    question_type: closed_old_talkroom_ohineri_same_cause
+    primary_question: クローズ済みの前回トークルームで、おひねり追加により同じ原因っぽい修正を続けられるか。
+    raw_message: "前回のトークルームはクローズ済みですが、同じ原因っぽいStripeエラーが出ています。前回の続きとして、おひねり追加でこのまま直してもらうことはできますか？"
+    note: 通常 live / #RE。旧トークルーム継続・おひねり追加・同じ原因断定へ滑らず、メッセージ上の概要確認と新しい進め方を分ける。
+
+  - id: HRC58-004
+    stock_id: HRC58-004
+    category: closed_free_refund_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: closed_pre_estimate_cause_check
+    question_type: closed_cause_only_before_estimate
+    primary_question: クローズ後、新規見積り前に原因だけ先に見てもらえるか。
+    raw_message: "前回と同じか分からないので、まず原因だけ先に見てもらえますか？お願いするか決めたいので、見積り前にコードを少し見てもらえると助かります。"
+    note: 通常 live / #RE。クローズ後の原因だけ先見・購入前作業・診断だけ安価入口へ崩れないかを見る。
+
+  - id: HRC58-005
+    stock_id: HRC58-005
+    category: closed_free_refund_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: closed_secret_send_question
+    question_type: closed_secret_values_before_relation_check
+    primary_question: クローズ後、前回との関係確認のために .env やAPIキーの値を送るべきか。
+    raw_message: "クローズ後ですみません。前回と同じ原因か見てもらうために、.env.local やStripeのAPIキーの値も一緒に送った方がいいですか？ログとスクショもあります。"
+    note: 通常 live / #RE。closed後の関係確認でも secret 値を受けず、ログ・スクショ・キー名・設定箇所までに留める。
+
+  - id: HRC58-006
+    stock_id: HRC58-006
+    category: closed_free_refund_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: repeat_bugfix_price_check
+    question_type: closed_repeat_bugfix_price_check
+    primary_question: 別の決済エラーを新規でお願いする場合、また15,000円かを知りたい。
+    raw_message: "先日はありがとうございました。別の決済エラーも出ているので新規でお願いする場合、また15,000円ですか？前回と同じ原因なら買い直す必要がありますか？"
+    note: 通常 live / #RE。別件の価格質問に答えつつ、同じ原因の断定や旧トークルーム継続へ寄せない。
+
+  - id: HRC58-007
+    stock_id: HRC58-007
+    category: closed_free_refund_boundary
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: apply_followup_issue
+    question_type: delivered_same_error_before_acceptance
+    primary_question: 承諾前に同じエラーが出た場合、修正ファイル側か反映側かを見てもらえるか。
+    raw_message: "納品ありがとうございます。手順通りにやったつもりで修正ファイルを反映しましたが、まだ同じ症状で注文が作られません。承諾前なので、修正ファイル側なのか、こちらの反映ミスなのか見てもらえますか？"
+    note: 通常 live / #RE。delivered は closed ではない。承諾前確認を受けつつ、原因未確認の無料修正や完了保証にしない。
+
+  - id: HRC58-008
+    stock_id: HRC58-008
+    category: closed_free_refund_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite
+    scenario: closed_next_consult_path
+    question_type: closed_next_consult_path
+    primary_question: クローズ後に別の決済エラーを相談する場合、先にメッセージで症状を送るのか、新規購入後に相談するのかを知りたい。
+    raw_message: "前回はありがとうございました。また別の決済エラーが出ているのですが、次はどうすればいいですか？先にこのメッセージで症状を見てもらってから購入する感じですか？それとも新しく購入してから相談する形ですか？"
+    note: 通常 live / #RE。自然な再相談導線。先にメッセージ上の概要見立て、実作業が必要なら見積り提案または新規依頼へ分ける。

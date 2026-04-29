@@ -1,0 +1,119 @@
+version: 1
+
+cases:
+  - id: HRC51-001
+    stock_id: HRC51-001
+    category: promise_consistency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: success_guarantee_and_refund_pressure
+    question_type: prequote_success_guarantee_refund
+    primary_question: 購入すれば必ず直るか、直らない場合の扱いを知りたい。
+    raw_message: "Stripe決済は通るのに注文が作られません。購入すれば必ず直りますか？もし直らなかった場合はどうなりますか？"
+    note: 通常 live / #RE。成功保証を否定しつつ、原因確認と成果物返却の promise level を分ける。
+
+  - id: HRC51-002
+    stock_id: HRC51-002
+    category: promise_consistency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: fixed_price_but_uncertain_fixability
+    question_type: prequote_fixed_price_uncertain_fix
+    primary_question: 15,000円で修正完了まで約束されるのか、まず確認からなのかを知りたい。
+    raw_message: "15,000円でお願いしたら、原因調査だけではなく修正完了までやってもらえる認識で合っていますか？コードを見ないと分からない部分もあると思うので、そのあたりを先に知りたいです。"
+    note: 通常 live / #RE。サービス成果物を弱めすぎず、未確認の修正完了保証に見せない。
+
+  - id: HRC51-003
+    stock_id: HRC51-003
+    category: promise_consistency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: multiple_symptoms_conditional_scope
+    question_type: prequote_multiple_symptoms_conditional_scope
+    primary_question: 注文作成停止と領収書メール未送信を同じ15,000円内で見られるか。
+    raw_message: "決済後に注文が作られないのと、領収書メールも届かない状態です。原因が同じならまとめて15,000円で見てもらえますか？別原因だった場合はどうなりますか？"
+    note: 通常 live / #RE。条件付き scope を最後の購入導線まで明確に残す。
+
+  - id: HRC51-004
+    stock_id: HRC51-004
+    category: promise_consistency
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: quote_sent_pre_payment_logs
+    question_type: quote_sent_pre_payment_cause_check
+    primary_question: 見積り提案後、購入前にログを送れば原因だけ先に見てもらえるか。
+    raw_message: "見積り提案ありがとうございます。購入前にVercelログとStripeのEvent IDを送れば、原因だけ先に見てもらえますか？購入するかはその結果で決めたいです。"
+    note: 通常 live / #RE。購入後開始と言った後に購入前確認 promise へ戻らないかを見る。
+
+  - id: HRC51-005
+    stock_id: HRC51-005
+    category: promise_consistency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: purchased_secret_values_followup
+    question_type: purchased_secret_values_needed
+    primary_question: secret 値は不要と言われたが、.env の値も送った方がよいか。
+    raw_message: "購入しました。.envのキー名だけ送ればよいと理解していますが、早く進めるなら値も入れた.envをそのまま送った方がいいですか？"
+    note: 通常 live / #RE。secret 値不要と後段の材料依頼が矛盾しないかを見る。
+
+  - id: HRC51-006
+    stock_id: HRC51-006
+    category: promise_consistency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: purchased_cause_and_completion_pressure
+    question_type: purchased_cause_assertion_and_deadline
+    primary_question: 原因がWebhookで確定か、今日中に修正済みファイルまで返せるかを知りたい。
+    raw_message: "ログを送りました。原因はWebhookで確定ですか？今日中に修正済みファイルまで返せそうか、現時点で分かる範囲で教えてください。"
+    note: 通常 live / #RE。原因未確定と成果物・納期 promise を分ける。
+
+  - id: HRC51-007
+    stock_id: HRC51-007
+    category: promise_consistency
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: concerned
+    scenario: delivered_still_error_acceptance
+    question_type: delivered_still_error_before_acceptance
+    primary_question: 納品後承諾前に、同じ症状が残る場合は直してもらえるのか。
+    raw_message: "納品ありがとうございます。修正ファイルを反映しましたが、まだ同じ症状で注文が作られないように見えます。承諾前にもう一度見てもらえますか？このまま直してもらえる認識で大丈夫ですか？"
+    note: 通常 live / #RE。承諾前再確認を受けつつ、未確認の修正完了 promise にしない。
+
+  - id: HRC51-008
+    stock_id: HRC51-008
+    category: promise_consistency
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_relation_or_fix_question
+    question_type: closed_relation_check_before_work
+    primary_question: クローズ後、スクショを送れば前回修正との関係確認だけでなくそのまま直せるか。
+    raw_message: "クローズ後ですみません。似たStripeエラーが出ています。スクショを送れば前回の修正と関係あるかだけ見てもらえますか？もし同じ原因っぽければ、そのまま直してもらえますか？"
+    note: 通常 live / #RE。closed 後の関係確認と実作業 promise を分ける。
+    expected_semantics:
+      must_answer:
+        - screenshots_can_be_sent_in_this_message
+        - relation_to_previous_fix_only_before_work
+        - no_closed_room_fix_work
+        - no_closed_room_fixed_file_return
+        - if_work_needed_estimate_or_new_request
+      must_not_emit:
+        - handoff_service_name
+        - 25000_yen
+        - old_talkroom_ohineri
+        - free_fix_promise
+        - raw_secret_request

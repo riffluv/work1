@@ -587,7 +587,7 @@ def extract_facts_known(raw: str, scenario: str) -> list[str]:
         facts.append("stripe_utility_file_present")
     if "自分で" in raw and any(marker in raw for marker in ["書き直して", "触っ", "壊してる可能性", "余計に壊して"]):
         facts.append("self_edit_risk_present")
-    if "追加料金" in raw and any(marker in raw for marker in ["申し訳", "変に触っ", "自分で触っ"]):
+    if "追加料金" in raw and any(marker in raw for marker in ["申し訳", "変に触っ", "自分で触っ", "自分で少し触っ", "触ってしまい"]):
         facts.append("self_edit_fee_anxiety_present")
     if "GitHub" in raw and "プライベートリポジトリ" in raw:
         facts.append("private_repo_present")
@@ -827,7 +827,7 @@ def detect_scenario(source: dict) -> str:
     ):
         return "prequote_extra_signal"
     if (
-        any(marker in combined for marker in ["書き直してみた", "自分で触った", "余計に壊してる可能性", "変に触っちゃった"])
+        any(marker in combined for marker in ["書き直してみた", "自分で触った", "自分で少し触っ", "触ってしまい", "余計に壊してる可能性", "余計に壊している可能性", "変に触っちゃった"])
         and any(marker in combined for marker in ["対応してもらえますか", "追加料金", "申し訳ない"])
     ):
         return "self_edit_fee_anxiety"
@@ -1100,7 +1100,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "今回の見積もりは15,000円の範囲で進める前提です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "self_edit_fee_anxiety":
-        direct_answer_line = "その場合でもまず今の状態を見て対応可否を確認できます。"
+        direct_answer_line = "見積り提案後にご自身で触った場合でも、まず今の状態を見て対応可否を確認できます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "self_apply_support":
         direct_answer_line = "今回の提案では、修正済みファイルをお渡しし、本番反映は依頼者様側で行っていただく形です。"
@@ -1204,7 +1204,10 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "timeline_question":
         if "今日中" in raw:
-            direct_answer_line = "購入後、まず調査結果を先にお返しして、今日中にどこまで確認できるかもあわせてお伝えします。"
+            if source.get("state") == "quote_sent" or "提案" in raw:
+                direct_answer_line = "見積り提案の内容で進める場合は、お支払い完了後、必要情報を受け取り次第できるだけ早く原因確認に入ります。"
+            else:
+                direct_answer_line = "購入後、まず調査結果を先にお返しして、今日中にどこまで確認できるかもあわせてお伝えします。"
         elif any(marker in raw for marker in ["3日後", "納品がある", "契約に影響", "納期感"]):
             direct_answer_line = "購入後、まず調査結果を先にお返しして、3日以内にどこまで進められるかもあわせてお伝えします。"
         else:
@@ -2288,7 +2291,11 @@ def draft_opening_anchor(case: dict) -> str:
         return "文章で伝えるのが大変とのことですね。"
     if scenario == "timeline_question":
         if "今日中" in raw:
-            return "売上に直結していてお急ぎとのこと、まず優先して確認に入ります。"
+            if case.get("state") == "quote_sent" or "提案" in raw:
+                return "見積り提案後の進め方と、今日中の見通しについてですね。"
+            if "売上" in raw:
+                return "売上に直結していてお急ぎとのことですね。"
+            return "お急ぎの状況ですね。"
         if any(marker in raw for marker in ["3日後", "納品がある", "契約に影響", "納期感"]):
             return "3日後の納品が迫っていてお急ぎとのことですね。"
         return "今週末の確認会に間に合わせたいとのことですね。"
@@ -2635,7 +2642,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         if "今日中" in raw:
             return [
                 direct_answer,
-                "今日中に修正まで進められるかは見てからの判断になりますが、難しい場合でも確認できたところから先にお返しします。",
+                "今日中に修正まで進められるかは見てからの判断になりますが、難しい場合でも調査結果として確認できたところから先にお返しします。",
                 purchase_closing(scenario, raw),
             ]
         if any(marker in raw for marker in ["3日後", "納品がある", "契約に影響", "納期感"]):

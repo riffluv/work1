@@ -47,6 +47,7 @@
 Pro後の補助監査レンズ:
 - `source_traceability`: 返信内の価格・scope・deliverable・禁止事項が、service-registry / facts / service page / platform-contract のどこから来たか追えるか。根拠不明の条件が混ざる場合だけ指摘してください
 - `commitment_budget`: `対応できます` `本日HH:MMまで` `修正まで進めます` などの約束が、state と受領証拠量に対して強すぎないか。購入前作業開始、未確認の修正成功保証、古い固定時刻に見える場合を優先して見てください
+- `promise_consistency`: 返信内で先に置いた留保・不可・条件付き回答と、後段の作業可否・成果物・納期・料金・次アクションが、同じ promise level として整合しているかを見る soft lens。1文ごとの事実が正しくても、前後接続で buyer に未約束の約束として読まれる場合は指摘してください。例: 成功保証を否定した直後に無条件で `修正済みファイルを返します` と読める、購入後に始めると言った直後に購入前のログ確認を約束している、secret 値不要と言った直後に `.env` や APIキー値の送付を求めている、closed 後は作業しないと言った直後に送れば直すと読める。subtype は必要に応じて `success_guarantee_shadow / deliverable_promise_shadow / diagnosis_assertion_drift / phase_promise_drift / secret_request_contradiction / closed_work_promise / scope_bundle_promise / payment_scope_promise / production_action_shadow` を使ってください
 - `semantic_grounding_drift`: サービスページ・facts・service-pack・renderer の意味がずれていないか。特に 15,000円 / 不具合1件 / 同一原因 / 修正済みファイル返却 / secret 値不要 / 直接 push・本番反映不可の意味ズレを見る
 - `shadow_to_live_contamination`: `#BR` や `handoff-25000` 側の語彙、25,000円、主要1フロー、引き継ぎメモ、private CTA が通常 live / #RE に戻っていないか
 - `evidence_minimality`: buyer がすでに出した情報を聞き直していないか、依頼している材料が見積り判断・修正判断に必要な最小限か。secret 値や過剰なコード一式要求に寄っていないかも見る
@@ -63,6 +64,8 @@ Pro後の補助監査レンズ:
 - `buyer_state_ack_gap` は共感文を増やすための rule ではありません。状態を受ける場合も1文だけにし、謝罪・過失認定・返金断定・無料対応約束には広げないでください
 - `unnamed_discomfort` はその場で rule 化しないでください。好み差は必須修正・採点・validator 戻しにせず、まず観察メモとして扱ってください
 - Pro後の補助監査レンズは hard fail に直結させないでください。明確な public leak、phase drift、secret 値要求、保証断定など deterministic な事故だけ必須修正にし、それ以外は軽微・観察・gold 候補として扱ってください
+- `promise_consistency` は hard fail ではありません。ただし、public/private 事故、phase drift、secret 値要求、成功保証・返金保証・無料対応の断定、scope / price / payment route の事実変更、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続作業の約束が出た場合だけ deterministic な事故として扱ってください。無条件に読めるが明示断定ではないものは `fix recommended`、単なる順序・語感の改善は `preference` に留めてください
+- `promise_consistency` の修正提案では、固定価格・対応可能範囲・購入後に開始できる作業まで曖昧にしないでください。望ましい修正は、`まず原因確認から進められます`、`修正できる箇所が特定できた場合は修正済みファイルをお返しします`、`購入後にログと関連コードを確認します` のように、条件・順序・対象を最小限足すことです
 - `jp_business_native_naturalness` は、価格・scope・phase・secret・public/private・支払い導線・作業可否を変えるために使わないでください。`はい、` や `まずは` を全面禁止せず、二重受領・機械的な yes・近接反復など再発性のある違和感だけを拾ってください
 - hard fail と soft lens を分けてください。hard fail は phase drift、非公開サービス漏れ、返金/無料/保証の断定、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続など deterministic な事故に限ります。`response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort`、`jp_business_native_naturalness` は soft lens として扱ってください
 - `conversation_flow_naturalness` は hard fail ではありません。ただし、自然化によって price / scope / phase / payment route / secret handling / public-private boundary が変わった、固定価格を `想定しています` などで不当に弱めた、buyer の主質問への直答が消えた、誤った次アクションや未約束の作業・無料対応・返金・保証・外部共有を足した場合は deterministic な事故として扱ってください
