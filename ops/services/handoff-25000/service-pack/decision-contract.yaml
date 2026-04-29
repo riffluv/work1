@@ -62,7 +62,7 @@ additional_work_policy:
   customer_facing_adjudication:
     - "追加料金は自動では発生しません"
     - "対象範囲を確認して、事前合意後に進めます"
-    - "支払い方法や同じトークルーム内で続けられるかは、取引状態に応じて別途案内します"
+    - "支払い方法や追加対応の進め方は、取引状態に応じて platform contract を参照して別途案内します"
 
 delivery_gate:
   can_formally_deliver_when:

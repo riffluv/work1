@@ -121,11 +121,15 @@ def lint_case(module, source: dict) -> list[str]:
         scenario == "new_issue_repeat_client"
         and has_any(raw, ["このメッセージ", "メッセージで", "メッセージ上"])
         and has_any(raw, ["症状", "内容", "流れ"])
-        and has_any(raw, ["送れば", "送って", "送る", "伝えれば"])
+        and has_any(raw, ["送れば", "送って", "送る", "伝えれば", "相談して", "相談いただいて", "相談"])
+    )
+    conditional_materials_followup = scenario in {"closed_materials_check", "closed_old_talkroom_ohineri"} and has_any(
+        rendered,
+        ["送っていただいた範囲で", "いただけた範囲で"],
     )
     if (
         primary["disposition"] == "answer_after_check" or (contract.get("ask_map") and decision_plan.get("blocking_missing_facts"))
-    ) and not symptom_send_first and ("本日" not in rendered or "までに" not in rendered):
+    ) and not symptom_send_first and not conditional_materials_followup and ("本日" not in rendered or "までに" not in rendered):
         errors.append("missing time commitment")
     if scenario not in {"price_complaint", "price_discount_request", "repeat_bugfix_price_check", "refund_request", "closed_free_followup_price"} and has_any(rendered, ["15,000円", "25000円", "25,000円"]):
         errors.append("closed follow-up should not front-load price")
@@ -232,6 +236,8 @@ def lint_case(module, source: dict) -> list[str]:
     if scenario == "new_issue_repeat_client":
         if not has_any(rendered, ["確認できます", "見積りできます"]):
             errors.append("repeat client new issue is not answered positively")
+        if symptom_send_first and not has_any(rendered, ["このメッセージでまず相談いただいて大丈夫", "このメッセージで相談"]):
+            errors.append("repeat client new issue does not answer the message-side consultation question first")
         if "見積" in raw and "見積" not in rendered:
             errors.append("repeat client new issue does not answer the estimate request directly")
         if not has_any(rendered, ["送ってください"]):

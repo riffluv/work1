@@ -263,7 +263,7 @@ def next_action_line(case: dict, hours: int = 2) -> str:
         if any(marker in case.get("raw_message", "") for marker in ["diff", "差分", "変更予定ファイル"]):
             return f"本日{target:%H:%M}までに、分かっている点と次に見る箇所をお送りします。"
         if any(marker in case.get("raw_message", "") for marker in ["長い説明はいりません", "長い説明はいい", "分かっているかだけ", "わかっているかだけ"]):
-            return f"本日{target:%H:%M}までに、分かっている点だけ短くお返しします。"
+            return f"本日{target:%H:%M}までに、見えている点だけ短くお返しします。"
         return f"本日{target:%H:%M}までに、状況を整理してお送りします。"
     if case.get("scenario") == "feature_addon_scope":
         return f"本日{target:%H:%M}までに、注文反映の件の現時点の確認結果をお返しします。"
@@ -631,6 +631,8 @@ def detect_scenario(source: dict) -> str:
             "今どこまで見ていただけ",
             "今どこまで分か",
             "今どこまでわか",
+            "確認に入れている",
+            "確認に入れているか",
             "長い説明はいりません",
             "長い説明はいい",
             "分かっているかだけ",
@@ -836,7 +838,10 @@ def detect_scenario(source: dict) -> str:
         return "doc_followup_request"
     if service_hint == "handoff" and any(marker in combined for marker in ["送り直す", "送り直します", "前のは破棄", "こっちベース"]):
         return "source_replacement_notice"
-    if "これ全部つながってますか" in combined:
+    if "これ全部つながってますか" in combined or (
+        any(marker in combined for marker in ["加えて", "追加で", "これも"])
+        and any(marker in combined for marker in ["全部お願いします", "全部お願い", "同じ15,000円内", "同じ15000円内"])
+    ):
         return "multiple_new_issues"
     if "どちらを見ればいい" in combined or "テスト環境と本番環境" in combined or ("テスト環境" in combined and "次は何をすればいい" in combined):
         return "which_environment_screen"
@@ -1003,7 +1008,7 @@ def build_case_from_source(source: dict) -> dict:
             {
                 "question_id": "q1",
                 "disposition": "answer_after_check",
-                "answer_brief": "いまは原因の切り分け中で、原因はまだ断定できていません。",
+                "answer_brief": "確認には入っています。いまは原因の切り分け中で、原因はまだ断定できていません。",
                 "hold_reason": "確認できているところから先にお返しします。",
                 "revisit_trigger": "現時点で見えている範囲を整理してお返しします。",
             }
@@ -1900,22 +1905,22 @@ def build_case_from_source(source: dict) -> dict:
         case["reply_contract"] = {
             "primary_question_id": "q1",
             "explicit_questions": [
-                {"id": "q1", "text": "これ全部つながっていますか", "priority": "primary"},
+                {"id": "q1", "text": "追加で出た複数症状も同じ15,000円内で全部見られるか", "priority": "primary"},
             ],
             "answer_map": [
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "今の時点では、今回の件とつながっているかはまだ断定しません。",
-                    "hold_reason": "元の不具合と、新しく出た2件の関連がまだ見えていない。",
-                    "revisit_trigger": "追加の状況を受領したあとに、つながりがありそうかをお返しします。",
+                    "answer_brief": "追加で出た症状が今回の件とつながっているかはまだ確認できていないため、現時点では、すべて同じ15,000円内に含めるとはまだお約束できません。",
+                    "hold_reason": "",
+                    "revisit_trigger": "追加の状況を受領したあとに、今回の件とつながっているかをお返しします。",
                 },
             ],
             "ask_map": [
                 {
                     "id": "a1",
                     "question_ids": ["q1"],
-                    "ask_text": "管理画面のエラー画面と、メールが届かないことが分かる画面や状況があれば送ってください。",
+                    "ask_text": "管理画面の表示崩れとメールが届かない症状について、分かる範囲で発生画面や状況を送ってください。",
                     "why_needed": "今回の件とつながっているかを先に切るため",
                     "default_path_text": "まだ出せるものがなければ、まずは今の本件から確認を進めます。",
                 }
@@ -2128,7 +2133,7 @@ def reaction_line(case: dict) -> str:
                 return "焦る状況ですよね。まず見通しが出せるところから確認します。"
             return "まず見通しが出せるところから確認します。"
         if scenario == "multiple_new_issues":
-            return "まず今回の件とつながっているかを先に見ます。"
+            return "追加分は、元の不具合との関連から先に見ます。"
         if scenario == "extra_scope_question":
             return "まず今回の件と同じ話かを先に確認します。"
         return "まず必要なところから確認します。"
@@ -2236,7 +2241,9 @@ def current_focus_line(case: dict) -> str | None:
         if any(marker in raw for marker in ["diff", "差分", "変更予定ファイル"]):
             return "修正方針は、変更予定ファイルとdiffで影響範囲が分かる形でお送りします。"
         if any(marker in raw for marker in ["長い説明はいりません", "長い説明はいい", "分かっているかだけ", "わかっているかだけ"]):
-            return "分かっている点だけ短く整理してお返しします。"
+            return "見えている点だけ短く整理してお返しします。"
+        if any(marker in raw for marker in ["コードとログ", "確認に入れている"]):
+            return "送っていただいたコードとログをもとに、決済後の反映処理を見ています。"
         if any(marker in raw for marker in ["売上が立ってない", "売上が立っていない", "クライアント", "決済エラーのせいで売上"]):
             return "いまは、決済が止まっている箇所の切り分けを進めています。"
         if any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
@@ -2282,7 +2289,7 @@ def current_focus_line(case: dict) -> str | None:
     if scenario == "external_share_env_change":
         return "いまは、受け取っている情報をこのトークルーム内で確認できる形にそろえています。"
     if scenario == "multiple_new_issues":
-        return "いまは、新しく出た症状が今回の件とつながっているかを先に見ています。"
+        return None
     if scenario == "extra_scope_question":
         if "redirect_issue_mentioned" in (case.get("response_decision_plan") or {}).get("facts_known", []):
             return "いまは、このリダイレクト不具合が今回の件とつながっているかを先に見ています。"

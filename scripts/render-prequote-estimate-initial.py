@@ -20,6 +20,8 @@ REPLIES_DIR = ROOT_DIR / "runtime/replies"
 REPLY_MEMORY_PATH = REPLIES_DIR / "latest-memory.json"
 ACTIVE_CASE_PATH = ROOT_DIR / "runtime/active-case.txt"
 OPEN_CASES_DIR = ROOT_DIR / "ops/cases/open"
+SERVICE_REGISTRY_PATH = ROOT_DIR / "os/core/service-registry.yaml"
+PUBLIC_BUGFIX_SERVICE_ID = "bugfix-15000"
 
 REPLY_MEMORY_DEFAULT = {
     "followup_count": 0,
@@ -30,6 +32,52 @@ REPLY_MEMORY_DEFAULT = {
 }
 ALLOWED_REPLY_MEMORY_TONES = {"neutral", "formal", "anxious", "frustrated", "patient_urgent"}
 ALLOWED_REPLY_MEMORY_COMMITMENTS = {"none", "share_status", "share_summary", "share_eta", "share_result"}
+
+
+def load_yaml_file(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
+def load_service_grounding() -> dict:
+    registry = load_yaml_file(SERVICE_REGISTRY_PATH)
+    service = next(
+        (item for item in registry.get("services") or [] if item.get("service_id") == PUBLIC_BUGFIX_SERVICE_ID),
+        None,
+    )
+    if service is None:
+        raise RuntimeError(f"missing public prequote service grounding: {PUBLIC_BUGFIX_SERVICE_ID}")
+    if not service.get("public"):
+        raise RuntimeError(f"prequote service is not public: {PUBLIC_BUGFIX_SERVICE_ID}")
+
+    facts_path = Path(service.get("facts_file") or "")
+    if not facts_path.is_file():
+        raise RuntimeError(f"missing service facts file: {facts_path}")
+    facts = load_yaml_file(facts_path)
+
+    pack_root = Path(service.get("service_pack_root") or "")
+    if not pack_root.is_dir():
+        raise RuntimeError(f"missing service pack root: {pack_root}")
+    pack_facts = load_yaml_file(pack_root / "facts.yaml")
+    boundaries = load_yaml_file(pack_root / "boundaries.yaml")
+
+    base_price = int(facts.get("base_price") or (pack_facts.get("public_facts") or {}).get("base_price") or 15000)
+    return {
+        "service_id": service.get("service_id"),
+        "public_service": bool(service.get("public")),
+        "source_of_truth": service.get("source_of_truth"),
+        "facts_file": str(facts_path),
+        "service_pack_root": str(pack_root),
+        "display_name": facts.get("display_name") or pack_facts.get("public_name") or "",
+        "fee_text": f"{base_price:,}円",
+        "base_price": base_price,
+        "scope_unit": facts.get("scope_unit") or ((pack_facts.get("scope_unit") or {}).get("rule")) or "",
+        "hard_no": facts.get("hard_no") or boundaries.get("hard_no") or [],
+        "out_of_scope": facts.get("out_of_scope") or boundaries.get("out_of_scope") or [],
+    }
+
+
+SERVICE_GROUNDING = load_service_grounding()
 
 
 def strip_period(text: str) -> str:
@@ -222,6 +270,10 @@ def detect_prequote_scenario(source: dict) -> str:
         return "vercel_webhook_signature_400"
     if is_frontend_stripe_mixed_scope_case(source):
         return "frontend_stripe_mixed_scope"
+    if is_price_only_active_defect_case(source):
+        return "price_only_active_defect"
+    if is_vague_can_fix_question_case(source):
+        return "vague_can_fix_question"
     if is_scope_only_target_question_case(source):
         return "scope_only_target_question"
     if is_previous_fix_failed_trust_case(source):
@@ -256,6 +308,16 @@ def detect_prequote_scenario(source: dict) -> str:
         return "refund_cancel_prequote"
     if is_feature_addon_scope_case(source):
         return "feature_addon_scope"
+    if is_operation_docs_not_bugfix_case(source):
+        return "operation_docs_not_bugfix"
+    if is_raw_secret_inventory_case(source):
+        return "raw_secret_inventory"
+    if is_diagnosis_only_pressure_case(source):
+        return "diagnosis_only_pressure"
+    if is_prequote_payment_route_pressure_case(source):
+        return "prequote_payment_route_pressure"
+    if is_bugfix_light_explanation_case(source):
+        return "bugfix_light_explanation"
     if is_public_structure_scope_boundary_case(source):
         return "public_structure_scope_boundary"
     if is_fix_vs_structure_first_case(source):
@@ -675,6 +737,11 @@ def build_temperature_plan(source: dict, *, case_type: str | None = None) -> dic
         "service_value_uncertain",
         "followon_fix_question",
         "no_meeting_request",
+        "bugfix_light_explanation",
+        "operation_docs_not_bugfix",
+        "raw_secret_inventory",
+        "diagnosis_only_pressure",
+        "prequote_payment_route_pressure",
         "possible_setting_issue",
         "performance_boundary",
         "guarantee_or_refund_question",
@@ -750,11 +817,11 @@ def is_fix_vs_structure_first_case(source: dict) -> bool:
     combined = f"{raw}\n{note}"
     if any(marker in combined for marker in ["25,000円", "25000円", "2万5千円", "どっちを買"]):
         return False
-    if not any(marker in combined for marker in ["修正", "直す", "直して"]):
+    if not any(marker in combined for marker in ["修正", "直す", "直して", "直したい"]):
         return False
     if not any(marker in combined for marker in ["整理", "コード全体", "全体を理解", "把握", "リファクタ"]):
         return False
-    return any(marker in combined for marker in ["どっち", "どちら", "先に", "先か", "先なのか", "どちらが先", "どっちが先", "まず"])
+    return any(marker in combined for marker in ["どっち", "どちら", "先に", "先か", "先なのか", "どちらが先", "どっちが先", "まず", "頼むべき", "何からお願い"])
 
 
 def is_public_structure_scope_boundary_case(source: dict) -> bool:
@@ -763,7 +830,7 @@ def is_public_structure_scope_boundary_case(source: dict) -> bool:
     combined = f"{raw}\n{note}"
     if not any(marker in combined for marker in ["整理", "コード全体", "全体を理解", "把握", "リファクタ"]):
         return False
-    if not any(marker in combined for marker in ["修正", "直す", "直して", "バグ"]):
+    if not any(marker in combined for marker in ["修正", "直す", "直して", "バグ", "不具合"]):
         return False
     return any(
         marker in combined
@@ -780,6 +847,59 @@ def is_public_structure_scope_boundary_case(source: dict) -> bool:
             "どっちを買",
         ]
     )
+
+
+def is_bugfix_light_explanation_case(source: dict) -> bool:
+    raw = source.get("raw_message", "")
+    note = source.get("note", "")
+    combined = f"{raw}\n{note}"
+    if not any(marker in combined for marker in ["変更ファイル", "確認順", "修正箇所", "影響範囲"]):
+        return False
+    if not any(marker in combined for marker in ["25,000円", "25000円", "2万5千円", "整理"]):
+        return False
+    return any(marker in combined for marker in ["不要", "いらない", "十分", "足り"])
+
+
+def is_operation_docs_not_bugfix_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    docs_request = any(
+        marker in combined
+        for marker in [
+            "操作手順書",
+            "操作マニュアル",
+            "運用マニュアル",
+            "顧客向けFAQ",
+            "顧客FAQ",
+            "FAQ",
+            "返答案テンプレート",
+            "スタッフ向け",
+        ]
+    )
+    bugfix_scope_question = any(marker in combined for marker in ["不具合修正の範囲", "修正の範囲", "お願いできますか", "対象ですか"])
+    return docs_request and bugfix_scope_question
+
+
+def is_raw_secret_inventory_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    secret_markers = ["APIキー", "Webhook secret", "webhook secret", ".env", "DB接続文字列", "DATABASE_URL", "秘密鍵"]
+    inventory_markers = ["値そのもの", "値も", "一覧", "一覧化", "台帳", "全部まとめ"]
+    return any(marker in combined for marker in secret_markers) and any(marker in combined for marker in inventory_markers)
+
+
+def is_diagnosis_only_pressure_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    active_defect = any(marker in combined for marker in ["不具合", "作られない", "反映されない", "エラー", "止ま"])
+    diagnosis_only = any(marker in combined for marker in ["原因だけ", "診断メモ", "軽く見て", "軽く", "安く"])
+    repair_uncertain = any(marker in combined for marker in ["修正まではまだ", "頼むか分からない", "診断だけ", "原因だけ"])
+    return active_defect and diagnosis_only and repair_uncertain
+
+
+def is_prequote_payment_route_pressure_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    payment_route = any(marker in combined for marker in ["同じトークルーム", "おひねり", "追加支払い", "有料オプション"])
+    prequote_followon = any(marker in combined for marker in ["修正後", "必要になった場合", "説明資料", "追加して"])
+    active_defect = any(marker in combined for marker in ["不具合", "直してほしい", "変わらない", "反映されない", "エラー"])
+    return payment_route and prequote_followon and active_defect
 
 
 def is_no_concrete_bug_anxiety_case(source: dict) -> bool:
@@ -851,7 +971,7 @@ def is_multi_symptom_case(source: dict) -> bool:
         return True
     if all(marker in raw for marker in ["完了ページ", "メール", "管理画面"]):
         return True
-    if numbered_marker_count(raw) >= 3 and any(marker in combined for marker in ["同時", "全部", "パニック"]):
+    if numbered_marker_count(raw) >= 3 and any(marker in raw for marker in ["同時", "全部", "パニック"]):
         return True
     return False
 
@@ -975,6 +1095,22 @@ def is_scope_only_target_question_case(source: dict) -> bool:
         and any(marker in combined for marker in ["会員プラン", "プラン"])
         and any(marker in combined for marker in ["更新され", "反映され"])
     )
+
+
+def is_price_only_active_defect_case(source: dict) -> bool:
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    price_only = any(marker in combined for marker in ["金額だけ", "料金だけ", "いくらですか", "いくらか"])
+    active_defect = any(marker in combined for marker in ["注文が作られない", "反映されない", "更新されない", "エラー", "止ま"])
+    return price_only and active_defect and any(marker in combined for marker in ["Stripe", "決済", "Webhook", "webhook"])
+
+
+def is_vague_can_fix_question_case(source: dict) -> bool:
+    if is_no_concrete_bug_anxiety_case(source):
+        return False
+    combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
+    vague = any(marker in combined for marker in ["なんか変", "うまく説明できない", "エラー文もうまく説明", "よく分から"])
+    can_fix = any(marker in combined for marker in ["直せますか", "見てもらえますか", "対応できますか"])
+    return vague and can_fix and any(marker in combined for marker in ["Next.js", "Next", "Stripe", "決済"])
 
 
 def is_previous_fix_failed_trust_case(source: dict) -> bool:
@@ -1311,6 +1447,11 @@ def derive_disposition(source: dict) -> str:
         "boundary_bugfix_first",
         "budget_completion_gate",
         "public_structure_scope_boundary",
+        "bugfix_light_explanation",
+        "operation_docs_not_bugfix",
+        "raw_secret_inventory",
+        "diagnosis_only_pressure",
+        "prequote_payment_route_pressure",
         "no_concrete_bug_anxiety",
         "multi_site_non_stripe_scope",
         "service_value_uncertain",
@@ -1443,7 +1584,8 @@ def build_case_from_source(source: dict) -> dict:
     case: dict = {
         "id": source.get("case_id") or source.get("id"),
         "title": source.get("category") or source.get("title") or source.get("case_id") or "generated",
-        "service_id": "bugfix-15000",
+        "service_id": SERVICE_GROUNDING["service_id"],
+        "service_grounding": dict(SERVICE_GROUNDING),
         "src": src,
         "state": state,
         "raw_message": raw,
@@ -2111,9 +2253,9 @@ def render_public_structure_scope_boundary_case(case: dict) -> str:
     raw = case.get("raw_message", "")
     opener = opener_for(case)
     paragraphs = [
-        "\n".join([opener, "まずは、実際に止まっている不具合を起点にするのが安全です。"]),
+        "\n".join([opener, "はい、今回のWebhookエラーで注文が作られない件は、15,000円の不具合修正で確認できます。"]),
         "コード全体を整理し直す前提ではなく、不具合修正に必要な範囲を確認します。",
-        "15,000円内で修正完了まで進められない、または全体整理が必要だと分かった場合は、そこで止めてご説明します。\n勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
+        "今回の範囲だけでは修正完了まで進められないと分かった場合は、そこで止めてご説明します。\n勝手に料金が増えたり、そのまま追加作業へ進むことはありません。",
         "この内容で進める場合は、ご購入後にエラー内容やログを送ってください。",
     ]
     if any(marker in raw for marker in ["どう直す", "直し方", "対処法", "手順書", "自分で直す"]):
@@ -2121,10 +2263,70 @@ def render_public_structure_scope_boundary_case(case: dict) -> str:
     return "\n\n".join(paragraphs)
 
 
+def render_bugfix_light_explanation_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    opener = opener_for(case)
+    target = "Webhookエラー" if "Webhook" in raw or "webhook" in raw else "今回の不具合"
+    paragraphs = [
+        "\n".join([opener, "はい、変更ファイルと確認順だけ分かれば、不具合修正内の軽い説明で足ります。"]),
+        f"コード全体を整理し直す前提ではなく、まずは{target}の修正に必要な範囲を確認します。",
+        "15,000円内で修正完了まで進められないと分かった場合は、追加作業へ進まず、その時点でご説明します。",
+        "この内容で進める場合は、ご購入後にエラー内容やログを送ってください。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
+def render_operation_docs_not_bugfix_case(case: dict) -> str:
+    raw = case.get("raw_message", "")
+    opener = opener_for(case)
+    docs_label = "Stripe管理画面の操作手順書や操作マニュアル"
+    docs_detail = "返金や領収書確認の運用手順、スタッフ向けの操作マニュアル"
+    if any(marker in raw for marker in ["FAQ", "顧客向けFAQ", "顧客FAQ"]):
+        docs_label += "、顧客向けFAQ"
+        docs_detail += "、顧客対応用のFAQ"
+    paragraphs = [
+        "\n".join([opener, f"{docs_label}の作成は、不具合修正の範囲には含まれません。"]),
+        "15,000円の不具合修正で扱うのは、今起きている不具合1件について、原因確認から修正済みファイルの返却まで進める内容です。",
+        f"{docs_detail}は、コード修正とは別の運用資料になるため、この出品では対応範囲外です。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
+def render_raw_secret_inventory_case(case: dict) -> str:
+    opener = opener_for(case)
+    paragraphs = [
+        "\n".join([opener, "APIキー、Webhook secret、.envの値、DB接続文字列などの値そのものを一覧化する作業は対応できません。"]),
+        "値をこちらへ送っていただく必要もありません。",
+        "不具合修正で設定まわりを確認する場合も、扱うのはキー名、設定箇所、用途、エラー内容までです。secret の値そのものは送らずに進めます。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
+def render_diagnosis_only_pressure_case(case: dict) -> str:
+    opener = opener_for(case)
+    paragraphs = [
+        "\n".join([opener, "購入前にコードを見て、原因だけを軽く診断する形ではありません。"]),
+        "15,000円の不具合修正として、ご購入後に原因確認から修正済みファイルの返却まで進めます。",
+        "決済後に注文が作られない不具合であれば対応できます。15,000円内で修正完了まで進められないと分かった場合は、追加作業へ進まず、その時点でご説明します。",
+        "この内容で進める場合は、そのままご購入ください。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
+def render_prequote_payment_route_pressure_case(case: dict) -> str:
+    opener = opener_for(case)
+    paragraphs = [
+        "\n".join([opener, "決済後に有料プランへ変わらない不具合は、まず15,000円の不具合修正として対応する内容です。"]),
+        "購入前の段階では、取引中のおひねり追加を前提にして進めるとは約束できません。",
+        "説明資料が必要になりそうな場合も、今回の不具合修正とは別の内容として、進め方と費用を先にご相談します。",
+    ]
+    return "\n\n".join(paragraphs)
+
+
 def render_no_concrete_bug_anxiety_case(case: dict) -> str:
     opener = opener_for(case)
     paragraphs = [
-        "\n".join([opener, "変ではありません。"]),
+        "\n".join([opener, "不安な場合でも、まずは今起きている症状を基準に考えるのが安全です。"]),
         "ただ、このサービスは具体的な不具合が出ている状態を前提にしています。\n「動いているが、なんとなく不安」という段階であれば、無理に購入を急がなくて大丈夫です。",
         "決済が通らない、エラーが出る、表示がおかしいなど、気になる画面や操作があれば、それを1件の確認対象にできるか見立てます。",
     ]
@@ -2205,9 +2407,31 @@ def render_scope_only_target_question_case(case: dict) -> str:
     return "\n\n".join(
         [
             "ご相談ありがとうございます。",
-            "対象になりそうです。",
+            "対象です。",
             "invoice.paid 後に会員プランが更新されない不具合として、15,000円で対応できます。",
             "この内容で進める場合は、そのままご購入ください。",
+        ]
+    )
+
+
+def render_price_only_active_defect_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "この内容なら15,000円です。",
+            "Stripe決済後に注文が作られない不具合として、原因確認から修正済みファイルの返却まで進めます。",
+            "この内容で進める場合は、そのままご購入ください。",
+        ]
+    )
+
+
+def render_vague_can_fix_question_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "エラー文をうまく説明できない状態でも、Next.jsとStripeまわりの不具合として相談できます。",
+            "ただ、今の文だけでは原因や修正範囲までは断定できません。\n15,000円で、原因確認から修正済みファイルの返却まで進める内容です。",
+            "この内容で進める場合は、そのままご購入ください。\nご購入後に、変だと感じる操作、画面、ログやエラー文を分かる範囲で送ってください。",
         ]
     )
 
@@ -2275,8 +2499,8 @@ def render_preview_webhook_env_error_case(case: dict) -> str:
         [
             "ご相談ありがとうございます。",
             "ローカルは動くのに、プレビュー環境のWebhookだけエラーになる状態ですね。\nこの不具合なら15,000円で対応できます。",
-            "共有いただいたEvent IDと STRIPE_WEBHOOK_SECRET の設定状況を起点に、プレビュー環境側のWebhook endpointと環境変数の反映を確認します。",
-            "この内容で進める場合は、そのままご購入いただいて大丈夫です。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+            ".envやWebhook secretの値そのものは送らなくて大丈夫です。\nキー名、設定箇所、エラー内容、Event IDがあれば、その範囲で確認できます。",
+            "この内容で進める場合は、そのままご購入いただいて大丈夫です。\nご購入後は、まずプレビュー環境側のWebhook endpointと環境変数の反映を確認します。\n必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
         ]
     )
 
@@ -2297,8 +2521,20 @@ def render_frontend_stripe_mixed_scope_case(case: dict) -> str:
         [
             "ご相談ありがとうございます。",
             "Next.jsやStripe連携に関わる範囲であれば、フロント側の不具合修正も対応範囲に入ります。",
-            "ただ、管理画面のボタン不反応とStripe決済後のポップアップ不具合は、同じ原因か別の原因かを先に切り分けます。\n同じ原因なら15,000円の範囲で見ます。別原因の場合は、勝手に追加作業へ進まず、対応方法と費用の有無をご相談します。",
-            "まずは一番困っている方を起点に確認します。Stripe決済後のポップアップを優先する場合は、この内容でご購入いただいて大丈夫です。",
+            "ただ、管理画面の表示崩れとStripe決済後のステータス反映漏れは、同じ原因か別の原因かを先に切り分けます。\n同じ原因なら15,000円の範囲で見ます。別原因の場合は、勝手に追加作業へ進まず、対応方法と費用の有無をご相談します。",
+            "まずは一番困っている方を起点に確認します。Stripe決済後の反映漏れを優先する場合は、この内容でご購入いただいて大丈夫です。",
+        ]
+    )
+
+
+def render_multi_symptom_case(case: dict) -> str:
+    return "\n\n".join(
+        [
+            "ご相談ありがとうございます。",
+            "3つの症状が同時に出ている状態ですね。",
+            "この時点で全部を15,000円内で直せるとはお約束できません。\nまずは不具合1件を起点に確認します。",
+            "同じ原因でつながっている範囲であれば15,000円内で見ます。\n別原因が複数あると分かった場合は、進める前に対応方法と費用を先にご相談します。",
+            "優先がなければ、決済や注文反映に近い症状を1件目として見立てます。\n決済や注文反映に近い症状を1件目として進める前提でよければ、ご購入ください。",
         ]
     )
 
@@ -2329,9 +2565,9 @@ def render_code_handoff_bugfix_scope_case(case: dict) -> str:
     return "\n\n".join(
         [
             "ご相談ありがとうございます。",
-            "外注先と連絡が取れず、決済まわりの不具合が残っていて、コードの中身も追いにくい状態ですね。",
-            "決済まわりの不具合修正として見る場合は、15,000円で対応できます。\nコード全体の引き継ぎ整理を前提ではなく、修正に必要な範囲をこちらで確認します。",
-            "まずは決済で起きている症状と、関連しそうなファイルを送ってください。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
+            "AIで作ったコードで中身が分からない状態でも、Stripe決済後に注文データが作られない不具合として確認できます。",
+            "この内容なら、15,000円の不具合修正で対応できます。\nコード全体の整理を前提にせず、修正に必要な範囲をこちらで確認します。",
+            "この内容で進める場合は、そのままご購入ください。\nご購入後に、関連しそうなファイルやログを送ってください。\n必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。",
         ]
     )
 
@@ -2526,6 +2762,21 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "public_structure_scope_boundary":
         case["rendered_reply_validator_mode"] = "public_structure_scope_boundary"
         return render_public_structure_scope_boundary_case(case)
+    if case.get("scenario") == "bugfix_light_explanation":
+        case["rendered_reply_validator_mode"] = "bugfix_light_explanation"
+        return render_bugfix_light_explanation_case(case)
+    if case.get("scenario") == "operation_docs_not_bugfix":
+        case["rendered_reply_validator_mode"] = "operation_docs_not_bugfix"
+        return render_operation_docs_not_bugfix_case(case)
+    if case.get("scenario") == "raw_secret_inventory":
+        case["rendered_reply_validator_mode"] = "raw_secret_inventory"
+        return render_raw_secret_inventory_case(case)
+    if case.get("scenario") == "diagnosis_only_pressure":
+        case["rendered_reply_validator_mode"] = "diagnosis_only_pressure"
+        return render_diagnosis_only_pressure_case(case)
+    if case.get("scenario") == "prequote_payment_route_pressure":
+        case["rendered_reply_validator_mode"] = "prequote_payment_route_pressure"
+        return render_prequote_payment_route_pressure_case(case)
     if case.get("scenario") == "no_concrete_bug_anxiety":
         case["rendered_reply_validator_mode"] = "no_concrete_bug_anxiety"
         return render_no_concrete_bug_anxiety_case(case)
@@ -2562,6 +2813,12 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "frontend_stripe_mixed_scope":
         case["rendered_reply_validator_mode"] = "frontend_stripe_mixed_scope"
         return render_frontend_stripe_mixed_scope_case(case)
+    if case.get("scenario") == "price_only_active_defect":
+        case["rendered_reply_validator_mode"] = "price_only_active_defect"
+        return render_price_only_active_defect_case(case)
+    if case.get("scenario") == "vague_can_fix_question":
+        case["rendered_reply_validator_mode"] = "vague_can_fix_question"
+        return render_vague_can_fix_question_case(case)
     if case.get("scenario") == "scope_only_target_question":
         case["rendered_reply_validator_mode"] = "scope_only_target_question"
         return render_scope_only_target_question_case(case)
@@ -2586,6 +2843,9 @@ def render_case(case: dict) -> str:
     if case.get("scenario") == "subscription_quantity_update_exception":
         case["rendered_reply_validator_mode"] = "subscription_quantity_update_exception"
         return render_subscription_quantity_update_exception_case(case)
+    if case.get("scenario") == "multi_symptom":
+        case["rendered_reply_validator_mode"] = "multi_symptom"
+        return render_multi_symptom_case(case)
     if case.get("scenario") == "customer_payment_access_response":
         case["rendered_reply_validator_mode"] = "customer_payment_access_response"
         return render_customer_payment_access_response_case(case)

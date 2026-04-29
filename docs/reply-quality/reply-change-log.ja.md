@@ -936,3 +936,139 @@
 - きっかけ: delivered / クローズ前で buyer が支払い方法を聞いているため追加支払い導線は妥当だが、断定を少し弱めると取引状態依存の表現としてより安全だと指摘された
 - 想定効果: 支払い導線を出すべき場面でも、ココナラ上の状態や手続きに依存する余地を残し、自動追加・確定導線に見える事故を減らす
 - 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。今回の修正は #BR batch 内の case_fix として扱う
+
+### 2026-04-29 / CHG-108
+- 分類: `common`
+- レイヤ: handoff source-of-truth cleanup / payment route isolation
+- 変更: Pro 4/29 完成条件監査で指摘された `handoff-25000.ready.txt` の source drift を受け、サービス本文と FAQ から `修正が必要な場合は、同じトークルーム内で続けてご案内できます` 系の表現を外した。修正や別フロー確認は、基本範囲とは分けて対応範囲・費用・進め方を事前相談する表現へ寄せた。あわせて handoff service-pack 内の支払い導線メモも、具体的な同一トークルーム導線ではなく `platform contract` 参照へ抽象化した
+- きっかけ: `handoff-25000` は public:false のため即時外向け事故ではないが、public:true 前には service boundary と payment route を混ぜる表現が blocker になると評価された
+- 想定効果: handoff service page が将来 public:true になっても、修正対応・追加フロー・同一トークルーム導線を一体化して案内する事故を減らす。支払い方法は platform layer に留め、service facts には成果物・範囲・除外事項を残す
+- 非変更: `handoff-25000` は引き続き public:false。サービス価格・有料オプション価格・成果物定義は変更しない。通常 live / #RE への handoff 解禁もしない
+
+### 2026-04-29 / CHG-109
+- 分類: `common`
+- レイヤ: Pro 4/29 roadmap P0/P1 / public leak and delivery-completion regression
+- 変更: 通常 live / #RE の public ケースで `handoff-25000` / `25,000円` / `主要1フロー` / `future-dual` などの shadow 語彙が出た場合に `public_mode_leakage` として落とす hard gate を unified pipeline に追加した。既存の `bugfix37` / `bugfix38` fixture を `eval-sources.yaml` に接続し、新たに `public-private-leakage-bugfix39.yaml` と `delivery-completion-bugfix40.yaml` を追加した。あわせて、`変更ファイルと確認順だけで足りるか` の public bugfix 返信と、delivered 承諾前の別件かもしれない質問を専用分岐で受けられるようにした
+- きっかけ: Pro 4/29 監査で、完成判定にはレンズ追加より `mode leakage 防止`、`bugfix37 系 regression`、`delivery/completion regression` が必要と整理された
+- 想定効果: #BR の future-dual 語彙が通常 live / #RE に染み込む事故を機械的に止める。購入後・納品後の old generic template / delivered fallback drift を再発検知し、承諾前・クローズ後・確認材料と実作業の境界を固定する
+- 非変更: `handoff-25000` は public:false のまま。soft lens は validator 化しない。`response_weight_mismatch` / `buyer_state_ack_gap` は引き続き reviewer / gold / regression 側で扱う
+
+### 2026-04-29 / CHG-110
+- 分類: `common`
+- レイヤ: #BR batch-current r1 / post-Pro confirmation gold
+- 変更: BR-16 fixture を追加し、`返信監査_batch-current.md` を Pro 4/29 対応後の確認走行として作成した。active defect の bugfix-first、valid handoff の支払い導線先回り防止、bugfix 内の軽い説明、handoff repair absorption 防止、delivered / closed micro-state、closed 後の確認材料と実作業分離、操作手順書・顧客FAQの neither 境界、prequote same-room repair promise 防止を検査した。外部監査で必須崩れなし・採用圏となったため、軽微指摘の B07 だけ `含めにくいです` から `含まれません` へ締めた
+- きっかけ: Pro 4/29 対応で source cleanup / public-private wording separation / payment-route isolation / delivery-completion regression を入れたため、#BR の future-dual 文面でも同じ分離が効いているか確認する必要があった
+- 想定効果: handoff 公開前の shadow asset として、サービス境界・支払い導線・納品後状態理解の安定性を確認できる。通常 live へ戻せる汎用境界と、#BR 内に留める 25,000円 / handoff 案内の線引きも維持できる
+- 非変更: 新規 rule 化はしない。通常 live への handoff 解禁はしない。`handoff-25000` は引き続き public:false。今回の修正は #BR batch 内の case_fix として扱う
+
+### 2026-04-29 / CHG-111
+- 分類: `reply-only`
+- レイヤ: #BR BR13-16 shelf / live-return candidates
+- 変更: BR13〜16 の採用結果を `rehearsal-shelf-20260429-br13-16.ja.md` に棚卸しした。通常 live / #RE に戻してよい候補として、active defect の bugfix-first、bugfix 内の軽い説明、運用資料/顧客対応資料の除外、raw secret 禁止、diagnosis-only pressure 防止、service boundary と payment route 分離、delivered / closed micro-state、context bleed guard を整理した。あわせて `question-type-batch-plan-20260425.ja.md` と `phase-contract-batch-plan-20260425.ja.md` に観察候補だけ反映し、`self-check-core-always-on.ja.md` の公開状態・支払い導線・delivered/closed 確認を最小補強した
+- きっかけ: BR13〜16 は連続して採用圏となったため、次の #BR を増やす前に、通常 live / #RE へ戻せる汎用境界と shadow asset に留めるものを分ける必要があった
+- 想定効果: 25,000円 / handoff-25000 / dual-service 導線を通常 live へ漏らさず、汎用の返信判断コアだけを強化できる。次の #RE では、未公開サービス混線、運用資料要求、支払い導線先回り、delivered / closed 状態誤認を観察しやすくなる
+- 非変更: renderer / validator は変更しない。新規 rule 化もしない。通常 live への handoff 解禁はしない。BR17 はすぐ回さず、再発や公開前チェックが必要になった時の候補として保留する
+
+### 2026-04-29 / CHG-112
+- 分類: `reply-only`
+- レイヤ: #RE bugfix41 r1 / post-BR live boundary renderer
+- 変更: `post-br-live-boundary-bugfix41.yaml` を eval source に接続し、通常 live の #RE で BR13〜16 由来の汎用境界を検査できるようにした。r0 外部監査で必須修正となった、操作手順書・顧客FAQの bugfix 吸収、原因だけ安く/診断メモだけ、raw secret inventory、prequote のおひねり追加約束を、`estimate_initial` renderer の専用分岐へ戻した。あわせて active defect でコード全体整理を先に挟まなくてよい表現も補強した
+- きっかけ: r0 は handoff-25000 / 25,000円の live 漏れはなかったが、対象外・neither 系を汎用 bugfix 受付文に吸収していた
+- 想定効果: 通常 live / #RE で未公開 handoff 導線を出さずに、bugfix 単体の範囲外、secret 生値不可、diagnosis-only 不可、支払い導線先回り不可を自然に返せる。BR の学びを shadow 語彙なしで live 側へ戻す
+- 非変更: `handoff-25000` は public:false のまま。通常 live への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない。今回の修正は返信文 renderer / regression の補強であり、サービスページ価格や成果物定義は変更しない
+
+### 2026-04-29 / CHG-113
+- 分類: `reply-only`
+- レイヤ: #RE bugfix41 r2 / accepted audit light close
+- 変更: r1 外部監査で採用圏・必須修正なしとなったため、軽微候補だけ反映した。delivered 承諾前の別件確認は `ご確認ありがとうございます` から入り、今回の修正とつながる内容かを軽く見る表現へ自然化した。closed 後の確認材料ケースでは固定時刻コミットを外し、`送っていただいた範囲で、見立てを短くお返しします` へ変更した。closed follow-up lint も、確認材料だけの場面では条件付き見立てを許可するようにした
+- きっかけ: r1 監査で、B06 は `確認` の重複が少し機械的、B07 は固定時刻が送信時刻依存で実運用ノイズになり得ると指摘された
+- 想定効果: 採用圏を保ったまま、承諾前/closed 後のマイクロ状態をより自然に扱える。固定時刻の古びやすさを減らし、未受領材料に依存する見立ては条件付きで書く既存方針にも合わせる
+- 非変更: 新規 rule 追加はしない。通常 live への handoff 解禁はしない。B06 / B07 は軽微自然化と batch close であり、B03 / B04 / B05 / B08 の hard boundary は CHG-112 のまま維持する
+
+### 2026-04-29 / CHG-114
+- 分類: `common`
+- レイヤ: service-grounding audit / prequote grounding bridge
+- 変更: `service-grounding-audit-20260429.ja.md` を追加し、`bugfix-15000.live.txt` から `service-registry.yaml`、`service.yaml`、`service-pack`、renderer、validator、regression までの接続を棚卸しした。あわせて `estimate_initial` renderer でも `service-registry.yaml` から public bugfix の `service_grounding` を読み込み、prequote case に保持するようにした。`check-rendered-prequote-estimate.py` でも public bugfix prequote の `service_grounding`、`public_service`、`base_price`、`hard_no`、`source_of_truth` を検査する
+- きっかけ: 最初に公開する `bugfix-15000` について、サービス本丸の記憶領域が返信システムへ本当に接続されているかを確認する必要があった。購入後 / delivered / closed は registry 接続済みだったが、prequote はハードコード寄りで接続が浅かった
+- 想定効果: 一番重要な購入前 live 返信でも、公開中サービスの正本・価格・hard no・scope unit への接続を明示できる。サービスページ変更時に、page -> service-pack -> renderer / validator のどこがずれたか追いやすくなる
+- 非変更: サービス価格・成果物・公開状態は変更しない。renderer 内の既存 `15,000円` リテラルを全面動的化する作業はまだ行わない。`handoff-25000` は引き続き public:false
+
+### 2026-04-29 / CHG-115
+- 分類: `reply-only`
+- レイヤ: skill / docs noise audit
+- 変更: `skill-noise-audit-20260429.ja.md` を追加し、project-local skills、返信品質 docs、汎用テンプレ、判断フロー、quote_sent renderer に残っていた旧導線を棚卸しした。`同じトークルーム内追加料金`、`クローズ前ならおひねり`、`有料オプション追加不可だから追加支払いへ`、未公開 handoff の `25,000円 / 主要1フロー / 購入導線` を、通常 live / #RE では出さない状態依存の表現へ修正した。`japanese-chat-natural-ja` も、自然化 layer で支払い導線を新しく決めないようにした
+- きっかけ: service-grounding audit 後、runtime は安定している一方、古い skill / docs が横から payment route や private handoff 語彙を戻す懸念があった
+- 想定効果: 通常 live / #RE は `bugfix-15000` の公開語彙だけに留まり、#BR の shadow 語彙やココナラ固有の支払い導線は、必要な state と lane でだけ扱う。返信判断コアと支払い導線の分離も維持しやすくなる
+- 非変更: `handoff-25000` は public:false のまま。chatgptPro 過去分析、BR 履歴、service-pack fidelity fixture は履歴/検査材料として残し、正本ノイズとしては編集しない
+
+### 2026-04-29 / CHG-116
+- 分類: `common`
+- レイヤ: docs cleanup / active-source pruning
+- 変更: `docs/` を現行 Codex が起動・返信・実装・納品で参照する資料へ絞った。旧外部調査ログ、出品初期準備、旧 service catalog / service plan、旧 live 監査サマリ、self-check 再編途中メモ、古い backup / checklist / UI cheat sheet を削除した。`docs/README.ja.md` と `docs/reply-quality/README.ja.md` は現行入口として書き直し、`next-codex-prompt.txt` も 4/29 の grounding / noise / BR 棚卸しを読む形へ更新した
+- きっかけ: 過去 Codex が実装中に作った docs が増え、現行返信OSの正本と古い調査・初期設計メモが混ざると、次の Codex が古い支払い導線や公開状態へ戻るリスクがあった
+- 想定効果: Codex が今必要な正本だけを辿れる。`service-registry.yaml`、service page 正本、reply-quality 現行入口、delivery / implementation 用 docs の境界が明確になり、古い docs が runtime の判断を邪魔しにくくなる
+- 非変更: `handoff-25000` は public:false のまま。`chatgptPro/`、`note用/`、`HANDOFF_NEXT_CODEX.ja.md` などの履歴領域は今回の docs pruning 対象外
+
+### 2026-04-29 / CHG-117
+- 分類: `reply-only`
+- レイヤ: #RE bugfix42 / post-docs-cleanup noise sentry
+- 変更: docs cleanup 後の確認走行として `post-docs-cleanup-noise-bugfix42.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-42-post-docs-cleanup-noise-r0` へ更新した。初回生成で出た `外注先と連絡が取れず` の context bleed、`操作マニュアル` の汎用 bugfix 吸収、closed 後のおひねり質問への直答抜けを、最小 renderer / lint 補強として戻した
+- きっかけ: `docs/` から旧 service-plan / service-catalog / 外部調査ログ / 初期設計メモを削った直後に、通常 live / #RE が古い支払い導線や private handoff 語彙へ戻らないか確認する必要があった
+- 想定効果: 通常 live で、古い docs 由来の整理・引き継ぎ・おひねり導線・操作マニュアル吸収が再発しにくくなる。相手文にない外注先事情を足さず、closed 後は旧トークルーム内のおひねりへ誘導しない
+- 非変更: `handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない。今回の修正は bugfix live の noise sentry と最小 renderer 補強
+
+### 2026-04-29 / CHG-118
+- 分類: `reply-only`
+- レイヤ: #RE bugfix42 r1 / accepted audit light revision
+- 変更: bugfix42 r0 外部監査で採用圏・必須崩れなしとなったため、軽微3点だけ r1 へ反映した。B02 は相手文にない `顧客向けFAQ` を削除し、B03 は `15,000円の不具合修正で確認できます` を冒頭へ出して `全体整理が必要` を削除した。B08 は `確認材料の受領と実作業の開始を分ける必要があります` を、購入者向けの `メッセージ上で状況だけ確認し、修正が必要な場合は見積り提案または新規依頼` へ自然化した
+- きっかけ: r0 は safety / public leak は安定していたが、docs cleanup 後の残り香として、相手文にない資料名追加、通常 live の整理語、closed 後の内部ルール露出が軽微に残っていた
+- 想定効果: 通常 live の `bugfix-15000` 返信で、古い docs 由来の言葉をさらに薄くし、buyer の主質問への直答と次行動を保ったまま自然さを上げる
+- 非変更: 新規 rule 追加はしない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない
+
+### 2026-04-29 / CHG-119
+- 分類: `reply-only`
+- レイヤ: #RE bugfix43 r0 / live core human review sentry
+- 変更: `live-core-human-review-bugfix43.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-43-live-core-human-review-r0` へ更新した。短文の対象可否、他者修正後の再発不安、AI生成コードで中身不明、フロント表示崩れ + Stripe反映漏れ、Preview環境Webhook 400 + secret値不安、購入後の進捗不安、納品後の軽い説明依頼、closed 後のリピート相談を検査対象にした。初回生成で出た汎用 bugfix 吸収、secret 値不要の明示不足、progress anxiety 検知不足、delivered の前回続き誤発火、相手文にない症状名の context bleed を、最小 renderer 補強として戻した
+- きっかけ: ユーザー監査も取り込み、hard boundary だけでなく `買う側が迷わないか` `ぶつ切り感がないか` `サービス本丸に接地しているか` を live 本丸で確認する必要があった
+- 想定効果: `bugfix-15000` の通常 live 返信で、主質問への直答、状態理解、軽い説明と本格資料の分離、secret-safe 進行、複数症状の切り分けが安定する。将来アプリ化する時の human review 系 regression としても使える
+- 非変更: 新規サービス導線は出さない。`handoff-25000` は public:false のまま。今回の human review 観点は validator hard rule にはせず、まず batch / reviewer lens / renderer の最小補強に留める
+
+### 2026-04-29 / CHG-120
+- 分類: `reply-only`
+- レイヤ: #RE bugfix43 r1 / phase and human-review cleanup
+- 変更: bugfix43 r0 外部監査で B03 が必須修正、B05/B07/B08 が軽微修正となったため r1 へ反映した。B03 は prequote でファイル送付・一次結果へ滑らないよう `ご購入後` に寄せ、B05 も Preview環境確認を `ご購入後は、まず...確認します` へ締めた。B07 は次アクションを `確認結果` ではなく `補足説明` に変更し、B08 は `見積りできます` より先に `このメッセージでまず相談いただいて大丈夫です` と直答するようにした。あわせて prequote / delivered / closed の lint に、今回の phase 滑りと主質問抜けを再発検知する最小チェックを追加した
+- きっかけ: r0 は facts / public leak は安定していたが、購入前返信で作業開始に見える箇所と、納品後・closed 後の主質問に対する語のズレが残っていた
+- 想定効果: `bugfix-15000` live で、購入前/購入後の phase、納品後の補足説明、closed 後の相談可否への直答がより安定する。human review 観点を hard rule 化しすぎず、事故になりやすい phase / direct answer だけを lint へ戻せる
+- 非変更: `handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない
+
+### 2026-04-29 / CHG-121
+- 分類: `reply-only`
+- レイヤ: #RE bugfix43 r2 / accepted audit light close
+- 変更: bugfix43 r1 外部監査で採用圏・必須修正なしとなったため、軽微2点だけ r2 へ反映した。B03 は `コード全体の整理を前提にせず` へ自然化し、購入後に求める材料を既出の症状ではなく `関連しそうなファイルやログ` へ寄せた。B08 は closed 後の新症状を `前回とは別件の可能性もあるため` と受け、無料診断に見えやすい `確認だけで済む範囲` を `状況の見立てまでは、このメッセージ上で確認できます` へ締めた
+- きっかけ: r1 は hard boundary と public leak は問題なかったが、B03 の語感と B08 の断定・無料期待の幅に軽微な実務ノイズが残っていた
+- 想定効果: `bugfix-15000` live の購入前/closed 後返信で、buyer が既に書いた症状を再要求せず、クローズ後の相談可否と実作業の境界を自然に分けられる
+- 非変更: 新規 rule 追加はしない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない
+
+### 2026-04-29 / CHG-122
+- 分類: `reply-only`
+- レイヤ: #RE bugfix44 r0 / public-launch practical sentry
+- 変更: `public-launch-practical-bugfix44.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-44-public-launch-practical-r0` へ更新した。金額だけ質問、曖昧な直せますか相談、active defect なしの不安相談、raw secret inventory、購入前 diagnosis-only 圧力、3症状まとめ依頼、purchased 中の複数症状追加、closed 後の別件相談入口を検査対象にした。初回生成で弱かった金額直答、曖昧相談の未断定、no-concrete の自然化、複数症状の1件起点、購入後 bundle pressure への直答を最小 renderer / lint 補強として戻した
+- きっかけ: bugfix43 で live 本丸が採用圏になったため、次は公開直前に実際に来そうな短文・曖昧・支払い/秘密/複数症状圧力をまとめて確認する必要があった
+- 想定効果: `bugfix-15000` live で、購入前の主質問直答、active defect 有無の切り分け、secret-safe 進行、diagnosis-only 防止、複数不具合の一括化防止、purchased / closed の状態境界が安定する
+- 非変更: `handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない。今回の補強は bugfix live の公開直前 sentry として扱う
+
+### 2026-04-29 / CHG-123
+- 分類: `reply-only`
+- レイヤ: #RE bugfix44 r1 / accepted audit light revision
+- 変更: bugfix44 r0 外部監査で採用圏・必須修正なしとなったため、軽微4点だけ r1 へ反映した。B05 は購入前に原因だけ見る形ではないことと、購入後に原因確認から修正まで進める導線を明示した。B06 は複数症状の1件目見立て後に購入前の次アクションを足した。B07 は `つながっているかを先に見る` の重複を削り、境界・未確認点・依頼を1回で出す形にした。B08 は closed 後の主質問へ `はい、その流れで大丈夫です` と先に直答し、症状送付依頼を1回に圧縮した
+- きっかけ: r0 は hard boundary と public leak は安定していたが、buyer の次アクションと、purchased / closed の重複表現に軽微な実務ノイズが残っていた
+- 想定効果: `bugfix-15000` live の公開直前入口で、購入前の次行動、購入後の追加症状境界、closed 後の相談導線がより自然に伝わる
+- 非変更: 新規 rule 追加はしない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない
+
+### 2026-04-29 / CHG-124
+- 分類: `reply-only`
+- レイヤ: #RE bugfix44 r2 / accepted re-audit polish
+- 変更: bugfix44 r1 外部再監査で採用圏・必須修正なしとなったため、軽微4点だけ r2 へ反映した。B05 は `15,000円` と原因確認の説明を圧縮し、購入後に修正済みファイル返却まで進める軸へ寄せた。B06 は `その内容` を避け、決済や注文反映に近い症状を1件目として進める前提を明示した。B07 は `つながっているか確認` と `関連は未確認` の重複を1段落にまとめた。B08 は `費用の有無` を `対応方法と費用` に締め、無料余地を広く見せない表現へ自然化した
+- きっかけ: r1 は hard boundary と public leak は問題なかったが、文量・重複・closed 後の費用表現に gold 寄せの余地が残っていた
+- 想定効果: `bugfix-15000` live の公開直前入口で、購入前診断拒否、複数症状の1件目設定、購入後追加症状、closed 後相談の次行動がさらに短く自然に伝わる
+- 非変更: 新規 rule 追加はしない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は解禁しない

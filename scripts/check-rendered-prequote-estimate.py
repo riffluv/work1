@@ -305,7 +305,7 @@ def collect_fix_vs_structure_first_errors(rendered: str, raw: str) -> list[str]:
     errors: list[str] = []
     if not has_any(rendered, ["まず", "不具合修正", "直したいところ"]):
         errors.append("fix_vs_structure_first failed: rendered text does not answer whether repair or structure should come first")
-    if not has_any(rendered, ["整理"]) or not has_any(rendered, ["前提ではなく", "範囲とは分け", "別作業"]):
+    if not has_any(rendered, ["整理"]) or not has_any(rendered, ["前提ではなく", "前提にせず", "範囲とは分け", "別作業"]):
         errors.append("fix_vs_structure_first failed: rendered text does not separate code-structure work from bugfix scope")
     if has_private_service_leak(rendered):
         errors.append("fix_vs_structure_first failed: rendered text leaked private handoff wording")
@@ -334,11 +334,27 @@ def has_private_service_leak(rendered: str) -> bool:
 
 def lint_case(module, case: dict) -> list[str]:
     normalized = case if case.get("reply_contract") else module.build_case_from_source(case)
+    if not normalized.get("service_grounding") and (normalized.get("service_id") or "bugfix-15000") == "bugfix-15000":
+        normalized = dict(normalized)
+        normalized["service_grounding"] = dict(getattr(module, "SERVICE_GROUNDING", {}))
     rendered = module.render_case(normalized)
     if is_private_service_case(normalized):
         if is_private_public_boundary_case(case, normalized) and has_private_service_leak(rendered):
             return ["private service leakage failed: public boundary prequote rendered private handoff wording"]
         return []
+    service_grounding = normalized.get("service_grounding") or {}
+    if not service_grounding:
+        return ["service_grounding is missing"]
+    if service_grounding.get("service_id") != "bugfix-15000":
+        return ["service_grounding does not point to the public bugfix service"]
+    if not service_grounding.get("public_service"):
+        return ["service_grounding is not marked public"]
+    if service_grounding.get("base_price") != 15000:
+        return ["service_grounding base_price is missing or does not match the public service"]
+    if not service_grounding.get("hard_no"):
+        return ["service_grounding is missing hard_no bindings"]
+    if not service_grounding.get("source_of_truth"):
+        return ["service_grounding is missing source_of_truth"]
     contract = normalized["reply_contract"]
     temperature_plan = normalized.get("temperature_plan") or {}
     primary_id = contract["primary_question_id"]
@@ -353,6 +369,11 @@ def lint_case(module, case: dict) -> list[str]:
         "budget_completion_gate",
         "fix_vs_structure_first",
         "public_structure_scope_boundary",
+        "bugfix_light_explanation",
+        "operation_docs_not_bugfix",
+        "raw_secret_inventory",
+        "diagnosis_only_pressure",
+        "prequote_payment_route_pressure",
         "no_concrete_bug_anxiety",
         "multi_site_non_stripe_scope",
         "plan_change_payment_not_reflected",
@@ -360,6 +381,8 @@ def lint_case(module, case: dict) -> list[str]:
         "preview_webhook_env_error",
         "vercel_webhook_signature_400",
         "frontend_stripe_mixed_scope",
+        "price_only_active_defect",
+        "vague_can_fix_question",
         "scope_only_target_question",
         "previous_fix_failed_trust",
         "stripe_webhook_raw_body_signature",
@@ -375,6 +398,7 @@ def lint_case(module, case: dict) -> list[str]:
         "spec_vs_bug_boundary",
         "refund_cancel_prequote",
         "feature_addon_scope",
+        "multi_symptom",
     }
     is_custom_render = normalized.get("scenario") in custom_render_scenarios
     is_custom_budget_completion = normalized.get("scenario") == "budget_completion_gate"
@@ -474,6 +498,14 @@ def lint_case(module, case: dict) -> list[str]:
         errors.append("cancel_word_misroute failed: technical cancel wording was treated as transaction cancellation")
     if has_solution_request_nonanswer(rendered, raw_message):
         errors.append("prequote_solution_request failed: solution-only request did not keep purchase-before boundary")
+    if normalized.get("scenario") == "code_handoff_bugfix_scope":
+        if has_any(rendered, ["ファイルを送ってください", "関連しそうなファイルを送ってください"]) and "ご購入後" not in rendered:
+            errors.append("code_handoff_bugfix_scope failed: file request is not gated behind purchase")
+        if "一次結果" in rendered and "ご購入後" not in rendered:
+            errors.append("code_handoff_bugfix_scope failed: prequote reply commits progress without purchase-state wording")
+    if normalized.get("scenario") == "preview_webhook_env_error":
+        if "確認します" in rendered and "ご購入後" not in rendered:
+            errors.append("preview_webhook_env_error failed: prequote reply starts checking without purchase-state wording")
     errors.extend(collect_budget_completion_gate_errors(rendered, raw_message))
     errors.extend(collect_fix_vs_structure_first_errors(rendered, raw_message))
 

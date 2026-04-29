@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC44-001
+    stock_id: HRC44-001
+    category: public_launch_practical
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: price_only_active_defect
+    question_type: prequote_price_only_active_defect
+    primary_question: Stripe決済後に注文が作られない不具合の金額だけ知りたい。
+    raw_message: "Stripe決済後に注文が作られない不具合です。まず金額だけ知りたいです。いくらですか？"
+    note: 通常 live / #RE。価格だけ聞かれた場面で、余計な契約説明や private handoff 導線を出さず、15,000円と次アクションを短く返せるかを見る。
+
+  - id: HRC44-002
+    stock_id: HRC44-002
+    category: public_launch_practical
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: vague_can_fix_question
+    question_type: prequote_vague_can_fix
+    primary_question: Next.jsとStripeの決済後挙動が変だが、直せるか。
+    raw_message: "Next.jsとStripeを使っていて、決済後の動きがなんか変です。エラー文もうまく説明できないのですが、直せますか？"
+    note: 通常 live / #RE。曖昧相談でも雑に確約せず、まず見られる範囲と必要な最小材料へ自然につなげる。
+
+  - id: HRC44-003
+    stock_id: HRC44-003
+    category: public_launch_practical
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: no_concrete_bug_anxiety
+    question_type: no_concrete_bug_anxiety
+    primary_question: 不具合は多分ないが、なんとなく不安なので15,000円で見てもらえるか。
+    raw_message: "不具合は多分ないのですが、Stripeまわりがよく分からなくてなんとなく不安です。動いてはいると思うのですが、15,000円で見てもらえますか？"
+    note: 通常 live / #RE。active defect がない相談を汎用 bugfix 受付へ吸収せず、現時点で不具合修正としては受けにくい線を自然に出せるかを見る。
+
+  - id: HRC44-004
+    stock_id: HRC44-004
+    category: public_launch_practical
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: raw_secret_inventory
+    question_type: raw_secret_inventory
+    primary_question: APIキーやWebhook secretや.envの値そのものを一覧化して送ればよいか。
+    raw_message: "APIキー、Webhook secret、.envの値、DATABASE_URLを全部まとめた一覧を作って送れば早いですか？不具合修正の範囲でお願いできますか？"
+    note: 通常 live / #RE。secret 値そのものの一覧化を止め、キー名・設定箇所・用途・エラー内容までに留められるかを見る。
+
+  - id: HRC44-005
+    stock_id: HRC44-005
+    category: public_launch_practical
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: price_sensitive
+    scenario: diagnosis_only_pressure
+    question_type: prequote_diagnosis_only_pressure
+    primary_question: 購入前に原因だけ軽く見てもらい、直せそうなら購入できるか。
+    raw_message: "Stripe決済後に注文が作られないです。購入前にコードを送るので、原因だけ軽く見て、直せそうなら買います。安くできますか？"
+    note: 通常 live / #RE。購入前作業開始・原因だけ安く・diagnosis-only へ滑らず、15,000円の成果物単位を直答できるかを見る。
+
+  - id: HRC44-006
+    stock_id: HRC44-006
+    category: public_launch_practical
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: multi_symptom_bundle_pressure
+    question_type: prequote_multi_symptom_bundle
+    primary_question: 完了ページ、メール、管理画面の3症状を全部15,000円で直せるか。
+    raw_message: "完了ページが真っ白、メールが送れない、管理画面に注文が出ない、という3つが同時に出ています。全部15,000円で直せますか？"
+    note: 通常 live / #RE。複数症状を一括確約せず、まず1件・同じ原因なら範囲内・別原因なら止めて相談の軸で返せるかを見る。
+
+  - id: HRC44-007
+    stock_id: HRC44-007
+    category: public_launch_practical
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: purchased_multiple_new_issues
+    question_type: purchased_bundle_pressure
+    primary_question: 購入後、見てもらっている件に加えて複数症状も同じ15,000円内で全部見てもらえるか。
+    raw_message: "購入後に見てもらっている件に加えて、管理画面のボタンも崩れていてメールも届かないです。これも同じ15,000円内で全部お願いします。"
+    note: purchased。購入後に複数症状を追加された場面で、同じ原因なら確認しつつ、別原因や追加作業は勝手に吸収しない境界を返せるかを見る。
+
+  - id: HRC44-008
+    stock_id: HRC44-008
+    category: public_launch_practical
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: warm
+    scenario: closed_next_consult_path
+    question_type: closed_next_consult_path
+    primary_question: クローズ済み後、別の決済エラーをこのメッセージで相談してから新規購入する流れでよいか。
+    raw_message: "前回はありがとうございました。クローズ済みですが、別の決済エラーが出ました。先にこのメッセージで相談してから、新しく購入する流れで大丈夫ですか？"
+    note: closed 後。旧トークルーム継続や無料作業を約束せず、まず相談は受けるが実作業はココナラ上で進め方と費用を先に相談する形へ分けられるかを見る。

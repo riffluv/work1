@@ -5,5 +5,5 @@
 - For implementation/delivery tasks, provide diagnostic report, code deliverable (zip or patch/diff as applicable), and verification memo.
 - Ask the client to perform the final real-environment confirmation and use their logs/results for follow-up adjustments.
 - When session work changes operating docs, update handoff notes as needed and keep source-of-truth sync order: primary source first, docs mirror second.
-- If a sendable customer reply was produced, save the same text to `返信文_latest.txt`.
+- If a sendable customer reply was produced, save the same text to `runtime/replies/latest.txt`.
 - Do not include `.env*`, API keys, raw customer data, or unrelated internal notes in deliverables.

@@ -188,6 +188,11 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("doc caution follow-up does not mention environment variables directly")
         if not has_any(rendered, ["急ぎで", "今のところ"]):
             errors.append("doc caution follow-up does not lower the urgency explicitly")
+    if scenario == "doc_explanation_request":
+        if "補足説明" not in rendered and "分かりやすく補足" not in rendered:
+            errors.append("doc explanation request does not frame the next action as explanation support")
+        if "確認結果をお返しします" in rendered:
+            errors.append("doc explanation request uses `確認結果` instead of explanation wording")
     if scenario == "signing_secret_rotation_recurrence":
         if not has_any(rendered, ["再発", "同じこと"]):
             errors.append("signing secret rotation case does not answer recurrence directly")

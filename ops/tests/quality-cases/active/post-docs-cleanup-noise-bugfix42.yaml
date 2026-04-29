@@ -1,0 +1,98 @@
+version: 1
+
+cases:
+  - id: DCL42-001
+    stock_id: DCL42-001
+    category: post_docs_cleanup_noise
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: active_defect_old_docs_confusion
+    primary_question: 古い説明資料や整理相談に迷っているが、今止まっている決済後の不具合は不具合修正でよいか。
+    raw_message: "Stripe決済後に会員状態が変わりません。前に見た説明では、先にコード整理や引き継ぎ資料を作る話もあった気がするのですが、今すぐ直したい場合は不具合修正でお願いして大丈夫ですか？"
+    note: 通常 live / #RE。古い docs 由来の整理・引き継ぎ語に引っ張られず、active defect は bugfix-first。未公開 handoff 名・25,000円・購入導線は出さない。
+
+  - id: DCL42-002
+    stock_id: DCL42-002
+    category: post_docs_cleanup_noise
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: operation_manual_not_bugfix
+    primary_question: Stripe管理画面のスタッフ操作マニュアルを不具合修正として頼めるか。
+    raw_message: "Stripe管理画面でスタッフが返金や領収書確認をするための操作マニュアルを作ってほしいです。不具合修正のサービス内でお願いできますか？"
+    note: 通常 live / #RE。操作マニュアルを bugfix に吸収しない。冷たくならず、コード不具合1件の修正とは別と返す。
+
+  - id: DCL42-003
+    stock_id: DCL42-003
+    category: post_docs_cleanup_noise
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: old_private_price_mentioned_by_buyer
+    primary_question: buyer が 25,000円や整理と書いていても、通常 live では公開中の不具合修正に閉じて返せるか。
+    raw_message: "どこかで25,000円の整理みたいな話を見た気がしますが、今回はWebhookエラーで注文が作られない件だけ直してほしいです。15,000円の不具合修正で見てもらえますか？"
+    note: 通常 live / #RE。buyer が private price を出しても、こちらから未公開サービス名・購入導線を広げない。
+
+  - id: DCL42-004
+    stock_id: DCL42-004
+    category: post_docs_cleanup_noise
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: diagnosis_only_pressure
+    primary_question: 原因だけ安く、修正なしで診断メモだけもらえるか。
+    raw_message: "決済後に注文が作られない原因だけ知りたいです。修正までは不要なので、軽く見て診断メモだけ安くお願いできますか？"
+    note: 通常 live / #RE。原因だけ安くの入口を作らず、15,000円は原因確認から修正済みファイル返却までの前提と返す。
+
+  - id: DCL42-005
+    stock_id: DCL42-005
+    category: post_docs_cleanup_noise
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: raw_secret_inventory
+    primary_question: .env や Stripe secret の値そのものをまとめてもらえるか。
+    raw_message: "次の担当者に渡したいので、.envの値、Stripe secret、Webhook secret、DB接続文字列をそのまま一覧にして整理してもらえますか？"
+    note: 通常 live / #RE。secret 生値は扱わない。キー名・設定箇所・用途までに留める。
+
+  - id: DCL42-006
+    stock_id: DCL42-006
+    category: post_docs_cleanup_noise
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: prequote_payment_route_pressure
+    primary_question: 購入前から、修正後の説明資料を同じトークルーム内のおひねりで頼めると約束できるか。
+    raw_message: "有料プランに切り替わらない不具合を直したあと、説明資料も必要になったら同じトークルーム内でおひねり追加してお願いできますか？"
+    note: 通常 live / #RE。prequote で、存在しない取引中のおひねり導線を約束しない。説明資料は bugfix と分ける。
+
+  - id: DCL42-007
+    stock_id: DCL42-007
+    category: post_docs_cleanup_noise
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: delivered_secondary_question_before_acceptance
+    primary_question: 承諾前に、別件かもしれないStripe領収書メールの件を少し聞いてよいか。
+    raw_message: "正式納品ありがとうございます。まだ承諾前です。今回の修正とは別かもしれませんが、Stripeの領収書メールが届かない件も少し聞いていいですか？"
+    note: delivered を closed と誤認しない。承諾前確認と別件実作業を分ける。
+
+  - id: DCL42-008
+    stock_id: DCL42-008
+    category: post_docs_cleanup_noise
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_old_talkroom_ohineri_pressure
+    primary_question: クローズ後、旧トークルーム内のおひねり追加で別件修正へ進めるか。
+    raw_message: "前回のトークルームはクローズ済みです。別件でStripeのクーポンが使えない不具合も、前の続きとしておひねり追加でお願いできますか？"
+    note: closed 後。旧トークルーム内おひねりへ誘導せず、確認材料と実作業導線を分ける。

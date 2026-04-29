@@ -6,5 +6,5 @@
 - Scope control is strict: do not expand scope unintentionally; explicitly distinguish same cause vs separate cause.
 - Stripe instructions should use Japanese dashboard UI names first and distinguish Checkout vs Billing Portal, `prod_...` vs `price_...`.
 - For replies, use skills when drafting customer text. Default chain for bugfix replies: `coconala-reply-bugfix-ja` then `japanese-chat-natural-ja`.
-- Persist sendable reply text into `返信文_latest.txt`.
+- Persist sendable reply text into `runtime/replies/latest.txt`.
 - Keep edits reversible and documented; do not handle secrets in chat or artifacts.

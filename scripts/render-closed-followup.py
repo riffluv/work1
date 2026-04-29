@@ -82,7 +82,7 @@ def asks_to_send_symptoms_in_message(raw: str) -> bool:
     return (
         any(marker in raw for marker in ["このメッセージ", "メッセージで", "メッセージ上"])
         and any(marker in raw for marker in ["症状", "内容", "流れ"])
-        and any(marker in raw for marker in ["送れば", "送って", "送る", "伝えれば"])
+        and any(marker in raw for marker in ["送れば", "送って", "送る", "伝えれば", "相談して", "相談いただいて", "相談"])
     )
 
 
@@ -158,6 +158,10 @@ def detect_scenario(source: dict) -> str:
         return "closed_zip_fix_return"
     if any(marker in combined for marker in ["ログとスクショ", "ログやスクショ", "関係あるかだけ", "関係があるかだけ"]):
         return "closed_materials_check"
+    if any(marker in combined for marker in ["おひねり", "同じトークルーム", "前の続き", "前回の続き"]) and any(
+        marker in combined for marker in ["クローズ済み", "閉じ"]
+    ):
+        return "closed_old_talkroom_ohineri"
     if any(marker in combined for marker in ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
         return "closed_free_followup_price"
     if any(marker in combined for marker in ["先に原因だけ", "原因だけ見てもら", "見積り前", "お願いするか決めたい"]):
@@ -317,6 +321,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "似たエラーが前回と同じ原因か知りたい"
     if scenario == "closed_materials_check":
         return "ログやスクショを送れば前回の修正と関係があるか確認してもらえるか知りたい"
+    if scenario == "closed_old_talkroom_ohineri":
+        return "クローズ後に旧トークルーム内のおひねり追加で別件修正へ進めるか知りたい"
     if scenario == "closed_zip_fix_return":
         return "ZIPでコードを送れば修正して返してもらえるか知りたい"
     if scenario == "closed_external_large_share":
@@ -431,7 +437,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "new_issue_repeat_client":
         blocking_missing_facts = ["current_symptom"]
         if asks_to_send_symptoms_in_message(raw):
-            direct_answer_line = "まずはこのメッセージで症状を送ってください。"
+            direct_answer_line = "はい、このメッセージでまず相談いただいて大丈夫です。"
         elif any(marker in raw.lower() for marker in ["webhook"]) and any(
             marker in raw for marker in ["届かなく", "届いていない", "到達していない"]
         ):
@@ -461,6 +467,10 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
     elif scenario == "closed_materials_check":
         blocking_missing_facts = ["log_or_screenshot"]
         direct_answer_line = "はい、ログやスクショで、前回の修正と関係があるかをこのメッセージ上で確認します。"
+    elif scenario == "closed_old_talkroom_ohineri":
+        blocking_missing_facts = ["current_symptom"]
+        direct_answer_line = "前回のトークルームは閉じているため、旧トークルーム内のおひねり追加でそのまま別件修正を進めることはできません。"
+        response_order = ["opening", "direct_answer", "answer_detail", "ask", "next_action"]
     elif scenario == "closed_zip_fix_return":
         blocking_missing_facts = ["relevant_files_or_symptom"]
         direct_answer_line = "閉じたトークルームの続きとして、このままコード一式を受け取って修正済みファイルを返すことはできません。"
@@ -487,7 +497,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
             direct_answer_line = "元のお値段の中で直せるかは、指摘内容を確認してからでないとまだ判断できません。"
     elif scenario == "closed_next_consult_path":
         blocking_missing_facts = ["current_symptom"]
-        direct_answer_line = "まずはこのメッセージ上で症状の概要を送ってください。内容を見て、見積り提案に進むかをご案内します。"
+        direct_answer_line = "はい、その流れで大丈夫です。先にこのメッセージで概要を相談してから、必要であれば見積り提案または新規依頼に進む形で問題ありません。"
         response_order = ["opening", "direct_answer", "ask", "next_action"]
     elif scenario == "price_complaint":
         blocking_missing_facts = ["current_symptom"]
@@ -951,7 +961,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "まずはこのメッセージ上で症状の概要を送ってください。内容を見て、見積り提案に進むかをご案内します。",
+                    "answer_brief": "はい、その流れで大丈夫です。先にこのメッセージで概要を相談してから、必要であれば見積り提案または新規依頼に進む形で問題ありません。",
                     "hold_reason": "トークルームは閉じているため、このまま原因調査や修正作業には入りません。",
                     "revisit_trigger": "前回の修正と関係がありそうか、別の不具合として見積り提案に進む内容かをお返しします。",
                 },
@@ -980,7 +990,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "まずはこのメッセージで症状を送ってください。" if send_symptoms_here else "はい、見積りできます。",
+                    "answer_brief": "はい、このメッセージでまず相談いただいて大丈夫です。" if send_symptoms_here else "はい、見積りできます。",
                 },
             ],
             "ask_map": [
@@ -1284,6 +1294,31 @@ def build_case_from_source(source: dict) -> dict:
         }
         return case
 
+    if scenario == "closed_old_talkroom_ohineri":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [{"id": "q1", "text": "旧トークルーム内のおひねり追加で別件修正へ進めるか", "priority": "primary"}],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_after_check",
+                    "answer_brief": "前回のトークルームは閉じているため、旧トークルーム内のおひねり追加でそのまま別件修正を進めることはできません。",
+                    "hold_reason": "まずはメッセージ上で状況だけ確認し、実際に修正が必要な場合は見積り提案または新規依頼としてご案内します。",
+                    "revisit_trigger": "今回の症状を受領したあとに、見積り提案または新規依頼として進めるかをご案内します。",
+                }
+            ],
+            "ask_map": [
+                {
+                    "id": "a1",
+                    "question_ids": ["q1"],
+                    "ask_text": "まずは今回の症状だけ、このメッセージ上で送ってください。",
+                    "why_needed": "前回と関係があるか、別件として実作業が必要かを切るため",
+                }
+            ],
+            "required_moves": ["react_briefly_first", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+        }
+        return case
+
     if scenario == "closed_zip_fix_return":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1521,7 +1556,7 @@ def reaction_line(case: dict) -> str:
     if scenario == "memo_rewrite":
         return "前回メモで伝わりにくかった部分があったとのこと、承知しました。"
     if scenario == "new_issue_repeat_client":
-        return "前回とは別の内容とのことなので、まず今回の症状から確認します。"
+        return "前回とは別件の可能性もあるため、まず今回の症状から確認します。"
     if scenario == "closed_next_consult_path":
         return "次の相談の入り口ですね。"
     if scenario == "referral_and_soft_new_issue":
@@ -1614,12 +1649,12 @@ def current_focus_line(case: dict) -> str | None:
         return "トークルームは閉じていますが、触った箇所と前の修正のつながりを確認します。"
     if scenario in {"new_issue_repeat_client", "repeat_bugfix_price_check"}:
         if scenario == "new_issue_repeat_client" and asks_to_send_symptoms_in_message(raw):
-            return "確認だけで済む範囲はメッセージ上で確認できます。修正作業が必要な場合は、旧トークルームの続きではなく、ココナラ上で対応方法と費用の有無を先にご相談します。"
+            return "状況の見立てまでは、このメッセージ上で確認できます。修正作業が必要な場合は、旧トークルームの続きではなく、ココナラ上で対応方法と費用を先にご相談します。"
         if "webhook" in raw.lower() and any(marker in raw for marker in ["送信は成功", "到達していない", "届かなく", "届いていない"]):
             return "送信は成功しているとのことなので、まず受信側でどこまで届いているかを確認します。"
-        return "いまの症状が分かると、見積りをお返ししやすくなります。"
+        return "状況の見立てまでは、このメッセージ上で確認できます。修正作業が必要な場合は、旧トークルームの続きではなく、ココナラ上で対応方法と費用を先にご相談します。"
     if scenario == "closed_next_consult_path":
-        return "トークルームは閉じているため、コードを見て原因調査や修正作業まで入る場合は、見積り提案または新規依頼として費用の有無を先にご相談します。"
+        return "トークルームは閉じているため、コードを見て原因調査や修正作業まで入る場合は、見積り提案または新規依頼として対応方法と費用を先にご相談します。"
     if scenario == "price_discount_request" and "new_issue_followup_present" in (case.get("response_decision_plan") or {}).get("facts_known", []):
         return "同じようなエラーでも、プロジェクトが違えばコードや環境も変わるため、確認なしに前回の修正をコピペするとはお約束できません。"
     if scenario == "same_ticket_scope_question":
@@ -1651,6 +1686,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "前回の件が安定していたとのこと、ありがとうございます。"
     if scenario == "closed_materials_check":
         return "まず確認材料として見ます。"
+    if scenario == "closed_old_talkroom_ohineri":
+        return "クローズ後の別件相談について、確認しました。"
     if scenario == "closed_zip_fix_return":
         return "コード一式を送る件、確認しました。"
     if scenario == "closed_external_large_share":
@@ -1697,11 +1734,11 @@ def draft_opening_anchor(case: dict) -> str:
             return "Webhook が届かなくなっている件、確認しました。"
         if "API Route" in raw and ("メールが送れなく" in raw or "メール" in raw):
             return "API Routeからメールが送れない件でお困りとのこと、確認しました。"
-        return "前回とは別の内容とのことなので、まず今回の症状から確認します。"
+        return "前回とは別件の可能性もあるため、まず今回の症状から確認します。"
     if scenario == "referral_and_soft_new_issue":
         return "本当に助かったとのこと、ありがとうございます。"
     if scenario == "repeat_bugfix_price_check":
-        return "前回とは別の内容とのことなので、まず今回の症状から確認します。"
+        return "前回とは別件の可能性もあるため、まず今回の症状から確認します。"
     if scenario == "self_edit_regression":
         raw = case.get("raw_message", "")
         if "PayPay" in raw and "Stripe" in raw and "動かなく" in raw:
@@ -1757,6 +1794,20 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                     primary.get("hold_reason", ""),
                     "ログやスクショを送ってください。",
                     "実作業が必要と分かった場合は、見積り提案または新規依頼としてご案内します。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "closed_old_talkroom_ohineri":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    primary.get("hold_reason", ""),
+                    "まずは今回の症状だけ、このメッセージ上で送ってください。",
+                    "前回との関係も、症状を見てから確認します。",
                 ]
             ),
         )
@@ -2070,7 +2121,9 @@ def render_case(case: dict) -> str:
     for paragraph in draft_body_paragraphs(case):
         _append_unique(body_paragraphs, paragraph)
 
-    if case.get("scenario") == "new_issue_repeat_client" and asks_to_send_symptoms_in_message(case.get("raw_message", "")):
+    if case.get("scenario") in {"closed_materials_check", "closed_old_talkroom_ohineri"}:
+        next_action = "送っていただいた範囲で、見立てを短くお返しします。"
+    elif case.get("scenario") == "new_issue_repeat_client" and asks_to_send_symptoms_in_message(case.get("raw_message", "")):
         next_action = "症状を送っていただいた後、確認して見立てをお返しします。"
     else:
         next_action = time_commit() if (primary["disposition"] == "answer_after_check" or decision_plan.get("blocking_missing_facts")) else ""

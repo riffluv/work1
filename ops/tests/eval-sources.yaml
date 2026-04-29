@@ -72,6 +72,62 @@ primary_sources:
       - estimate_initial renderer / lint の初期入力
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/response-weight-layout-bugfix37.yaml
+    role: eval
+    purpose:
+      - response_weight_mismatch / buyer_state_ack_gap の近接事故確認
+      - purchased 追加症状 misfire / delivered fallback drift / closed 再相談の回帰確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/post-fix-r0-stability-bugfix38.yaml
+    role: edge
+    purpose:
+      - bugfix37 後の r0 近接事故 sentry
+      - old generic template / context bleed / purchased feature addon / delivered closed boundary の再発確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/public-private-leakage-bugfix39.yaml
+    role: edge
+    purpose:
+      - same input / different mode の public 側 sentry
+      - buyer 文に 25,000円や整理が混ざっても、通常 live / #RE で private handoff 語彙を出さないことの確認
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/delivery-completion-bugfix40.yaml
+    role: edge
+    purpose:
+      - delivered / closed / formal delivery 周辺の micro-state 回帰確認
+      - 承諾前確認、クローズ後無料/返金不安、旧トークルーム継続圧力、確認材料と実作業の分離を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/post-br-live-boundary-bugfix41.yaml
+    role: edge
+    purpose:
+      - BR13〜16 から通常 live / #RE へ戻した汎用境界の回帰確認
+      - 未公開サービス混線、操作手順書・顧客FAQ、raw secret inventory、diagnosis-only、prequote payment route pressure の再発検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/post-docs-cleanup-noise-bugfix42.yaml
+    role: edge
+    purpose:
+      - docs cleanup 後に、古い運用 docs / 支払い導線 / private handoff 語彙が通常 live / #RE へ戻らないか確認
+      - 操作マニュアル吸収、相手文にない外注先 context bleed、closed 後のおひねり継続圧力の再発検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/live-core-human-review-bugfix43.yaml
+    role: eval
+    purpose:
+      - bugfix-15000 live 返信の本丸接地、主質問への直答、buyer の判断しやすさを確認
+      - human review 観点として、ぶつ切り感、貼り合わせ感、状態理解不足、重すぎる安全説明の再発を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/public-launch-practical-bugfix44.yaml
+    role: eval
+    purpose:
+      - bugfix-15000 公開直前の実戦入口を確認
+      - 短文価格質問、曖昧相談、secret 値、購入前作業開始、複数不具合、purchased / closed の状態境界を検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

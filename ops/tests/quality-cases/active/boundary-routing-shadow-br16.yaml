@@ -1,0 +1,130 @@
+batch_id: BR-2026-04-29-boundary-routing-shadow-16
+shortcut: "#BR"
+purpose: "post-Pro roadmap confirmation for source cleanup, public/private wording separation, payment-route isolation, and delivery/closed microstates"
+mode: "training-visible"
+public_state:
+  bugfix-15000: true
+  handoff-25000: false
+guardrails:
+  - "Do not change service-registry public flags."
+  - "Normal live replies must not expose handoff-25000 service name, 25,000 yen price, or purchase CTA while public:false."
+  - "In #BR only, future-dual routing may be described for audit purposes."
+  - "Keep service boundary and payment route separate."
+  - "Do not revive same-talkroom or ohineri wording unless buyer explicitly asks and state allows it."
+  - "Delivered is not closed; closed is not an old-talkroom add-on path."
+output_path: "/home/hr-hm/Project/work/サービスページ/rehearsal/boundary-routing-返信学習/返信監査_batch-current.md"
+cases:
+  - case_id: BR16-001
+    stock_id: BR16-001
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "public-like active defect mentions 25k structure"
+    expected_route: bugfix-first_no_required_handoff_no_public_leak_in_live
+    first_question_to_answer: "注文作成停止の不具合は、先に25,000円整理を挟まず15,000円修正で見られるか。"
+    raw_message: "Stripe決済後に注文が作られない不具合があります。コードが分からないので25,000円の整理を先に頼むべきか迷っています。今すぐ直したい場合はどちらがいいですか？"
+    buyer_text: "Stripe決済後に注文が作られない不具合があります。コードが分からないので25,000円の整理を先に頼むべきか迷っています。今すぐ直したい場合はどちらがいいですか？"
+    must_check:
+      - "Active defect should be bugfix-first."
+      - "Do not make handoff a prerequisite."
+      - "In #BR, 25k may be discussed, but normal live must not inherit the handoff wording."
+
+  - case_id: BR16-002
+    stock_id: BR16-002
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "valid handoff after source cleanup no payment route asked"
+    expected_route: handoff-first_no_payment_route_bleed
+    first_question_to_answer: "動いている決済完了から注文作成までの1フロー整理を25,000円で受けられるか。"
+    raw_message: "今は不具合は出ていません。次の担当者が追えるように、決済完了から注文作成までの関連ファイル、処理の流れ、危険そうな箇所を整理してほしいです。"
+    buyer_text: "今は不具合は出ていません。次の担当者が追えるように、決済完了から注文作成までの関連ファイル、処理の流れ、危険そうな箇所を整理してほしいです。"
+    must_check:
+      - "Handoff-first for existing one-flow understanding."
+      - "Do not mention same talkroom, ohineri, or paid option because buyer did not ask payment method."
+      - "Do not promise repair."
+
+  - case_id: BR16-003
+    stock_id: BR16-003
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "bugfix light explanation asks whether handoff is unnecessary"
+    expected_route: bugfix-first_light_explanation_not_handoff
+    first_question_to_answer: "修正後に変更ファイルと確認順だけ分かれば、25,000円整理なしで足りるか。"
+    raw_message: "Webhookエラーを直したあと、変更ファイルと確認順だけ分かれば十分です。次の担当者向けの25,000円整理までは不要ですよね？"
+    buyer_text: "Webhookエラーを直したあと、変更ファイルと確認順だけ分かれば十分です。次の担当者向けの25,000円整理までは不要ですよね？"
+    must_check:
+      - "Light explanation is enough inside bugfix."
+      - "Do not upsell to handoff."
+      - "Do not repeat private handoff details unnecessarily."
+
+  - case_id: BR16-004
+    stock_id: BR16-004
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "handoff with repair absorption and no payment route asked"
+    expected_route: handoff-first_no_repair_absorption_no_payment_route
+    first_question_to_answer: "整理中に直せそうな箇所が見つかった場合、25,000円内で修正まで含められるか。"
+    raw_message: "決済完了からユーザー権限付与までの流れを整理してほしいです。もし整理中に明らかに直せそうな箇所が見つかったら、その場で一緒に直してもらえますか？"
+    buyer_text: "決済完了からユーザー権限付与までの流れを整理してほしいです。もし整理中に明らかに直せそうな箇所が見つかったら、その場で一緒に直してもらえますか？"
+    must_check:
+      - "Handoff-first because no current active defect."
+      - "Do not include repair work inside 25k handoff."
+      - "Do not mention ohineri or same talkroom because buyer did not ask payment method."
+
+  - case_id: BR16-005
+    stock_id: BR16-005
+    state: delivered
+    service_hint: boundary
+    primary_question_type: "delivered before acceptance secondary question"
+    expected_route: delivered_not_closed_check_relation_first
+    first_question_to_answer: "正式納品後・承諾前に、今回の修正と別かもしれない質問を送ってよいか。"
+    raw_message: "正式納品ありがとうございます。承諾前に確認している途中です。今回の修正とは別かもしれませんが、Stripeの領収書メールが届かない件も少し聞いていいですか？"
+    buyer_text: "正式納品ありがとうございます。承諾前に確認している途中です。今回の修正とは別かもしれませんが、Stripeの領収書メールが届かない件も少し聞いていいですか？"
+    must_check:
+      - "Delivered is not closed."
+      - "Allow light relation check before acceptance."
+      - "Separate real new work from current delivery scope."
+      - "No payment route because buyer did not ask payment method."
+
+  - case_id: BR16-006
+    stock_id: BR16-006
+    state: closed
+    service_hint: boundary
+    primary_question_type: "closed materials first and possible handoff mention"
+    expected_route: closed_message_check_then_new_quote_if_work
+    first_question_to_answer: "クローズ後に、前回修正と関係あるか確認するためログだけ送ってよいか。"
+    raw_message: "前回の不具合修正はクローズ済みです。25,000円の整理を頼むほどではなく、まず前回の修正箇所と関係あるかだけ見たいです。ログとスクショをこのメッセージで送っても大丈夫ですか？"
+    buyer_text: "前回の不具合修正はクローズ済みです。25,000円の整理を頼むほどではなく、まず前回の修正箇所と関係あるかだけ見たいです。ログとスクショをこのメッセージで送っても大丈夫ですか？"
+    must_check:
+      - "Closed old talkroom is not an add-on work route."
+      - "Message-level material check is okay."
+      - "If real work is needed, separate quote/new request."
+      - "Do not push 25k handoff just because buyer mentions it."
+
+  - case_id: BR16-007
+    stock_id: BR16-007
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "neither dashboard manual and customer FAQ disguised as handoff"
+    expected_route: neither_dashboard_manual_customer_faq_not_code_handoff
+    first_question_to_answer: "Stripe管理画面の操作手順書と顧客向けFAQを25,000円整理に含められるか。"
+    raw_message: "Stripe関連なので、スタッフ向けに返金や領収書確認の操作手順書と、お客さん向けFAQを作ってほしいです。次の担当者向け資料として25,000円の整理に入りますか？"
+    buyer_text: "Stripe関連なので、スタッフ向けに返金や領収書確認の操作手順書と、お客さん向けFAQを作ってほしいです。次の担当者向け資料として25,000円の整理に入りますか？"
+    must_check:
+      - "Dashboard operations manual and customer FAQ are neither."
+      - "Do not absorb into code handoff."
+      - "Explain shortly without being cold."
+
+  - case_id: BR16-008
+    stock_id: BR16-008
+    state: prequote
+    service_hint: boundary
+    primary_question_type: "prequote valid handoff plus asks same-room repair if needed"
+    expected_route: handoff-first_no_prequote_same_room_repair_promise
+    first_question_to_answer: "1フロー整理後に修正が必要と分かったら、同じトークルーム内でそのまま修正まで頼めるか。"
+    raw_message: "まず決済完了から注文作成までを25,000円で整理してほしいです。その結果、修正が必要だと分かった場合は、同じトークルーム内でそのまま修正までお願いできますか？"
+    buyer_text: "まず決済完了から注文作成までを25,000円で整理してほしいです。その結果、修正が必要だと分かった場合は、同じトークルーム内でそのまま修正までお願いできますか？"
+    must_check:
+      - "Handoff-first for first requested task."
+      - "Repair is separate deliverable."
+      - "Because state is prequote, do not promise same-talkroom continuation."
+      - "Answer buyer's payment-route question cautiously."

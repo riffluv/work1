@@ -76,6 +76,13 @@ def time_commit(hours: int = 2) -> str:
     return f"本日{target:%H:%M}までに、確認結果をお返しします。"
 
 
+def time_commit_for_scenario(scenario: str, hours: int = 2) -> str:
+    target = datetime.now(JST) + timedelta(hours=hours)
+    if scenario == "doc_explanation_request":
+        return f"本日{target:%H:%M}までに、補足説明をお送りします。"
+    return f"本日{target:%H:%M}までに、確認結果をお返しします。"
+
+
 def is_complaint_like(source: dict, scenario: str | None = None) -> bool:
     raw = source.get("raw_message", "")
     tone = source.get("emotional_tone", "")
@@ -112,6 +119,7 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
         "delivery_scope_mismatch",
         "same_cause_check",
         "extra_scope_after_delivery",
+        "secondary_question_before_acceptance",
         "approval_reassurance_request",
         "acceptance_after_support_question",
         "delivered_can_reject",
@@ -132,6 +140,8 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
 def opener_for(source: dict) -> str:
     if is_complaint_like(source):
         return ""
+    if source.get("scenario") == "secondary_question_before_acceptance":
+        return "ご確認ありがとうございます。"
     if source.get("scenario") == "success_thanks_only":
         return ""
     if source.get("scenario") == "formal_thanks_only":
@@ -255,6 +265,12 @@ def detect_scenario(source: dict) -> str:
     if "バックアップ" in combined and ("差分" in combined or "取り忘れて" in combined):
         return "backup_diff_request"
     if (
+        "承諾前" in combined
+        and any(marker in combined for marker in ["別かもしれ", "別件", "別の件", "今回の修正とは別"])
+        and any(marker in combined for marker in ["聞いていい", "聞いてもいい", "送ってもいい", "少し聞"])
+    ):
+        return "secondary_question_before_acceptance"
+    if (
         any(marker in combined for marker in ["別の話", "ついでに", "Webhookとは関係ない", "関係ないと思う"])
         and any(marker in combined for marker in ["読み込み", "重い", "パフォーマンス", "軽く見てもら"])
     ):
@@ -302,7 +318,13 @@ def detect_scenario(source: dict) -> str:
         marker in combined for marker in ["設定順序", "デプロイし直す", "気をつけること", "あとで困りたくない"]
     ):
         return "doc_caution_followup"
-    if "もう少しかみ砕いた説明" in combined:
+    if (
+        "もう少しかみ砕いた説明" in combined
+        or (
+            any(marker in combined for marker in ["分かりやすく説明", "わかりやすく説明", "専門用語"])
+            and any(marker in combined for marker in ["修正ファイル", "確認手順", "説明"])
+        )
+    ):
         return "doc_explanation_request"
     if "質問が出たら聞いてもいいですか" in combined:
         return "postdelivery_question_window"
@@ -454,6 +476,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "修正前のバックアップや差分を後から確認できるか知りたい"
     if scenario == "extra_scope_after_delivery":
         return "今回とは別の読み込みの重さもついでに見てもらえるか知りたい"
+    if scenario == "secondary_question_before_acceptance":
+        return "承諾前に、今回の修正と別かもしれない質問をどこまで聞けるか知りたい"
     if scenario == "apply_followup_issue":
         return "反映後のビルドエラーを今回の続きで見てもらいたい"
     if scenario == "doc_status_question":
@@ -611,6 +635,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
             direct_answer_line = "期待と違っていた点は確認しました。"
     elif scenario == "extra_scope_after_delivery":
         direct_answer_line = "軽く確認することはできますが、Webhookとは別の話ならこの範囲とは分けて案内します。"
+        response_order = ["opening", "direct_answer", "answer_detail"]
+    elif scenario == "secondary_question_before_acceptance":
+        direct_answer_line = "はい、承諾前なので、まず今回の修正とつながる内容かを軽く確認できます。"
         response_order = ["opening", "direct_answer", "answer_detail"]
     elif scenario == "backup_diff_request":
         direct_answer_line = "修正前のファイルは別途保管していませんでした。"
@@ -1189,6 +1216,24 @@ def build_case_from_source(source: dict) -> dict:
         }
         return case
 
+    if scenario == "secondary_question_before_acceptance":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "承諾前に別件かもしれない質問をしてよいか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "はい、承諾前なので、まず今回の修正とつながる内容かを軽く確認できます。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now", "separate_followup_from_new_work"],
+        }
+        return case
+
     if scenario == "delivery_scope_mismatch":
         mismatch_is_specific = "診断レポートだけ" in raw and "修正ファイル" in raw
         case["reply_contract"] = {
@@ -1464,18 +1509,20 @@ def build_case_from_source(source: dict) -> dict:
         return case
 
     if scenario == "doc_explanation_request":
-        case["reply_contract"] = {
-            "primary_question_id": "q1",
-            "explicit_questions": [
-                {"id": "q1", "text": "もう少しかみ砕いた説明をお願いできるか", "priority": "primary"},
-                {"id": "q2", "text": "追加料金がかかるか", "priority": "secondary"},
-            ],
-            "answer_map": [
-                {
-                    "question_id": "q1",
-                    "disposition": "answer_now",
-                    "answer_brief": "はい、説明をもう少しかみ砕いて補足することはできます。",
-                },
+        asks_fee = any(marker in raw for marker in ["追加料金", "費用", "料金", "別料金"])
+        explicit_questions = [{"id": "q1", "text": "もう少しかみ砕いた説明をお願いできるか", "priority": "primary"}]
+        answer_map = [
+            {
+                "question_id": "q1",
+                "disposition": "answer_now",
+                "answer_brief": "はい、修正ファイルと確認手順を、もう少し分かりやすく補足できます。",
+            }
+        ]
+        question_ids = ["q1"]
+        required_moves = ["react_briefly_first", "answer_directly_now", "request_minimum_evidence", "commit_next_update_time"]
+        if asks_fee:
+            explicit_questions.append({"id": "q2", "text": "追加料金がかかるか", "priority": "secondary"})
+            answer_map.append(
                 {
                     "question_id": "q2",
                     "disposition": "answer_after_check",
@@ -1483,16 +1530,22 @@ def build_case_from_source(source: dict) -> dict:
                     "hold_reason": "まずはどの部分が難しかったかを見て、補足で足りるかを先に切ります。",
                     "revisit_trigger": "分かりにくかった箇所を受領したあとにお返しします。",
                 }
-            ],
+            )
+            question_ids.append("q2")
+            required_moves.insert(2, "defer_with_reason")
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": explicit_questions,
+            "answer_map": answer_map,
             "ask_map": [
                 {
                     "id": "a1",
-                    "question_ids": ["q1", "q2"],
+                    "question_ids": question_ids,
                     "ask_text": "特に分かりにくかった箇所があれば、そのまま送ってください。",
                     "why_needed": "補足の範囲で足りるかを判断するため",
                 }
             ],
-            "required_moves": ["react_briefly_first", "answer_directly_now", "defer_with_reason", "request_minimum_evidence", "commit_next_update_time"],
+            "required_moves": required_moves,
         }
         return case
 
@@ -1838,6 +1891,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "見た目が少し変わったように見える件、確認しました。"
     if scenario == "extra_scope_after_delivery":
         return "無事動いたとのこと、よかったです。"
+    if scenario == "secondary_question_before_acceptance":
+        return ""
     if scenario == "backup_diff_request":
         return "Webhookは動いているとのこと、よかったです。"
     if scenario == "delivery_scope_mismatch":
@@ -2262,6 +2317,19 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         )
         return paragraphs
 
+    if scenario == "secondary_question_before_acceptance":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "領収書メールが届かない件について、このトークルームで症状だけ送ってください。",
+                    "別の不具合として実作業が必要そうな場合は、今回の修正範囲とは分けてご相談します。",
+                ]
+            ),
+        )
+        return paragraphs
+
     if scenario == "backup_diff_request":
         _append_unique(
             paragraphs,
@@ -2432,7 +2500,11 @@ def render_case(case: dict) -> str:
     contract = case["reply_contract"]
     primary_id = contract["primary_question_id"]
     primary = next(item for item in contract["answer_map"] if item["question_id"] == primary_id)
-    next_action = time_commit() if (primary["disposition"] == "answer_after_check" or decision_plan.get("blocking_missing_facts")) else ""
+    next_action = (
+        time_commit_for_scenario(case.get("scenario", "generic_delivered"))
+        if (primary["disposition"] == "answer_after_check" or decision_plan.get("blocking_missing_facts"))
+        else ""
+    )
 
     sections: list[str] = []
     _append_unique(sections, opening_block)

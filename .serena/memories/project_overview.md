@@ -2,13 +2,13 @@
 - Purpose: persistent Japanese-language workspace for Coconala operations focused on paid client work for Next.js / Stripe / API integration bug diagnosis and fixes.
 - Core workflow: estimate inquiry -> scope judgment -> reply drafting -> implementation -> delivery.
 - Strongest positioning: Stripe webhook issues (signature verification, undelivered events, duplicate processing).
-- Fixed commercial model: 15,000 JPY base fee for one bug (same root cause / one flow / one endpoint), plus options for one extra fix (15,000 JPY) and 30 minutes extra investigation (5,000 JPY).
+- Fixed public commercial model: `bugfix-15000` is the only live public service. `handoff-25000` remains `public:false` until `os/core/service-registry.yaml` says otherwise.
 - Communication constraints: text-only, no calls, no direct push unless contracted, no production deploy unless contracted, no raw secrets.
-- Source-of-truth content: service page under `サービスページ/bugfix-15000.live.txt` per next-codex prompt; profile under `現在のプロフィール`. Some older docs mention `現在の製品ページとプロフィール`, but current startup instructions prioritize the service page file plus profile file.
-- Important docs to read first for new sessions: `HANDOFF_NEXT_CODEX.ja.md`, `AGENTS.md`, `docs/README.ja.md`, `docs/service-catalog.ja.md`, `docs/writing-guideline.ja.md`, `docs/coconala-guide-market-ops.ja.md`, `docs/coconala-seller-help-key-links.ja.md`, `docs/coconala-special-case-policy.ja.md`, and `stripe日本語UI案内`.
+- Source-of-truth content: `os/core/service-registry.yaml` points to the service page sources. `bugfix-15000` uses `サービスページ/bugfix-15000.live.txt`; `handoff-25000` uses `サービスページ/handoff-25000.ready.txt` as an internal draft while private.
+- Important docs to read first for new sessions: `AGENTS.md`, `docs/next-codex-prompt.txt`, `docs/README.ja.md`, `docs/reply-quality/README.ja.md`, `docs/writing-guideline.ja.md`, `docs/coconala-guide-market-ops.ja.md`, `docs/coconala-special-case-policy.ja.md`, and `stripe日本語UI案内`.
 - Key directories: `cases/` for active/hold/closed client cases, `docs/` for operating docs, `TEMPLATES/` for reusable case docs, `scripts/` for case and consistency tooling, `.codex/skills/` for local skill definitions.
 - Primary language: Japanese. Customer-facing writing must follow `docs/writing-guideline.ja.md`.
-- Reply behavior: pasted customer text alone means analysis only; draft sendable reply only when explicitly asked. Save every sendable reply to `返信文_latest.txt`.
+- Reply behavior: pasted customer text alone means analysis only; draft sendable reply only when explicitly asked. Save every sendable reply to `runtime/replies/latest.txt`.
 - UI tag operations are strict: `#$0` to `#$3` flow tags and `#R/#A/#D` output tags.
 - Stripe guidance must prefer Japanese UI wording and consult `stripe日本語UI案内` first.
-- Current synchronization note from `docs/next-codex-prompt.txt`: latest sync date is 2026-03-03.
+- Current synchronization note: startup source is `docs/next-codex-prompt.txt`; `HANDOFF_NEXT_CODEX.ja.md` is history only.

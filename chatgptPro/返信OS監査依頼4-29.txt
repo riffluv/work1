@@ -1,0 +1,738 @@
+1. 結論
+
+現行OSは「完成に近い」が、まだ完成扱いにはしない方がいいです。
+理由は、返信判断コアの骨格そのものはかなり正しく、壊すべきではない一方で、完成判定に必要な source-of-truth 整合 / shadow asset 漏れ防止 / delivery-completion 境界 / handoff-only public 化前検査 がまだ残っているためです。
+
+特に critical に見ると、現時点の主リスクは「レンズ不足」ではありません。むしろ、レンズは足りてきているが、運用ファイル・gold・renderer・validator・batch mode の接続が一部まだ事故り得る という状態です。bugfix-15000 が public:true、handoff-25000 が public:false、通常 live / #RE では handoff 名・25,000円・購入導線を出さない、#BR だけ future-dual shadow rehearsal として扱う、という前提は service-registry / next prompt / AGENTS の方針と一致しています。
+
+一番強く指摘したいのは、handoff-25000 の service page 側に、payment route と service boundary を混ぜる表現がまだ残っていることです。たとえば handoff ページ案には「追加1フローは15,000円」「修正が必要な場合は、同じトークルーム内で続けてご案内できます」という趣旨の記述があり、現行の platform-contract が定める「サービス境界と支払い導線を分ける」方針と緊張します。これは public:false の今は P0 事故ではありませんが、public:true 前の blocker です。
+
+したがって結論はこうです。
+
+大規模 redesign は不要。
+ただし、完成判定には「レンズ追加」よりも、source-of-truth 整合、mode leakage 防止、delivery/completion regression、handoff-only rehearsal が必要。
+
+2. 完成条件
+2.1 実運用可能と言える条件
+
+実運用可能の条件は、単に「返信が自然」ではなく、以下が揃っている状態です。
+
+A. 外向けに出してよいサービスだけが出る
+
+bugfix-15000 は public:true、handoff-25000 は public:false なので、通常 live / #RE では次が 0件 である必要があります。
+
+handoff-25000
+25,000円
+handoff サービス名
+主要1フロー整理サービスへの購入導線
+bugfix と handoff の比較による誘導
+#BR 用の future-dual 文脈
+
+これは soft lens ではなく、deterministic validator / lint でよい領域です。service-registry.yaml も public:false service の名称・価格・購入CTAを outbound に出さないルールを持っているため、ここは hard gate にできます。
+
+B. bugfix-15000 単体で、状態別返信が安定する
+
+bugfix live の完成条件は、以下の state で hard fail が出ないことです。
+
+state	完成条件
+prequote	15,000円 / 1不具合 / 同一原因 / 購入前は見立てまで、を過不足なく言える
+quote_sent	見積もり提案後だが、作業開始ではないことを崩さない
+purchased	作業中・追加症状・別原因・新機能を混同しない
+delivered	納品済みだがクローズ前の補足・確認・次アクションを誤らない
+closed	旧トークルームでの追加作業・おひねり誘導を出さない
+cancelled	作業継続・納品・追加導線を混ぜない
+
+bugfix-15000 自体の service facts は、Next.js / Stripe / API連携の不具合1件、同一原因、原因特定・修正内容・確認手順・修正済みファイル返却、直接 push / 本番デプロイ / 外部連絡 / 秘密情報共有なし、という形でかなり明確です。
+
+C. 「主質問直答 → 境界 → 次アクション」が自然に出る
+
+過去の問題だった、
+
+ぶつ切り感
+宙ぶらりん感
+取引状態を理解していない感じ
+buyer が次に何をすればいいか分かりにくい感じ
+安全だが重い・硬い返信
+
+は、現在の writer-brief / scorecard / gold / learning-log でかなり対策されています。特に Writer に大量ルールを常駐させず、「主質問に先に答える」「buyer の言葉を拾う」「次アクションを1つに絞る」「状態認識を1文だけ置く」という設計は妥当です。
+
+完成判定では、返信の構造をこう見るのがよいです。
+
+1. buyer の主質問に直接答えている
+2. 現在の取引状態を誤っていない
+3. サービス境界を必要最小限だけ示している
+4. buyer が次に何をすればよいか迷わない
+5. platform route / payment route / service scope を混ぜていない
+6. 温度感が過剰に硬くない
+D. #RE と #BR の成果物が混線しない
+
+#RE は bugfix-15000 単体の返信品質確認、#BR は future-dual shadow rehearsal です。この分離は完成条件に含めるべきです。#BR の学びを通常 live に戻す場合も、「汎用の境界学習」だけを戻し、handoff 名・25,000円・dual service routing 文は戻さない必要があります。
+
+2.2 何が残っていると危険か
+
+危険なのは次です。
+
+handoff public:false 情報の外向け漏れ
+#BR の文体・分類語彙が live / #RE に混ざること
+handoff service page 内の payment route 表現が public:true 時にそのまま出ること
+delivered / closed / formal delivery / completion gate の誤判定
+buyer の主質問に答えず、安全境界だけ述べる返信への回帰
+response_weight_mismatch を validator 化して、必要な安全境界まで削ること
+platform 固有仕様を common core に入れて、他サービス展開時に壊れること
+2.3 完成前に最低限通すべき rehearsal / regression
+
+最低限はこの 5 系統です。
+
+種別	最低限見るもの
+public/private regression	通常 live / #RE で handoff 名・25,000円・購入導線が 0 件
+bugfix-only #RE	prequote / quote_sent / purchased / delivered / closed / cancelled
+delivery-completion regression	納品前後、正式納品、承諾前、クローズ後、追加相談
+payment-route regression	same talkroom / おひねり / 有料オプション / 新規相談を state 別に分離
+shadow leakage regression	#BR の dual-service 語彙が live renderer に流入しない
+2.4 これ以上やっても学習効率が低い領域
+
+以下は、今すぐ増やしても効率が低いです。
+
+bugfix vs handoff の基本分類を同じ形で何十回も回す
+既に通っている neither ケースの類似追加
+response_weight を細かく採点軸化する
+buyer_state_ack を文言テンプレ化する
+Writer brief に reviewer レベルの観点を追加し続ける
+gold を増やすだけで、superseded / current 管理をしない
+3. 現行骨格の評価
+3.1 維持すべき骨格
+
+現行骨格はかなり正しいです。特に次は維持した方がいいです。
+
+骨格	評価
+Writer / Reviewer / renderer / validator / gold / learning-log 分離	✅ 維持。返信品質と安全性の両立に効いている
+Writer に大量ルールを置かない	✅ 維持。自然な返信を守っている
+validator は deterministic 事故だけ	✅ 維持。soft lens の硬直化を防いでいる
+buyer_state_ack / response_weight は reviewer / gold 側	✅ 維持。hard validator 化すると壊れる
+service facts を common core に混ぜない	✅ 維持。複数サービス展開の前提になる
+#RE / #BR を生成モードではなく学習・境界検査として扱う	✅ 維持。mode separation として重要
+rule 化は再発性・戻し先・副作用の低さ確認後	✅ 維持。過剰ルール化を抑えている
+
+AGENTS.md でも、role separation、mode separation、runtime Writer の簡素化、learning-log / gold / validator の役割分担が明確にされています。これは返信OSの骨格としてかなり健全です。
+
+3.2 現行骨格の弱点
+
+弱点は、骨格そのものではなく、接続部です。
+
+弱点A: source-of-truth の微妙なズレ
+
+platform-contract.yaml は「service boundary と payment route を分ける」方針を明確にしており、closed talkroom / おひねり / 追加支払い / 正式納品前後の扱いもかなり丁寧です。
+
+一方、handoff-25000.ready.txt には、追加1フローや同一トークルームでの続行案内がサービスページ本文に残っています。これは public:false の今は表に出ないため即時事故ではありませんが、将来 public:true にする前には必ず整理すべき source drift です。
+
+弱点B: gold / renderer / first-pass の接続
+
+learning-log では、soft lens の配置後も、初回案で古い三点セット・context bleed・purchased template misfire・delivered fallback drift が出た近接事故が記録されています。これは「レンズが足りない」というより、既存 gold へ戻る導線が first-pass でまだ弱い という問題です。
+
+弱点C: delivery/completion 系の境界がまだ完成判定に足りない
+
+platform-contract には delivered / closed / formal delivery / additional payment の扱いがかなり書かれていますが、完成判定としては、ここを batch regression として固定化した方がよいです。
+
+4. 監査レンズの十分性
+4.1 現在の lens 構成は足りているか
+
+会話品質 lens と service boundary lens は、ほぼ足りています。
+今足りないのは「新しい会話 lens」ではなく、以下のような meta / artifact / mode leakage 検査 です。
+
+source-of-truth drift
+shadow asset leakage
+handoff public:true 前の service-page contract drift
+delivery/completion regression density
+first-pass gold connection
+
+既存の scorecard では、transaction_model_gap、work_payment_boundary、free_support...、buyer_state_ack_gap、surface_overexposure、response_weight_mismatch などが補助軸として扱われ、点数化しすぎない設計になっています。これは妥当です。
+
+4.2 既存 lens の配置評価
+lens	現配置の評価	コメント
+transaction_model_gap	✅ 妥当	hard validator ではなく、上位の状態理解 lens として残すのがよい
+buyer_state_ack_gap	✅ 妥当	reviewer / gold / writer-brief が適切。validator 化は危険
+route_clarity	✅ 妥当	buyer が次に迷わないために必要
+buyer_not_lost	✅ 妥当	route_clarity と近いが、心理的迷子防止として残す価値あり
+response_weight_mismatch	✅ 妥当	hard fail にせず、reviewer / gold 側に留めるべき
+surface_overexposure	⚠️ やや重複	response_weight と近い。独立採点より reviewer memo 的扱いがよい
+work_payment_boundary	✅ 妥当	payment route と service boundary を分けるために必要
+public_leak	✅ hard 化してよい	handoff public:false 漏れは P0 なので deterministic gate 対象
+context_bleed	✅ hard寄り	直近文脈にない前提を持ち込む事故は再発性が高い
+phase_payment_mismatch	✅ hard寄り	state と payment route の誤結合は validator 候補
+
+response_weight_mismatch と buyer_state_ack_gap は、learning-log でも reviewer / gold / writer-brief 側に置く方針で、validator / renderer へ入れない判断になっています。この判断は正しいです。
+
+4.3 重複・肥大化・ノイズ化の危険
+
+重複しやすいのはこのあたりです。
+
+transaction_model_gap
+  ├─ route_clarity
+  ├─ work_payment_boundary
+  ├─ buyer_not_lost
+  └─ phase_payment_mismatch
+
+transaction_model_gap は上位概念として残し、下位 lens は具体的な失敗分類として使うのがよいです。これをすべて個別 hard validator にすると、返信が「安全確認表」みたいになって、過去に問題だった硬さが戻ります。
+
+また、buyer_state_ack_gap と温度感、response_weight_mismatch と surface_overexposure も近いです。これらは採点表で増やすより、gold のアンカー例で制御する方がよいです。Gold README でも gold はテンプレではなくアンカーとして扱う設計になっています。
+
+4.4 既存 lens では拾いきれない blind spot
+
+主な blind spot は 4 つです。
+
+1. source-of-truth drift
+
+返信そのものではなく、サービスページ / service-registry / platform-contract / gold の間で矛盾が起きる問題です。handoff ページの payment route 表現はこの典型です。
+
+2. shadow asset leakage
+
+#BR の shadow 文脈が通常 live / #RE へ混入する問題です。public_leak と近いですが、artifact の昇格経路まで見るなら別メタ検査が必要です。
+
+3. first-pass gold connection gap
+
+レンズはあるのに、初回返信案が古い型へ戻る問題です。これは新 lens より、gold family / renderer selection / reviewer prompt の接続改善で見るべきです。
+
+4. delivery-completion micro-state
+
+delivered、formal delivery、accepted、closed、cancelled、second formal delivery unclear の粒度です。platform-contract には材料がありますが、regression density はもう少し必要です。
+
+5. 追加 lens candidate の有無
+
+結論として、会話 lens の大幅追加は不要です。
+追加するなら、通常の返信 lens ではなく、meta lens / artifact guard として最小限に留めるべきです。
+
+Candidate 1: source_of_truth_drift
+項目	内容
+lens 名	source_of_truth_drift
+検出するもの	service-registry / service page / platform-contract / gold / writer-brief 間の矛盾
+既存 lens で拾いきれない理由	既存 lens は主に「生成された返信」を見る。source 文書間の矛盾は返信前に発生する
+置き場所	reviewer / ops meta regression / service-page review
+validator 化	限定的に可。価格・public:false・購入導線・禁止語の lint は可能
+validator 化の危険	文脈を見ずに「追加」「同じトークルーム」などを全部禁止すると、platform説明や内部docsまで壊す
+誤検知しやすいケース	internal memo、#BR、過去ログ、引用、platform-contract の説明文
+統合案	public_private_fit / service_contract_fit に統合してもよい
+恒久化条件	source 文書由来の返信事故、または public:true 前 review で同種矛盾が2回以上出ること
+
+これは現時点で一番有用な追加候補です。handoff ページ内の「同じトークルーム」表現は、この lens があれば public 化前に拾えます。
+
+Candidate 2: shadow_asset_leakage
+項目	内容
+lens 名	shadow_asset_leakage
+検出するもの	#BR / future-dual / handoff public:false の語彙が live / #RE に混入する事故
+既存 lens で拾いきれない理由	public_leak は返信単体の漏れを拾うが、batch asset の昇格経路までは見ない
+置き場所	validator / renderer mode check / CI lint
+validator 化	可。通常 live / #RE 出力に対する禁止語検査は deterministic
+validator 化の危険	#BR そのものや内部docsに誤って適用すると学習資産が壊れる
+誤検知しやすいケース	監査レポート、#BR batch、service-registry、公開準備メモ
+統合案	public_leak の mode-aware 版として統合可能
+恒久化条件	handoff public:false が続く限り恒久化してよい
+
+これは lens というより mode-aware leak guard です。通常 live / #RE で handoff-25000 や 25,000円が出るのは P0 なので、soft reviewer では弱いです。
+
+Candidate 3: delivery_completion_microstate_gap
+項目	内容
+lens 名	delivery_completion_microstate_gap
+検出するもの	delivered / formal delivery / accepted / closed / cancelled の誤判定
+既存 lens で拾いきれない理由	transaction_model_gap で拾えるが、粒度が粗いと「納品後だけど未クローズ」の微差を落とす
+置き場所	reviewer / gold / regression cases
+validator 化	原則危険。ただし closed で旧トークルームおひねり誘導などは hard 化可
+validator 化の危険	ココナラの実際の状態文言が曖昧な場合に誤判定する
+誤検知しやすいケース	buyer が「納品」と日常語で言っているだけのケース
+統合案	transaction_model_gap の subcase として扱うのがよい
+恒久化条件	delivered / closed 系で2回以上 route/payment 事故が出た場合
+
+これは新 lens にしてもよいですが、まずは transaction_model_gap の regression family として扱う方が軽いです。
+
+6. 不足している境界検査
+6.1 route
+
+不足しているのは「分類そのもの」より、分類後に何を言わないかの検査です。
+
+分類	足りない検査
+bugfix-first	buyer が整理・調査・仕様把握と言っても、実態が明確な不具合なら bugfix に戻せるか
+handoff-first	buyer が「修正も」と言った瞬間に bugfix へ吸われすぎないか
+bridge	まず修正か整理かを buyer に選ばせず、こちらで自然に境界を置けるか
+neither	対象外でも冷たくならず、次に出せる情報を絞れるか
+
+BR14 / BR15 でこの領域はかなり鍛えられていますが、今後は重複ケースより state と組み合わせた route を見る方がよいです。
+
+6.2 state
+
+不足している state 検査は以下です。
+
+quote_sent だが作業開始前
+purchased で追加症状が出たが、同一原因か未判定
+delivered だが buyer がまだ確認前
+delivered 後に別件を聞かれた
+closed 後に同じトークルーム継続を求められた
+cancelled 後に作業継続を求められた
+formal delivery 後、2回目 formal delivery かどうか不明
+
+platform-contract はこれらの材料を持っていますが、完成判定として batch 化すると安心です。
+
+6.3 scope
+
+追加すべき scope 検査です。
+
+圧力	見るべき境界
+「ついでにここも」	同一原因 / 別原因 / 新機能の切り分け
+「全部見て」	1不具合 or 主要1フロー or neither
+「仕様書にして」	handoff の引き継ぎメモと正式仕様書の違い
+「GitHub Issue / PR にして」	作業 surface が変わる境界
+「本番で直して」	直接 push / 本番デプロイ代行の禁止
+「secret 見て」	.env はキー名のみ、値は不要
+6.4 payment route
+
+payment route は、次の matrix で見るべきです。
+
+state	payment route を出してよいか
+prequote	原則出さない。見積もり提案前に same talkroom / おひねりへ誘導しない
+quote_sent	見積もり提案と作業開始を混ぜない
+purchased	buyer が追加対応を明示した時のみ、事前相談として出せる
+delivered	buyer が追加対応を明示した時のみ、正式納品との関係を崩さず出せる
+closed	旧トークルームのおひねり誘導は出さない
+cancelled	継続前提にしない
+
+BR15 はこの軸をかなり見ています。特に prequote / purchased / delivered / closed の payment route 分離は安定してきています。
+
+6.5 public/private service
+
+ここはまだ強めに見るべきです。
+
+同じ buyer 入力を #BR mode と #RE/live mode で流したとき、出力が正しく変わるか
+#BR では 25,000円が出ても、#RE では絶対に出ないか
+handoff ready file の文言が live renderer に参照されないか
+internal docs の例文が outward example として昇格しないか
+6.6 delivery/completion
+
+不足している検査はここです。
+
+delivery_not_completion
+formal_delivery_before_acceptance
+formal_delivery_after_secondary_question
+closed_after_delivery
+closed_refund_pressure
+closed_new_work_request
+delivered_but_buyer_anxious
+
+ここは transaction_model_gap の一部ですが、完成条件としては独立 batch にした方がよいです。
+
+6.7 neither
+
+neither は BR13〜BR15 でかなり安定しています。次に見るなら、単純な対象外ではなく、
+
+buyer が強い不安を持っている neither
+無料相談・診断のみ圧力
+安い方で試したい圧力
+bundle 圧力
+platform route を聞かれているが、service route は neither
+
+を組み合わせるとよいです。
+
+6.8 buyer の主質問直答
+
+まだ見るべき主質問はこのあたりです。
+
+「15,000円で済みますか？」
+「直せますか？」
+「調査だけでもできますか？」
+「返金になりますか？」
+「納品後でも聞いていいですか？」
+「同じトークルームで続けられますか？」
+「修正もそのままお願いできますか？」
+「どっちのサービスを買えばいいですか？」
+「今すぐ本番を触ってもらえますか？」
+
+主質問に答える前に境界説明を置くと、過去の「宙ぶらりん感」が戻ります。
+
+7. #BR / #RE / handoff-only rehearsal の次アクション
+7.1 #BR は今後どこまで回すべきか
+
+BR13〜BR15 の結果を見る限り、basic boundary routing はもうかなり十分です。neither / payment route / service boundary は安定してきています。BR13〜BR15 では neither-heavy、handoff-positive、payment route separation が順に扱われ、BR15 では prequote / purchased / delivered / closed の payment route 境界が中心になっています。
+
+次に回すべき batch 軸
+
+次は量ではなく、以下の 高密度 edge だけでよいです。
+
+same input, different mode
+#BR では handoff を出す
+#RE/live では handoff を出さない
+state × payment route
+purchased / delivered / closed で buyer が同じ「追加でお願いできますか」を言うケース
+handoff public:true 前提の negative rehearsal
+ただし handoff service page cleanup 後
+cheap-route mismatch
+「まず安い方で調べて、違ったら高い方へ」圧力
+bundle pressure
+bugfix + handoff + 追加フロー + 修正をまとめたがるケース
+もう十分な領域
+明らかな新機能 neither
+明らかな full repo / 仕様書化 neither
+明らかな bugfix-first
+明らかな handoff-first
+基本的な 15,000円 / 25,000円 分離
+closed で旧トークルームのおひねりを出さない基本形
+BR を続けることで過学習しそうな領域
+buyer に毎回 bugfix / handoff の比較を説明する癖
+通常 live でも route diagnosis をしたがる癖
+25,000円や主要1フローという語彙が自然文に染み込むこと
+bugfix 相談に対して「整理サービス」の影を出すこと
+neither で冷たくなりすぎること
+#BR から通常 live / #RE に戻してよい学び
+
+戻してよいのは 汎用境界だけです。
+
+新機能追加は bugfix に吸わない
+診断だけ・調査だけの cheap route に流されない
+secret / direct push / 本番デプロイは避ける
+payment route は buyer が聞いた時だけ、state に合わせて出す
+closed では旧トークルーム継続を前提にしない
+buyer の主質問に先に答える
+#BR に留めるべき shadow asset
+handoff-25000
+25,000円
+主要1フロー整理
+bugfix vs handoff の外向け比較
+future-dual routing
+handoff 購入導線
+handoff-ready page の文言
+7.2 #RE は次に何を見るべきか
+
+#RE は bugfix-15000 単体の品質確認なので、次は bugfix37 近接事故の再発防止 を見るべきです。learning-log では、古い汎用テンプレ、context bleed、purchased での追加症状 misfire、delivered fallback drift が問題として出ています。
+
+今すぐ見るべきもの
+old generic template への回帰
+「確認します / 共有ください / 見積もります」の三点セット乱用
+purchased で、追加症状を別件・追加費用へ早く振りすぎる
+delivered で、納品後確認・補足・追加相談を誤る
+closed で、旧トークルーム継続を匂わせる
+buyer の主質問に答える前に安全境界だけ述べる
+bugfix service facts の直答
+15,000円
+1不具合
+同一原因
+直接 push なし
+本番デプロイなし
+secrets 不要
+直せない場合の納品扱い
+数 batch 後でよいもの
+高感情 buyer への buyer_state_ack
+低リスク prequote での response_weight
+quote_sent 後の軽い不安対応
+delivered 後の追加質問に対する自然さ
+multi-turn continuity
+もう十分なもの
+bugfix-15000 の基本 service facts
+public:false handoff を通常 live に出さない基本方針
+同一原因 / 別原因の基本説明
+secret / deploy / direct push 禁止
+
+ただし「十分」は regression を止める意味ではなく、新規レンズを増やしてまで見る段階ではないという意味です。
+
+#BR の学びを戻してよいもの
+payment route と service boundary の分離
+neither の温度感
+cheap-route mismatch への耐性
+bundle pressure への耐性
+buyer に選択を丸投げしない route clarity
+#BR の学びを戻してはいけないもの
+handoff 名
+25,000円
+主要1フロー
+dual service 比較
+handoff 購入導線
+handoff の納品物説明
+7.3 handoff-25000 単体 rehearsal は必要か
+
+必要です。#BR だけでは不十分です。
+
+#BR は boundary routing の訓練であって、handoff 単体サービスとしての返信品質・納品前後・buyer 不安対応・scope containment を十分に見るものではありません。handoff は public:false なので今は通常 live に出してはいけませんが、将来 public:true にするなら、public 化前に handoff-only rehearsal が必要です。
+
+public:true 前に必要な batch
+
+目安は 2〜3 batch で十分です。大量に回すより、以下を高密度に見る方がよいです。
+
+batch	見る軸
+H1	prequote / flow selection / buyer が対象フローを決められない
+H2	purchased / 調査進捗 / 危険箇所の伝え方 / 未確認の扱い
+H3	delivered / 引き継ぎメモ納品 / 修正圧力 / 追加フロー圧力 / closed
+bugfix と違って簡単なところ
+「直った / 直っていない」の成功判定がない
+deliverable が .md の整理メモとして定義しやすい
+原因修正ではなく、確認済み / 推定 / 未確認を分けられる
+buyer の不安に対して、構造化した説明が出しやすい
+bugfix と違って危険なところ
+「修正もそのまま」が入り込みやすい
+「リポジトリ全体を見て」が入り込みやすい
+「仕様書化して」が入り込みやすい
+「GitHub Issue / PR にして」が入り込みやすい
+「次の担当者向け」が、外部作業や運用代行に広がりやすい
+追加1フロー / 修正 / payment route が混ざりやすい
+secret-safe 説明が長くなりやすい
+handoff-only でしか見えない blind spot
+buyer が対象フローを決められない時の自然な絞り込み
+「未確認」を納品物としてどう自然に扱うか
+「危険箇所」を断定しすぎない言い方
+修正しないのに buyer を不安にさせない温度感
+次の担当者向けメモと正式仕様書の境界
+追加フローを service boundary として扱い、payment route に飛ばしすぎない制御
+8. 壊してはいけない骨格
+
+ここは強く維持です。
+
+8.1 Writer を軽く保つ
+
+Writer に大量の lens を持たせると、返信がまた硬くなります。現在の writer-brief は、主質問直答、buyer 語、状態認識、次アクション、重さ調整を短くまとめており、ここは良いです。
+
+壊れるパターンはこれです。
+
+Writer が毎回:
+- state を説明する
+- scope を説明する
+- payment route を説明する
+- public/private を説明する
+- buyer state を拾う
+- response weight を調整する
+- naturalize する
+
+これをやると、返信は安全でも「人間が読んで重い」状態に戻ります。
+
+8.2 validator は hard accident 専用にする
+
+validator に入れてよいものは、だいたい次です。
+
+public:false service leak
+価格誤り
+外部決済 / 外部連絡誘導
+secret 値の共有要求
+直接 push / 本番デプロイ代行の約束
+closed で旧トークルームおひねり誘導
+buyer が聞いていない購入導線
+handoff public:false の名称・価格・CTA
+
+逆に、以下は validator に入れない方がいいです。
+
+温度感
+文章の重さ
+buyer_state_ack の有無
+自然さ
+ぶつ切り感
+宙ぶらりん感
+response_weight_mismatch
+transaction_model_gap 全体
+
+これらは reviewer / gold / learning-log の領域です。
+
+8.3 gold をテンプレにしない
+
+Gold は anchor であって、返信テンプレではありません。この設計は維持すべきです。Gold README でも current / eval / superseded の管理と family index が置かれており、これは gold 肥大化の副作用を抑えるために重要です。
+
+8.4 platform layer と common core を混ぜない
+
+ココナラの talkroom / おひねり / 有料オプション / 正式納品 / クローズは platform layer に置くべきです。common core は、
+
+route
+state
+scope
+deliverable
+payment_route_allowed?
+buyer_next_action
+public_visibility
+
+のような抽象に留めるのがよいです。
+
+platform-contract も、サービス境界と payment route を分ける方針を持っています。これは複数サービス展開時の中核になります。
+
+9. これ以上足すと危険なもの
+9.1 validator に入れてはいけないもの
+response_weight_mismatch
+buyer_state_ack_gap
+「自然さ」
+「やさしさ」
+「一文添える」
+「理由を必ず説明する」
+「不安を必ず受け止める」
+「次アクションを必ず2つ出す」
+transaction_model_gap 全体
+
+これらを hard 化すると、必要な安全境界を削ったり、逆に毎回説明過多になります。
+
+9.2 writer brief に入れてはいけないもの
+service-registry 全体
+platform-contract 全体
+failure-taxonomy 全体
+gold 全例
+#BR の分類語彙
+handoff public:false の詳細
+payment route の全 matrix
+validator の禁止語一覧
+reviewer 用 lens のフルセット
+
+Writer brief は「毎回の返信で思い出すこと」だけに留めるべきです。
+
+9.3 gold を増やしすぎる危険
+
+Gold を増やすほど、以下が起きます。
+
+古い gold が復活する
+current / superseded が曖昧になる
+似たケースで異なる文体が混ざる
+renderer がどれを anchor にすべきか迷う
+reviewer が gold 準拠を過剰要求する
+返信がテンプレ臭くなる
+
+増やすなら、family 単位で統合し、superseded を明示するべきです。
+
+9.4 rule 化してはいけない reviewer 指摘
+
+以下は rule 化しない方がよいです。
+
+「もう少し柔らかく」
+「少し短く」
+「不安に寄り添う」
+「文頭を自然に」
+「理由を添える」
+「buyer の言葉を拾う」
+
+これらは状況依存です。rule にすると過剰適用されます。
+
+9.5 platform 固有仕様を common core に混ぜる危険
+
+common core に おひねり、トークルーム、正式納品、見積り提案 を直接入れると、他サービス展開時に壊れます。
+
+common core ではこう持つべきです。
+
+state:
+  - pre_contract
+  - quote_sent
+  - active_order
+  - delivered_not_closed
+  - closed
+  - cancelled
+
+payment_route:
+  - not_allowed
+  - only_if_buyer_asks
+  - allowed_after_scope_confirmation
+  - unavailable_after_close
+
+ココナラ固有語は platform adapter で変換するのが安全です。
+
+9.6 サービス facts を返信判断コアへ混ぜる危険
+
+bugfix-15000 と handoff-25000 の価格・納品物・範囲・除外事項を common core に混ぜると、将来サービスが増えた時に判断コアが肥大化します。
+
+core は、
+
+service.public?
+service.scope_match?
+service.deliverable_match?
+service.price_visible?
+service.payment_route_visible?
+
+だけを見て、facts は service pack から注入する方がよいです。
+
+9.7 自然化ルールを増やしすぎる危険
+
+自然化 rule を増やすと、次が起きます。
+
+安全境界が薄まる
+必要な断りが曖昧になる
+buyer が次に何をすればよいか分からなくなる
+「やわらかいが判断していない返信」になる
+最後に reviewer が境界を足し戻して硬くなる
+
+自然化は renderer / reviewer の微調整で十分です。
+
+10. 完成までの最短ロードマップ
+P0: 今すぐ確認すべきもの
+通常 live / #RE の public leak lint
+handoff
+25,000円
+主要1フロー
+handoff 購入導線
+future-dual 文脈
+handoff-25000.ready.txt の source-of-truth cleanup
+「同じトークルーム内で続けてご案内できます」
+「追加1フローは15,000円」
+修正と payment route が service boundary に混ざる表現
+これは public:false の今は外向け事故ではないですが、public:true 前には blocker です。
+bugfix37 系 regression
+old generic template
+context bleed
+purchased additional symptom misfire
+delivered fallback drift
+#BR asset が #RE/live に混ざらない mode check
+P1: 次の数 batch で検査すべきもの
+#RE bugfix-only batch
+prequote
+quote_sent
+purchased
+delivered
+closed
+cancelled
+delivery/completion batch
+delivered but not closed
+formal delivery before buyer acceptance
+closed after delivery
+secondary question before completion
+buyer asks refund/free support after delivery
+payment route state matrix
+prequote
+purchased
+delivered
+closed
+main-question direct answer regression
+「直せますか」
+「15,000円で済みますか」
+「追加費用ですか」
+「納品後でも聞けますか」
+P2: public 化前に確認すべきもの
+handoff-only rehearsal 2〜3 batch
+flow selection
+purchased progress
+danger explanation
+deliverable acceptance
+repair pressure
+full repo / spec doc pressure
+additional flow pressure
+handoff service page final contract review
+修正を含めない
+リポジトリ全体を含めない
+payment route を service facts に混ぜない
+public:true 後の通常返信で誤誘導しない
+dual-service public:true simulation
+bugfix-first
+handoff-first
+bridge
+neither
+buyer already chose correctly
+buyer chose wrong route
+buyer asks cheapest route
+platform adapter regression
+ココナラ固有導線と common core の分離
+P3: 後回しでよいもの
+文体の細かい A/B test
+gold の大量追加
+low-risk prequote の微妙な温度差
+neither の類似ケース追加
+handoff の公開後マーケ文面最適化
+他プラットフォーム展開の具体文言
+やらない方がよいこと
+現行骨格の大規模 redesign
+Writer brief の肥大化
+soft lens の validator 化
+#BR を通常 live の学習素材として丸ごと戻す
+handoff public:false の details を common core に入れる
+payment route を service boundary として扱う
+gold を増やすだけで superseded 管理しない
+「安全だから」という理由で硬い返信へ戻す
+最終評価
+
+完成度は高いです。骨格は維持でよいです。
+ただし、完成判定としてはまだ “返信 lens の充足” だけでは足りません。
+
+最後に一文でまとめるなら、こうです。
+
+このOSの残タスクは「もっと賢い返信ルールを足すこと」ではなく、
+既にある判断骨格を、public/private・source-of-truth・delivery/completion・mode separation の事故から守ることです。

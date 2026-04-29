@@ -1,189 +1,69 @@
-# docs 目次（人間向け）
+# docs 目次（現行運用用）
 
-このファイルは、人間が「今どの資料を見ればいいか」を迷わないための入口です。
+この `docs/` は、今の Codex が起動・返信・実装・納品で参照するものだけを置く場所です。
+過去の調査ログや初期設計メモは正本扱いにしません。
 
-## 一次ソース（最優先）
-1. `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
-サービス商品ページの実体正本（本番反映ベース）
-
-2. `/home/hr-hm/Project/work/現在のプロフィール`
-プロフィールの実体正本（本番反映ベース）
-
-## 表示ラベル（新構成）
-- 基本設定（`os/`）: `/home/hr-hm/Project/work/os/core/boot.md`
-- 返信の基本設定: `/home/hr-hm/Project/work/os/coconala/boot.md`
-- 実装の基本設定: `/home/hr-hm/Project/work/os/implementation/boot.md`
-- 納品の基本設定: `/home/hr-hm/Project/work/os/delivery/boot.md`
-- いまの状態（`runtime/`）: `/home/hr-hm/Project/work/runtime/`
-- 進行中案件: `/home/hr-hm/Project/work/runtime/active-case.txt`
-- 返信保存先: `/home/hr-hm/Project/work/runtime/replies/latest.txt`
-- 案件管理（`ops/`）: `/home/hr-hm/Project/work/ops/`
-- handoff history: `/home/hr-hm/Project/work/HANDOFF_NEXT_CODEX.ja.md`（履歴専用）
-- operator guide: `/home/hr-hm/Project/work/運用ガイド.md`
-
-## まず見る（優先順）
-1. `docs/coconala-listing-final.ja.md`  
-出品ページ文面の同期ミラー（一次ソースから同期する）
-補足: 2026-03-12 時点で、サービス本文・プロフィール・購入にあたってのお願い・Q&A・トークルーム回答例まで文章調整済み
-
-2. `docs/coconala-win-strategy.ja.md`
-今の主力サービスで、最初の高評価コメントを取りにいくための勝ち筋メモ
-
-3. `docs/first-case-sop-1page.ja.md`  
-初案件を受注してから納品までの最短手順
-
-4. `docs/service-catalog.ja.md`  
-サービスIDと公開状態の台帳（複数サービス運用時の正本）
-
-5. `docs/coconala-guide-market-ops.ja.md`  
-ココナラ公式段取り（購入時挨拶 / 滞留時連絡 / 正式納品）を固定した運用メモ
-
-6. `docs/coconala-seller-help-key-links.ja.md`  
-サービス出品者向けヘルプの要点（見積り経路・紐付け・受付設定）
-
-7. `docs/coconala-special-case-policy.ja.md`
-特例対応の判断基準・文面・記録ルール（価格崩壊防止）
-
-8. `ops/common/coconala-rule-guard.md`
-返信・提案・納品の前に読む共通ガード（規約事故・外部共有・秘密情報・正式納品の境界）
-
-9. `ops/services/next-stripe-bugfix/service.yaml`
-主力サービスの固定条件・証跡回収・人手判断条件をまとめた設定ファイル
-
-10. `docs/coconala-estimate-ui-cheatsheet.ja.md`  
-見積り設定UIの挙動を3行で確認するチートシート
-
-11. `/home/hr-hm/Project/work/stripe日本語UI案内`
-Stripeでお客さんに確認してもらう項目と導線の運用版（返信文作成時の最優先参照先）
-
-12. `docs/stripe-dashboard-japanese-ui-guide.ja.md`
-Stripe案内を日本語UI基準で行うための運用メモ（Checkout/Portal/price_idの切り分け）
-
-## 正本ルール（重要）
-
-- サービス商品ページの実体正本は `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt` とする。
-- プロフィールの実体正本は `/home/hr-hm/Project/work/現在のプロフィール` とする。
-- `docs/coconala-listing-final.ja.md` は同期ミラー。直接編集より、一次ソース更新後の同期を優先する。
-- `Next.js_Stripe不具合診断・修正.md` は参考要約（一次ソースではない）。
-- 実運用で矛盾が出た場合は、一次ソース（サービス正本 + プロフィール正本）を優先する。
-- 複数サービス運用時は `docs/service-catalog.ja.md` の `Service ID` を起点に参照先を固定する。
-- 外向けに案内してよいのは、`docs/service-catalog.ja.md` で `運用中` のサービスだけとする。
-
-## 同期手順（固定）
-1. 先に一次ソース（サービス正本 + プロフィール正本）を更新する
-2. `./scripts/check-coconala-listing-sync.sh` で同期/文字数を確認する
-3. 必要な `docs` 側へ同期反映する
-
-## 起動の正本
-- 起動の単一正本は `/home/hr-hm/Project/work/docs/next-codex-prompt.txt`
-
-## 文章運用
-- `docs/writing-guideline.ja.md`  
-返信文の文体・NG表現・言い換えルール
-- 補足: 2026-03-12 に「相手の言葉を拾ってから質問する」「抽象安心語より具体的な安心表現を使う」を追記済み
-- `docs/coconala-message-templates-short.ja.md`  
-初回返信、納品形式確認、見積り判定、進捗、追加料金、納品の短文テンプレ
-- `docs/文章コミュニケーション完全ガイド.md`  
-文章運用の詳細版（長文）
-
-## 実装運用
-- `docs/code-comment-style.ja.md`  
-AI臭を避けるコードコメント規約（確定版）
-- `docs/stripe-dashboard-japanese-ui-guide.ja.md`
-Stripeダッシュボードを日本語UIで案内するためのチートシート
-- `docs/agent-reach-ops.ja.md`
-外部調査レーン専用の運用メモ
-
-## 案件管理まわりの設定
-- `ops/common/interaction-states.yaml`
-経路 × 状態ごとの allowed / forbidden action
-- `ops/common/risk-gates.yaml`
-規約・秘密情報・push/prod・正式納品前の停止条件
-- `ops/common/output-schema.yaml`
-入口判定の返却項目
-- `ops/common/routing-table.yaml`
-主力サービスへの適合と次アクション
-- `ops/common/model-escalation.md`
-Codex / Claude / Gemini / ChatGPT Pro の使い分け
-- `ops/common/scope-snapshot-template.md`
-見積り時と納品時の範囲固定テンプレ
+## 起動と Core OS
+- `docs/next-codex-prompt.txt`
+  - 次の Codex 起動時の単一正本。
+- `AGENTS.md`
+  - workspace 全体の固定ルール。
 - `os/core/service-registry.yaml`
-公開中サービスと内部専用サービスの正本
-- `ops/services/next-stripe-bugfix/evidence-minimum.yaml`
-最小3点、必須5点、Stripe条件付き質問
-- `ops/services/next-stripe-bugfix/scope-matrix.md`
-same / different / undecidable の具体例
-- `ops/review-checkpoints.md`
-人手で止めるべき判断ポイント
-- `ops/case-log.csv`
-実案件の誤判定・離脱・追加見積りの記録
-- `ops/future-service-candidates.csv`
-プロフィール経由の反復需要メモ
-- `ops/macro-15.md`
-ココナラ定型文15枠の推奨配分
+  - サービス公開状態と service page 正本の台帳。
+- `runtime/mode.txt`
+  - 現在の mode 正本。
+- `runtime/active-case.txt`
+  - active case 正本。
 
-## 調査ログ
-- `docs/external-research/README.ja.md`
-外部調査レーンのメモ置き場
-- `docs/external-research/2026-04-02-handoff-pain-points-agent-reach.ja.md`
-Agent-Reach を使った `handoff-25000` 向けの外部調査メモ
+## サービスページ正本
+- `bugfix-15000`
+  - `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
+- `handoff-25000`
+  - `/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt`
+- `docs/coconala-listing-final.ja.md`
+  - 同期ミラー。公開判断や文言監査の基準にはしない。
 
-## 公開前チェック
-- `docs/coconala-launch-prep.ja.md`
-公開当日の入力値・設定値・48時間運用を1ページで確認するための実行用キット
-- `docs/coconala-listing-checklist.md`
-出品前の確認リスト
-- `docs/service-plan.ja.md`
-提供プランの定義
+外向けに案内してよいかは、必ず `os/core/service-registry.yaml` の `public` を見る。
 
-## Skill一覧
-- `coconala-intake-router-ja`
-相手文を、経路・状態・サービス適合・リスク・不足情報・次アクションへ構造化する入口判定
-- `coconala-prequote-ops-ja`
-見積り相談の前段専用。入口判定から 15,000円 / 保留 / 断る の分岐と返信文作成まで一貫処理する
-- `coconala-reply-bugfix-ja`  
-不具合修正サービス専用の返信作成（固定条件・規約・スコープ判定前提）
-- `japanese-chat-natural-ja`  
-サービス非依存の日本語自然化（重複質問回避・過剰敬語抑制）
-- `reply-review-prompt-ja`
-直近の送信用返信文や指定文面を対象に、Claude / Gemini / ChatGPT 向けの監査プロンプトを作る
-- `coconala-reply-ja`（互換・旧テンプレ参照）
-旧返信テンプレの参照用
-- `scope-judge-ja`  
-スコープ判定（同一原因/別原因の分岐）
-- `delivery-pack-ja`  
-`00_結論と確認方法.md` とコード納品物を標準に、Scope Snapshot の内部確認と正式納品文まで作成する
-  - 納品レポートでは `今回の対応に含まれない部分` を毎回独立見出しにしない。誤解されやすい場合のみ、`今回の修正が関係する部分` の中で短く補足する。
-- `coconala-listing-ja`  
-出品文の整備
+## ココナラ返信
+- `docs/reply-quality/README.ja.md`
+  - `#RE` / `#BR` / 学習ループ / 直近棚卸しの入口。
+- `docs/coconala-reply-self-check.ja.md`
+  - 送信前チェックの詳細。
+- `docs/coconala-prequote-commitment-policy.ja.md`
+  - 購入前見積りで約束しすぎないための固定ルール。
+- `docs/coconala-handoff-prequote-mini-contract.ja.md`
+  - `handoff-25000` の購入前案内を扱う時の内部契約。
+- `docs/coconala-special-case-policy.ja.md`
+  - 特例対応の判断基準。
+- `docs/coconala-golden-replies.ja.md`
+  - 良い返信例の補助資料。
+- `docs/coconala-message-templates-short.ja.md`
+  - 短文テンプレ。必要時だけ参照する。
 
-## 返信作成の推奨順
-1. 見積り相談（`prequote`）は `coconala-prequote-ops-ja` を優先する
-2. 購入後や個別返信は `coconala-intake-router-ja` で入口判定
-3. 必要なら `scope-judge-ja` で same / different / undecidable を補強
-4. `coconala-reply-bugfix-ja` で下書き作成
-5. `japanese-chat-natural-ja` で毎回最終自然化
+送信用返信の最終自然化は、毎回 `japanese-chat-natural-ja` を使う。
 
-補足:
-- 入口判定で `service_mismatch_but_feasible` が出た場合は、「サービス説明とは少しズレるが技術的には現実的」の意味。
-- この場合は自動で断らず、人手で「実績目的で拾うか」「価格が見合うか」を判断する。
+## 日本語品質
+- `docs/writing-guideline.ja.md`
+  - トークルーム文面の文体ルール。
+- `docs/coconala-japanese-banlist.ja.md`
+  - 使わない表現。
+- `docs/coconala-japanese-must-rules.ja.md`
+  - 必ず守る日本語ルール。
 
-## script 正本
-- `scripts/os-check.sh`
-起動時の Internal OS 整合確認
-- `scripts/internal-os-status.sh`
-いまの状態の確認
-- `scripts/agent-reach-status.sh`
-Agent-Reach の導入状態と利用可能チャネルの確認
-- `scripts/check-internal-os-flows.sh`
-Internal OS のスモークテスト
-- `scripts/case-open.sh`
-case 作成 + active case / mode 更新
-- `scripts/case-note.sh`
-重要判断の追記
-- `scripts/case-phase.sh`
-open case の phase / mode 切替
-- `scripts/case-close.sh`
-close + case-log 更新
-- `scripts/reply-save.sh`
-送信用返信の保存
+## 実装と納品
+- `docs/code-comment-style.ja.md`
+  - 実装時のコードコメント規約。
+- `docs/coconala-guide-market-ops.ja.md`
+  - 購入時挨拶、滞留時連絡、正式納品まわりの運用メモ。
+- `docs/handoff-delivery-template.ja.md`
+  - handoff 系納品物のテンプレ。
+- `docs/internal-quality-samples/`
+  - 納品物サンプル。納品 mode / delivery skill から参照する。
+
+bugfix の標準納品物は `00_結論と確認方法.md` とコード納品物。
+
+## 原則
+- 古い調査メモや初期設計メモを、現行判断の正本に戻さない。
+- 外部調査はユーザーが明示した時だけ使う。
+- `handoff-25000` は `service-registry.yaml` で `public: true` になるまで、通常 live / #RE に出さない。

@@ -9,9 +9,9 @@
 1. 主質問に直接答えているか
 2. phase がずれていないか
 3. ask が重すぎず、既出情報を聞き直していないか
-4. 価格 / scope / 公開状態が `service-registry.yaml` と service-pack に矛盾していないか。`public:false` の service 名・価格・購入導線を外向けに出していないか
+4. 価格 / scope / 公開状態が `service-registry.yaml` と service-pack に矛盾していないか。`public:false` の service 名・価格・購入導線を外向けに出していないか。サービス境界と支払い導線を混ぜ、buyer が聞いていない同じトークルーム内 / おひねり / 有料オプションを先回りしていないか
 5. `decision-contract.yaml` と `evidence-contract.yaml` に反する判断をしていないか。bugfix では、原因不明で修正方針にもつながらない状態のまま正式納品へ進める文面になっていないか
-6. `routing-playbooks.yaml` と `state-schema.yaml` に反する行き先や timing を置いていないか。closed 後に旧トークルームでの継続作業・ファイル送付・追加購入を前提にしていないか
+6. `routing-playbooks.yaml` と `state-schema.yaml` に反する行き先や timing を置いていないか。delivered を closed と誤認していないか。closed 後に旧トークルームでの継続作業・ファイル送付・追加購入を前提にしていないか
 7. `見られるか` `形ではありません` `もっともです` など既知 NG が戻っていないか
 8. buyer の不安やお礼を、必要な場面で1文だけ受けているか
 9. next action が buyer に見えており、1つに絞れているか

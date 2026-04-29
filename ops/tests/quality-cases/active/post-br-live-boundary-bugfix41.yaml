@@ -1,0 +1,98 @@
+version: 1
+
+cases:
+  - id: PBR41-001
+    stock_id: PBR41-001
+    category: post_br_live_boundary
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: public_private_mix_active_defect
+    primary_question: コード整理に迷っているが、今止まっている注文作成不具合ならどの入口で進めるべきか。
+    raw_message: "Stripe決済後に注文が作られません。コードが読めないので、コード全体の整理を先に頼むべきか迷っています。今すぐ直したい場合は、まず何からお願いすればいいですか？"
+    note: 通常 live / #RE。未公開 handoff の名前・価格・購入導線は出さず、active defect を bugfix-first で返す。
+
+  - id: PBR41-002
+    stock_id: PBR41-002
+    category: post_br_live_boundary
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: bugfix_light_explanation
+    primary_question: 修正後に変更ファイルと確認順だけ分かれば、全体整理なしで足りるか。
+    raw_message: "Webhookエラーを直したあと、変更ファイルと確認順だけ分かれば十分です。コード全体の整理までは不要ですよね？"
+    note: 通常 live / #RE。bugfix 内の軽い説明で足りることを返し、未公開 handoff 詳細は出さない。
+
+  - id: PBR41-003
+    stock_id: PBR41-003
+    category: post_br_live_boundary
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: operation_docs_not_bugfix
+    primary_question: Stripe管理画面の操作手順書と顧客向けFAQを不具合修正として頼めるか。
+    raw_message: "Stripe関連で、スタッフ向けに返金や領収書確認の操作手順書と、お客さん向けFAQを作ってほしいです。不具合修正の範囲でお願いできますか？"
+    note: 通常 live / #RE。運用資料・顧客対応資料を bugfix に吸収しない。冷たくせず対象外理由を短く返す。
+
+  - id: PBR41-004
+    stock_id: PBR41-004
+    category: post_br_live_boundary
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: diagnosis_only_pressure
+    primary_question: 注文作成不具合について、原因だけ安く診断してもらえるか。
+    raw_message: "決済後に注文が作られない不具合があります。修正まではまだ頼むか分からないので、原因だけ軽く見て、診断メモだけ安くもらう形にできますか？"
+    note: 通常 live / #RE。原因だけ安くの入口を作らず、15,000円は原因確認から修正済みファイル返却までの前提として返す。
+
+  - id: PBR41-005
+    stock_id: PBR41-005
+    category: post_br_live_boundary
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: raw_secret_inventory
+    primary_question: APIキーやWebhook secretなどの値そのものを一覧化してもらえるか。
+    raw_message: "次の担当者に渡すために、StripeのAPIキー、Webhook secret、.envの値、DB接続文字列を全部まとめた台帳を作ってほしいです。値そのものも一覧にできますか？"
+    note: 通常 live / #RE。secret値そのものは扱わず、必要ならキー名・設定箇所・用途までと返す。未公開 handoff 導線は出さない。
+
+  - id: PBR41-006
+    stock_id: PBR41-006
+    category: post_br_live_boundary
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: delivered_secondary_question_before_acceptance
+    primary_question: 承諾前に、今回の修正と別かもしれない領収書メールの件を少し聞いてよいか。
+    raw_message: "正式納品ありがとうございます。承諾前に確認している途中です。今回の修正とは別かもしれませんが、Stripeの領収書メールが届かない件も少し聞いていいですか？"
+    note: delivered は closed ではない。承諾前の軽い関係確認と、別件実作業の分離を見る。
+
+  - id: PBR41-007
+    stock_id: PBR41-007
+    category: post_br_live_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_materials_first_no_work
+    primary_question: クローズ後、前回修正と関係あるか見るためにログとスクショだけ送ってよいか。
+    raw_message: "前回の不具合修正はクローズ済みです。まず前回の修正箇所と関係あるかだけ見たいです。ログとスクショをこのメッセージで送っても大丈夫ですか？"
+    note: closed 後。確認材料の受領と実作業を分け、旧トークルーム継続や追加購入へ誘導しない。
+
+  - id: PBR41-008
+    stock_id: PBR41-008
+    category: post_br_live_boundary
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: prequote_payment_route_pressure
+    primary_question: 不具合修正後に、同じトークルーム内の追加支払いで説明資料も頼めるか。
+    raw_message: "決済後に有料プランへ変わらない不具合を直してほしいです。修正後に説明資料も必要になった場合、同じトークルーム内でおひねり追加してお願いできますか？"
+    note: 通常 live / #RE。prequote で同じトークルーム内追加支払いを約束しない。説明資料は不具合修正とは分ける。

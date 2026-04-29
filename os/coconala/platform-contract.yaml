@@ -64,7 +64,7 @@ facts:
     confidence: operational
     outward_assertion: cautious
     source_refs:
-      - /home/hr-hm/Project/work/docs/external-research/2026-04-25-coconala-phase-contract-agent-reach.ja.md
+      - /home/hr-hm/Project/work/docs/reply-quality/state-schema-minimal-contract.ja.md
 
   message_vs_talkroom:
     summary: >

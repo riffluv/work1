@@ -91,7 +91,7 @@
 - delivered / closed の問題報告で、`承知しました` だけで止まらず `確認します` など次の確認動作を先に出せているか
 - 怒りや催促が強い途中共有で、技術的な現在地を `切り分けの軸` のような分析語で固くしすぎていないか
 - 比較説明や価格差の返答で、`差額の説明だけすると` のような事務的な前置きが残っていないか
-- 追加料金や追加フローの支払い方法を聞かれた時に、`追加支払いの形` や `取引状態を確認して` のような抽象案内で止まらず、buyer に見える状態語で案内できているか
+- 追加料金や追加フローの支払い方法を聞かれた時に、サービス境界と支払い導線を混ぜず、取引状態が分かる場合だけ条件付きで案内できているか
 - 別対応や追加料金の説明で、`勝手に進めず` のような防御的な語が残っていないか
 - 根拠のない安心や、buyer の感情を言い当てる長い共感に寄っていないか
 - buyer が使っていない感情語を補って、`迷いますよね` `焦りますよね` のような受けになっていないか
@@ -216,7 +216,7 @@
 - handoff の closing が `ご案内できます` だけで終わっていないか。`どこまで整理するか` `整理分の金額` `最初に見る流れ` など、次のラリーで返す実体が `decision-contract.yaml` や `evidence-contract.yaml` に沿って見えるか
 - low-confidence handoff で、未受領の資料やコード分析が必要なことまで `先にお伝えできます` と言い切っていないか。今の段階で返せる前提だけに留まっているか
 - bugfix と handoff の boundary routing が、`/ops/services/handoff-25000/service-pack/boundaries.yaml` の `boundary_principles` と `/ops/services/handoff-25000/service-pack/routing-playbooks.yaml` の `boundary_bugfix_vs_handoff` に矛盾していないか。主目的が修正なら bugfix を先に返しているか
-- `docs/service-catalog.ja.md` で `登録済み・未公開` のサービス名・価格・購入導線を、外向け返信に出していないか
+- `os/core/service-registry.yaml` で `public: false` のサービス名・価格・購入導線を、外向け返信に出していないか
 - `15Kか25Kか` を聞かれた時に、未公開側の価格や導線をそのまま返さず、判定軸へ言い換えて返せているか
 - 相手がすでに対象フロー・目的・資料提供可否を十分具体的に書いているのに、価値の薄い確認質問を足していないか
 - 確認質問が、相手がまだ決めていないことに向いているか
@@ -324,13 +324,14 @@
 ### handoff 系
 - handoff 本体の説明が、`/ops/services/handoff-25000/service-pack/facts.yaml` の `public_facts.includes / excludes_core`、`scope_unit`、`deliverables` と `/ops/services/handoff-25000/service-pack/decision-contract.yaml` の `primary_goal_rules` に矛盾していないか。価格・範囲・納品物の本文を self-check 側で抱えず、asset 参照で確認できているか
 - handoff が private の間は、`/ops/services/handoff-25000/service-pack/facts.yaml` の `public: false` と矛盾していないか。未公開の価格導線や購入導線を外向けに出していないか
+- `25,000円` や `主要1フロー整理` の外向け案内は、`#BR` または対象サービスが `public: true` の時だけに留めているか
 - handoff の prequote ask / closing が、`/ops/services/handoff-25000/service-pack/evidence-contract.yaml` の `phase_minimums.prequote` と `routing-playbooks.yaml` の `prequote_handoff_accept` に矛盾していないか。高確度案件では購入判断を先に置き、資料依頼を出す時も見積り判断までに止めているか
 - handoff の高確度案件で、buyer がすでに対象フローを書いているのに再質問へ戻っていないか。`最初に見る流れ` `対象範囲` `見積もり` のどれを返すかが closing で見えているか
 - `何を見てほしいか分からない` `どこが大事か分からない` `おまかせで` のような black-box 案件で、優先順位の判断を相手へ返していないか。`routing-playbooks.yaml` の `boundary_bugfix_vs_handoff` や handoff 受入 playbook に沿って、こちらから最初の1フロー案を置けているか
 - 最初に見る1フローをこちらで置く時に、`止まると影響が大きい` などの理由を短く添えられているか
 - handoff の low-confidence closing が `進め方をお返しします` のような空語で止まっていないか。次のラリーで返す実体が見えているか
 - handoff の段階対応や deeper memo / 修正追加の返答が、`decision-contract.yaml.additional_work_policy` と `followup_window`、`routing-playbooks.yaml` の `quote_sent_handoff_scope_confirm` と `delivered_handoff_deeper_memo`、および `state-schema.yaml` の `repair_as_additional_work` に矛盾していないか。買い直し感を先に出さず、費用境界と納品物を見える形で返せているか
-- `25,000円で全部収まるか` のような価格質問では、`全部対応できるか` と `今回の範囲全体の目安` の両方へ答えているか。収まりにくい時も、`別ファイル / 別連携に分かれやすい` など品質理由を短く添えられているか
+- `#BR` または対象サービス公開後の価格質問では、`全部対応できるか` と `今回の範囲全体の目安` の両方へ答えているか。収まりにくい時も、`別ファイル / 別連携に分かれやすい` など品質理由を短く添えられているか
 - bugfix と handoff の boundary routing が、`/ops/services/handoff-25000/service-pack/boundaries.yaml` の `boundary_principles` と `routing-playbooks.yaml` の `boundary_bugfix_vs_handoff` に矛盾していないか。症状が明確な bugfix を handoff 側の汎用 closing へ逃がしていないか
 - handoff の説明で `工数` `仕様整理` `役割が違う` などの内部設計語へ寄りすぎていないか
 - `形になります` `合っています` `見られます` `〜したいです` のような再発語が、handoff 文脈でも変形して復活していないか

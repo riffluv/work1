@@ -1,0 +1,74 @@
+version: 1
+
+cases:
+  - id: DCB40-001
+    stock_id: DCB40-001
+    category: delivery_completion_microstate
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: delivered_before_acceptance_wait_request
+    primary_question: 正式納品後、承諾前にもう一度確認してから承諾してよいか。
+    raw_message: "正式納品ありがとうございます。まだ本番で確認できていないので、明日確認してから承諾でも大丈夫ですか？"
+    note: delivered は closed ではない。承諾前確認を受け、旧トークルーム不可や新規相談導線へ飛ばさない。
+
+  - id: DCB40-002
+    stock_id: DCB40-002
+    category: delivery_completion_microstate
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: delivered_possible_same_issue_before_acceptance
+    primary_question: 承諾前に同じエラーの可能性があるスクショを送ってよいか。
+    raw_message: "承諾前に確認していたら、同じエラーかもしれない画面が出ました。スクショをこのまま送ってもいいですか？まだ承諾はしていません。"
+    note: delivered_not_closed。承諾前の差し戻し/確認導線を残し、クローズ後の新規相談扱いにしない。
+
+  - id: DCB40-003
+    stock_id: DCB40-003
+    category: delivery_completion_microstate
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: delivered_secondary_question_before_acceptance
+    primary_question: 承諾前に、今回の修正と関係ないかもしれない別件を聞いてよいか。
+    raw_message: "承諾前にすみません。今回の修正とは別かもしれませんが、Stripeの領収書メールが届かない件も少し聞いていいですか？"
+    note: delivered 中の別件質問。承諾前の確認と別件の実作業を混ぜず、まず関係有無を軽く確認する。
+
+  - id: DCB40-004
+    stock_id: DCB40-004
+    category: delivery_completion_microstate
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: closed_same_symptom_refund_free_support
+    primary_question: クローズ後に同じ症状が出た場合、無料対応や返金になるのか。
+    raw_message: "クローズ後で申し訳ないのですが、また同じように決済後の反映が止まっています。前回直ったと思っていたので不安です。これは無料で見てもらえるんでしょうか？返金になるんでしょうか？"
+    note: closed 後。無料/返金を断定せず、前回修正とのつながり確認と実作業導線を分ける。
+
+  - id: DCB40-005
+    stock_id: DCB40-005
+    category: delivery_completion_microstate
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_new_work_same_talkroom_pressure
+    primary_question: クローズ後、旧トークルームの続きとして別件修正を頼めるか。
+    raw_message: "前回のトークルームはクローズ済みですが、別件でStripeのクーポンが使えない不具合も直してもらえますか？同じトークルームの続きでお願いしたいです。"
+    note: closed after new work。旧トークルーム継続やおひねり導線を出さず、メッセージ確認と新しい進め方を分ける。
+
+  - id: DCB40-006
+    stock_id: DCB40-006
+    category: delivery_completion_microstate
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_send_materials_first
+    primary_question: クローズ後、まずログやスクショだけ送ってよいか。
+    raw_message: "クローズ後ですが、前回の修正箇所と関係あるかだけ知りたいです。まずログとスクショをこのメッセージで送っても大丈夫ですか？"
+    note: closed materials boundary。確認材料の受領と実作業を分け、追加作業開始や旧トークルーム継続へ滑らない。

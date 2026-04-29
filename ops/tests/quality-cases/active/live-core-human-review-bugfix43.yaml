@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC43-001
+    stock_id: HRC43-001
+    category: live_core_human_review
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: scope_only_target_question
+    question_type: prequote_short_scope_only
+    primary_question: Stripe決済後に会員状態が更新されない不具合が対象になるかだけ知りたい。
+    raw_message: "Stripeのinvoice.paidは来ているのですが、会員プランが有料に更新されません。細かい説明は後で大丈夫なので、まず対象になるかだけ教えてください。"
+    note: 通常 live / #RE。短い主質問に対して、契約説明を重くしすぎず、対象可否と次アクションだけで自然に返せるかを見る。
+
+  - id: HRC43-002
+    stock_id: HRC43-002
+    category: live_core_human_review
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: previous_fix_failed_trust
+    question_type: prequote_previous_fix_failed_trust
+    primary_question: 他者修正後に再発して不安があるが、15,000円で見てもらえるか。
+    raw_message: "前に別の方に直ったと言われたのに、またStripe決済後の注文反映が止まりました。正直また同じことにならないか不安です。15,000円で見てもらえますか？"
+    note: buyer_state_ack_gap 近縁。前任者批判や根拠のない安心に逃げず、不安を1文で受けて今回どう確認するかへつなげる。
+
+  - id: HRC43-003
+    stock_id: HRC43-003
+    category: live_core_human_review
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: code_handoff_bugfix_scope
+    question_type: active_defect_code_unknown_ok
+    primary_question: AI生成コードで中身が分からないが、今起きている不具合として依頼できるか。
+    raw_message: "AIで作ったNext.jsのコードで、コードの中身が自分ではよく分かっていません。Stripe決済後に注文データが作られない状態なのですが、それでも不具合修正としてお願いできますか？"
+    note: 通常 live / #RE。コードの出どころを過度に広げず、active defect を bugfix-first で受ける。相手文にない外注先・引き継ぎ事情を足さない。
+
+  - id: HRC43-004
+    stock_id: HRC43-004
+    category: live_core_human_review
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: frontend_stripe_mixed_scope
+    question_type: frontend_stripe_mixed_scope
+    primary_question: フロントの表示崩れとStripe決済後の反映漏れが混ざっている場合、どう切り分けるか。
+    raw_message: "Next.jsのフロント側で管理画面のボタン表示が崩れているのと、Stripe決済後にステータスが反映されない件があります。どちらも一緒に15,000円で見てもらえますか？"
+    note: 通常 live / #RE。2症状を雑にまとめず、まず困っている1件・同一原因なら範囲内・別原因なら事前相談の軸で返す。
+
+  - id: HRC43-005
+    stock_id: HRC43-005
+    category: live_core_human_review
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: preview_webhook_env_error
+    question_type: secret_handling_prequote
+    primary_question: Webhook secret や .env の値を送らずに相談できるか。
+    raw_message: "VercelのPreview環境だけWebhookで400になります。.envやSTRIPE_WEBHOOK_SECRETの値を送るのが少し怖いのですが、値を出さずに相談できますか？"
+    note: 通常 live / #RE。secret 値を求めず、キー名・設定箇所・エラー内容で進める。安心させすぎず、必要な材料へつなげる。
+
+  - id: HRC43-006
+    stock_id: HRC43-006
+    category: live_core_human_review
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: progress_anxiety
+    question_type: purchased_progress_anxiety
+    primary_question: 購入後、ちゃんと確認に入れているか、今どこを見ているか知りたい。
+    raw_message: "購入後にコードとログを送りましたが、ちゃんと確認に入れているか少し不安です。今どのあたりを見ているかだけ教えてもらえますか？"
+    note: purchased 進捗不安。防御的な説明や汎用受付に戻らず、現在見ている範囲と次回共有を短く出す。
+
+  - id: HRC43-007
+    stock_id: HRC43-007
+    category: live_core_human_review
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: doc_explanation_request
+    question_type: delivered_light_explanation_request
+    primary_question: 納品後、修正ファイルと確認手順の軽い説明をもう少し分かりやすくしてもらえるか。
+    raw_message: "納品ありがとうございます。専門用語が少し難しいので、修正ファイルと確認手順だけ、もう少し分かりやすく説明してもらえますか？"
+    note: delivered。bugfix 内の軽い説明として受け、運用マニュアルや本格引き継ぎ資料へ広げない。承諾前の自然な補足対応を見る。
+
+  - id: HRC43-008
+    stock_id: HRC43-008
+    category: live_core_human_review
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: warm
+    scenario: new_issue_repeat_client
+    question_type: closed_repeat_client_new_issue
+    primary_question: クローズ後、前回とは別件かもしれない症状をまずメッセージで相談してよいか。
+    raw_message: "前回はありがとうございました。別件かもしれないのですが、今度はStripeのクーポンが反映されない症状があります。まずこのメッセージで相談しても大丈夫ですか？"
+    note: closed 後。前回への好意を自然に受けつつ、確認材料の受領と実作業を分ける。旧トークルーム継続や無料対応を約束しない。

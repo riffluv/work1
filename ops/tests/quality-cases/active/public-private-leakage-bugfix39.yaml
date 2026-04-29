@@ -1,0 +1,50 @@
+version: 1
+
+cases:
+  - id: PPL39-001
+    stock_id: PPL39-001
+    category: public_private_mode_leakage
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: active_defect_mentions_private_handoff
+    primary_question: 25,000円の整理に迷っているが、今止まっている注文反映不具合ならどう進めるべきか。
+    raw_message: "Stripe決済後に注文が作られません。コードが読めないので25,000円の整理の方がいいのか迷っていますが、今困っているのは注文反映の不具合です。どちらがいいですか？"
+    note: public live / #RE では 25,000円や handoff 導線を出さず、今止まっている不具合を起点に bugfix-first で直答する。
+
+  - id: PPL39-002
+    stock_id: PPL39-002
+    category: public_private_mode_leakage
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: bugfix_light_explanation_without_private_handoff
+    primary_question: 修正後に変更ファイルと確認順だけ分かれば、整理サービスなしで足りるか。
+    raw_message: "Webhookエラーを直したあと、変更ファイルと確認順だけ分かれば十分です。25,000円の整理までは不要ですよね？"
+    note: public live / #RE では private service 名・価格を繰り返さず、bugfix 内の軽い説明で足りることを自然に返す。
+
+  - id: PPL39-003
+    stock_id: PPL39-003
+    category: public_private_mode_leakage
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    question_type: cheap_route_mismatch_public_mode
+    primary_question: 25,000円を避けたいが、止まっているWebhook不具合は15,000円で見られるか。
+    raw_message: "25,000円の方はまだ考えていません。今はWebhookエラーで購入履歴が作られない不具合だけ直したいです。15,000円の方で見てもらえますか？"
+    note: buyer が価格を出していても、public mode では private service details を出さず、15,000円 bugfix に閉じる。
+
+  - id: PPL39-004
+    stock_id: PPL39-004
+    category: public_private_mode_leakage
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: normal
+    question_type: closed_private_service_language_sentry
+    primary_question: クローズ後に別件かもしれない症状を送ってよいか。
+    raw_message: "前回とは別かもしれませんが、Stripe決済後の領収書メールが届かない件があります。25,000円の整理ではなく、まずこのメッセージで症状だけ送っても大丈夫ですか？"
+    note: closed 後でも 25,000円や handoff へ触れず、メッセージ確認と実作業導線を分ける。

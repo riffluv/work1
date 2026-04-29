@@ -33,6 +33,16 @@ COMMON_VALIDATOR_ITEMS = (
     "negation_only_answer",
 )
 
+PUBLIC_MODE_LEAK_MARKERS = [
+    "handoff-25000",
+    "25,000円",
+    "25000円",
+    "25,000円側",
+    "主要1フロー",
+    "主要な処理の流れ1つ",
+    "future-dual",
+]
+
 COMMON_BUYER_WORD_MARKERS: dict[str, list[str]] = {
     "proposal_change": ["提案", "同じ原因", "別原因", "メール", "決済"],
     "dashboard_scope_question": ["Webhook", "ダッシュボード", "設定"],
@@ -478,6 +488,26 @@ def collect_awkward_phrase_errors(rendered: str) -> list[str]:
     return errors
 
 
+def is_public_reply_case(source: dict, case: dict) -> bool:
+    service_grounding = case.get("service_grounding") or source.get("service_grounding") or {}
+    service_id = case.get("service_id") or source.get("service_id") or service_grounding.get("service_id")
+    public_service = service_grounding.get("public_service")
+    if service_id == "handoff-25000":
+        return False
+    if public_service is False:
+        return False
+    return True
+
+
+def collect_public_mode_leakage_errors(rendered: str, source: dict, case: dict) -> list[str]:
+    if not is_public_reply_case(source, case):
+        return []
+    leaked = [marker for marker in PUBLIC_MODE_LEAK_MARKERS if marker in rendered]
+    if not leaked:
+        return []
+    return [f"public_mode_leakage failed: private/shadow wording leaked into public reply: {', '.join(leaked)}"]
+
+
 def has_negation_only_answer(rendered: str) -> bool:
     answer_window = opening_window(rendered, sections=3)
     if not has_any(answer_window, NEGATION_MARKERS):
@@ -638,7 +668,8 @@ def run_pipeline(source: dict, tools: dict[str, dict] | None = None, lint: bool 
 
     lane_errors = tool["lane_validator_fn"](enriched_source) if lint else []
     common_errors = collect_common_validator_errors(sendable_reply, enriched_source, case, lane_errors) if lint else []
-    errors = list(dict.fromkeys([*lane_errors, *common_errors]))
+    mode_errors = collect_public_mode_leakage_errors(sendable_reply, enriched_source, case) if lint else []
+    errors = list(dict.fromkeys([*lane_errors, *common_errors, *mode_errors]))
 
     return {
         "case_id": case_id,
@@ -649,6 +680,7 @@ def run_pipeline(source: dict, tools: dict[str, dict] | None = None, lint: bool 
         "sendable_reply": sendable_reply,
         "lane_errors": lane_errors,
         "common_errors": common_errors,
+        "mode_errors": mode_errors,
         "errors": errors,
     }
 
