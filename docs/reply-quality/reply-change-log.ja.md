@@ -1464,3 +1464,43 @@
 - きっかけ: buyer の主質問が `依頼できますか？` であるため、返答も `相談できます` ではなく `ご依頼いただけます` とする方が、対応主体と依頼可否がずれずに伝わるため
 - 想定効果: prequote の入口で、第三者感や受付だけの曖昧さを減らし、15,000円の不具合修正として依頼できることを自然に返せる
 - 非変更: 成功保証はしない。価格・scope・phase・secret・`handoff-25000` の live 非公開境界は変更しない
+
+### 2026-04-30 / CHG-174
+- 分類: `reply-only`
+- レイヤ: Pro 4/30 response / agency_alignment soft lens adoption
+- 変更: Pro 分析で `agency_alignment` は top-level hard lens ではなく `jp_business_native_naturalness` 配下の正式 named soft lens として扱う価値があると整理されたため、`監査プロンプト_codex-xhigh.md` に `agency_alignment` / `permission_benefit_alignment` / `unnecessary_refusal_frame` を soft lens として追加した。`japanese-chat-natural-ja` と `coconala-reply-bugfix-ja` には、`依頼できますか` には `ご依頼いただけます` を優先し、`相談して大丈夫ですか` には `相談できます` を自然に使う最小ルールを追加した。Gold 38 `agency-alignment` と、次回 #RE 用の `agency-permission-naturalness-bugfix61.yaml` も追加した
+- きっかけ: B01 の `15,000円で相談できます` が、文法上は通るが buyer の `依頼できますか？` への返答として対応主体・依頼先がぼやけると分かり、Pro でも `agency_alignment` が AI 文章の深い弱点を拾う重要 lens と判断されたため
+- 想定効果: `相談できます` `確認できます` `進められます` `大丈夫です` を blanket NG にせず、buyer の主質問の動詞・取引上の主体・材料共有の手順に合う表現へ戻す。自然化による価格・scope・phase・secret・payment route の揺れを防ぎつつ、日本語ネイティブの実務チャットで出る立場ズレを #RE / #R の監査対象にできる
+- 非変更: `agency_alignment` の hard validator 化、`できます` 系や `大丈夫です` の全面禁止、lint の広範追加はしない。支払い前原因確認、外部共有、本番反映、成功保証、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-175
+- 分類: `reply-only`
+- レイヤ: agency_alignment wording tightening
+- 変更: Pro 分析の末尾例にあった `相談して大丈夫ですか -> 相談できます` は意図としては動詞一致だが、標準文としてはまだ主体が薄く FAQ 調に寄るため、`ご相談いただけます` を標準へ修正した。`相談できます` は blanket NG にせず、短い直答として文脈上自然な場合だけ使う扱いにした
+- きっかけ: 人間監査で、`相談できます` は `依頼できますか -> 相談できます` ほどのズレではないが、標準化すると `相談するのは誰に？` という agency の薄さが残ると分かったため
+- 想定効果: `agency_alignment` の標準を、単なる動詞一致ではなく、buyer がこちらへ相談・依頼できることが明確な表現へ寄せる
+- 非変更: `相談できます` の全面禁止、`できます` 系の lint 化、hard validator 化はしない
+
+### 2026-04-30 / CHG-176
+- 分類: `reply-only`
+- レイヤ: #RE bugfix61 / agency permission naturalness rehearsal
+- 変更: `返信監査_batch-01.md` を `RE-2026-04-30-bugfix-61-agency-permission-naturalness-r0` へ更新した。Pro 4/30 後の `agency_alignment` / `permission_benefit_alignment` / `unnecessary_refusal_frame` 確認走行として、`依頼できますか`、`相談して大丈夫ですか`、`見てもらえますか`、支払い後 zip 共有、支払い前スクショ、追加ファイルと追加料金、delivered 反映箇所、closed 後関係確認を検査対象にした。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した。fixture は eval-sources と回帰に接続し、full regression も通過した
+- きっかけ: `agency_alignment` が Pro 分析で正式 named soft lens 候補となり、人間監査でも `相談できます` 標準を `ご相談いただけます` へ締める必要が分かったため
+- 想定効果: `相談できます` / `確認できます` / `大丈夫です` の blanket NG ではなく、buyer の主質問、取引上の主体、支払い後材料共有の手順に合う表現を #RE で検査できる
+- 非変更: `agency_alignment` の hard validator 化、支払い前原因確認、外部共有、本番反映、成功保証、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-177
+- 分類: `reply-only`
+- レイヤ: #RE bugfix62 / emotional trust agency mixed rehearsal
+- 変更: `emotional-trust-agency-bugfix62.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-62-emotional-trust-agency-r0` へ更新した。直前に採用圏へ入った `agency_alignment` / `permission_benefit_alignment` / `unnecessary_refusal_frame` を、他者未解決と成功保証不安、急ぎ見通し、支払い前原因だけ先見、zip/env値共有、購入後の納期不安、追加症状と追加料金不安、delivered別エラー、closed後無料対応不安が混ざる実務圧のあるケースで確認する。batch は `writer_candidate_manual` とし、候補文 8 件を candidate-batch lint に通した。fixture は eval-sources と回帰に接続し、full regression も通過した
+- きっかけ: bugfix61 が必須・軽微なしで採用され、単独の agency / permission / refusal frame は安定してきたため、次に不安・不満・急ぎ・追加料金圧の中でも同じ自然さと境界を保てるか確認する必要があったため
+- 想定効果: 立場ズレを減らしつつ、成功保証、今日中修正保証、支払い前作業、secret値要求、追加料金断定、closed後無料対応 promise へ滑らない実務返信を #RE で監査できる
+- 非変更: `agency_alignment` の hard validator 化、`できます` 系や `大丈夫です` の全面禁止、返金可否の断定、closed後の旧トークルーム継続、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-178
+- 分類: `reply-only`
+- レイヤ: #RE bugfix62 r1 / B06 explicit symptom coverage fix
+- 変更: 外部監査で `RE-2026-04-30-bugfix-62-emotional-trust-agency-r0` が採用圏・必須修正なしとなったため、B06 の軽微1点のみ反映し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-62-emotional-trust-agency-r1` へ更新した。B06 は buyer が `購入完了メール` と `領収書メール` の2点を明示していたため、返信内でも両方を拾うようにした。candidate-batch lint、full regression、service grounding sentries、git diff check は通過済み
+- きっかけ: 主質問・料金・同一原因・事前相談の軸は崩れていなかったが、buyer が書いた明示症状の片方だけを拾うと、片方しか見ないように読める可能性があったため
+- 想定効果: scope や料金を広げずに、相手が書いた具体情報を落とさない自然な返信へ寄せる
+- 非変更: 新規 rule 化はしない。今回の修正は case_fix として扱い、`handoff-25000` の live 導線、追加料金断定、secret値要求、closed後無料対応 promise は追加しない

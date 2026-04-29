@@ -240,6 +240,20 @@ primary_sources:
       - 他者が原因不明、非エンジニアのログ不安、zip/env値共有、購入後進捗、原因候補と今日中修正圧、送り忘れファイル、delivered補足、closed後無料/新規迷いを検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/agency-permission-naturalness-bugfix61.yaml
+    role: eval
+    purpose:
+      - agency_alignment / permission_benefit_alignment / unnecessary_refusal_frame の通常 live #RE。依頼先・対応主体・許可調・拒否先行がズレないかを確認
+      - 依頼できますか、相談して大丈夫ですか、見てもらえますか、支払い後zip共有、支払い前スクショ、追加ファイル、delivered反映箇所、closed後関係確認を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/emotional-trust-agency-bugfix62.yaml
+    role: eval
+    purpose:
+      - agency_alignment を、急ぎ・不満・追加料金不安・closed後不満が混ざる実務圧のある通常 live #RE で確認
+      - 他者未解決と成功保証、今日中見通し、支払い前原因だけ先見、zip/env値共有、購入後進捗不安、追加症状と追加料金、delivered別エラー、closed後無料/返金不安を検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

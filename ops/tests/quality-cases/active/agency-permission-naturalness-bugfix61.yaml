@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC61-001
+    stock_id: HRC61-001
+    category: agency_permission_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: can_request_after_other_failed
+    question_type: prequote_can_request_after_other_failed
+    primary_question: 他の方に原因不明と言われた状態でも15,000円で依頼できるかを知りたい。
+    raw_message: "別の方に見てもらったのですが、Stripe決済後に注文が作られない原因が分からないと言われました。この状態でも15,000円で依頼できますか？"
+    note: 通常 live / #RE。`依頼できますか` に `相談できます` だけで返さず、依頼先・対応主体を明確にする。
+
+  - id: HRC61-002
+    stock_id: HRC61-002
+    category: agency_permission_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: confused
+    scenario: can_consult_unknown_cause
+    question_type: prequote_unknown_cause_can_consult
+    primary_question: 原因が分からない状態でも相談してよいかを知りたい。
+    raw_message: "Stripe決済後に注文が作られないのですが、原因がまったく分かっていません。この状態でも相談して大丈夫ですか？"
+    note: 通常 live / #RE。ここでは `相談できます` が buyer の主質問と一致する自然な用法として残せるかを見る。
+
+  - id: HRC61-003
+    stock_id: HRC61-003
+    category: agency_permission_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: can_you_check_this_issue
+    question_type: prequote_can_you_check
+    primary_question: Stripe注文作成不具合を見てもらえるか、15,000円で対応できるかを知りたい。
+    raw_message: "Stripe決済後に注文が作られません。こういう不具合は見てもらえますか？15,000円で対応できますか？"
+    note: 通常 live / #RE。`見てもらえますか` に対し、能力説明だけでなくこちらが確認する主体を自然に出せるかを見る。
+
+  - id: HRC61-004
+    stock_id: HRC61-004
+    category: agency_permission_naturalness
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: pay_then_send_zip
+    question_type: quote_sent_pay_then_send_zip
+    primary_question: 支払い後にzipで送ればよいか、先に送る必要があるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。コード一式は支払い後にzipで送ればいいですか？先に送った方がスムーズですか？"
+    note: 通常 live / #RE。支払い後材料共有を `大丈夫です` の許可調にせず、手順として案内する。
+
+  - id: HRC61-005
+    stock_id: HRC61-005
+    category: agency_permission_naturalness
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: helpful
+    scenario: screenshot_timing_without_refusal_first
+    question_type: quote_sent_screenshot_timing
+    primary_question: Stripeスクショは支払い前に送るべきか、支払い後共有でよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。Stripeのスクショもあります。これは支払い前に送った方がいいですか？支払い後にトークルームで共有する流れで問題ありませんか？"
+    note: 通常 live / #RE。協力的な buyer に対して拒否先行にせず、支払い後共有の手順を自然に返す。
+
+  - id: HRC61-006
+    stock_id: HRC61-006
+    category: agency_permission_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: apologetic
+    scenario: extra_file_send_and_fee
+    question_type: purchased_extra_file_permission_fee
+    primary_question: 追加ファイルを送ってよいか、それだけで追加料金になるかを知りたい。
+    raw_message: "すみません、関連ファイルを1つ送り忘れていました。今から送っても大丈夫ですか？それだけで追加料金になりますか？"
+    note: 通常 live / #RE。追加送付は受けつつ、`大丈夫です` だけで済ませず、追加料金未断定と事前相談を自然に出す。
+
+  - id: HRC61-007
+    stock_id: HRC61-007
+    category: agency_permission_naturalness
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: delivered_where_to_apply
+    question_type: delivered_where_to_apply
+    primary_question: 承諾前に、修正ファイルのどこを反映すればよいかだけ知りたい。
+    raw_message: "納品ありがとうございます。承諾前に、修正ファイルはどこを反映すればよいかだけ短く教えてください。本番反映はこちらでやります。"
+    note: 通常 live / #RE。`確認ポイント` などに広げず、反映箇所だけに主質問を合わせる。
+
+  - id: HRC61-008
+    stock_id: HRC61-008
+    category: agency_permission_naturalness
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_send_materials_relationship_check
+    question_type: closed_send_materials_relationship_check
+    primary_question: クローズ後にログを送れば、前回修正との関係だけ見てもらえるかを知りたい。
+    raw_message: "クローズ後ですみません。似たStripeエラーが出ています。ログとスクショをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    note: 通常 live / #RE。材料送付可否、概要見立て、実作業導線を、許可調・旧トークルーム継続・無料作業 promise にせず分ける。

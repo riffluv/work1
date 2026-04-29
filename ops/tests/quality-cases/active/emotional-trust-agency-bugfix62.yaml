@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC62-001
+    stock_id: HRC62-001
+    category: emotional_trust_agency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: refused_elsewhere_guarantee_anxiety
+    question_type: prequote_refused_elsewhere_guarantee
+    primary_question: 他者に断られた Stripe 注文作成不具合を15,000円で依頼できるか、必ず直るかを知りたい。
+    raw_message: "別の方に見てもらったのですが、原因が分からないと言われて困っています。Stripe決済後に注文が作られない状態です。15,000円で依頼できますか？購入すれば必ず直りますか？"
+    note: 通常 live / #RE。他者未解決でも依頼可を返しつつ、成功保証と成果物 promise を分ける。
+
+  - id: HRC62-002
+    stock_id: HRC62-002
+    category: emotional_trust_agency
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: urgent_before_purchase_timeline
+    question_type: prequote_urgent_timeline
+    primary_question: 急ぎで原因の方向性や修正見通しまで出せるか、15,000円で見てもらえるかを知りたい。
+    raw_message: "本番で注文が作られずかなり急いでいます。できるだけ早く原因の方向性や修正の見通しだけでも出せそうですか？15,000円で見てもらえますか？"
+    note: 通常 live / #RE。急ぎを受けつつ、修正完了や購入前作業開始を promise しない。
+
+  - id: HRC62-003
+    stock_id: HRC62-003
+    category: emotional_trust_agency
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: prepayment_cause_only_pressure
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 見積り提案後、支払い前にコードとログを送って原因だけ先に見てもらえるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。購入するかまだ迷っているので、支払い前にコードとログを送って、原因だけ先に見てもらうことはできますか？直りそうなら購入したいです。"
+    note: 通常 live / #RE。迷いを受けつつ、支払い前原因確認を冷たすぎず止める。
+
+  - id: HRC62-004
+    stock_id: HRC62-004
+    category: emotional_trust_agency
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: pay_then_send_zip_with_env_question
+    question_type: quote_sent_zip_env_secret
+    primary_question: 支払い後に zip で送ればよいか、.env の値も含めるべきかを知りたい。
+    raw_message: "見積り提案ありがとうございます。購入後にコード一式をzipで送る流れで合っていますか？.envの値も一緒に入れた方がいいですか？"
+    note: 通常 live / #RE。支払い後トークルーム共有を手順化し、secret 値は不要と明確にする。
+
+  - id: HRC62-005
+    stock_id: HRC62-005
+    category: emotional_trust_agency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: impatient
+    scenario: purchased_progress_pressure
+    question_type: purchased_progress_and_today_fix
+    primary_question: 購入後、今日中に直りそうか、あとどれくらいかかりそうかを知りたい。
+    raw_message: "昨日購入してログも送りました。正直まだ直らないのか不安です。今日中に直りそうですか？あとどれくらいかかりそうか、目安だけでも教えてください。"
+    note: 通常 live / #RE。不安を受けつつ、現在地と今日中完了保証不可、次の見通し共有を自然に分ける。
+
+  - id: HRC62-006
+    stock_id: HRC62-006
+    category: emotional_trust_agency
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: worried
+    scenario: extra_scope_question
+    question_type: purchased_added_symptom_fee_anxiety
+    primary_question: 追加で出た領収書メール不具合が同じ15,000円内か、追加料金になるかを知りたい。
+    raw_message: "注文作成の件でお願いしていますが、購入完了メールも領収書メールも届かないことに気づきました。同じ原因なら一緒に見てもらえますか？別原因なら追加料金になる前に教えてほしいです。"
+    note: 通常 live / #RE。同一原因なら範囲内の可能性、別原因/追加対応なら事前相談を自然に出す。
+
+  - id: HRC62-007
+    stock_id: HRC62-007
+    category: emotional_trust_agency
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: same_cause_check
+    question_type: delivered_new_error_before_acceptance
+    primary_question: 納品後承諾前、反映時に出た別エラーをこのまま見てもらえるかを知りたい。
+    raw_message: "納品ありがとうございます。修正後に別の問題が出ました。反映しようとしたら別のエラーが出ます。承諾前なので、このまま見てもらえますか？"
+    note: 通常 live / #RE。delivered を closed と誤認せず、同一修正との関係確認と別原因時の相談を分ける。
+
+  - id: HRC62-008
+    stock_id: HRC62-008
+    category: emotional_trust_agency
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: frustrated
+    scenario: closed_same_error_free_or_paid
+    question_type: closed_same_error_free_or_paid
+    primary_question: クローズ後、同じようなエラーが出たため無料で直せるか、再度費用がかかるかを知りたい。
+    raw_message: "クローズ後ですみません。前回直してもらったはずなのに、また似たStripeエラーが出ています。同じ原因なら無料で直してもらえますか？また費用がかかるなら納得しにくいです。"
+    note: 通常 live / #RE。closed後の不満を受けつつ、無料/再費用/新規を確認前に断定しない。

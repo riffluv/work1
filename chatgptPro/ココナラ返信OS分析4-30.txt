@@ -1,0 +1,184 @@
+1. 結論
+6 lens は、全部を独立 top-level lens にしない方がよいです。
+ただし、agency_alignment は今回の「15,000円で相談できます」問題を説明する力が強く、jp_business_native_naturalness 配下の正式 named sub-lens として昇格する価値があります。
+現状の設計はすでに、hard fail と soft lens の分離、#RE only と #R reproduced の切り分け、writer_candidate_manual を #R 相当候補として監査する運用がかなり整理されています。監査プロンプトでも、非公開 service leak・phase drift・secret 値要求・保証断定などだけを deterministic hard fail にし、jp_business_native_naturalness や conversation_flow_naturalness は soft lens として扱う方針が明記されています。
+今回の B01 は、すでに 15,000円で相談できます から 15,000円でご依頼いただけます に修正されており、これは単なる語感ではなく、buyer の「依頼できますか？」に対して seller 側が「ご依頼いただけます」と返すことで、相談相手・依頼先・対応主体を一致させた修正です。change log でも、この修正は「返信者自身の対応ではなく第三者への相談にも見える余地」を消すためと整理されています。
+私の判断はこうです。
+lens扱いpromise_consistency独立 soft lens 維持。自然さではなく、約束レベルの意味整合。hard fail へ昇格する条件もある。conditional_scope_claritypromise_consistency / transaction_model_gap の subtype として当面運用。単独正式化はまだ早い。ack_to_answer_bridgeconversation_flow_naturalness の subtype。独立 lens 化は不要。permission_benefit_alignmentagency_alignment の近縁 subtype。ただし 大丈夫です 問題が再発しやすいので named sub-lens として残す価値あり。unnecessary_refusal_frameconversation_flow_naturalness / jp_business_native_naturalness の subtype。hard 化しない。agency_alignment正式 named sub-lens 候補。かなり重要。 permission_benefit_alignment より上位の「主体・行為・向き」問題として扱う。
+つまり構造としては、hard guard は増やさず、jp_business_native_naturalness の中に named sub-lens を足すのが一番安全です。
+agency_alignment は “AIっぽい” の深い原因を説明できますが、広すぎる validator にすると過剰矯正になるので、reviewer prompt / gold / human audit 中心、lint は狭く warning のみがよいです。
+
+2. lens 階層案
+おすすめの階層はこれです。
+A. deterministic hard guards   - public/private boundary   - price / scope / service facts   - phase boundary   - secret safety   - payment route   - external work surface   - direct push / production deploy   - guarantee / refund / free support / closed continuationB. transaction semantic soft lenses   B1. promise_consistency       - success_guarantee_shadow       - deliverable_promise_shadow       - diagnosis_assertion_drift       - phase_promise_drift       - secret_request_contradiction       - closed_work_promise       - scope_bundle_promise       - payment_scope_promise   B2. conditional_scope_clarity       - same cause / different cause / unknown       - 同じ範囲で見る条件       - 別原因時の停止・相談       - 修正済みファイル返却の条件C. jp_business_native_naturalness   C1. conversation_flow_naturalness       - ack_to_answer_bridge       - response_weight_mismatch       - buyer_state_ack_gap       - short-answer fragmentation   C2. agency_alignment       - buyer / seller / third party の主体ズレ       - 依頼 / 相談 / 確認 / 対応 / 案内 の行為ズレ       - 誰が何をするか、誰に向けた文かのズレ   C3. permission_benefit_alignment       - 大丈夫です / 送っていただいて大丈夫です       - buyer の負担軽減なのか、seller の許可調なのか   C4. unnecessary_refusal_frame       - 協力的な確認に対して拒否から入っていないか       - boundary は守るが、手順案内を先に置けないかD. learning / return destinations   - gold candidate   - reviewer prompt lens only   - warning lint candidate   - skill rule candidate   - human audit only
+promise_consistency は既存ドキュメント上でも、1文ごとの事実が正しくても前段の留保・不可・条件付き回答を後段の成果物・納期・料金・次アクションが上書きして見える場合に使う soft lens と定義されています。これは日本語自然さより上の「約束意味論」なので、jp_business_native_naturalness に吸収しない方がよいです。
+一方、agency_alignment は jp_business_native_naturalness の下に置きつつ、ただの文体ではなく、取引主体の整合性を見る named sub-lensにしてください。
+今回の 相談できます 問題は、価格・scope・phase は壊していないのに、「誰に依頼できるのか」がぼやけています。これは既存の hard guard では拾いにくいです。
+
+3. 各 lens の評価
+lens価値リスクhard fail 条件preference 条件lint 化gold 化skill 反映promise_consistency高い。成功保証否定と成果物 promise の矛盾を拾える。過剰に弱めると、15,000円で修正まで進める価値も薄くなる。成功保証、返金保証、無料対応断定、phase drift、secret 要求、scope/price/payment route 変更、closed 後作業 promise。既存定義とも一致。条件は明確で、接続や語順だけの改善。狭く可。例: お約束できません 近傍の 修正済みファイルの返却まで進められます。可。Gold 37 のように「原因確認」と「修正できた場合の返却」を分ける例が有効。coconala-reply-bugfix-ja へ最小 Gotcha として可。汎用 skill へは広げすぎない。conditional_scope_clarity中〜高。同一原因・別原因・修正可能時返却を誤読なく出せる。説明過多で契約書化しやすい。複数症状を無条件に15,000円へ吸収、別原因でも追加相談なしに進める、範囲外を範囲内化。同じ原因なら が多少硬いが意味明確。難しい。表面語だけでは false positive 多め。可。複数症状の標準例として残す。service-specific に限定して可。ack_to_answer_bridge中。受け止め文と主回答の貼り合わせ感を減らす。接続語を増やして冗長化しやすい。橋不足そのものは hard にしない。ただし主質問直答消失・phase 誤導が出たら別 lens で hard。やや急だが、主質問・条件・次アクションが明確。不向き。可。ただし「その点も含めて」などの接続をテンプレ化しない。japanese-chat-natural-ja に価値観レベルで十分。permission_benefit_alignment高い。大丈夫です の自然/不自然を blanket ban せず分けられる。大丈夫です 全禁止にすると不自然。支払い・購入・作業開始・材料送付を seller が許可するように書き、phase/payment route 誤解を生む場合。buyer の負担を実際に下げている 値そのものは送らなくて大丈夫です など。狭く可。お支払い完了後で大丈夫です + ログ/コード/zip/スクショ は warning 候補。可。secret 値不要と支払い後材料共有の対比例がよい。japanese-chat-natural-ja と coconala-reply-bugfix-ja 両方に最小反映可。unnecessary_refusal_frame中〜高。協力的 buyer に冷たく見える否定先行を減らす。boundary を弱める危険がある。不要な拒否ではなく、必要な不可表明を消して phase drift / 外部共有 / secret 事故になる場合。境界は明確で、少し硬いだけ。かなり狭くなら可。支払い前に.*確認を先に.*形ではありません は warning。可。手順案内 -> 必要なら境界 の例を残す。汎用 skill には「拒否より手順を先に置ける場面」を価値観として。agency_alignment高い。今回の本命。 主体・依頼先・行為の向きを整え、AI感の深い原因を拾う。広すぎると「できます」狩りになる。取引判断に関わる箇所で、buyer / seller / 第三者、作業者、支払者、確認者が誤読され、price/scope/phase/promise の事故に接続する場合。意味は明確で、より自然な言い換えがあるだけ。狭く可。buyer 文が 依頼できますか/お願いできますか/見てもらえますか なのに返信が 相談できます だけで受ける等。可。Gold 38 候補にする価値あり。japanese-chat-natural-ja に汎用1行、coconala-reply-bugfix-ja に service-specific 例を入れる価値あり。
+
+4. agency_alignment の位置づけ
+価値はかなり高いです
+agency_alignment は、AI返信の弱点として本質的です。理由は、LLM が日本語の「主語省略 + 可能表現 + 丁寧語」を便利に使いすぎるためです。
+相談できます、確認できます、進められます は文法的には自然でも、取引上の主体が曖昧になります。
+今回の例では、buyer は「依頼できますか？」と聞いています。
+ここで seller が「相談できます」と返すと、次の3つがぼやけます。
+buyer が seller に依頼できるのかbuyer がどこかに相談できるのかseller が正式に受けるのか、入口相談だけなのか
+だから修正文は、単に丁寧にしたのではなく、行為を buyer → seller の依頼として戻しているのが本質です。
+他の方で原因が分からなかった状態でも、Stripe決済後に注文が作られない不具合として、15,000円でご依頼いただけます。
+この修正は change log でも、buyer の主質問が 依頼できますか？ なので返答も ご依頼いただけます とする方が対応主体と依頼可否がずれない、と整理されています。
+permission_benefit_alignment とは別だが、親子関係に近い
+permission_benefit_alignment は、agency_alignment の一部と見てよいです。
+ただし運用上は分けた方がよいです。
+agency_alignment  └ permission_benefit_alignment
+
+
+agency_alignment: 誰が何をするか。依頼先・確認主体・作業主体・第三者感。
+
+
+permission_benefit_alignment: その表現が buyer の負担を軽くしているのか、seller が buyer の行動を許可しているように見えるのか。
+
+
+ログや関連コードは、お支払い完了後で大丈夫です は、大丈夫です の語感問題だけではなく、buyer が支払い後に材料を送る負担を seller が許可しているように見える問題です。change log でも、支払い後材料共有で 大丈夫です を使うと seller 側の許可調に見えるため、buyer の負担を軽くする用法と、支払い・購入・材料送付で許可調に見える用法を分けて観察すると整理されています。
+severity はこう置く
+場面severity依頼可否・価格・支払い・作業開始・納品・返金・無料対応・closed 後導線で主体ズレがあるfix recommended。誤読が強ければ hard fail に昇格。主体ズレによって public/private、phase、secret、payment route、promise が壊れるhard fail。ただし hard の理由は agency_alignment ではなく壊れた boundary 名で付ける。文法上は自然で、取引主体も誤読されないが、よりよい表現があるpreference。「相談できます」などが buyer の質問と一致している問題なし。
+
+5. 「できます」系の扱い
+blanket NG はしない方がいいです。
+代わりに、buyer の質問動詞と返信の行為動詞が一致しているかを見ます。
+表現自然な場面ズレる場面推奨置換相談できますbuyer が「相談して大丈夫ですか？」「この状態でも相談できますか？」と聞いている。入口相談の可否を返す。buyer が「依頼できますか？」「見てもらえますか？」と聞いている。正式依頼・対応可否が主質問。ご依頼いただけます / 対応できます / 確認から入れます確認できますすでに材料がある、または buyer が「確認できますか？」と聞いている。prequote で購入前作業開始に読める。あるいは「確認済み」に読める。現行 skill でも、未確認段階の 確認できます は確認済みに読まれやすく、見ます 調査できます 対応可能です に寄せるとされています。ご購入後に確認します / 調査できます / 確認に入ります対応可能ですサービス可否・範囲可否への直答。やや硬いが実務的。単独で FAQ 的に浮く。価格・条件・次アクションが見えない。15,000円で対応できます / この不具合として対応できます進められます対象と工程が近くに明示されている。原因確認から進められます など。修正済みファイルの返却まで進められます が成功保証 shadow になる。Gold 37 では、原因確認と修正可能時の返却を分ける形が採用されています。まず原因確認から進めます。修正箇所が特定できた場合は...大丈夫ですbuyer の心理・実務負担を実際に下げる。secret 値は送らなくて大丈夫です など。支払い・購入・材料送付・作業依頼に対して seller が許可するように見える。共有してください / 共有いただければ、そこから確認に入りますご案内します支払い方法や次手順が本当に seller 側で後続案内になる。単独終止で、何をどうするか見えない。ng-expressions でも ご案内します。 の単独終止は次アクションが見えないとされています。取引状態を確認してこちらからご案内します / 本日18:00までに結果をお返しします
+監査文言としては、禁止語ではなくこう書くのがよいです。
+`できます` 系を禁止語として扱わないでください。ただし、buyer の主質問の動詞・立場・依頼先に対して、返信側の可能表現がズレていないかを見てください。`依頼できますか` には `ご依頼いただけます`、`相談して大丈夫ですか` には `相談できます` のように、buyer が聞いている行為へ返る表現を優先してください。取引判断に関わる箇所で `相談できます / 確認できます / 進められます / 大丈夫です / ご案内します` が、誰の行為か、誰に向けた案内か、何を約束しているかを曖昧にしている場合は `agency_alignment` または `permission_benefit_alignment` として軽微修正を提案してください。
+
+6. hard fail / fix recommended / preference / gold / lint の分類基準
+基本基準
+分類基準例hard fail送ると取引事故・信用毀損・規約/境界事故に近い。価格、scope、phase、secret、payment route、public/private、成果物 promise が壊れる。25,000円未公開サービスの live 漏れ、購入前原因確認、secret 値要求、成功保証、返金/無料対応断定。fix recommended事故ではないが、buyer が未約束の作業・成果・許可・主体を誤読しやすい。必ず直せません の後に 修正済みファイルの返却まで進めます、依頼できますか に 相談できます。preference意味・導線・境界は明確で、語感・句読点・硬さの好み。ご連絡ありがとうございます と ありがとうございます の差。gold candidate安全境界を崩さず、自然さと取引導線を同時に解決している。再利用できる判断順序がある。B01 修正版、Gold 37 の「原因確認」と「修正可能時返却」の分離。lint candidate表面パターン + 文脈で高精度に検知できる。false positive が少ない。お約束できません 近傍の 修正済みファイルの返却まで進められます。skill rule candidate2 batch 以上で再発し、自然さを上げても意味を壊しにくい。依頼できますか には ご依頼いただけます を優先。audit prompt lens only意味判断が必要で lint 化すると誤検知が多い。ack_to_answer_bridge、広い conditional_scope_clarity。human audit only1回限りの違和感、まだ再発性不明、好み差の可能性あり。「この言い方少し硬い」程度。
+既存の reply-quality/README でも、学習ループは batch → 外部監査 → failure taxonomy → case_fix / pattern_candidate / rule_return_candidate / preference / reject → adoption policy → 再発するものだけ skill/rule/validator/gold へ戻す、という運用になっています。今回もこのループを守るのが安全です。
+agency_alignment の lint 候補
+すぐ hard validator ではなく、warning lint だけ候補にします。
+candidate_lint_1:  when:    buyer_text includes /依頼できますか|お願いできますか|見てもらえますか/    reply_text includes /相談できます/    reply_text does not include /ご依頼いただけます|対応できます|確認します|見ます/  severity: warning  lens: agency_alignment  message: buyer は依頼可否を聞いているため、`相談できます` だけだと依頼先・対応主体がぼやける可能性があります。candidate_lint_2:  when:    reply_text includes /(お支払い完了後|ご購入後).{0,20}(大丈夫です)/    reply_text includes /(ログ|コード|zip|ファイル|スクショ|関連コード)/  severity: warning  lens: permission_benefit_alignment  message: 支払い後の材料共有を `大丈夫です` で受けると、buyer の負担を seller が許可しているように見える可能性があります。candidate_lint_3:  when:    reply_text includes /お約束できません/    and reply_text includes /修正済みファイル.*返却まで進め/  severity: warning  lens: promise_consistency  message: 成功保証を否定した後に、修正完了済み成果物を無条件 promise しているように読めます。candidate_lint_4:  when:    reply_text includes /支払い前.*確認.*(形ではありません|しません)/  severity: warning  lens: unnecessary_refusal_frame  message: buyer が単に共有タイミングを確認している場合、拒否先行より支払い後の共有手順を先に置く方が自然です。
+candidate_lint_4 は false positive が多いので、当面は audit prompt only でもよいです。
+
+7. 監査プロンプト文案
+以下は Codex xhigh の監査プロンプトへそのまま入れられる形です。
+既存の Pro後の補助監査レンズ の後、または jp_business_native_naturalness の直後に追加するのがよいです。
+追加 soft lens: `jp_business_native_naturalness`日本の実務チャットとして、内容が正しいだけでなく、担当者が送信直前に普通に書いたように読めるかを見てください。目的は「やさしくする」ことではありません。価格、scope、phase、secret、public/private、payment route、作業可否、成果物 promise は変えないでください。見る対象は、主質問への直答、buyer/seller の行為主体、支払い・材料共有・確認開始の導線、受け止めから主回答への接続、不要な拒否フレーム、`できます` 系の主体ぼやけです。この lens は hard fail ではありません。ただし、自然化によって price / scope / phase / payment route / secret handling / public-private boundary が変わった、buyer の主質問への直答が消えた、未約束の作業・無料対応・返金・保証・外部共有を足した場合は deterministic な事故として扱ってください。preference only:- 句点の有無だけ- やや硬いが意味・導線・安全境界が明確- より自然な言い換えはあるが、修正すると price / scope / phase が揺れそう- `はい、` `まずは` `大丈夫です` `確認できます` `相談できます` などの語が、文脈上自然に機能している
+追加 soft lens: `agency_alignment`返信内で、誰が何をするのか、誰に向けて許可・依頼・案内しているのかが、buyer の主質問とズレていないかを見てください。特に `相談できます` `確認できます` `対応可能です` `進められます` `大丈夫です` `ご案内します` のように主語が省略されやすい表現で、buyer / seller / 第三者、依頼者 / 作業者 / 確認者の向きが曖昧になっていないかを確認してください。例:- buyer が `依頼できますか？` と聞いている場合、`相談できます` だけで返すと、seller へ依頼できるのか、第三者へ相談できるのかがぼやける可能性があります。- この場合は `15,000円でご依頼いただけます` `この不具合として対応できます` のように、依頼先と対応主体が見える表現を優先してください。- buyer が `相談して大丈夫ですか？` と聞いている場合は、`相談できます` は自然なことがあります。blanket NG にしないでください。hard fail 条件:- agency のズレによって、支払い前作業開始、未約束の成果物返却、外部共有、返金/無料対応、closed 後作業、public/private leak などの deterministic 事故に接続している場合。- この場合、hard fail 名は `agency_alignment` ではなく、実際に壊れた boundary 名で付けてください。fix recommended 条件:- 価格、依頼可否、作業開始、納品、追加料金、closed 後導線など取引判断に関わる箇所で、主体・依頼先・行為の向きが曖昧な場合。preference 条件:- 誰が何をするかは明確で、より自然な言い換えがあるだけの場合。
+追加 soft lens: `permission_benefit_alignment``大丈夫です` `送っていただいて大丈夫です` などの許可・安心表現が、buyer の負担を実際に軽くしているのか、seller が buyer の支払い・作業・材料送付を許可しているように見えていないかを見てください。自然な用法:- `値そのものは送らなくて大丈夫です`- `ログの意味が分からない状態でも相談できます`- buyer の心理負担または実務負担を実際に下げている要注意:- `ログや関連コードは、お支払い完了後で大丈夫です`- `お支払い後に送っていただいて大丈夫です`- 支払い、購入、材料送付、作業開始の導線で、seller が buyer の負担を許可しているように見える場合推奨:- `お支払い完了後に、トークルームで共有してください`- `共有いただければ、そこから確認に入ります`- `zip か関係ファイルをまとめた形で進められます`hard fail 条件:- `大丈夫です` によって、支払い前作業開始、外部共有、secret 値送付、未約束の対応可否などを誤って許可している場合。preference 条件:- buyer の負担を下げる自然な `大丈夫です` で、意味・導線・安全境界が明確な場合。
+追加 soft lens: `unnecessary_refusal_frame`協力的な buyer に対して、必要以上に拒否・否定から入っていないかを見てください。phase boundary や外部共有禁止などの境界は必ず守りますが、buyer が単に共有タイミングや進め方を確認している場合は、拒否文より手順案内を先に置いた方が自然なことがあります。要注意:- `支払い前にスクショを送っていただいて、こちらで確認を先に始める形ではありません`- `先に確認はしません`- buyer が強い要求をしていないのに、防御的・規約説明的に見える否定先行推奨:- `スクショやログは、お支払い完了後にトークルームで共有いただければ進められます`- `今の段階で先に送っていただく必要はありません`- `原因確認や作業は、お支払い完了後に始めます`hard fail 条件:- 不要な拒否フレームを避けるために、支払い前作業、secret 値、外部共有、直接 push、本番反映、closed 後作業などを許可してしまった場合。preference 条件:- 境界説明として必要で、少し硬いが buyer が次に何をすればよいか明確な場合。
+追加 soft lens: `promise_consistency`返信内で、前段の留保・不可・条件付き回答を、後段の成果物・納期・次アクションが上書きして見えないかを確認してください。1文ごとの事実が正しくても、buyer が通しで読んだ時に、未約束の修正完了・原因確定・購入前確認・無料対応・返金・closed 後作業を約束しているように読める場合は指摘してください。特に見る例:- `必ず直せるとはお約束できません` の後に、`修正済みファイルの返却まで進められます` と無条件に書いていないか- `購入後に確認します` と言った後に、購入前の原因確認開始を約束していないか- `secret 値は不要です` と言った後に、値入り `.env` や API キー送付を求めていないか- `closed 後は実作業しない` と言った後に、この場で修正や修正済みファイル返却を約束していないか- 複数症状で、`同じ原因なら範囲内 / 別原因なら相談` の条件が購入導線で消えていないかhard fail 条件:- public/private 事故- phase drift- secret 値要求- 成功保証・返金保証・無料対応の断定- scope / price / payment route の事実変更- 外部共有、直接 push、本番デプロイ誘導- closed 後の旧トークルーム継続作業の約束fix recommended 条件:- 明示断定ではないが、buyer には未約束の約束として読める場合。- 修正例は、固定してよい約束を弱めず、未確認の成果だけ条件付きにしてください。preference 条件:- 条件・約束レベルは明確で、順序や語感を整える程度の場合。
+
+8. #RE / #R への落とし込み
+現状の方向は正しいです。
+#RE の deterministic renderer 出力は renderer_baseline として扱い、自然さの人間監査を本丸 #R へ戻す前に、同じ fixture の writer brief から作った writer_candidate でも再現するか確認する、という方針が reply-quality/README にも書かれています。
+#RE で見つけた自然化の学びを #R に戻す基準
+#RE 指摘戻し方deterministic safety 事故candidate_source に関係なく即修正。validator / service facts / forbidden moves へ戻す。writer_candidate_manual でも再現した自然さ問題reviewer prompt / gold / skill 最小 rule へ戻す候補。renderer_baseline だけで出る不自然さrenderer / fixture の問題として隔離。#R skill へ戻さない。human audit の1回違和感human audit only または pattern_candidate。すぐ ng-expression 化しない。2 batch 以上で再発し、修正しても boundary が壊れないgold / reviewer prompt / warning lint 候補。3 batch 以上で再発し、false positive が少ないskill rule または lint warning 候補。
+#RE 特有の癖を本丸へ入れないために守ること
+
+
+renderer_baseline の文体問題を japanese-chat-natural-ja の恒久 rule にしない。
+
+
+writer_candidate_manual でも、その文体が #R 実出力と違う可能性を残す。
+
+
+#RE の固定 fixture 用に作った「安全パーツ列挙」を #R の標準文体にしない。
+
+
+自然さ改善を renderer template に直接焼き込まない。
+
+
+agency_alignment を理由に、すべての 相談できます を ご依頼いただけます へ置換しない。
+
+
+human audit の指摘は、#R reproduced / #RE only / safety deterministic / preference / candidate に分類してから戻す。これは coconala-reply-bugfix-ja の既存方針とも一致します。
+
+
+human audit の rule 化前に #R reproduced を確認すべきか
+はい。自然さ問題は原則確認すべきです。
+ただし例外があります。
+指摘タイプ#R reproduced 確認public leak / secret / phase / price / scope / external work surface不要。即 hard 修正。agency_alignment / permission_benefit_alignment / unnecessary_refusal_frame必要。少なくとも writer_candidate と #R smoke の両方で見る。promise_consistencyhard に接続するものは即修正。soft shadow は #RE 複数 batch で観察。好み差#R reproduced しても rule 化しない。gold 候補に留める。
+
+9. 実装ロードマップ
+Step 1 — 監査プロンプトへ soft lens として追加
+まず 監査プロンプト_codex-xhigh.md に、上の文案から次の4つだけ追加します。
+agency_alignmentpermission_benefit_alignmentunnecessary_refusal_framepromise_consistency
+ack_to_answer_bridge と conditional_scope_clarity は、現時点では独立 lens として増やさず、conversation_flow_naturalness / promise_consistency の下位観点として書くのがよいです。
+既存プロンプトはすでに jp_business_native_naturalness を soft lens として持ち、hard fail との分離も明記しているので、そこを拡張するだけで足ります。
+Step 2 — agency_alignment 用の #RE fixture を1本作る
+次の batch を agency-permission-naturalness-bugfix61.yaml のような名前で作るのがよいです。
+入れるケースは8本程度。
+
+
+依頼できますか？ → ご依頼いただけます
+
+
+相談して大丈夫ですか？ → 相談できます
+
+
+見てもらえますか？ → 確認します / 対応できます
+
+
+quote_sent で 支払い後に zip でいいですか？ → 共有してください
+
+
+prequote で 先にスクショ送りますか？ → 拒否先行ではなく手順案内
+
+
+purchased で ログ追加していいですか？ → 許可調でなく追加送付 + 追加料金未断定
+
+
+delivered で どこを反映？ → 補足できます だけでなく反映箇所に限定
+
+
+closed で 関係だけ見てもらえますか？ → 概要見立てと実作業分離
+
+
+Step 3 — Gold 38 候補を作る
+docs/reply-quality/gold-replies/38_agency-alignment.ja.md を作る価値があります。
+Gold の運用は「雰囲気」ではなく、温度感・情報量・質問数・次アクションの再利用基準として残すものなので、今回のような標準判断順序は gold に向いています。
+構成は3例で十分です。
+1. 依頼できますか？ -> ご依頼いただけます2. 相談して大丈夫ですか？ -> 相談できます3. 支払い後に送ればいいですか？ -> 共有してください / 共有いただければ確認に入ります
+Step 4 — skill へは最小1〜2行だけ戻す
+japanese-chat-natural-ja には、汎用 rule としてこれだけでよいです。
+- buyer が `依頼できますか` `お願いできますか` `見てもらえますか` と聞いている場面では、`相談できます` だけで受けず、`ご依頼いただけます` `対応できます` `確認します` のように、依頼先・対応主体が見える表現を優先する。
+coconala-reply-bugfix-ja には service-specific にこれを追加。
+- prequote で buyer が `15,000円で依頼できますか` と聞いている場合は、`15,000円でご依頼いただけます` を標準にする。`相談できます` は、buyer が `相談して大丈夫ですか` と聞いている場合だけ自然に使う。- 支払い後の材料共有は、`お支払い完了後で大丈夫です` より、`お支払い完了後にトークルームで共有してください` `共有いただければ確認に入ります` を優先する。
+ただし、Writer に長い self-check や ban list を背負わせず、Writer は短い価値観だけで書き、Reviewer が詳細を見るという既存思想は維持してください。writer brief でも「Writer に必要最小限の指示だけを渡す」「主質問に先に答える」「buyer の質問にそのまま返る言葉を優先する」と整理されています。
+Step 5 — lint はまだ warning のみ
+すぐ入れるなら、上で書いた candidate_lint_1 と candidate_lint_2 だけです。
+unnecessary_refusal_frame は文脈依存が強いので、しばらく reviewer prompt only がよいです。
+Step 6 — #RE / #BR で検証
+
+
+#RE: live bugfix のみ。handoff-25000 は出さない。
+
+
+#BR: future-dual で boundary と agency が衝突しないか見る。ただし #BR の学びを live へ戻す時は public/private gate を通す。
+
+
+各 batch で、agency_alignment 指摘を case_fix / pattern_candidate / rule_return_candidate / preference / reject に分類する。
+
+
+Step 7 — Pro / 外部AIへ再相談するタイミング
+次の条件がそろったら再相談で十分です。
+- agency_alignment の同型が 2 batch 以上で再発- `相談できます` / `確認できます` / `大丈夫です` の自然用法と危険用法がそれぞれ2例以上ある- lint warning 候補の false positive が見えている- gold 38 候補が #RE / #R smoke で崩れていない
+今すぐ再相談より、まず agency_alignment を reviewer prompt + #RE fixture + gold candidate で1周回す方が実装効率が高いです。
+
+10. やらない方がいいこと
+以下はノイズ化・過剰矯正・骨格破壊のリスクが高いです。
+やらないこと理由相談できます 確認できます 大丈夫です の blanket ban自然な場面まで壊す。buyer が「相談して大丈夫？」と聞いた時の 相談できます は自然。agency_alignment を hard validator 化主体ズレは文脈依存。hard 化すると false positive が多い。できます 系をすべて ご依頼いただけます に置換相談可否・確認可否・対応可否の違いが消える。自然化のために価格を 想定しています に弱めるfixed price / service facts を壊す。現行 skill でも固定価格を弱めない方針が明記されています。拒否フレームを避けるために、必要な不可表明まで消すphase / secret / external work surface 事故になる。ack_to_answer_bridge を全返信へ強制接続語テンプレが増え、逆に AI 感が出る。permission_benefit_alignment を理由に 大丈夫です を全部消すsecret 値不要など、buyer 負担を軽くする自然な用法まで消える。#RE renderer baseline の癖を #R skill へ直接戻す#RE only の不自然さを本丸へ感染させる。既存チェックリストでも、renderer baseline を #R 文章品質として監査してはいけないと整理されています。gold をテンプレ化するGold は anchor であり、丸写しテンプレではない。Gold README でも近い1本だけ見て温度感・依頼数・次アクションを合わせる運用です。conditional_scope_clarity を毎回長文説明にするbuyer の文量に対して契約説明化しやすい。条件は必要な場面だけ短く出す。
+
+11. 追加で見るべきファイル
+今回の次作業で追加確認した方がよいファイルは以下です。
+ファイル見る理由docs/reply-quality/re-alignment-checklist-20260429.ja.md#RE / #R のズレを戻す判断基準。agency 指摘を本丸へ戻す前に必須。docs/reply-quality/r-smoke-style-anchors-20260429.ja.md#R 実出力の自然文体 anchor。agency_alignment の gold と衝突しないか見る。docs/reply-quality/writer-brief.ja.mdWriter に入れる最小文言を決める。長い rule を入れすぎないため。docs/reply-quality/self-check-core-always-on.ja.mdReviewer 常時コアに agency_alignment を入れるべきか、ケース別に留めるべきか判断する。現状コアは主質問直答・phase・既出情報・price/scope/public 状態・known NG などに絞られています。docs/reply-quality/adoption-policy.ja.mdagency_alignment を gold / skill / lint / human audit のどこへ戻すかの正式基準確認。docs/reply-quality/failure-taxonomy.ja.mdagency_alignment を既存 taxonomy のどこに置くか確認。docs/reply-quality/scorecard.ja.mdsoft lens を採点に入れすぎないため。scripts/render-coconala-reply.py--writer-brief / --candidate-batch-file に agency 用 expected semantics を入れるか確認。scripts/*lint* または reply_quality_lint_common.py 相当warning lint を入れる場合の実装先確認。ops/tests/quality-cases/active/live-practical-trust-bugfix60.yamlB01 の agency 修正を次 batch の seed にする。現在の fixture には 依頼できますか？ の primary question が入っています。
+
+最終判断
+agency_alignment は正式 lens 候補として採用してよいです。
+ただし、top-level hard lens ではなく、jp_business_native_naturalness 配下の named soft lensにしてください。
+今回の「15,000円で相談できます」問題は、単なる日本語の柔らかさではありません。
+buyer が「依頼できますか？」と聞いているのに、seller が「相談できます」と返すことで、取引上の行為が 依頼 から 相談 へ下がり、さらに相談先が seller なのか第三者なのか一瞬ぼやけます。
+したがって、今後の標準はこれです。
+buyer が「依頼できますか？」と聞く→ 「ご依頼いただけます」buyer が「相談して大丈夫ですか？」と聞く→ 「相談できます」buyer が「支払い後に送ればいいですか？」と聞く→ 「お支払い完了後にトークルームで共有してください」   または   「共有いただければ、そこから確認に入ります」
+この粒度なら、骨格を壊さず、日本語ネイティブの実務チャットとしての「なんか変」をかなり減らせます。
