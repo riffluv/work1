@@ -91,6 +91,7 @@ mode の正本:
 - 直近の監査で有効だった恒久観点は、少なくとも `fact_alignment / semantic_echo / closing_complete / urgency_symmetry / unanswered_secondary / technical_explanation_safety` を含む
 - `#CL` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Claude 向け監査プロンプトを作る
 - `#GE` は `reply-review-prompt-ja` を使い、`runtime/replies/latest-source.txt` と `runtime/replies/latest.txt` を対象に Gemini 向け監査プロンプトを作る
+- `reply-review-prompt-ja` は単発返信文の外部監査専用。ChatGPT Pro への返信OS設計相談、ロードマップ分析、自然化レイヤ分析プロンプトには使わない
 - `#RE` は返信学習用ショートカットとして扱う。既存の返信骨格を使って stock から代表ケースを選び、外部監査にそのまま渡せる batch を 1 ファイルだけ更新する
 - `#RE` のデフォルト対象は `bugfix-15000`。`#RE handoff` のように補足がある時だけ `handoff-25000` を対象にする
 - `#RE` では生成本体の再設計を行わず、既存ルールで batch を組み直すことを優先する

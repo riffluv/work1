@@ -71,6 +71,7 @@
 - `#CL` の補足行や後続条件は、監査観点としてプロンプトへ反映する
 - `#GE` は、直近の相手文（`latest-source.txt`）と送信用返信文（`latest.txt`）を対象に、Gemini向け監査プロンプトを作るショートカットとして扱う
 - `#GE` の補足行や後続条件は、監査観点としてプロンプトへ反映する
+- `reply-review-prompt-ja` は単発返信文の外部監査専用。ChatGPT Pro への返信OS設計相談、ロードマップ分析、自然化レイヤ分析プロンプトには使わない
 
 ## stock 運用
 - 新しい文章 stock は `/home/hr-hm/Project/work/ops/tests/stock/inbox` に置く

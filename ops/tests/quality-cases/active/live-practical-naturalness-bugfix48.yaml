@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC48-001
+    stock_id: HRC48-001
+    category: live_practical_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: price_timeline_active_defect
+    question_type: prequote_price_and_timeline
+    primary_question: Stripe決済後に注文が作られない不具合の金額と大まかな日数を知りたい。
+    raw_message: "Stripe決済後に注文が作られないです。金額だけと、だいたい何日かかるかだけ先に知りたいです。"
+    note: 通常 live / #RE。金額だけに近い短文相談で、15,000円を即答しつつ、納期を未確認で断定しないかを見る。
+
+  - id: HRC48-002
+    stock_id: HRC48-002
+    category: live_practical_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: previous_fix_failed_trust
+    question_type: prequote_previous_fix_failed_trust
+    primary_question: 前の方に直ったと言われたが再発して不安。今回頼んで大丈夫か。
+    raw_message: "前の方にStripe決済後の注文反映を直ったと言われたのですが、また止まりました。同じことにならないか不安です。お願いできますか？"
+    note: 通常 live / #RE。前任者不信・再発不安を受けつつ、保証断定や過剰謝罪に寄らず、15,000円の成果物単位へ自然に接続できるかを見る。
+
+  - id: HRC48-003
+    stock_id: HRC48-003
+    category: live_practical_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: feature_addon_scope
+    question_type: prequote_feature_addon_scope
+    primary_question: 注文反映不具合と一緒にCSVダウンロードボタン追加も同じ15,000円に含められるか。
+    raw_message: "Stripe決済後に注文が反映されない不具合を直してほしいです。ついでに管理画面へCSVダウンロードボタンも追加したいのですが、同じ15,000円に含められますか？"
+    note: 通常 live / #RE。active defect は受けつつ、新機能追加を同じ15,000円に吸収しない境界を見る。
+
+  - id: HRC48-004
+    stock_id: HRC48-004
+    category: live_practical_naturalness
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: self_apply_support
+    question_type: quote_sent_self_apply_support
+    primary_question: 修正済みファイルを受け取った後、自分で本番反映する形か。デプロイ手順ももらえるか。
+    raw_message: "見積り提案ありがとうございます。購入した場合、修正済みファイルを受け取って自分でVercelにデプロイする形ですか？デプロイ手順も教えてもらえますか？"
+    note: 通常 live / #RE。quote_sent。直接本番反映を約束せず、修正ファイル返却と反映手順の軽い説明に収められるかを見る。
+
+  - id: HRC48-005
+    stock_id: HRC48-005
+    category: live_practical_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: info_sufficiency_check
+    question_type: purchased_zip_env_values_removed
+    primary_question: ZIPからnode_modulesを抜き、.env値を消した状態で足りるか。
+    raw_message: "ZIP送りました。node_modulesは抜いて、.envの値は消してあります。この状態で足りてますか？不足があれば教えてください。"
+    note: 通常 live / #RE。購入後。既出材料を受けつつ、secret 値を求めず、追加材料が必要な時だけこちらから絞る自然な返答になるかを見る。
+
+  - id: HRC48-006
+    stock_id: HRC48-006
+    category: live_practical_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: direct_push_and_prod_deploy
+    question_type: purchased_direct_push_prod_deploy
+    primary_question: GitHubへ直接pushし、本番反映までやってもらえるか。
+    raw_message: "修正できたら、GitHubのmainブランチに直接pushして、そのまま本番反映までやってもらえますか？自分で反映するのが不安です。"
+    note: 通常 live / #RE。購入後。直接pushと本番反映の両方を明示的に止め、修正済みファイル・差分・反映手順返却へ自然に戻せるかを見る。
+
+  - id: HRC48-007
+    stock_id: HRC48-007
+    category: live_practical_naturalness
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: warm
+    scenario: approval_ok_with_future_request
+    question_type: delivered_approval_future_question
+    primary_question: 動作確認できたので承諾してよいか。今後また同じ箇所で出たら相談できるか。
+    raw_message: "動作確認できました。承諾のボタンを押して大丈夫そうです。今後また同じ箇所で何か出たら、その時も相談できますか？"
+    note: 通常 live / #RE。delivered。承諾を自然に受けつつ、将来保証や無料対応を約束しすぎないかを見る。
+
+  - id: HRC48-008
+    stock_id: HRC48-008
+    category: live_practical_naturalness
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_pre_estimate_cause_check
+    question_type: closed_diagnosis_before_new_request
+    primary_question: クローズ後、新規見積り前にコードを少し貼って原因だけ見てもらえるか。
+    raw_message: "クローズ済みですが、別のStripeエラーが出ています。コードを少し貼るので、原因だけ先に見てもらって、必要そうなら新規でお願いする形でも大丈夫ですか？"
+    note: 通常 live / #RE。closed。新規見積り前の原因調査へ滑らず、メッセージ上の概要見立てと実作業の分離ができるかを見る。

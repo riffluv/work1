@@ -44,6 +44,7 @@ Pro後の補助監査レンズ:
 - `semantic_grounding_drift`: サービスページ・facts・service-pack・renderer の意味がずれていないか。特に 15,000円 / 不具合1件 / 同一原因 / 修正済みファイル返却 / secret 値不要 / 直接 push・本番反映不可の意味ズレを見る
 - `shadow_to_live_contamination`: `#BR` や `handoff-25000` 側の語彙、25,000円、主要1フロー、引き継ぎメモ、private CTA が通常 live / #RE に戻っていないか
 - `evidence_minimality`: buyer がすでに出した情報を聞き直していないか、依頼している材料が見積り判断・修正判断に必要な最小限か。secret 値や過剰なコード一式要求に寄っていないかも見る
+- `jp_business_native_naturalness`: 日本の実務チャットとして、内容が正しいだけでなく担当者が普通に書いたように読めるか。`確認しました` 直後の `はい、確認できています` のような二重受領、機械的な `はい、`、`確認します / 確認できます / 確認結果` の密集、`確認材料` `進め方になります` などの内部処理語・PM語彙が浮いていないかを見る。ただし hard fail ではなく soft lens とし、意味を変えない最小修正だけを提案してください
 
 注意:
 - `phase_answer_gap` は生成 rule ではなく監査レンズです。毎回説明を増やす方向ではなく、buyer が実際に迷う場面だけ指摘してください
@@ -55,7 +56,8 @@ Pro後の補助監査レンズ:
 - `buyer_state_ack_gap` は共感文を増やすための rule ではありません。状態を受ける場合も1文だけにし、謝罪・過失認定・返金断定・無料対応約束には広げないでください
 - `unnamed_discomfort` はその場で rule 化しないでください。好み差は必須修正・採点・validator 戻しにせず、まず観察メモとして扱ってください
 - Pro後の補助監査レンズは hard fail に直結させないでください。明確な public leak、phase drift、secret 値要求、保証断定など deterministic な事故だけ必須修正にし、それ以外は軽微・観察・gold 候補として扱ってください
-- hard fail と soft lens を分けてください。hard fail は phase drift、非公開サービス漏れ、返金/無料/保証の断定、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続など deterministic な事故に限ります。`response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort` は soft lens として扱ってください
+- `jp_business_native_naturalness` は、価格・scope・phase・secret・public/private・支払い導線・作業可否を変えるために使わないでください。`はい、` や `まずは` を全面禁止せず、二重受領・機械的な yes・近接反復など再発性のある違和感だけを拾ってください
+- hard fail と soft lens を分けてください。hard fail は phase drift、非公開サービス漏れ、返金/無料/保証の断定、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続など deterministic な事故に限ります。`response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort`、`jp_business_native_naturalness` は soft lens として扱ってください
 
 優先順位:
 - 1件ごとの好みより、構造・scope・service facts との整合を優先してください
@@ -77,5 +79,21 @@ Pro後の補助監査レンズ:
 - 分からない場合は `不明` で止め、推測で rule 戻しを勧めないでください
 
 出力形式:
-- 添付 batch に書かれている `出力形式` に従ってください
+- 添付 batch に個別の `出力形式` が書かれている場合は、それに従ってください
+- 個別指定がない場合でも、監査ログの粒度を安定させるため、必ず次の順で返してください
+
+1. 結論
+2. 共通して良い点
+3. 危ない点 / 共通 drift
+4. ケース単位の必須修正
+5. 軽微修正
+6. 学習判定まとめ
+7. rule に戻すべき再発パターン
+8. 採点
+9. まとめ
+
+- 必須修正がない場合も、`必須修正なし` と明記してください
+- 軽微修正がない場合も、`軽微修正なし` と明記してください
+- 問題がないケースを無理に長く書く必要はありませんが、B01〜Bxx の採用/軽微/必須の判定は分かるようにしてください
+- 採点は 10 点満点で付け、減点理由を短く添えてください
 - レビュー結果はチャット本文で返してください。依頼がない限り、新しいファイルの作成・既存ファイルの編集はしないでください

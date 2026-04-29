@@ -1152,3 +1152,67 @@
 - きっかけ: 人間監査で、受領済みの文脈に `はい` を機械的に付けると日本語ネイティブには bot / AI 感が強く出ると指摘された
 - 想定効果: purchased 中の受領確認で、同じ確認を二重に言わず、相手の行動への短い謝意 -> 受領事実 -> 次の流れ、の順に自然化できる
 - 非変更: 受領確認、追加準備なし、次回時刻コミットの内容は変えない。`はい、` 全般を禁止するわけではなく、受領確認直後の重複だけを lint 対象にする
+
+### 2026-04-29 / CHG-135
+- 分類: `reply-only`
+- レイヤ: #CL/#GE prompt naturalness lens
+- 変更: `reply-review-prompt-ja` の単発返信文監査観点に、日本語ネイティブの実務者ならこの場面で言わなさそうな受け方、`確認しました` / `受け取りました` 直後の `はい、〜確認できています`、機械的な `はい、`、bot / AI っぽい受領確認・相づち・つなぎ語を標準観点として追加した。出力形式にも「日本語ネイティブの実務者なら言わなさそうな箇所」を追加した
+- きっかけ: `#CL` だけでも、ユーザーが毎回補足しなくても bot 感や日本語実務違和感を拾えるようにしたいという要望があった
+- 想定効果: Claude / Gemini への単発返信文監査で、内容の正しさだけでなく、日本のビジネスチャットとして送った時の違和感を標準で拾いやすくする
+- 非変更: `reply-review-prompt-ja` は引き続き単発返信文監査専用。ChatGPT Pro への返信OS設計相談、ロードマップ分析、自然化レイヤ分析プロンプトには使わない。`はい、` 全般を禁止しない
+
+### 2026-04-29 / CHG-136
+- 分類: `reply-only`
+- レイヤ: Pro後 jp business native naturalness / soft lens + lint narrowing
+- 変更: Pro の自然化レイヤ分析を受け、bugfix-15000 と #BR の Codex xhigh 監査プロンプトへ `jp_business_native_naturalness` を soft lens として追加した。あわせて `reply_quality_lint_common.py` の `進め方` lint を blanket 検知から `進め方になります` / `進め方をお返しします` / `次の進め方をお返しします` / `その前提で進め方` などの PM 語彙寄りパターンに絞った。`tone-templates.ja.md` では `進め方は[手順]で進めます`、`ご共有ください`、`次の進め方をお返しします` を、より送信用に近い表現へ最小更新した
+- きっかけ: Pro 分析で、日本語ビジネス自然化レイヤは必須だが、renderer ではなく意味保存型の最終整形・soft lens・狭い lint に置くべきと整理された。また `進め方` の blanket lint と古い tone template がノイズ源になり得ると指摘された
+- 想定効果: `bugfix-15000` live / #BR の外部監査で、内容は正しいが bot / AI 感が出る文面を拾いやすくしつつ、`はい、` `まずは` `進め方` の全面禁止による過剰矯正を避ける
+- 非変更: renderer の service / phase / scope / price / secret / public-private 判断は変更しない。`jp_business_native_naturalness` は hard fail ではなく soft lens として扱い、自然化のために支払い導線・作業可否・サービス境界を変えない
+
+### 2026-04-29 / CHG-137
+- 分類: `reply-only`
+- レイヤ: #RE bugfix47 / post-Pro jp business native naturalness sentry
+- 変更: `post-pro-native-naturalness-bugfix47.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-47-post-pro-native-naturalness-r0` へ更新した。Pro後の `jp_business_native_naturalness` 確認走行として、曖昧相談、原因だけ診断圧力、quote_sent の支払い前材料送付、購入後の受領確認、短文進捗、キー名のみ共有、納品後の軽い補足、closed 後の関係確認を検査対象にした。local preflight で出た `作られません` の diagnosis-only 検知漏れ、短文進捗の重複、納品後/closed の機械的な `はい`、キー名共有の二重謝意を最小補修した。あわせて `eval-sources.yaml`、service-grounding sentry、timestamp-policy の runtime fixture に接続した
+- きっかけ: 人間監査と Pro 分析で、内容は正しいが日本語ネイティブの実務チャットとして bot / AI 感が出る箇所を soft lens として継続検査する必要が明確になった
+- 想定効果: `bugfix-15000` live で、二重受領、機械的な `はい`、確認語密集、購入者がすでに出した情報の聞き直し、phase / scope を壊さない範囲の自然化を継続確認できる
+- 非変更: `handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない。自然化のために service / scope / price / secret / payment route の判断は変更しない
+
+### 2026-04-29 / CHG-138
+- 分類: `reply-only`
+- レイヤ: #RE bugfix47 r1 / accepted audit light naturalization
+- 変更: bugfix47 r0 外部監査で採用圏・必須修正なしとなったため、軽微3点だけ r1 へ反映した。B03 は `購入後に送ってください` と `お支払い完了後に送ってください` の重複を、支払い完了後の1文に圧縮した。B05 は短文進捗確認に対し、`いまは...確認しています` から `現時点では...見ている段階です` へ寄せ、予告より現在回答に近づけた。B08 は `ログやスクショを送っていただければ` と `ログやスクショを送ってください` の重複を避け、見立て可能範囲と送付依頼を分けた
+- きっかけ: r0 は hard boundary と public leak は問題なかったが、日本語ビジネス自然化 lens として重複表現・進捗予告寄り表現に gold 寄せの余地があった
+- 想定効果: `bugfix-15000` live で、支払い前/支払い後、購入後進捗、closed 後見立ての各文面が、意味を変えずにより自然で重複の少ない形になる
+- 非変更: 新規 rule 追加はしない。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない
+
+### 2026-04-29 / CHG-139
+- 分類: `reply-only`
+- レイヤ: #RE reviewer prompt / fixed audit output format
+- 変更: `bugfix-15000` の Codex xhigh 監査プロンプトに、batch 側へ個別の出力形式がない場合でも使う固定出力形式を追加した。`結論 / 共通して良い点 / 危ない点 / ケース単位の必須修正 / 軽微修正 / 学習判定まとめ / rule 戻し / 採点 / まとめ` の順で返すようにし、必須修正なし・軽微修正なしの場合も明記させる
+- きっかけ: bugfix47 の外部監査結果が採用圏として妥当だった一方、ログが短くなり、監査粒度が batch ごとに揺れる可能性が見えた
+- 想定効果: #RE の外部監査で、hard fail がない場合でもケース判定・軽微指摘・採点・rule 戻し有無が安定して残る
+- 非変更: 監査観点や生成ルールは変更しない。`jp_business_native_naturalness` は引き続き soft lens として扱い、好み差を hard fail 化しない
+
+### 2026-04-29 / CHG-140
+- 分類: `reply-only`
+- レイヤ: #RE bugfix48 / live practical naturalness + fixed reviewer output sentry
+- 変更: `live-practical-naturalness-bugfix48.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-29-bugfix-48-live-practical-naturalness-r0` へ更新した。監査プロンプト固定出力形式後の #RE として、金額＋納期、前任者不信、新機能追加吸収、quote_sent の本番反映確認、購入後ZIP/env値抜き、直接push/本番反映、delivered承諾、closed原因だけ圧力を検査対象にした。local preflight で出た金額のみ回答の納期抜け、`修正済みファイル` の quote_sent 検出漏れ、ZIP/env値抜き返信の二重謝意、直接push/本番反映否定の詰まり、delivered の機械的な `はい`、closed の `原因だけ先に` 検出漏れを最小補修した。あわせて `eval-sources.yaml`、service-grounding sentry、timestamp-policy の runtime fixture に接続した
+- きっかけ: #RE 監査ログの粒度を固定した後、通常 live で実戦に近い buyer 質問と `jp_business_native_naturalness` が同時に安定するか確認する必要があった
+- 想定効果: `bugfix-15000` live で、主質問への直答、phase 維持、secret safety、closed 後の実作業分離、自然な受領確認を同時に検査できる
+- 非変更: `handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない。自然化のために service / scope / price / secret / payment route の判断は変更しない
+
+### 2026-04-29 / CHG-141
+- 分類: `reply-only`
+- レイヤ: #RE bugfix48 r1 / price-and-timeline answer coverage
+- 変更: bugfix48 r0 外部監査で B01 が必須修正となったため、価格＋納期の複合質問では `15,000円` とサービスページ上の目安 `3日` の両方を返すようにした。あわせて prequote renderer lint に `prequote_price_and_timeline` で `3日` が抜けたら落とす coverage check を追加した。軽微指摘として、B05 の `こちらから絞ってお願いします` を `必要なものだけこちらからお願いします` へ自然化し、B08 は概要未受領のまま固定時刻を約束せず、`送っていただいた範囲で、見立てを短くお返しします` へ寄せた
+- きっかけ: 金額には答えていたが、buyer の `だいたい何日かかるか` への大まかな目安回答が落ちていた。サービスページ正本には `予想お届け日数 3日` があるため、購入前の複合質問では出すべき情報だった
+- 想定効果: `費用＋期間` 型の prequote で片側 nonanswer を防ぎ、closed 後の材料未受領場面では受領前コミットを避けられる
+- 非変更: 納期を保証するわけではなく、`3日` はサービス上の目安として扱う。`handoff-25000` は public:false のまま。通常 live / #RE への 25,000円 / 主要1フロー / handoff 購入導線は出さない
+
+### 2026-04-29 / CHG-142
+- 分類: `reply-only`
+- レイヤ: #RE bugfix48 r1 accepted / B05 preference polish
+- 変更: bugfix48 r1 外部再監査で採用圏・必須修正なしとなったため、B05 の `追加で必要なものが出たら、必要なものだけこちらからお願いします` を `追加で必要なものが出た場合は、必要なものだけこちらからお伝えします` へ軽く自然化した
+- きっかけ: 意味と境界は安全だが、`こちらからお願いします` が実務文として少し不自然という preference 指摘があった
+- 想定効果: secret 値を求めない境界と追加材料の最小化を維持したまま、購入者向けの自然な案内に寄せる
+- 非変更: 新規 rule / lint は追加しない。単発の語感調整として扱う

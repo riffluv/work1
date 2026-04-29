@@ -18,7 +18,7 @@ STYLE_RULES: list[tuple[re.Pattern[str], str]] = [
         "rendered text still uses the vague `よさそうか` ending",
     ),
     (
-        re.compile(r"(?:次の|今回の|対応の)?進め方(?:を|が|で)"),
+        re.compile(r"(?:進め方になります|進め方を(?:お返し|返せます|返します)|次の進め方をお返しします|その前提で進め方)"),
         "rendered text still uses PM-style `進め方` wording",
     ),
     (

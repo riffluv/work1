@@ -489,6 +489,8 @@ def lint_case(module, case: dict) -> list[str]:
         if "今週中" in qtext or "今日中" in qtext or "何日" in qtext or "いつ" in qtext:
             if not has_any(rendered, ["納期", "見通し"]):
                 errors.append("timeline question exists but rendered text does not mention timing follow-up")
+            if normalized.get("question_type") == "prequote_price_and_timeline" and "3日" not in rendered:
+                errors.append("price_and_timeline coverage failed: rendered text does not answer with the service delivery-day estimate")
         if "不正アクセス" in qtext:
             if "不正アクセスかどうかは" not in rendered:
                 errors.append("security question exists but rendered text does not defer security judgment explicitly")

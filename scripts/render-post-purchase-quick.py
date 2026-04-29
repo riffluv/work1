@@ -279,6 +279,8 @@ def opener_for(source: dict) -> str:
         return ""
     if source.get("scenario") == "env_fix_recheck":
         return ""
+    if source.get("scenario") == "info_sufficiency_check":
+        return ""
     if source.get("scenario") in {"external_share_request", "late_info_share"}:
         return ""
     if source.get("state") == "purchased" and source.get("scenario") in FOLLOWUP_MEMORY_SCENARIOS:
@@ -286,6 +288,8 @@ def opener_for(source: dict) -> str:
             return ""
     if source.get("scenario") == "received_materials_flow_check":
         return "ログとスクショありがとうございます。"
+    if source.get("scenario") == "keys_shared":
+        return ""
     route = source.get("route", source.get("src", "talkroom"))
     if route == "message":
         return "ご連絡ありがとうございます。"
@@ -466,7 +470,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         if any(marker in raw for marker in ["diff", "差分", "変更予定ファイル"]):
             direct_answer_line = "現在は、対象処理のどこで止まっているかを確認しています。まだ原因は断定していません。"
         elif any(marker in raw for marker in ["長い説明はいりません", "長い説明はいい", "今どこまで分か", "今どこまでわか", "分かっているかだけ", "わかっているかだけ"]):
-            direct_answer_line = "いまは、決済後の反映処理がどこで止まっているかを確認しています。まだ原因は断定していません。"
+            direct_answer_line = "現時点では、決済後の反映処理がどこで止まっているかを見ている段階です。まだ原因は断定していません。"
         elif any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
             direct_answer_line = "いまは、今回の不具合がどこで止まっているかを確認している段階です。"
         elif any(marker in raw for marker in ["対応するかしないか", "どうなってるんですか", "まだ何も返事"]):
@@ -532,7 +536,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "info_sufficiency_check":
         if "node_modules_omitted" in facts_known or "env_values_removed" in facts_known:
-            direct_answer_line = "はい、その形で大丈夫です。node_modules はなくて問題なく、.env も値を消した状態のままで進められます。"
+            direct_answer_line = "その形で大丈夫です。node_modules はなくて問題なく、.env も値を消した状態のままで進められます。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "received_materials_flow_check":
         direct_answer_line = "昨日のログとスクショは届いています。"
@@ -1696,7 +1700,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "依頼者側リポジトリへの直接 push と本番反映は行っていません。修正内容は、修正済みファイルまたは差分と適用手順が分かる形でこのトークルーム内にお返しします。本番への反映は、そちらをもとに依頼者様側でお願いします。",
+                    "answer_brief": "直接 push と本番反映は行っていません。",
                 },
             ],
             "ask_map": [],
@@ -2165,7 +2169,7 @@ def reaction_line(case: dict) -> str:
         return "privateリポジトリの件、確認しました。"
     if scenario == "info_sufficiency_check":
         if "zip_already_sent" in (case.get("response_decision_plan") or {}).get("facts_known", []):
-            return "コード一式の共有、確認しました。"
+            return "ZIPの共有ありがとうございます。"
         return "気にかけていただいてありがとうございます。"
     if scenario == "received_materials_flow_check":
         return "進め方が見えにくい点、確認しました。"
@@ -2445,7 +2449,7 @@ def draft_opening_anchor(case: dict) -> str:
         return "確認ありがとうございます。"
     if scenario == "info_sufficiency_check":
         if "ZIP" in raw and "送" in raw:
-            return "コード一式の共有、確認しました。"
+            return "ZIPの共有ありがとうございます。"
         return "気にかけていただいてありがとうございます。"
     if scenario == "post_fix_steps_question":
         return "修正後に必要なことが気になっている件、確認しました。"
@@ -2468,7 +2472,7 @@ def draft_opening_anchor(case: dict) -> str:
     if scenario == "screenshot_followup":
         return "スクショありがとうございます。"
     if scenario == "keys_shared":
-        return "キー名の共有、確認しました。"
+        return "キー名の共有ありがとうございます。"
     return reaction_line(case)
 
 
@@ -2503,7 +2507,10 @@ def draft_body_paragraphs(case: dict) -> list[str]:
 
     if scenario == "progress_anxiety":
         _append_unique(paragraphs, direct_answer)
-        if focus_line:
+        if focus_line and not any(
+            marker in raw
+            for marker in ["長い説明はいりません", "長い説明はいい", "分かっているかだけ", "わかっているかだけ"]
+        ):
             _append_unique(paragraphs, focus_line)
         return paragraphs
     if scenario == "feature_addon_scope":
@@ -2663,7 +2670,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "info_sufficiency_check":
         detail_lines = [direct_answer]
         if "zip_already_sent" in (decision_plan.get("facts_known") or []):
-            detail_lines.append("追加で必要なものが出たら、その時はこちらから絞ってお願いします。")
+            detail_lines.append("追加で必要なものが出た場合は、必要なものだけこちらからお伝えします。")
         _append_unique(paragraphs, _paragraph_from_lines(detail_lines))
         return paragraphs
 
@@ -2835,6 +2842,19 @@ def draft_body_paragraphs(case: dict) -> list[str]:
                 [
                     "代わりに、修正済みファイルと反映手順を分かる形でお渡しします。",
                     "手順書で不安な箇所があれば、その画面や操作ごとに補足して返します。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "direct_push_request":
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    direct_answer,
+                    "修正内容は、修正済みファイルまたは差分と適用手順が分かる形で、このトークルーム内にお返しします。",
+                    "本番への反映は、そちらをもとに依頼者様側でお願いします。",
                 ]
             ),
         )

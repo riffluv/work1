@@ -1119,7 +1119,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "はい、承諾のボタンを押していただいて大丈夫です。",
+                    "answer_brief": "承諾のボタンを押していただいて大丈夫です。",
                 },
                 {
                     "question_id": "q2",
@@ -1515,7 +1515,7 @@ def build_case_from_source(source: dict) -> dict:
             {
                 "question_id": "q1",
                 "disposition": "answer_now",
-                "answer_brief": "はい、修正ファイルと確認手順を、もう少し分かりやすく補足できます。",
+                "answer_brief": "修正ファイルと確認手順を、もう少し分かりやすく補足できます。",
             }
         ]
         question_ids = ["q1"]
@@ -1557,7 +1557,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "はい、ここで聞いてもらって大丈夫です。補足で答えられる範囲ならそのまま返します。",
+                    "answer_brief": "ここで聞いてもらって大丈夫です。補足で答えられる範囲ならそのまま返します。",
                 }
             ],
             "ask_map": [],

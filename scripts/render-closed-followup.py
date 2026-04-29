@@ -164,7 +164,7 @@ def detect_scenario(source: dict) -> str:
         return "closed_old_talkroom_ohineri"
     if any(marker in combined for marker in ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
         return "closed_free_followup_price"
-    if any(marker in combined for marker in ["先に原因だけ", "原因だけ見てもら", "見積り前", "お願いするか決めたい"]):
+    if any(marker in combined for marker in ["先に原因だけ", "原因だけ先に", "原因だけ見てもら", "見積り前", "お願いするか決めたい"]):
         return "closed_pre_estimate_cause_check"
     if (
         any(marker in combined for marker in ["どこを直せば", "直し方", "文章で教えて"])
@@ -466,7 +466,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "トークルームは閉じていますが、まずこのメッセージ上でエラー内容を見て、前回の修正とつながるか確認します。"
     elif scenario == "closed_materials_check":
         blocking_missing_facts = ["log_or_screenshot"]
-        direct_answer_line = "はい、ログやスクショで、前回の修正と関係があるかをこのメッセージ上で確認します。"
+        direct_answer_line = "このメッセージ上で、前回の修正と関係がありそうかを見立てます。"
     elif scenario == "closed_old_talkroom_ohineri":
         blocking_missing_facts = ["current_symptom"]
         direct_answer_line = "前回のトークルームは閉じているため、旧トークルーム内のおひねり追加でそのまま別件修正を進めることはできません。"
@@ -1277,7 +1277,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_after_check",
-                    "answer_brief": "はい、ログやスクショで、前回の修正と関係があるかをこのメッセージ上で確認します。",
+                    "answer_brief": "このメッセージ上で、前回の修正と関係がありそうかを見立てます。",
                     "hold_reason": "トークルームは閉じているため、ここで修正作業や修正済みファイルの返却までは進めません。",
                     "revisit_trigger": "確認後、実作業が必要な場合は見積り提案または新規依頼としてご案内します。",
                 }
@@ -2120,7 +2120,7 @@ def render_case(case: dict) -> str:
     for paragraph in draft_body_paragraphs(case):
         _append_unique(body_paragraphs, paragraph)
 
-    if case.get("scenario") in {"closed_materials_check", "closed_old_talkroom_ohineri"}:
+    if case.get("scenario") in {"closed_materials_check", "closed_old_talkroom_ohineri", "closed_pre_estimate_cause_check"}:
         next_action = "送っていただいた範囲で、見立てを短くお返しします。"
     elif case.get("scenario") == "new_issue_repeat_client" and asks_to_send_symptoms_in_message(case.get("raw_message", "")):
         next_action = "症状を送っていただいた後、確認して見立てをお返しします。"

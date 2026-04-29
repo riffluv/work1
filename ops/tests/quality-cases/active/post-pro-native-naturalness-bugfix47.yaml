@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC47-001
+    stock_id: HRC47-001
+    category: post_pro_native_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: vague_can_fix_question
+    question_type: prequote_vague_can_fix
+    primary_question: Next.jsとStripeの決済後挙動が変だが、直せるか。
+    raw_message: "Next.jsとStripeを使っていて、決済後の画面がたまに真っ白になります。エラー文もうまく説明できないのですが、直せますか？"
+    note: 通常 live / #RE。jp_business_native_naturalness。曖昧相談でも受付窓口っぽくなりすぎず、直答・範囲・次アクションを自然に出せるかを見る。
+
+  - id: HRC47-002
+    stock_id: HRC47-002
+    category: post_pro_native_naturalness
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: price_sensitive
+    scenario: diagnosis_only_pressure
+    question_type: prequote_diagnosis_only_pressure
+    primary_question: 購入前に原因だけ軽く見てもらい、直せそうなら購入できるか。
+    raw_message: "Stripe決済後に注文が作られません。購入前にコードを送るので、原因だけ軽く見て、直せそうなら買う形にできますか？"
+    note: 通常 live / #RE。購入前作業開始・原因だけ診断を止めつつ、説明が硬い契約文になりすぎないかを見る。
+
+  - id: HRC47-003
+    stock_id: HRC47-003
+    category: post_pro_native_naturalness
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: prepayment_materials_before_payment
+    question_type: quote_sent_evidence_before_payment
+    primary_question: 見積り提案後、支払い前にログを送れば先に原因だけ見てもらえるか。
+    raw_message: "見積り提案ありがとうございます。購入前ですが、先にVercelログとStripeのEvent IDを送れば、原因だけ先に見てもらえますか？"
+    note: 通常 live / #RE。quote_sent。支払い前作業開始を止めながら、buyer の質問に自然に直答できるかを見る。
+
+  - id: HRC47-004
+    stock_id: HRC47-004
+    category: post_pro_native_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: normal
+    scenario: received_materials_flow_check
+    question_type: purchased_materials_received_flow
+    primary_question: 昨日送ったログとスクショは届いているか、この後の流れと追加準備の有無を知りたい。
+    raw_message: "昨日、StripeのEvent IDが分かるログとスクショを送りました。届いていますか？この後の流れと、追加で用意した方がいいものがあるかだけ教えてください。"
+    note: 通常 live / #RE。human audit 後の再発確認。`確認しました` 直後の `はい、確認できています` に戻らず、受領確認を自然に1回で済ませられるかを見る。
+
+  - id: HRC47-005
+    stock_id: HRC47-005
+    category: post_pro_native_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: progress_anxiety
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、今どこまで分かっているかを短く知りたい。
+    raw_message: "昨日購入してログも送りました。今どこまで見ていますか？長い説明はいりません。現時点で分かっていることだけ教えてください。"
+    note: 通常 live / #RE。進捗不安。`確認します / 確認結果` の密集や報告語だけの逃げにならず、現状・未断定・次回時刻を自然に出せるかを見る。
+
+  - id: HRC47-006
+    stock_id: HRC47-006
+    category: post_pro_native_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: keys_shared
+    question_type: purchased_key_names_only
+    primary_question: Stripe関連のキー名だけ共有した状態で足りるか、値も必要か。
+    raw_message: "Stripe関連のキー名だけ共有しました。値そのものは送っていません。このままで確認できますか？"
+    note: 通常 live / #RE。secret safety。値を求めずに受けつつ、`確認` 語の密集や機械的な `はい` に寄らないかを見る。
+
+  - id: HRC47-007
+    stock_id: HRC47-007
+    category: post_pro_native_naturalness
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: postdelivery_question_window
+    question_type: delivered_light_explanation
+    primary_question: 納品後、承諾前に確認手順をもう少し分かりやすく補足してもらえるか。
+    raw_message: "納品ありがとうございます。修正ファイルと確認手順は受け取りましたが、専門用語が少し難しいです。承諾前に、どこを確認すればいいかもう少し分かりやすく説明してもらえますか？"
+    note: 通常 live / #RE。delivered。軽い補足説明を自然に受け、追加質問前提や本格資料作成へ広げないかを見る。
+
+  - id: HRC47-008
+    stock_id: HRC47-008
+    category: post_pro_native_naturalness
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: closed_materials_check
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、ログやスクショをこのメッセージで送れば前回修正との関係だけ見てもらえるか。
+    raw_message: "クローズ後ですみません。似たStripeエラーが出ています。ログとスクショをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？実際に直す必要がありそうなら新規で相談します。"
+    note: 通常 live / #RE。closed。材料確認と実作業を分けつつ、内部語や機械的な受けにならないかを見る。

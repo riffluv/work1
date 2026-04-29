@@ -123,7 +123,11 @@ def lint_case(module, source: dict) -> list[str]:
         and has_any(raw, ["症状", "内容", "流れ"])
         and has_any(raw, ["送れば", "送って", "送る", "伝えれば", "相談して", "相談いただいて", "相談"])
     )
-    conditional_materials_followup = scenario in {"closed_materials_check", "closed_old_talkroom_ohineri"} and has_any(
+    conditional_materials_followup = scenario in {
+        "closed_materials_check",
+        "closed_old_talkroom_ohineri",
+        "closed_pre_estimate_cause_check",
+    } and has_any(
         rendered,
         ["送っていただいた範囲で", "いただけた範囲で"],
     )

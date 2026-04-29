@@ -142,6 +142,20 @@ primary_sources:
       - source traceability、commitment budget、semantic grounding drift、shadow-to-live contamination、evidence minimality を検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/post-pro-native-naturalness-bugfix47.yaml
+    role: eval
+    purpose:
+      - Pro後の jp_business_native_naturalness soft lens が通常 live #RE でノイズにならず実務違和感を拾えるか確認
+      - bot感、二重受領、機械的なはい、確認語密集、購入後/納品後/closed の自然さと境界維持を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/live-practical-naturalness-bugfix48.yaml
+    role: eval
+    purpose:
+      - 監査プロンプト固定出力形式後の #RE で、通常 live の実戦文脈と日本語自然さが崩れないか確認
+      - 金額＋納期、前任者不信、新機能追加吸収、quote_sent 本番反映、購入後ZIP/env値抜き、直接push/本番反映、delivered承諾、closed原因だけ圧力を検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

@@ -26,6 +26,8 @@ LIVE_SHADOW_FIXTURES = [
     ROOT_DIR / "ops/tests/quality-cases/active/public-launch-practical-bugfix44.yaml",
     ROOT_DIR / "ops/tests/quality-cases/active/post-pro-grounding-bugfix45.yaml",
     ROOT_DIR / "ops/tests/quality-cases/active/post-pro-review-lenses-bugfix46.yaml",
+    ROOT_DIR / "ops/tests/quality-cases/active/post-pro-native-naturalness-bugfix47.yaml",
+    ROOT_DIR / "ops/tests/quality-cases/active/live-practical-naturalness-bugfix48.yaml",
 ]
 RENDERER_FILES = [
     ROOT_DIR / "scripts/render-prequote-estimate-initial.py",

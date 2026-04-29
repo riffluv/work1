@@ -816,7 +816,7 @@ def detect_scenario(source: dict) -> str:
         "納品された修正コード" in combined
         or "自分で反映" in combined
         or (
-            any(marker in combined for marker in ["修正ファイル", "修正してもらったファイル"])
+            any(marker in combined for marker in ["修正ファイル", "修正済みファイル", "修正してもらったファイル"])
             and any(marker in combined for marker in ["自分でVercelにデプロイ", "自分でデプロイ", "デプロイする形", "手順も教えて", "デプロイのやり方"])
         )
     ):
@@ -1103,7 +1103,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         direct_answer_line = "その場合でもまず今の状態を見て対応可否を確認できます。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "self_apply_support":
-        direct_answer_line = "はい、今回の提案では、修正済みファイルをお渡しし、本番反映は依頼者様側で行っていただく形です。"
+        direct_answer_line = "今回の提案では、修正済みファイルをお渡しし、本番反映は依頼者様側で行っていただく形です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "private_repo_share_question":
         direct_answer_line = "必ずリポジトリ全体を共有いただく必要はなく、不具合に関係する範囲からで大丈夫です。"
@@ -1525,7 +1525,7 @@ def build_case_from_source(source: dict) -> dict:
                 {
                     "question_id": "q1",
                     "disposition": "answer_now",
-                    "answer_brief": "はい、今回の提案では、修正済みファイルをお渡しし、本番反映は依頼者様側で行っていただく形です。",
+                    "answer_brief": "今回の提案では、修正済みファイルをお渡しし、本番反映は依頼者様側で行っていただく形です。",
                 },
                 {
                     "question_id": "q2",
@@ -2407,8 +2407,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
     if scenario == "prepayment_materials_before_payment":
         return [
             f"{direct_answer}\n原因確認や作業は、ご購入後に始めます。".strip(),
-            "ご購入後にコードやログを送ってください。受領後、原因確認から進めます。",
-            "この内容で問題なければ、お支払い完了後にトークルームで必要情報を送ってください。",
+            "この内容で問題なければ、お支払い完了後にトークルームでVercelログやStripeのEvent IDなど、必要情報を送ってください。",
         ]
 
     if scenario == "extra_fee_fear":

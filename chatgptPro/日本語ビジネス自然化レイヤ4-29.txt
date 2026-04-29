@@ -1,0 +1,225 @@
+1. 結論
+日本語ビジネス自然化レイヤは必須です。
+ただし、返信OSの中核判断を担うレイヤではなく、renderer が決めた service / phase / scope / price / secret / public-private 境界を一切変えない “意味保存型の最終整形レイヤ” として置くべきです。
+今回の問題は、単なる言い換えの好みではなく、「受領確認をした直後に、同じ受領確認を はい、 付きで繰り返す」ことで、読んで返している感触が落ちる という再発性のある自然さ問題です。これは hard fail ではなく、基本は fix recommended + lint candidate + skill rule candidate です。
+配置は次がよいです。
+段階役割自然化の強さ生成前gold / tone anchor を参照するだけ弱生成中renderer は事実・phase・scope・次アクションを決める自然化を混ぜすぎない生成後japanese-chat-natural-ja で意味保存の表面整形主戦場lint再発性が高く表面検知できるものだけ検出狭く強い外部監査jp_business_native_naturalness soft lens広く弱いhuman audit日本語ネイティブ違和感の発見最終校正ではなく発見源
+現行の japanese-chat-natural-ja は、目的として「AIっぽい不自然さ」「冗長」「重複質問」を減らしつつ、事実を変えず短く自然にするレイヤとして定義されています。また、自然化では結論・質問項目数・価格・禁止事項・次アクションを増減させない、final naturalizer であり phase / service / scope の再判断をしない、と明記されています。これは設計としてかなり正しいです。
+一点だけ重要です。公開リポジトリ上では、received_materials_flow_check の direct_answer_line にまだ はい、昨日のログとスクショは確認できています。 が見えています。 手元では修正済みという前提なら、push 漏れ・別ブランチ・生成元違いの確認を先にした方がよいです。
+
+2. 現状評価
+強い点
+今の構成は、かなり良い方向です。特に強いのは、安全境界と自然さを同じ場所で解こうとしていない 点です。
+reply-quality の運用ループは、個別添削ではなく batch → 外部監査 → taxonomy → adoption policy → rule / validator / gold へ戻す形になっており、1回限りの好みを正本化しない設計がすでにあります。学習ループでも、case_fix / pattern_candidate / rule_return_candidate / preference / reject を切り、再発するものだけ skill / rule / validator / gold へ戻す方針になっています。
+adoption-policy もかなり健全です。監査で見つかった違和感を毎回 rules に昇格させず、再発性・戻し先・副作用を見て、1回の改善では原則1論点だけ動かす方針になっています。自然化レイヤを強める時に一番危ない「気になる言い回しを全部NG化する」事故を、すでに制度として止めようとしています。
+acceptance-gate も、事実 gate → phase gate → 会話 gate → 日本語 gate の順番になっており、日本語 gate が最後に置かれています。これは正しいです。自然さは大事ですが、public/private、scope、phase、secret より上に置いてはいけません。
+危ない点
+一方で、危ない点もはっきりあります。
+1つ目は、自然さルールの戻し先が増えすぎて、同じ論点が skill / NG / lint / renderer / audit prompt に分散しやすいことです。
+今回の 確認しました → はい、確認できています は、renderer 修正、NG追加、skill追加、lint追加まで行っています。これは今回のような再発性が高いものなら妥当ですが、この運用を全パターンに広げると、すぐにノイズ化します。
+2つ目は、lint が一部広すぎる可能性です。
+現行 linter では 進め方 を PM-style wording として拾う rule が見えますが、buyer が「この後の流れ」を聞いている場面では、進め方 や 流れ は自然にもなります。進め方 を blanket hard error にすると、今回のような「次の流れを教えてください」文脈で誤検知が出やすいです。
+3つ目は、tone-template 側に古い硬さが残っています。
+tone-templates.ja.md の標準テンプレには 確認でき次第、[日時]までに次の進め方をお返しします。、硬めテンプレには ご共有ください や 進め方は[手順]で進めます が残っています。今の自然化ルールから見ると、この参照ファイルは “現行 few-shot” としてはやや危ないです。
+4つ目は、gold replies が増えてきていることです。
+Gold の方針は「近い1本だけ見る」「完全テンプレではなく温度感・依頼数・既出情報の受け方・次アクションを合わせる」です。これは正しいですが、現行 README では初期セットが 35 本まで並んでいます。ここから先は、追加よりも current / eval_only / superseded の棚卸しが重要です。
+
+3. jp_business_native_naturalness lens 案
+追加すべきです。
+ただし、hard fail lens ではなく soft lens です。
+既存の監査プロンプトには、hard fail と soft lens を分ける思想がすでにあります。response_weight_mismatch や buyer_state_ack_gap は hard fail ではなく soft lens とし、hard fail は phase drift、非公開サービス漏れ、返金・無料・保証断定、外部共有・直接 push・本番デプロイ誘導など deterministic な事故に限る、とされています。この方針に jp_business_native_naturalness を足すのが自然です。
+監査プロンプトへ入れる文面案
+そのまま貼れる形で書きます。
+### jp_business_native_naturalness日本の実務チャットとして、内容が正しいだけでなく、担当者が普通に書いたように読めるかを確認してください。これは hard fail 用の採点軸ではなく、soft lens です。全面改稿、好みの言い換え、過剰な共感、営業っぽい提案を増やすためには使わないでください。価格・scope・phase・secret・public/private・支払い導線・作業可否は変えず、既存の返信骨格を保ったまま、最小修正で改善できる違和感だけを見ます。特に見る点:- 同じ受領確認、同じ謝意、同じ可否、同じ結論を隣接文で二重に言っていないか- Yes/No 質問に機械的に毎回 `はい、` で入っていないか- `確認しました` の直後に `はい、確認できています` のような、受領確認の重ね書きがないか- `確認します / 確認できます / 確認結果` など、同じ語根が短い範囲に密集していないか- `確認材料` `進め方` `その時点で` `この中で` `公開サービス` など、内部処理語・PM語彙が buyer 向け本文で浮いていないか- buyer が聞いた主質問に答える前に、説明・手順・安全条件が並んでいないか- 受け止めを入れる場合、1文で止めているか。謝罪・過失認定・返金断定・無料対応約束へ広げていないか指摘する場合は、次の形式にしてください。- label: `jp_business_native_naturalness`- severity: `fix_recommended` / `preference` / `gold_candidate` / `lint_candidate` / `skill_rule_candidate` / `lens_only`- issue: 何が不自然か- buyer impact: buyer からどう見えるか- minimal patch: 意味を変えない最小修正- return target: `case_fix` / `ng-expressions` / `japanese-chat-natural-ja` / `lint_warning` / `lint_error` / `gold` / `none`- hard fail?: 原則 no。hard fail にする場合は、phase drift、scope事故、価格・保証・無料対応の誤約束、secret要求、public/private漏れ、既出情報の聞き直しなど deterministic な事故と結びつく場合だけ yes。
+hard fail にする条件
+自然さ単体で hard fail にするのは、かなり絞るべきです。
+hard fail にしてよい条件例自然さ問題が phase / scope / price / secret 事故に接続している未確認なのに 確認できています と書き、確認済み・作業開始済みの期待を作るbuyer が既に出した情報を聞き直しているログとスクショ送付済みなのに、同じログとスクショを依頼するinternal / private 情報が外向けに漏れるhandoff-25000、25,000円、public:false の購入導線返金・無料・保証・作業可否を自然化で強める直らなければ返金します、無料で続けますnext action が消え、buyer が止まる「確認します」だけで、いつ何が返るか不明
+preference に留める条件
+preference / lens only に留める条件例丁寧だが少し硬い承知しました。確認します。もう少し柔らかくできるが、信用は落ちないご確認ください vs 確認お願いします文脈次第で自然にも不自然にもなるはい、、まずは、進め方reviewer の好みが入りやすいお返しします vs ご連絡します1回しか出ていない特定ケースの語尾の微差
+今回の具体例の分類
+今回の 確認しました。 → はい、確認できています。 は、hard fail ではなく fix_recommended + lint_candidate + skill_rule_candidate です。
+理由は、価格・scope・phase・secret を壊してはいない一方で、受領確認を二重に出しており、buyer には「質問に yes を機械的に付けた」ように見えるからです。現行 NG 集にも、はい、 固定と 確認しました 直後の はい、確認できています が既に追加されています。
+修正後の文面は方向として正しいです。
+ただし、さらに細かく見るなら その時点でこちらからお願いします は少し内部処理っぽいので、gold 化するなら次のような基準文に寄せてもよいです。
+ログとスクショありがとうございます。昨日のログとスクショは届いています。受け取っている内容をこちらで確認し、追加で必要なものがあればこちらからお願いします。いまの時点で、追加で準備いただくものはありません。本日18:21までに、現時点の確認結果をお返しします。
+ただし、その時点で は単体では事故ではないので、lint ではなく skill / gold 側で十分です。
+
+4. lint 化候補
+lint は 「表面パターンとして拾いやすい」「誤検知しても修正が小さい」「再発時の信用低下がある」ものだけ に絞るべきです。
+現行 linter には、確認しました。 の直後に はい、...確認できています / 届いています を拾う regex、進め方、流れになります、共有します、大丈夫です 連続などの style rules が入っています。また、まずは が複数段落の冒頭で繰り返される検出もあります。
+優先度順
+優先パターン検知しやすさ誤検知リスク推奨レイヤ判定P0確認しました。 直後の はい、〜確認できています / 届いています高低lint error + NG + skill既存の限定 regex でよいP0既出情報の聞き直し中中semantic lint / contract linthard fail 寄り。表面だけではなく contract と照合P1隣接する ありがとうございます。 の重複高低〜中lint warning。完全隣接のみ error「ログありがとうございます」＋「ありがとうございます」は警告P1同一返信で はい、 が複数セクション冒頭に出る中中lint warning単発 はい、 は許容P1同一 batch で direct answer の大半が はい、 始まり中低batch-level warning単体返信ではなく batch 監査向きP1段落冒頭の まずは 連打高低既存 lint warning / errorまずは 全面禁止はしないP2確認 語根の密集：確認します / 確認できています / 確認結果 が短距離で3回以上中中lint warning + audit lenserror 化しないP2確認材料高低lint warning + NGbuyer 向けには内部語っぽいP2その時点で高高skill / audit lenslint 非推奨。自然な場合もあるP2進め方高高audit lens / context lintblanket lint は危険P2流れになります高中lint warning〜になります の事務語尾として検知価値ありP3丁寧すぎる敬語：させていただきます 連発中中lint warning連発のみ。単発は許容P3お返しします の過多中高batch lens / goldlint にはしない方がよい
+特に見直したい lint
+進め方 の blanket 検出は、warning か context 条件付きに下げる のが安全です。
+今回の buyer は「この後の流れ」を聞いています。この場面で 進め方 や 流れ は必ずしも不自然ではありません。むしろ、buyer の語を自然に受けるなら この後の流れとしては、まず〜 も成立します。
+したがって、進め方 は以下のような条件に絞るのがよいです。
+# 悪い寄り: 内部処理・PM文脈r"(?:今回の|対応の|こちらの)?進め方(?:を|として)?(?:整理して|返します|ご案内します)"r"進め方になります"r"その前提で進め方を"# 許容しやすい: buyer が「流れ」を聞いた時の自然な受け# 「この後の流れとしては」「次は〜」などは通す
+
+5. skill / ng-expressions に戻す候補
+japanese-chat-natural-ja に入れるべきルール
+skill は、lint より広く、ただし 意味を変えない自然化原則 として書くのがよいです。
+追加・調整案
+- 受領確認は1回で済ませる。`確認しました` `受け取りました` `届いています` のどれかを使ったら、直後に同じ意味の `はい、〜確認できています` を重ねない。
+これは既に入っていますが、維持でよいです。
+- Yes/No 質問でも、毎回 `はい、` で始めない。`届いています` `対応できます` `対象になります` のように、結論文だけで自然に答えられる時は `はい、` を省く。
+これも既に方向性は入っています。強めすぎず、「毎回」「機械的に」だけ避ける が大事です。
+- 同じ短い範囲で `確認` が続く場合は、片方を `見ます` `お伝えします` `届いています` `判断します` など、役割の違う語に置き換える。
+これは skill 向きです。lint では誤検知が多いです。
+- buyer が送ったものに触れる時は、generic な `ありがとうございます` より、可能なら `ログとスクショありがとうございます` のように対象を短く入れる。ただし謝意は1通1回までを目安にする。
+今回の修正後の「ログとスクショありがとうございます。」は良い方向です。
+- `確認材料` `その時点で` `進め方` など、内部処理やPM文脈に見える語は、buyer が聞いた言葉に寄せる。例: `確認材料` → `見る情報`、`その時点で` → `必要になれば`、`進め方` → `この後の流れ`。
+ただし、進め方 は全面禁止にしない方がよいです。
+ng-expressions に入れるべきもの
+NG 集は、過去に直したのに再発しやすい表現 に限定するべきです。現行 NG 集もその目的で設計されています。
+追加するなら、このくらいが安全です。
+### 受領確認の二重化- 問題: `確認しました` の直後に `はい、確認できています` を重ねると、受領確認を二度言っており、機械的に見える。- 避けたい例: `昨日のログとスクショの件、確認しました。はい、昨日のログとスクショは確認できています。`- 推奨: `昨日のログとスクショは届いています。`- 推奨: `追加で必要なものがあれば、こちらからお願いします。`
+### 謝意の近接重複- 問題: 冒頭と次段落で `ありがとうございます` が続くと、文面の型だけを当てた印象が出やすい。- 避けたい例: `ありがとうございます。ログありがとうございます。`- 推奨: `ログありがとうございます。`- 注記: generic 謝意と具体的謝意が離れていて、意味が違う場合は必ずしもNGにしない。
+### `確認` の密集- 問題: `確認します / 確認できています / 確認結果` が短い範囲で続くと、意味は通ってもテンプレ感が出る。- 避けたい例: `確認しました。確認できています。確認結果をお返しします。`- 推奨: `届いています。内容を見て、結果をお返しします。`- 注記: 技術的に確認対象を明示する必要がある場合は許容する。
+gold replies に戻す候補
+今回の修正後は、gold candidate に近い です。
+ただし、gold 化するなら「その時点で」を少しだけ薄めた版がよいです。
+Gold の候補名は例えば：
+36_purchased_materials-received_flow-and-no-extra-ask.ja.md
+入れる目的は、次の3つです。
+
+
+受領確認を1回で済ませる
+
+
+「この後の流れ」と「追加で用意するもの」に正面から答える
+
+
+期限を具体的に出すが、余計な作業約束は足さない
+
+
+
+6. やらない方がいいこと
+自然化レイヤを強める時に、特に避けるべき実装です。
+1. 自然化レイヤに scope / price / phase を再判断させる
+これは一番危険です。
+自然化は、15,000円、不具合1件、public:false、secret 値不要、直接 push しない などを変えてはいけません。現行 skill にも、料金・保証・無料対応を自然化の過程で強めない、phase / service / scope / forbidden_moves の再判断をしない、とあります。
+2. soft lens を hard fail にする
+jp_business_native_naturalness を入れた直後に CI hard fail 化すると、確実にノイズになります。
+最初は fix_recommended / preference / lint_candidate / gold_candidate を分けて、2回以上の再発または高リスク事故だけ昇格させるべきです。
+3. はい、 や まずは を全面禁止する
+これは過剰矯正です。
+はい、 は自然な直答にも使えます。まずは も順番を示す時には自然です。問題は 機械的な固定化・近接重複・不安場面での進行圧 です。
+4. 進め方 を全件 lint error にする
+これはノイズ化しやすいです。
+buyer が「この後の流れ」を聞いている時、進め方 は文脈次第で自然です。進め方になります、進め方を返します、その前提で進め方を のような PM 語彙化した組み合わせだけ拾うのが安全です。
+5. human audit の指摘を即 rule 化する
+人間監査は違和感発見に強いですが、rule 化判断とは別です。
+現行 adoption policy にある通り、まず分類し、再発性・副作用・戻し先を確認してから反映すべきです。
+6. gold をテンプレ化する
+gold は「温度感・情報量・質問数・次アクションの基準」であって、文面のコピペ元ではありません。Gold README でも、近い1本だけ見て、内容をそのまま流用しない方針になっています。
+7. 文体設定を先に広げる
+今の段階で「やわらかめ」「かなり丁寧」「事務的」などを先に作ると、標準文体が固まる前に drift が増えます。
+順番は 標準 = 日本のビジネス実務チャットとして自然 を固める → その差分として文体設定、が正しいです。
+
+7. 最短ロードマップ
+Step 1: 公開リポジトリと手元修正の同期確認
+まず、render-post-purchase-quick.py の received_materials_flow_check が本当に修正済みか確認してください。公開リポジトリでは旧文言が残って見えます。
+確認対象：
+grep -n "received_materials_flow_check\|昨日のログとスクショ" scripts/render-post-purchase-quick.py
+期待値：
+direct_answer_line = "昨日のログとスクショは届いています。"
+または、opening 側で ログとスクショありがとうございます。 を出すなら、direct_answer 側は 届いています。 だけでよいです。
+
+Step 2: 監査プロンプトに jp_business_native_naturalness を soft lens として追加
+まずは既存の xhigh 監査プロンプトに足してください。
+新しい reviewer prompt を別ファイルに切るのは、2〜3 batch で指摘傾向が見えてからで十分です。
+検証する #RE ケース：
+
+
+今回の received_materials_flow_check
+
+
+追加材料受領
+
+
+進捗催促
+
+
+納品後の確認依頼
+
+
+closed 後の再相談
+
+
+price anxiety
+
+
+secret 値関連
+
+
+handoff / bugfix 境界
+
+
+見るべき指標：
+hard_fail_count = 0fix_recommended_countpreference_countlint_candidate_countgold_candidate_countfalse_positive_count
+
+Step 3: lint を severity 分けする
+reply_quality_lint_common.py は、style 系を全部 error に寄せると使いづらくなります。
+次の3段階に分けるのがよいです。
+lint_error:  deterministic で、送る前に必ず直したいもの  例: 確認しました直後の はい、確認できていますlint_warning:  再発性はあるが、文脈次第で自然にもなるもの  例: 確認語の密集、はい始まり多用、ありがとうございます重複audit_only:  表面検知だと誤検知が多いもの  例: 進め方、その時点で、やわらかさ不足
+具体的には：
+
+
+既存の 確認しました。[\s\n]+はい、... は error 維持
+
+
+ありがとうございます 近接重複は warning から開始
+
+
+確認 密集は warning
+
+
+はい、 多用は batch-level warning
+
+
+進め方 は blanket error から context warning へ下げる
+
+
+
+Step 4: japanese-chat-natural-ja と ng-expressions は最小追加
+追加する論点は、最初はこの3つだけで十分です。
+
+
+受領確認は1回
+
+
+同じ語根の密集を避ける
+
+
+内部処理語は buyer の行動語に寄せる
+
+
+これ以上広げると、自然化レイヤが “添削エンジン” になり、返信OSの骨格を揺らします。
+
+Step 5: gold を1本だけ追加し、#RE / #BR で副作用を見る
+今回の修正後に近い gold を1本追加します。
+ただし、すぐに大量追加しない方がよいです。
+検証：
+python3 scripts/render-coconala-reply.py --fixture ops/tests/quality-cases/active/public-launch-practical-bugfix44.yaml --lint
+加えて、次を見ます。
+
+
+#RE: bugfix live に handoff / 25,000円 / public:false が漏れないか
+
+
+#BR: boundary 訓練で自然化が routing 判断を薄めないか
+
+
+human audit: 「自然だが、scope が弱くなった」副作用がないか
+
+
+external AI / Pro: lint を広げる前に false positive を探してもらう
+
+
+Pro や外部AIに聞くタイミングは、soft lens の観察後、lint 化・hard 化の前 がよいです。聞く内容は「この表現は不自然ですか？」ではなく、「この rule を lint 化すると、どんな自然な文まで誤検知しますか？」 にするのが安全です。
+
+8. 追加で見るべきファイル
+優先度順です。
+優先ファイル見る理由1scripts/render-coconala-reply.py実際の統合 renderer。render-post-purchase-quick.py だけ直しても統合側に旧文言が残る可能性1ops/tests/quality-cases/active/public-launch-practical-bugfix44.yaml#RE の fixture 本体。今回のパターンを regression 化する場所1ops/tests/regression/reply-fixed-bench.yaml自然化 rule の副作用を固定観測する場所1docs/reply-quality/adoption-policy.ja.mdhuman audit 指摘を rule 化する基準。今後の自然化昇格フローの正本1docs/reply-quality/guidance-scoping.ja.md自然化 rule を reply-only / state / service に閉じるため2docs/reply-quality/acceptance-gate.ja.md日本語 gate に jp_business_native_naturalness をどう接続するか2docs/reply-quality/failure-taxonomy.ja.mdai_tone の下位分類として置くか、新 lens として置くか2.codex/skills/japanese-chat-natural-ja/references/tone-templates.ja.md古い ご共有ください、進め方、確認しました 系が few-shot として逆流しないか2docs/reply-quality/gold-replies/current / eval_only / superseded の棚卸し3docs/reply-quality/skill-thought-preservation-minimal.ja.mdnaturalizer が判断を壊さないための制約確認3scripts/check-coconala-reply-role-suites.pylint / regression の統合実行位置3service-pack の facts / boundaries / decision-contract / evidence-contract自然化が service facts を薄めていないか確認
+最終判断としては、自然化レイヤは入れるべきです。むしろ将来のコア展開には必須です。
+ただし、強くする場所は renderer ではなく、final naturalizer + soft audit lens + 狭い lint + gold anchor です。今回のような二重受領確認は lint 化してよいですが、はい、、まずは、進め方、その時点で まで一気に hard fail 化すると、標準的な実務チャットではなく「過剰に添削された文」になってしまいます。

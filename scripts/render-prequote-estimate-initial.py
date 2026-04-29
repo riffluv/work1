@@ -888,7 +888,7 @@ def is_raw_secret_inventory_case(source: dict) -> bool:
 
 def is_diagnosis_only_pressure_case(source: dict) -> bool:
     combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
-    active_defect = any(marker in combined for marker in ["不具合", "作られない", "反映されない", "エラー", "止ま"])
+    active_defect = any(marker in combined for marker in ["不具合", "作られない", "作られません", "反映されない", "エラー", "止ま"])
     diagnosis_only = any(marker in combined for marker in ["原因だけ", "診断メモ", "軽く見て", "軽く", "安く"])
     repair_uncertain = any(marker in combined for marker in ["修正まではまだ", "頼むか分からない", "診断だけ", "原因だけ"])
     return active_defect and diagnosis_only and repair_uncertain
@@ -2424,14 +2424,17 @@ def render_scope_only_target_question_case(case: dict) -> str:
 
 
 def render_price_only_active_defect_case(case: dict) -> str:
-    return "\n\n".join(
-        [
-            "ご相談ありがとうございます。",
-            "この内容なら15,000円です。",
-            "Stripe決済後に注文が作られない不具合として、原因確認から修正済みファイルの返却まで進めます。",
-            "この内容で進める場合は、そのままご購入ください。",
-        ]
-    )
+    raw = case.get("raw_message", "")
+    paragraphs = [
+        "ご相談ありがとうございます。",
+        "金額は15,000円です。",
+        "Stripe決済後に注文が作られない不具合として、原因確認から修正済みファイルの返却まで進めます。",
+    ]
+    if any(marker in raw for marker in ["何日", "いつ", "納期", "どれくらい", "どのくらい", "何時間"]):
+        paragraphs.append("日数はサービス上の目安として3日です。コードとエラー内容によって前後します。")
+        paragraphs.append("ご購入後、必要情報がそろった時点で、より正確な見通しをお返しします。")
+    paragraphs.append("この内容で進める場合は、そのままご購入ください。")
+    return "\n\n".join(paragraphs)
 
 
 def render_vague_can_fix_question_case(case: dict) -> str:
