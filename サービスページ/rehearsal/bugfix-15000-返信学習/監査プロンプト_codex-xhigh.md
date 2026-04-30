@@ -41,6 +41,8 @@
 - `completion_gate_gap`: 15,000円の範囲で修正完了まで進める前提、範囲超過時の停止・説明、追加作業へ勝手に進まないこと、未完成のまま正式納品へ押し切らないことが、buyer の不安に対して不足している。返金保証・キャンセル保証として断定させず、buyer が聞いている範囲だけ短く見る
 - `surface_overexposure`: 独立した hard label ではなく、`response_weight_mismatch` の原因 subtype。内部で見るべき安全条件が外向け本文に並びすぎ、buyer にはチェックリストや契約説明のように見える時に原因メモとして使う
 - `response_weight_mismatch`: buyer の文量・温度・質問数に対して、返信が重すぎて契約説明や安全条件の列挙に見える時に使う。短文化で必要な境界を削るためには使わない
+- `block_rhythm_flow`: `conversation_flow_naturalness` 配下の subtype。句点数や段落数ではなく、処理文・安全説明・条件文が同じリズムで並び、会話ではなく契約説明の塊に見える時に使う。判定は `fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` に分け、滑らかにすると誤読が増える場合は `unsafe_to_smooth` としてください
+- `safe_connection`: `block_rhythm_flow` の補助観点。同じ役割・同じ約束レベルの文だけ自然につなげてよい。価格、保証、返金、無料対応、closed 後実作業、支払い導線、secret、外部共有は、つなぐことで promise が強く読まれるなら分けたままにしてください
 - `buyer_state_ack_gap`: buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満などを明示しているのに、症状・価格・手順だけを受けて状態シグナルを落としている。QA-07 温度感ズレの下位観点として見る
 - `unnamed_discomfort`: 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある。最大1〜2件まで、実務リスクを説明できる場合だけ観察メモとして挙げてください
 
@@ -79,6 +81,8 @@ Pro後の補助監査レンズ:
 - hard fail と soft lens を分けてください。hard fail は phase drift、非公開サービス漏れ、返金/無料/保証の断定、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続など deterministic な事故に限ります。`response_weight_mismatch`、`buyer_state_ack_gap`、`unnamed_discomfort`、`jp_business_native_naturalness` は soft lens として扱ってください
 - `conversation_flow_naturalness` は hard fail ではありません。ただし、自然化によって price / scope / phase / payment route / secret handling / public-private boundary が変わった、固定価格を `想定しています` などで不当に弱めた、buyer の主質問への直答が消えた、誤った次アクションや未約束の作業・無料対応・返金・保証・外部共有を足した場合は deterministic な事故として扱ってください
 - `conversation_flow_naturalness` の修正提案は最小差分にしてください。つなぐのは同じ役割で強く関係する文だけにし、価格・scope・phase・secret・payment route の語句は原則保持してください。`やさしくするための曖昧化` は禁止です
+- `block_rhythm_flow` は hard fail ではありません。改善提案を出す場合も、`fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` のどれかを短く添えてください。高リスク場面で境界を分けた方が誤読が少ない場合は、少し硬くても `acceptable_as_is` または `unsafe_to_smooth` として通してください
+- `safe_connection` では、同じ役割・同じ約束レベルの文だけつなげてください。成功保証否定と成果物返却、返金未定と無料対応、closed 後確認と修正作業開始などを、読みやすさのために一息でつなげないでください
 - `conversation_flow_naturalness` の preference only: 句点の有無だけの好み、やや硬いが意味・導線・安全境界が明確な文、より自然な言い換えはあるが修正すると price / scope / phase が揺れそうな文。これらは必須修正にしないでください
 
 優先順位:

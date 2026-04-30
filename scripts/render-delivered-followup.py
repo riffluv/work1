@@ -306,6 +306,7 @@ def detect_scenario(source: dict) -> str:
         return "future_risk_question"
     if (
         "本番に反映作業まで" in combined
+        or "本番反映まで" in combined
         or "Vercelへの上げ方がわかりません" in combined
         or "本番反映は自分でやる形" in combined
         or "本番に出すのが少し怖い" in combined
@@ -368,6 +369,10 @@ def detect_scenario(source: dict) -> str:
         or ("まだ同じ症状" in combined and "もう一度見てもらえますか" in combined)
         or (
             any(marker in combined for marker in ["承諾できない", "承諾できません"])
+            and any(marker in combined for marker in ["まだ", "直っていない", "注文が作られていない", "作られていない"])
+        )
+        or (
+            any(marker in combined for marker in ["承諾していい", "承諾してよい"])
             and any(marker in combined for marker in ["まだ", "直っていない", "注文が作られていない", "作られていない"])
         )
     ):

@@ -106,6 +106,22 @@ def material_subject_for_message(raw: str) -> str:
     return "ログやスクショ"
 
 
+def has_previous_positive_ack(raw: str) -> bool:
+    return any(
+        marker in raw
+        for marker in [
+            "ありがとうございました",
+            "ありがとうございます",
+            "助かりました",
+            "助かっています",
+            "問題なかった",
+            "問題なく",
+            "よかった",
+            "良かった",
+        ]
+    )
+
+
 def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
     if scenario == "feedback_for_next_time":
         plan = shared.build_temperature_plan(source, case_type="after_close")
@@ -164,7 +180,7 @@ def detect_scenario(source: dict) -> str:
     if "Google Drive" in combined or "Googleドライブ" in combined or "Dropbox" in combined:
         return "closed_external_large_share"
     if any(marker in combined for marker in [".env", "envファイル", "Stripeのキー", "APIキー", "秘密鍵"]):
-        if any(marker in combined for marker in ["そのまま送", "一緒に送", "値", "キーも入って"]):
+        if any(marker in combined for marker in ["そのまま送", "一緒に送", "値", "キーも入って", ".env入り", "送ってもいい"]):
             return "closed_secret_send_question"
     if any(marker in combined for marker in ["ZIPでコード", "コード一式", "直して返して", "修正して返"]):
         return "closed_zip_fix_return"
@@ -2142,6 +2158,8 @@ def render_case(case: dict) -> str:
     direct_answer = decision_plan.get("direct_answer_line") or ""
     if case.get("scenario") == "closed_materials_check":
         first_lines = [direct_answer]
+        if has_previous_positive_ack(case.get("raw_message", "")):
+            first_lines = ["こちらこそありがとうございます。", direct_answer]
         reaction = ""
     if reaction and not _same_meaning(reaction, direct_answer):
         first_lines.append(reaction)

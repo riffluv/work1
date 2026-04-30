@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC69-001
+    stock_id: HRC69-001
+    category: closed_refund_free_block_rhythm
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: refund_free_pressure
+    scenario: closed_prev_fix_mistake_free_or_new
+    question_type: closed_prev_fix_mistake_free_or_new
+    primary_question: クローズ後、再発が前回修正ミスなら無料対応、別原因なら新規相談でよいか知りたい。
+    raw_message: "前回直ったと思っていたのですが、またStripe決済後に注文が作られません。前回の修正ミスなら無料で直してほしいです。違う原因なら新規で相談します。"
+    note: 通常 live / #RE。無料対応圧を復唱せず、前回修正との関係・費用扱い未断定・実作業前相談へ自然につなぐ。
+
+  - id: HRC69-002
+    stock_id: HRC69-002
+    category: closed_refund_free_block_rhythm
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: review_pressure
+    scenario: closed_before_review_relation_check
+    question_type: closed_before_review_relation_check
+    primary_question: 評価前に、再発が前回修正と関係あるかだけ見てもらえるか知りたい。
+    raw_message: "評価を書く前に確認したいです。また同じようなStripeエラーが出ました。前回の修正と関係あるかだけ見てもらえますか？"
+    note: 通常 live / #RE。評価圧を受け返さず、関係確認と実作業境界を会話としてつなげる。
+
+  - id: HRC69-003
+    stock_id: HRC69-003
+    category: closed_refund_free_block_rhythm
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: refund_anxiety
+    scenario: closed_refund_or_repeat_price
+    question_type: closed_refund_or_repeat_price
+    primary_question: クローズ後、再発時に返金か再度15,000円になるかを知りたい。
+    raw_message: "また注文が作られません。前回の続きとして返金になるのか、もう一度15,000円になるのかだけ先に知りたいです。"
+    note: 通常 live / #RE。返金・再料金の論点を落とさず、確認前に断定しない。15,000円の live 範囲は維持する。
+
+  - id: HRC69-004
+    stock_id: HRC69-004
+    category: closed_refund_free_block_rhythm
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_negative_frame
+    scenario: closed_not_complaint_relation_check
+    question_type: closed_not_complaint_relation_check
+    primary_question: 文句ではないが、クローズ後に似たエラーが前回修正と関係あるか見てもらえるか知りたい。
+    raw_message: "文句を言いたいわけではないのですが、クローズ後に似たStripeエラーが出ています。前回の修正と関係あるかだけ、このメッセージで見てもらえますか？"
+    note: 通常 live / #RE。否定されたネガティブ意図を復唱せず、前回修正との関係確認へ変換する。
+
+  - id: HRC69-005
+    stock_id: HRC69-005
+    category: closed_refund_free_block_rhythm
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: prepayment_anxiety
+    scenario: quote_sent_precheck_then_purchase
+    question_type: quote_sent_precheck_then_purchase
+    primary_question: 見積り提案後、購入前にログだけ見てもらい、直りそうなら購入できるか知りたい。
+    raw_message: "見積り提案ありがとうございます。購入するつもりはありますが、支払い前にログだけ見て直りそうか教えてもらえますか？直りそうなら購入します。"
+    note: 通常 live / #RE。支払い前原因確認を止めつつ、不要に冷たくせず、購入後共有と修正可能時の成果物へつなぐ。
+
+  - id: HRC69-006
+    stock_id: HRC69-006
+    category: closed_refund_free_block_rhythm
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: refund_anxiety
+    scenario: purchased_if_no_cause_refund
+    question_type: purchased_if_no_cause_refund
+    primary_question: 購入後、ログ送付済みで、原因が分からなかった場合の返金・正式納品扱いを知りたい。
+    raw_message: "ログは一通り送りました。もし原因が分からなかった場合は返金になりますか？それともそのまま正式納品になりますか？"
+    note: 通常 live / #RE。返金は断定せず、未修正のまま正式納品へ進めない方針と次回見通しを返す。
+
+  - id: HRC69-007
+    stock_id: HRC69-007
+    category: closed_refund_free_block_rhythm
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: cannot_accept
+    scenario: delivered_still_not_fixed_acceptance
+    question_type: delivered_still_not_fixed_acceptance
+    primary_question: 納品後承諾前、まだ直っていないように見える場合にどうすればよいか知りたい。
+    raw_message: "納品ありがとうございます。ただ、確認したらまだ注文が作られていないように見えます。このまま承諾していいのか不安です。"
+    note: 通常 live / #RE。delivered を closed と誤認せず、承諾前確認として受け、実作業や返金へ急がない。
+
+  - id: HRC69-008
+    stock_id: HRC69-008
+    category: closed_refund_free_block_rhythm
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: external_secret_shortcut
+    scenario: closed_github_env_relation_check
+    question_type: closed_github_env_relation_check
+    primary_question: クローズ後、GitHub招待や.env入りzipで前回修正との関係確認を早められるか知りたい。
+    raw_message: "クローズ後です。早い方がいいと思うので、GitHub招待と.env入りのzipを送ってもいいですか？前回の修正と関係あるかだけ見てほしいです。"
+    note: 通常 live / #RE。closed 後関係確認を受けつつ、GitHub招待・secret値・外部作業面へ寄らず、ココナラ上の安全な材料共有へ戻す。

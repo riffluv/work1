@@ -1623,3 +1623,59 @@
 - 想定効果: `送ってよい -> 届いた範囲で見る -> 実作業は別相談` のような高リスク文を、境界を崩さず会話の流れとして読める形に寄せられる
 - 確認: candidate-batch lint OK、full regression `pass=611 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
 - 非変更: 句点や3段落構成を blanket NG にしない。自然化のために価格・scope・phase・secret・closed後作業境界を弱めない。`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-192
+- 分類: `reply-only`
+- レイヤ: Pro後レビュー反映 / block rhythm subtype / #RE bugfix68 r1
+- 変更: ChatGPT Pro の `返信OS設計レビュー4-30.txt` を受け、`block_rhythm_flow` を独立 hard rule ではなく `conversation_flow_naturalness` 配下の named subtype として整理した。`safe_connection` を補助観点として追加し、自然につなげてよいのは同じ役割・同じ約束レベルの文だけであることを、lens inventory / reviewer prompt / japanese-chat-natural-ja / bugfix style に最小反映した。あわせて Gold 40 `block-rhythm-flow` を追加し、感情注意モードの `ですよね` 型共鳴例を、closed / refund / complaint 系では状況認知と現在地を優先する形へ弱めた。外部監査で指摘された bugfix68 B08 の `確認材料として確認` の重複も r1 で圧縮した
+- きっかけ: Pro から、次の主戦場は新しい安全 rule の追加ではなく、`conversation_flow_naturalness × response_weight_mismatch × block rhythm` であり、段落の塊感は句点数や段落数ではなく、返信の重さ・情報露出・safe connection として扱うべきだと整理されたため
+- 想定効果: 高リスク場面の安全境界を削らず、処理文・安全説明・条件文が契約説明の塊に見えるケースを `fix_recommended / acceptable_as_is / unsafe_to_smooth` に分けて監査できる。自然化で保証・返金・無料対応・closed後作業・支払い導線を強める事故を避けつつ、#R 相当の実務チャット品質を上げられる
+- 確認: candidate-batch lint OK、full regression `pass=611 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: `block_rhythm_flow` の hard rule 化、句点数・段落数 lint、`大丈夫です` / `確認できます` / `相談できます` / `ご不便をおかけしています` の blanket NG、メール文体の本格実装はしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-04-30 / CHG-193
+- 分類: `reply-only`
+- レイヤ: #RE bugfix69 / closed refund-free block rhythm
+- 変更: `closed-refund-free-block-rhythm-bugfix69.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-69-closed-refund-free-block-rhythm-r0` へ更新した。closed 後の返金・無料対応・前回修正ミス疑い・評価前確認・GitHub/.env 近道圧を中心に、`block_rhythm_flow` / `safe_connection` / `negative_frame_non_echo` / `pressure_word_summarization` / `responsibility_admission_guard` を同時確認する
+- きっかけ: bugfix68 r1 で block rhythm は採用圏に入ったが、返金・無料・前回修正ミス疑いの高リスク closed 文脈では、安全説明を滑らかにしすぎると責任認定や実作業 promise に読まれるため、どこまで自然化してよいかを追加確認する必要があったため
+- 想定効果: `メッセージ上で関係確認 -> 実作業は別相談` の closed 境界を維持しつつ、返金・無料・評価圧の語をそのまま復唱せず、費用扱い・作業可否・前回修正との関係へ実務的に要約できるかを見る
+- 追加調整: deterministic baseline が新規 stock を generic fallback に落としていたため、購入後の `原因が分からなかった場合 + 返金/正式納品` を `unfixable_fee_question`、納品後の `承諾していいか不安 + 注文が作られていない` を `redelivery_same_error`、closed 後の `.env入り` / `送ってもいい` を `closed_secret_send_question` として拾う最小 detector を追加した。B07 は最終段落に次アクションが残るように candidate を調整した
+- 確認: candidate-batch lint OK、full regression `pass=619 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: closed 後の返金・無料対応・前回修正ミス・実作業開始の断定はしない。GitHub招待や `.env` 値を作業面として受けない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-04-30 / CHG-194
+- 分類: `reply-only`
+- レイヤ: #RE bugfix70 / multi-phase showcase naturalness
+- 変更: `multi-phase-showcase-naturalness-bugfix70.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-70-multi-phase-showcase-naturalness-r0` へ更新した。Pro に見せる直近出力サンプルを増やすため、prequote / quote_sent / purchased / delivered / closed を混ぜた通常 live #RE として、現在の自然化が phase をまたいでも安定するかを確認する
+- きっかけ: bugfix68〜69 で closed 高リスク場面の block rhythm と safe connection は安定してきたため、次は Pro へ渡せる最近の実出力を増やし、通常場面から高リスク場面までの文体・境界・サービス grounding を横断的に見せる必要があったため
+- 想定効果: 非エンジニア不安、金額/納期/保証、GitHub招待、支払い前原因だけ先見、購入後受領/進捗、delivered 本番反映圧、closed 後関係確認を、`agency_alignment` / `permission_benefit_alignment` / `promise_consistency` / `block_rhythm_flow` / `unnecessary_refusal_frame` の観点でまとめて確認できる
+- 追加調整: delivered renderer が `本番反映まで` を本番反映代行圧として拾えるようにした。closed renderer は、closed 後の関係確認で buyer が前回のお礼を添えている場合、`こちらこそありがとうございます。` と短く受けてから材料共有の案内へ進むようにした
+- 確認: candidate-batch lint OK、full regression `pass=627 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: 新しい hard rule は追加しない。`block_rhythm_flow` や `agency_alignment` を blanket NG 化しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-04-30 / CHG-195
+- 分類: `reply-only`
+- レイヤ: #RE bugfix70 r1 / prequote material-sharing phase fix
+- 変更: 外部監査で B01 の `まずはエラー内容や、決済後に注文が作られない流れが分かる画面を共有してください` が、購入前の追加資料依頼にも読める余地があると分かったため、`ご購入後` と `トークルームで共有してください` を近い文脈に置いた
+- きっかけ: prequote で材料共有に触れる場合、購入後に必要範囲を確認する意図でも、`まずは共有してください` だけだと quote 前作業や購入前材料要求に見える可能性があるため
+- 想定効果: 非エンジニア buyer の材料不安を受けつつ、購入前に資料提出を求めている誤読を減らし、phase boundary を保ったまま次アクションを明確にできる
+- 確認: candidate-batch lint OK、git diff check OK。r0 時点の full regression `pass=627 fail=0 skip=65` と service grounding sentries OK_WITH_EXISTING_WARNINGS から、今回は B01 文面のみの case_fix
+- 非変更: prequote でコードやログの確認開始はしない。`handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-04-30 / CHG-196
+- 分類: `reply-only`
+- レイヤ: #RE bugfix70 r2 / case-label distance fix
+- 変更: 人間監査で B08 の `しばらく問題なかった後に、似たStripeエラーが出ている件ですね` が、直接やり取りしている buyer への返答として距離があり、受付票のラベルのように見えると分かったため、`しばらく問題なかった後に似たStripeエラーが出ているとのこと、承知しました` へ修正した。あわせて `japanese-chat-natural-ja` と bugfix style rule の negative frame 例から `似たエラーが出ている件ですね` を外し、実務目的とこちらの確認行動へ変換する例に差し替えた
+- きっかけ: `〜の件ですね` は短い話題整理として使える場面もあるが、closed 後の関係確認や再不具合相談では、相手の目の前の相談を遠い案件として扱っているように見え、AI/受付窓口感が出る場合があるため
+- 想定効果: ネガティブ意図の反復を避けつつ、buyer の状況を遠いラベルにせず、`受け止め -> ログ送付可否 -> 前回修正との関係確認 -> 実作業は別相談` へ自然につなげられる
+- 確認: candidate-batch lint OK、git diff check OK
+- 非変更: `〜の件` を blanket NG 化しない。請求書・ログ・支払い方法など、短い話題整理として自然な場面までは禁止しない。closed 後の実作業開始、返金/無料対応、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-197
+- 分類: `reply-only`
+- レイヤ: #RE bugfix71 / case-label distance observation
+- 変更: `case-label-distance-naturalness-bugfix71.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-71-case-label-distance-naturalness-r0` へ更新した。bugfix70 で見つかった `case_label_distance` を、prequote / quote_sent / purchased / delivered / closed の別ケースで確認する
+- きっかけ: `〜の件ですね` は全面禁止ではなく、自然な話題整理として使える場面と、直接やり取り中の困りごとを遠い案件ラベルにしてしまう場面があるため、別 batch でノイズ化せず制御できるかを見る必要があったため
+- 想定効果: 相手文の `件` に引きずられず、依頼可否・金額/日数・支払い後材料共有・購入後受領/進捗・delivered補足・closed後関係確認を、距離感を出しすぎず実務チャットとして返せるかを確認できる
+- 確認: candidate-batch lint OK、full regression `pass=635 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: `〜の件` の blanket NG 化、case_label_distance の hard rule 化、句点/段落数 lint はしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない

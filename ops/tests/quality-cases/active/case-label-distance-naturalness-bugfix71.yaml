@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC71-001
+    stock_id: HRC71-001
+    category: case_label_distance_naturalness
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: uncertain
+    scenario: prequote_unknown_cause_can_request
+    question_type: prequote_unknown_cause_can_request
+    primary_question: Stripe決済後に注文が作られない不具合を、原因不明でも15,000円で依頼できるか知りたい。
+    raw_message: "Stripe決済後に注文が作られない件で相談したいです。これは15,000円で依頼できますか？原因はまだ分かっていません。"
+    note: 通常 live / #RE。buyer の `件` に引きずられず、依頼可否・15,000円・原因不明でも購入後確認を自然につなげる。
+
+  - id: HRC71-002
+    stock_id: HRC71-002
+    category: case_label_distance_naturalness
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: price_timeline_only
+    scenario: prequote_price_timeline_question
+    question_type: prequote_price_timeline_question
+    primary_question: 金額と日数だけ先に知りたい。
+    raw_message: "金額と日数の件だけ先に教えてください。Stripe決済後に注文が作られない状態です。"
+    note: 通常 live / #RE。`金額と日数の件ですね` ではなく、主質問へ直接答える。
+
+  - id: HRC71-003
+    stock_id: HRC71-003
+    category: case_label_distance_naturalness
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: materials_timing
+    scenario: quote_sent_materials_timing_github
+    question_type: quote_sent_materials_timing_github
+    primary_question: 支払い後にログを送ればよいか、GitHub招待が必要か知りたい。
+    raw_message: "見積り提案ありがとうございます。ログの件ですが、支払い後に送ればいいですか？GitHub招待の方が早いですか？"
+    note: 通常 live / #RE。相手の `ログの件` は話題整理として受けつつ、支払い後トークルーム共有と GitHub 招待不可へ戻す。
+
+  - id: HRC71-004
+    stock_id: HRC71-004
+    category: case_label_distance_naturalness
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: prepayment_pressure
+    scenario: quote_sent_cause_precheck
+    question_type: quote_sent_cause_precheck
+    primary_question: 支払い前にログだけ見て原因を判断してもらえるか知りたい。
+    raw_message: "さっきの注文が作られない件、支払い前にログだけ見てもらうことはできますか？原因が分かれば購入します。"
+    note: 通常 live / #RE。支払い前原因確認を止めるが、`注文が作られない件ですね` と案件ラベル化しない。
+
+  - id: HRC71-005
+    stock_id: HRC71-005
+    category: case_label_distance_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: receipt_check
+    scenario: purchased_materials_received_next_flow
+    question_type: purchased_materials_received_next_flow
+    primary_question: 購入後、ログが届いているか、この後の流れと追加準備の有無を知りたい。
+    raw_message: "ログの件、届いていますか？この後の流れと、追加で準備しておいた方がいいものがあれば教えてください。"
+    note: 通常 live / #RE。`ログの件` に引きずられず、受領確認・次の確認行動・追加準備の有無を自然につなげる。
+
+  - id: HRC71-006
+    stock_id: HRC71-006
+    category: case_label_distance_naturalness
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: progress_short
+    scenario: purchased_progress_brief_update
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、今どこまで分かっているか短く知りたい。
+    raw_message: "注文作成の件、今どこまで分かっていますか？長い説明はいらないので、現時点の状況だけ短くお願いします。"
+    note: 通常 live / #RE。`注文作成の件` を遠いラベルにせず、現在見ている箇所と未確定点を短く返す。
+
+  - id: HRC71-007
+    stock_id: HRC71-007
+    category: case_label_distance_naturalness
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: apply_anxiety
+    scenario: delivered_apply_help_no_deploy
+    question_type: delivered_apply_help_no_deploy
+    primary_question: 納品後承諾前、反映箇所だけ教えてほしいが、本番反映まで頼めるかも知りたい。
+    raw_message: "納品ありがとうございます。反映箇所の件だけ短く教えてください。本番反映までお願いするのは難しいですよね？"
+    note: 通常 live / #RE。`反映箇所の件` は話題整理として自然に扱い、本番反映代行へ広げず軽い補足へ戻す。
+
+  - id: HRC71-008
+    stock_id: HRC71-008
+    category: case_label_distance_naturalness
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_relation_check
+    scenario: closed_previous_thanks_similar_error
+    question_type: closed_previous_thanks_similar_error
+    primary_question: クローズ後、前回のお礼を伝えつつ、似たエラーが前回修正と関係あるかこのメッセージで見てもらえるか知りたい。
+    raw_message: "前回のStripeの件ではありがとうございました。しばらく問題なかったのですが、また似たエラーが出ています。このメッセージでログを送れば、前回の修正と関係あるか見てもらえますか？"
+    note: 通常 live / #RE。`前回のStripeの件` に対して `件ですね` で距離を出さず、お礼を受けて関係確認と実作業境界へつなぐ。

@@ -1,0 +1,531 @@
+1. 結論
+
+今の返信OSは、「意味が正しい・事故が少ない」段階はかなり越えていて、すでに「実務者が送れる文章」段階に入っています。
+ただし、完成形ではなく、今は 実務チャット品質の後半フェーズ です。私の評価では、ココナラ bugfix-15000 専用返信としては 8/10 前後、将来コアとしては 6.8〜7.2/10 くらいです。
+
+次に一番重要なのは、新しい安全ルールを増やすことではなく、「安全条件を守ったまま、外向け本文に出す情報量・段落リズム・担当者感を調整すること」 です。
+言い換えると、次の主戦場は promise_consistency ではなく、conversation_flow_naturalness × response_weight_mismatch × block rhythm です。
+
+リポジトリ上でも、hard fail は deterministic な事故に限り、日本語自然化系は soft lens とする方針が明文化されています。また 相談できます / 確認できます / 大丈夫です / はい / まずは / 句点を blanket NG にしない方針も正しいです。ここは絶対に崩さない方がいいです。
+
+2. 現状評価
+強い点
+
+1. 事故防止の骨格はかなり強いです。
+public/private boundary、phase_boundary、secret_safety、external_work_surface、closed_transaction_model、service_grounding が自然化レンズより優先される構造になっています。通常 live / #RE で handoff-25000 を漏らさない、secret 値を求めない、closed 後に旧トークルーム作業へ滑らない、という土台はかなり堅いです。
+
+2. #RE / #R のズレをかなり意識できています。
+renderer_baseline を #R 本番品質として扱わず、writer_candidate / writer_candidate_manual を #R 相当として見る方針は妥当です。coconala-reply-bugfix-ja 側にも、#RE の自然さ違和感は #R でも再現するか見てから戻す、という分離が入っています。ここはかなり良い設計です。
+
+3. negative_frame_non_echo は正式補助主力に上げてよい水準です。
+bugfix64〜66 の流れを受けて、責めたいわけではない、文句ではない、返金してほしい などをそのまま復唱せず、実務目的や判断対象へ要約する方針はかなり妥当です。Gold 39 も、ネガティブ語を消すのではなく、前回の修正との関係、費用や返金の扱い、作業可否 へ要約する設計になっていて、コア化しやすいです。
+
+4. 過剰矯正への警戒がすでに入っているのも良いです。
+bugfix67 で、negative_frame_non_echo / responsibility_admission_guard / pressure_word_summarization が強くなりすぎて、謝意・状況認知・承諾前補足まで削らないかを見ているのは正しい順番です。安全化の後に冷たさを見るのは、返信OSを本番品質へ近づけるうえで重要です。
+
+まだ弱い点
+
+1. 「実務者の返答」より「監査済みの返答」に見える場面があります。
+最近の候補は意味も境界も正しいですが、closed 後・返金・無料対応・保証不可のような高リスク文脈では、現時点では〜断定できません、まずは〜送ってください、届いた範囲で〜確認します、実作業が必要そうな場合は〜ご相談します が並び、少し安全説明のチェックリストに見えることがあります。bugfix68 の batch 自体も、まさに「短い処理文や安全説明の塊が同じリズムで並びすぎていないか」を見る目的で追加されています。
+
+2. soft lens が増えて、同じ方向の修正圧が重なりやすいです。
+jp_business_native_naturalness、conversation_flow_naturalness、agency_alignment、permission_benefit_alignment、unnecessary_refusal_frame、negative_frame_non_echo は、全部「自然に・防御的に見せず・主体を明確に」という方向へ寄ります。個別には正しいですが、同時に強くかけると、本文が「安全で整っているが、少し均質」になります。
+
+3. 文体ルールの粒度がかなり細かくなっています。
+大丈夫です の回数、はい、 の固定回避、確認します / 確認できます / 確認結果 の密集回避、もちろんです の固定回避などは有効ですが、これらを全部生成側に強く渡すと、Writer が「自然に書く」のではなく「禁止表現を避ける」方向に寄ります。style rules にはすでに非常に多くの表現規則があり、ここはルール地獄化の入口にもなります。
+
+4. emotional-caution 系に一部、衝突しやすい温度表現があります。
+emotional-caution-mode では不満・苦情の語調で、先頭に不便の認知を置き、最初の依頼を1点に絞る方針は良いです。ただし、例示にある 〜ですよね 型の共鳴は、別の style / gotcha で避けている「感情の一般化」と衝突しやすいです。closed 後や返金圧では、ご不便な状況かと思います、まずは状況を確認します、いま確認している点を短く共有します の方が安定します。
+
+将来コア化に向けたリスク
+
+将来コア化で一番危ないのは、ココナラ固有の安全構造と、汎用返信コアを同じレイヤに混ぜること です。
+
+共通コアに持ち出せるのは、次のような抽象です。
+
+約束レベルを前後で揃える
+誰が何をするかを明確にする
+相手の圧力語を実務判断へ要約する
+感情受けから次アクションへ橋を置く
+返信の重さを相手の質問量・リスク量に合わせる
+soft lens は hard fail にしない
+
+逆に、ココナラ固有として分けるべきなのは、正式納品、トークルーム、購入後、見積り提案、public:false、bugfix-15000、handoff-25000、15,000円、closed 後旧トークルーム です。
+
+3. 主要レンズ評価表
+レンズ	評価	正式度	戻し先	hard fail 化	ノイズ化リスク	コメント
+promise_consistency	◎	正式主力 soft lens	reviewer prompt / Gold / skill の最小原則	原則不可。成功保証・phase drift・secret 要求・closed 後作業 promise に接続した時だけ実事故名で hard	中	かなり妥当。問題は「必ず直るとは言えない」後に「修正済みファイル返却」を無条件化する影。今後も soft でよい。
+conversation_flow_naturalness	◎	正式主力 umbrella	reviewer prompt / japanese-chat-natural-ja / human audit	不可	中〜高	今後の本丸。文体だけでなく、受け止め→直答→条件→次アクションの接続を見る。句点数 lint にしてはいけない。
+jp_business_native_naturalness	◎	上位 umbrella soft lens	japanese-chat-natural-ja / reviewer / human audit	不可	高	「日本語ネイティブの実務チャットとして浮くか」を見る最上位。便利だが広すぎるので、指摘は必ず subtype に落とすべき。
+agency_alignment	◎	正式 named soft lens	Gold 38 / skill / reviewer	原則不可。支払い前作業・外部共有・成果物 promise に接続した時だけ実事故名で hard	中	依頼できますか に 相談できます が薄い、という検出は重要。将来コアにも持ち出せる。
+permission_benefit_alignment	○	補助主力 named soft lens	agency 配下 / skill / reviewer	不可	中〜高	大丈夫です を禁止しない前提なら有効。buyer の負担軽減か、seller の許可調かを見るだけに限定する。
+unnecessary_refusal_frame	○	補助主力 named soft lens	conversation_flow 配下 / reviewer / gold 候補	不可	高	とても有効だが、必要な不可表明まで削る危険がある。支払い前作業・secret・外部共有・closed 後作業は消してはいけない。
+negative_frame_non_echo	◎	補助主力 soft lens に昇格でよい	Gold 39 / emotional-caution / skill / reviewer	不可	中	正式化してよい。ただし「ネガティブ語を使わない」ではなく「否定されたフレームを復唱しない」。返金・無料・今日中対応の論点は落とさない。
+responsibility_admission_guard	○	high-risk subtype	negative_frame / closed_transaction / reviewer	明示過失認定・無料/返金保証なら hard。通常は soft	中〜高	独立主力にしすぎると謝意や不便認知まで削る。closed 後・未確認・返金/無料圧の場面限定で強く見る。
+pressure_word_summarization	○	high-risk subtype	negative_frame / emotional-caution / Gold 39	不可	中	今日中に無料で を 今日中の作業可否 にするのは良い。ただし buyer の主質問を消すと不誠実に見える。
+emotion_to_action_bridge	◎	conversation_flow 配下の正式 soft lens	skill / reviewer / gold	不可	低〜中	将来コアにも有効。不安・不満を受けて終わらず、確認行動へ移す。強い共感文を増やす lens ではない。
+overcorrection_check	◎	meta lens / reviewer・human audit	reviewer prompt / #RE 評価	不可	低	生成 rule にしない方がよい。安全化の副作用を見る監査レンズ。bugfix67 のような batch で継続が妥当。
+block rhythm / 段落の塊感	○	conversation_flow の下位観点	reviewer prompt / human audit / gold 少数	絶対不可	非常に高	独立主力にすると危険。改善推奨 / そのまま / 滑らかにすると危険 の3分類で見るべき。
+voice_ownership	○	named soft lens	japanese-chat-natural-ja / reviewer	不可	中	FAQ・窓口案内ではなく担当者の返事に見えるか。強めすぎると「責任を持って直す」系の過約束へ滑る。
+certainty_calibration	◎	正式主力寄り soft lens	promise_consistency / reviewer / skill	明確な断定事故のみ hard	中	保証不可・今日中不可・原因未確認に必須。過剰にかけると「何も言えません」文になるので、返せることを先に置く。
+burden_alignment	◎	正式主力寄り soft lens	skill / reviewer / burden_owner	原則不可。secret 要求・過剰材料要求なら hard guard 側	中	非エンジニア buyer に判断を戻さないために重要。将来コアにも強く残せる。
+4. 足りないレンズ候補
+
+新規レンズを増やすより、既に reviewer prompt 側にある観点を、正式体系へどう接続するか が重要です。
+
+候補1: response_weight_calibration
+
+これは完全新規ではなく、既存の response_weight_mismatch を正式体系側に接続するのがよいです。
+役割は、buyer の文量・温度・質問数・リスク量に対して、返信が重すぎないか / 軽すぎないか を見ることです。
+
+今の block rhythm 問題の正体は、単に段落が塊なのではなく、本文の重さが buyer の質問に対して少し契約説明化していること です。監査プロンプトにも response_weight_mismatch と surface_overexposure がすでにあり、これは今回の主対象にかなり近いです。
+
+扱いは以下がよいです。
+
+正式主力 lens にはしない
+conversation_flow_naturalness の下位観点にする
+reviewer prompt と human audit で見る
+skill には短い原則だけ入れる
+lint / hard rule にはしない
+候補2: safe_connection
+
+これも完全新規というより、bugfix68 ですでに出ている safe_connection を明示するのがよいです。
+役割は、自然につなげてよい文と、分けた方が安全な文を区別すること です。
+
+たとえば、次はつないでよいです。
+
+届いている内容でこちらから確認に入ります。いま追加で準備いただくものはありません。
+
+一方、次は無理につなぐと危険です。
+
+必ず直るとはお約束できません。ただ、ご購入後に修正済みファイルをお返しします。
+
+この lens は block rhythm の暴走防止に使えます。つまり「塊感を減らすために全部つなげる」のではなく、同じ約束レベル・同じ役割の文だけ接続する という制御です。bugfix68 の監査項目にも、価格・保証・closed 境界・返金・無料対応・実作業導線を無理につながないことが明記されています。
+
+候補3: channel_register_alignment
+
+これは今すぐ正式化しなくてよいです。将来メール展開を始める時の reviewer-only lens で十分です。
+
+役割は、同じ意味でも、チャットとして自然か / メールとして自然かを分けること です。
+今はチャット品質が主対象なので、先に作るとブレます。今やるなら、chat / mail / platform-message の channel profile だけ薄く定義すれば十分です。
+
+5. ノイズ化 / 過剰防御リスク
+今のルールで危ないもの
+
+1. responsibility_admission_guard の過剰適用
+ご不便をおかけしています を closed 後・原因未確認で慎重にするのは正しいです。ただし、これを広げすぎると、購入後・承諾前・こちらの説明不足が実際にあり得る場面でも、謝意や不便認知が削られます。change log でも、ご不便をおかけしています は blanket NG ではなく、closed 後の前回ミス疑いでは ご不便な状況かと思います に寄せる、という整理になっています。
+
+2. negative_frame_non_echo の過剰適用
+返金してほしい をそのまま復唱しないのは良いですが、返金論点自体を消すと buyer からは逃げに見えます。Gold 39 の良いところは、返金・無料・今日中対応の論点を消さず、費用や返金の扱い、今日中の作業可否 へ要約している点です。
+
+3. unnecessary_refusal_frame の過剰適用
+buyer が単に手順を聞いているだけなら拒否先行を避けるべきです。ただし、支払い前作業、secret 値、外部共有、直接 push、本番反映、closed 後作業は、必要なら明確に止める必要があります。ここを柔らかくしすぎると phase 事故になります。
+
+4. block rhythm の過剰適用
+段落を滑らかにしようとして、保証不可・返金不可・closed 後実作業不可・成果物条件を同じ段落へ押し込むと、逆に promise shadow が出ます。これは hard lint に一番向かない lens です。
+
+5. 「質問は1点」「最大3点」「1通1依頼」の機械適用
+非エンジニアや感情注意モードでは有効ですが、毎回 1点にしすぎると、必要な判断材料を分割しすぎて buyer の往復負担が増えます。burden_alignment と衝突します。
+
+blanket NG にしてはいけないもの
+
+以下は blanket NG 化すると必ず品質が落ちます。
+
+大丈夫です
+相談できます
+確認できます
+確認します
+まずは
+現時点では
+ご不便をおかけしています
+返金
+無料対応
+3段落構成
+句点「。」
+
+今の設計が良いのは、これらを禁止語ではなく、文脈・主体・約束レベルで見る 方針にしている点です。ここは維持してください。
+
+文章が硬くなる原因
+
+硬さの原因は、表現そのものよりも、次の3つです。
+
+留保文が連続する
+現時点では断定できません、まだ判断できません、この場では進めません が近距離で続く。
+安全条件が外向け本文に露出しすぎる
+buyer は「何をすればよいか」を知りたいのに、本文が監査項目の列挙に見える。
+文の役割が全部同じリズムになる
+受け止め、条件、不可、次アクションが全部 〜します。〜できません。〜します。 の処理文になる。
+6. block rhythm / 段落の塊感の扱い
+正式レンズ化すべきか
+
+独立した正式主力レンズにはしない方がいいです。
+conversation_flow_naturalness の下位観点として、block_rhythm_flow という named subtype にするのが最適です。
+
+理由は、block rhythm は単独で評価すると危険だからです。
+高リスク返信では、段落が少し硬くても、境界・返金・無料対応・closed 後作業を分けた方が安全です。bugfix68 でも、句点や3段落構成そのものを悪者にせず、処理文の塊が同じリズムで並ぶことを見ています。
+
+判断基準
+改善推奨にする場合
+
+次のどれかに当てはまる時は改善推奨です。
+
+buyer の質問が軽いのに、返信が契約説明のように重い
+現時点では、まずは、届いた範囲で、実作業が必要そうな場合は が同じ調子で並ぶ
+同じ段落内で 確認します / 確認できます / 確認結果 / お返しします が密集する
+closed 後の 送ってよい → 届いた範囲で見る → 実作業は別相談 が、会話ではなく部品の羅列に見える
+受け止めと主回答の間に橋がなく、いきなり条件説明に入る
+buyer の主質問への直答が、安全説明の中に埋もれる
+そのままでよい場合
+
+次の場合は、多少の塊感があってもそのままでよいです。
+
+返金・無料対応・今日中対応・成功保証・closed 後作業が絡む
+文をつなげると「未確認なのに約束した」ように読める
+buyer が複数の明示質問をしており、分けた方が誤読が少ない
+secret・外部共有・支払い導線など hard guard が絡む
+buyer が「簡単に流れを知りたい」と言っており、手順段落として見やすい
+良い修正例
+例1: B03 系、購入後にログとスクショを送ったケース
+
+元の方向は正しいですが、処理文が少し並びます。
+
+ログとスクショありがとうございます。届いています。
+
+まず受け取っている内容をもとに確認します。追加で必要なものがあれば、その時点でこちらからお伝えします。いま追加で準備いただくものはありません。
+
+本日18:00までに、現時点で見えている点と次に見る箇所をお伝えします。
+
+少し自然にするなら、こうです。
+
+ログとスクショありがとうございます。届いています。
+
+届いている内容でこちらから確認に入ります。いま追加で準備いただくものはありません。必要なものが出た場合は、その時点でこちらからお伝えします。
+
+本日18:00までに、現時点で見えている点と次に見る箇所をお伝えします。
+
+ここでは、追加で必要なものがあれば と いま追加で準備いただくものはありません の順番を入れ替えています。buyer の主質問に先に答えるので、会話として自然になります。
+
+例2: closed 後、返金か新規相談かを聞かれたケース
+
+元の方向は安全ですが、2段落目が少し監査文に見えます。
+
+この時点では、前回の修正との関係や費用・返金の扱い、新規相談になるかはまだ断定できません。まずはこのメッセージ上で、今出ているエラー内容やログ、スクショを送ってください。
+
+少し自然にするなら、こうです。
+
+返金か新規相談かは、前回の修正との関係を見てからの判断になります。まずはこのメッセージ上で、今出ているエラー内容やログ、スクショを送ってください。
+
+この方が「何を見れば判断できるか」が前に出ます。ただし、次段落で必ずこう補います。
+
+届いた範囲で前回の修正と関係がありそうかを確認します。前回トークルームは閉じているため、この場で修正作業や修正済みファイルの返却までは進めません。
+例3: 強い不満・返金・無料対応圧
+
+元の方向はかなり良いです。
+
+この時点では、前回の修正との関係、今日中の作業可否、費用や返金の扱いは断定できません。
+
+少しだけ実務チャット寄りにすると、こうです。
+
+この時点では、前回の修正との関係や今日中の作業可否、費用・返金の扱いはまだ判断できません。
+
+断定できません より まだ判断できません の方が少し会話的です。ただし、保証・返金・無料対応の場面では 断定できません の硬さが安全に効くこともあるので、全面置換はしない方がいいです。
+
+7. チャット / メール展開の方針
+今の自然化ルールはチャット寄りか
+
+かなりチャット寄りです。
+特に以下はチャット向けです。
+
+短い受け止めから入る
+主質問へすぐ答える
+送ってください、共有してください を使う
+末尾を そのままご購入ください のように短く閉じる
+箇条書きを多用しすぎない
+このメッセージ上で、トークルームで のような場の指定をする
+
+これは今の主対象には正しいです。
+
+メールにも通用する部分
+
+共通コアとして使えるのは、以下です。
+
+直答を先に置く
+約束レベルを前後で揃える
+料金・scope・phase・作業可否を変えない
+相手が書いた情報を聞き直さない
+圧力語を実務判断へ要約する
+返せることと未確定なことを分ける
+次アクションを明確にする
+
+これはメールにもそのまま通用します。
+
+チャットでは自然だが、メールでは軽すぎる表現
+送ってください
+短く共有します
+このメッセージ上で送ってください
+そのままご購入ください
+届いた範囲で見ます
+必要なら新規で相談します への短い返答
+
+メールでは、少しだけ以下に寄せた方が自然です。
+
+差し支えなければ、エラー内容やログ、スクリーンショットをご返信ください。
+確認できた範囲で、前回の修正との関係がありそうかをお伝えします。
+メールでは自然だが、チャットでは硬い表現
+お世話になっております
+恐れ入りますが
+ご確認のほどよろしくお願いいたします
+添付いただけますと幸いです
+下記をご確認ください
+詳細につきましては
+
+チャット返信OSにこれを入れると、一気に古いビジネスメール調になります。
+
+今すぐメール文体を作るのは早いか
+
+早いです。
+今はメール文体を作るより、channel_profile の薄い抽象だけ作るのが良いです。
+
+おすすめはこれです。
+
+channel_profile:
+  type: chat | email | platform_message
+  opening_density: minimal | standard
+  paragraph_density: compact | formal
+  closing_style: action_only | polite_close
+  action_verb_strength: direct | softened
+
+今すぐ本文ルールをメール用に増やすと、チャット品質がブレます。
+
+今の段階で共通コア化すべき範囲
+
+共通コアにしてよいのは、文体ではなく 返信判断の構造 です。
+
+answer_contract
+promise_level
+agency
+phase
+scope
+payment_boundary
+sensitive_word_summarization
+next_action
+response_weight
+
+文体はまだチャット専用でよいです。
+
+8. #RE / #R / gold / skill / prompt の役割分担
+
+現在の役割分担は、かなり妥当です。
+
+レイヤ	役割	評価
+#R	実際の返信生成	本番品質の正本。ここを最優先に見るべき
+#RE	品質確認・学習用 batch	#R 相当 candidate を使うなら有効。renderer baseline を本番品質扱いしないことが重要
+gold replies	良い型の保存	tone / bridge / high-risk pattern の保存に向く
+japanese-chat-natural-ja	汎用自然化	共通の語感・流れ・重複回避に限定するのが良い
+coconala-reply-bugfix-ja	bugfix-15000 特化	service facts / phase / closed / secret / price の正本接続に向く
+ng-expressions	再発しやすい表面事故	blanket NG を増やしすぎない
+reviewer prompt	広い監査 lens	soft lens、観察、Pro 相談向き
+lint / regression	deterministic guard	public leak、secret、価格、phase、禁止導線に限定
+human audit	日本語ネイティブ違和感	block rhythm / 担当者感 / 重さを見る最終層
+
+coconala-reply-bugfix-ja では、Writer / Reviewer を分け、self-check は Writer に読ませず draft 後に通す方針になっています。また naturalize は semantic freeze 後に行い、価格・禁止事項・次アクション・required moves を増減させない方針です。これはかなり重要で、今後も維持すべきです。
+
+#RE が #R 本番品質とズレないために守ること
+writer_candidate_manual / writer_candidate を主対象にする
+renderer_baseline は hard constraint の regression 用と割り切る。
+#RE only の違和感を skill へ戻さない
+#R でも再現するかを見る。
+自然さの指摘を rule にしない
+candidate / preference / #R reproduced / safety deterministic に分ける。
+batch の候補を固定テンプレ化しすぎない
+#RE がうまくなるほど、#R が硬くなる危険があります。
+gold を増やしすぎない
+gold は型の保存であって、テンプレ置換元ではありません。
+gold に入れるべきもの
+
+gold に入れるべきなのは、言い換えだけではなく、判断構造と温度の両方が良いもの です。
+
+入れてよい例:
+
+closed 後の関係確認と実作業境界
+返金・無料対応圧の要約
+依頼できますか への agency が明確な返答
+支払い後材料共有で 大丈夫です を手順表現へ変える例
+block rhythm を安全に改善した例
+
+入れない方がよい例:
+
+単なる語尾の好み
+1回だけ良かった言い回し
+ココナラ固有すぎて共通化できない細部
+「この表現を使えばよい」型のテンプレ
+skill に戻すべきもの
+
+skill に戻す条件は、かなり厳しめでよいです。
+
+複数 batch で再発している
+hard guard と矛盾しない
+1文で説明できる
+blanket NG ではない
+#R でも再現している
+gold だけでは再現性が足りない
+Pro / 外部AIに聞くべきタイミング
+
+今すぐ聞くなら、全体設計ではなく、block rhythm と response weight に絞る のがよいです。
+
+聞くべきタイミング:
+
+bugfix68 r1 まで回した後
+closed 後 / 返金 / 無料 / 評価圧の mixed batch をもう1本見た後
+block_rhythm_flow を正式 subtype にするか迷った時
+チャット/メール共通コアを切る時
+soft lens 間の衝突が出た時
+
+聞かなくてよいもの:
+
+単発の言い換え
+大丈夫です の可否
+句点や段落数
+1ケースだけの好み
+9. 実装ロードマップ
+今すぐ実装すべき
+
+1. lens-inventory に block rhythm の位置づけを追記する
+独立主力ではなく、conversation_flow_naturalness 配下の named subtype として置く。
+
+block_rhythm_flow:
+  parent: conversation_flow_naturalness
+  status: observation / reviewer soft subtype
+  hard_fail: false
+  outputs:
+    - fix_recommended
+    - acceptable_as_is
+    - unsafe_to_smooth
+
+2. reviewer prompt に block rhythm の判定3分類を入れる
+改善推奨 と そのまま だけではなく、滑らかにすると危険 を入れるべきです。
+
+3. safe_connection を block rhythm の補助観点として入れる
+「自然につなげる」ではなく、同じ役割・同じ約束レベルの文だけつなげる と書く。
+
+4. emotional-caution-mode の ですよね 型例示を弱める
+closed / refund / complaint 系では、感情代弁よりも状況認知 + 現在地が安定します。
+
+置き換え例:
+
+状況が見えにくく、ご不安な状態かと思います。
+
+よりも、さらに実務寄りなら:
+
+お待たせしてすみません。いま確認している点を短く共有します。
+
+5. Gold に block rhythm 改善例を1〜2本だけ追加する
+追加するなら、B03 と B07 が良いです。B03 は低リスクの流れ改善、B07 は高リスクの安全接続として使えます。
+
+#RE / #BR であと数 batch 観察してから実装すべき
+response_weight_calibration の正式命名
+block_rhythm_flow を reviewer prompt 以上に広げるか
+channel_register_alignment の導入
+メール向け文体 profile
+voice_ownership の正式 lens 化
+gold example に留めるべき
+closed 後の返金・無料対応圧への良い返し
+ご不便な状況かと思います の使いどころ
+大丈夫です が自然な例 / 不自然な例
+段落を減らさず、文の順序だけで自然にした例
+buyer の感謝や遠慮を1文だけ受ける例
+reviewer prompt にだけ入れるべき
+block rhythm
+response_weight_mismatch
+surface_overexposure
+overcorrection_check
+unnamed_discomfort
+channel_register_alignment
+skill に入れるべき
+
+skill に入れるなら、以下のような短い原則だけで十分です。
+
+安全境界を自然につなげる時は、同じ役割・同じ約束レベルの文だけ接続する。
+保証不可、返金、無料対応、closed後実作業、支払い導線は、誤読が増えるなら無理につなげない。
+buyer が聞いている範囲に対して返信が契約説明化していないかを確認する。
+ただし、必要な価格・scope・phase・secret・closed 境界は削らない。
+lint / hard rule にしてはいけない
+block rhythm
+大丈夫です
+確認できます
+相談できます
+ご不便をおかけしています
+句点数
+段落数
+現時点では
+まずは
+返金 という語の有無
+無料対応 という語の有無
+やらない方がいい
+soft lens ごとに validator を作る
+ng-expressions に自然化系の語を大量追加する
+block rhythm を句点・段落数で判定する
+#RE の renderer 癖を #R の品質問題として戻す
+メール文体を今すぐ本格実装する
+gold reply をテンプレとして使う
+安全境界を短文化のために削る
+次に回すべき #RE / #BR
+
+優先度順です。
+
+1. closed 後の返金・無料・前回修正ミス疑い
+
+これは最優先です。
+negative_frame_non_echo、responsibility_admission_guard、pressure_word_summarization、block rhythm、closed_transaction_model が全部ぶつかります。
+
+ケース例:
+
+前回直ったと思ったのですが、また注文が作られません。前回の修正ミスなら無料で直してほしいです。返金になるかも先に知りたいです。
+2. 支払い前に少し見てほしい圧
+
+unnecessary_refusal_frame と phase_boundary の衝突を見るのに良いです。
+
+購入するつもりはありますが、先にログだけ見て直りそうか教えてもらえますか？
+3. 急ぎ・今日中対応圧
+
+certainty_calibration と promise_consistency の確認に向きます。
+
+今日中に直るなら購入します。無理なら別の方に頼むので、先に確実か教えてください。
+4. 非エンジニア buyer の不安
+
+burden_alignment と voice_ownership を見るべきです。
+
+何を送ればいいか分かりません。変なものを送って迷惑にならないか不安です。
+5. secret 値や外部共有が絡む材料送付
+
+hard guard と自然化の両立を見る。
+
+GitHubに招待すれば見やすいですか？.env もそのまま入れておいた方がいいですか？
+6. 納品後の軽い補足と本格資料作成の境界
+
+これは将来コア化にも重要です。
+
+納品ありがとうございます。直ったか確認したいだけなので、どの画面を見ればいいか簡単に教えてください。
+7. チャットとして自然だが、メールだとどうか
+
+これは #BR の shadow でよいです。今の live / #RE へ戻しすぎない方がいいです。
+
+絶対にやらない方がいいこと
+soft lens の hard fail 化
+block rhythm、jp_business_native_naturalness、negative_frame_non_echo、permission_benefit_alignment は hard fail にしない。
+便利語の blanket NG
+大丈夫です、確認できます、相談できます、ご不便をおかけしています を禁止しない。
+段落数・句点数 lint
+block rhythm は見た目ではなく、役割・約束レベル・読後行動の問題です。
+自然化のために境界を溶かす
+価格、scope、phase、secret、public/private、payment route、closed 後作業境界は最優先です。
+#RE の学習を #R から切り離す
+renderer_baseline の機械文を直すために、本番 Writer の自由度を潰してはいけません。
+gold replies をテンプレ化する
+gold は温度感と判断構造の保存です。文面コピー元にすると、逆に塊感が増えます。
+メール文体を今すぐ混ぜる
+今はチャット品質を固める段階です。メールは channel profile だけ薄く切り、本文ルールはまだ作り込まない方が安全です。
+過剰に謝罪を消す
+責任認定を避けることと、実務者として不便や不安を受けることは別です。ご不便な状況かと思います、お待たせしてすみません、まずは状況を確認します は、場面によって必要です。
+「安全だから送れる」と「人が送ったように見える」を混同する
+今の返信OSは前者はかなり強いです。次は後者です。ここを lint ではなく、soft lens / gold / human audit で育てるのが一番良いです。

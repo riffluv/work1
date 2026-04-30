@@ -1,8 +1,8 @@
 # bugfix-15000 返信監査 batch
 
-batch_id: `RE-2026-04-30-bugfix-68-block-rhythm-flow-r0`
+batch_id: `RE-2026-04-30-bugfix-71-case-label-distance-naturalness-r0`
 status: `r0 prepared / local checks OK`
-fixture: `/home/hr-hm/Project/work/ops/tests/quality-cases/active/block-rhythm-flow-bugfix68.yaml`
+fixture: `/home/hr-hm/Project/work/ops/tests/quality-cases/active/case-label-distance-naturalness-bugfix71.yaml`
 mode: `coconala`
 service: `bugfix-15000`
 candidate_source: `writer_candidate_manual`
@@ -10,13 +10,13 @@ audit_target: `writer_candidate`
 contract_source: `deterministic_renderer`
 writer_used: `true`
 naturalizer: `manual_japanese_chat_natural`
-writer_brief_command: `python3 scripts/render-coconala-reply.py --fixture ops/tests/quality-cases/active/block-rhythm-flow-bugfix68.yaml --case-id <CASE_ID> --writer-brief`
-writer_candidate_validation: `python3 scripts/render-coconala-reply.py --fixture ops/tests/quality-cases/active/block-rhythm-flow-bugfix68.yaml --case-id <CASE_ID> --candidate-file <reply.txt> --lint`
-writer_candidate_batch_validation: `python3 scripts/render-coconala-reply.py --fixture ops/tests/quality-cases/active/block-rhythm-flow-bugfix68.yaml --candidate-batch-file サービスページ/rehearsal/bugfix-15000-返信学習/返信監査_batch-01.md --lint`
+writer_brief_command: `python3 scripts/render-coconala-reply.py --fixture ops/tests/quality-cases/active/case-label-distance-naturalness-bugfix71.yaml --case-id <CASE_ID> --writer-brief`
+writer_candidate_validation: `python3 scripts/render-coconala-reply.py --fixture ops/tests/quality-cases/active/case-label-distance-naturalness-bugfix71.yaml --case-id <CASE_ID> --candidate-file <reply.txt> --lint`
+writer_candidate_batch_validation: `python3 scripts/render-coconala-reply.py --fixture ops/tests/quality-cases/active/case-label-distance-naturalness-bugfix71.yaml --candidate-batch-file サービスページ/rehearsal/bugfix-15000-返信学習/返信監査_batch-01.md --lint`
 local_validation:
 - writer_candidate_batch_validation: OK
-- full_regression: OK (`pass=611 fail=0 skip=65`)
-- service_grounding_sentries: OK_WITH_EXISTING_WARNINGS
+- full_regression: OK (`pass=635 fail=0 skip=65`)
+- service_grounding_sentries: OK_WITH_EXISTING_WARNINGS (`pass=19 warn=26 fail=0`)
 - git_diff_check: OK
 
 ## 前提
@@ -25,213 +25,206 @@ local_validation:
 - 外向けに案内してよいサービスは `bugfix-15000` のみです。
 - `handoff-25000` は public:false のため、返信候補内に `handoff-25000` / 25,000円 / 主要1フロー整理 / handoff 購入導線が出ていたら public leak として扱ってください。
 - この batch の返信候補は `writer_candidate_manual` です。同じ fixture の意味契約をもとに、#R 相当の外向け返信候補として監査してください。
-- 今回は `conversation_flow_naturalness` のうち、`block rhythm / 段落の塊感` を重点的に見ます。
-- 句点「。」そのものや3段落構成そのものを悪者にしないでください。問題は、処理文の塊が同じリズムで並び、buyer が会話として読みづらくなることです。
-- 自然化のために、サービスの意味・価格・scope・phase・secret・payment route を変えてはいけません。
+- 今回は `case_label_distance` の確認走行です。`〜の件` を blanket NG にせず、直接やり取り中の困りごとを遠い案件ラベルにしていないかを見てください。
+- 自然化のために、サービスの意味・価格・scope・phase・secret・payment route・closed 後の実作業境界を変えてはいけません。
 
 ## 監査で見てほしい点
 
 1. `handoff-25000` / 25,000円 / 主要1フロー整理の live 漏れがないか
 2. `bugfix-15000` の 15,000円・不具合1件・原因確認・修正可能時の修正済みファイル返却の軸に grounded しているか
-3. `block_rhythm_flow`: 受け止め、主回答、条件、次アクションが、同じ調子の短い塊として並びすぎていないか
-4. `safe_connection`: 同じ役割で強く関係する文だけ自然につながっているか。価格、保証、closed 境界、返金、無料対応、実作業導線を無理につないで誤読を増やしていないか
-5. `closed_flow`: closed 後の `送ってよい -> 届いた範囲で見る -> 実作業は別相談` が部品の羅列ではなく、会話の流れとして読めるか
-6. `negative_frame_non_echo` / `pressure_word_summarization`: 評価・返金・無料対応などの圧力語を復唱せず、実務判断へ要約できているか
-7. `responsibility_admission_guard`: closed 後や未確認状態で、こちらの過失・前回修正ミス・返金/無料対応を認めたように読めないか
-8. `promise_consistency`: 留保・条件付き回答を、後段の成果物・納期・無料/返金・次アクションが上書きしていないか
-9. quote_sent / purchased / delivered / closed の phase が崩れていないか
-10. 高リスク場面でも、外部連絡、外部決済、直接 push、本番デプロイ、秘密値要求、旧トークルーム継続作業 promise が出ていないか
+3. prequote / quote_sent / purchased / delivered / closed の phase が崩れていないか
+4. `case_label_distance`: `〜の件ですね` が受付票や遠い案件ラベルのように見えていないか。自然な話題整理としての `〜の件` まで過剰に落としていないか
+5. `agency_alignment`: 依頼できますか / 見てもらえますか / 送ればいいですか への返答で、行為主体や許可の向きがズレていないか
+6. `permission_benefit_alignment`: `大丈夫です` が buyer の負担軽減ではなく、支払い・作業開始・材料共有への上からの許可調になっていないか
+7. `promise_consistency`: 成功保証不可や条件付き成果物を、後段の納期・修正済みファイル・次アクションが上書きしていないか
+8. `block_rhythm_flow`: 通常場面でも処理文が塊になりすぎていないか。ただし、安全境界を削ってまで滑らかにしないこと
+9. GitHub招待、外部共有、直接 push、本番デプロイ、secret値要求、closed後旧トークルーム作業 promise が出ていないか
 
 ---
 
 ## B01
 
-stock_id: HRC68-001
+stock_id: HRC71-001
 状態: prequote
-主質問タイプ: prequote_price_and_guarantee
-最初に答えるべき問い: Stripe 注文作成不具合を15,000円で依頼できるか、必ず直るかを知りたい。
-選定意図: 金額・保証不可・修正可能時の成果物を、短文断定の連発ではなく自然につなげるかを見る。
+主質問タイプ: prequote_unknown_cause_can_request
+最初に答えるべき問い: Stripe決済後に注文が作られない不具合を、原因不明でも15,000円で依頼できるか知りたい。
+選定意図: buyer の `件` に引きずられず、依頼可否・15,000円・原因不明でも購入後確認を自然につなげる。
 r0_local_lint: OK
 
 相手文:
 
-> Stripe決済後に注文が作られないです。15,000円で依頼できますか？必ず直るかも先に知りたいです。
+> Stripe決済後に注文が作られない件で相談したいです。これは15,000円で依頼できますか？原因はまだ分かっていません。
 
 返信候補:
 
 > ご相談ありがとうございます。
 >
-> Stripe決済後に注文が作られない不具合であれば、15,000円でご依頼いただけます。ただ、コードとエラー内容を見る前に必ず直るとはお約束できません。
+> Stripe決済後に注文が作られない症状であれば、原因が分からない状態でも15,000円でご依頼いただけます。
 >
-> ご購入後に原因確認から進め、修正できる箇所が特定できた場合は修正済みファイルをお返しします。原因や修正方針につながらず、修正済みファイルを返せない状態だと分かった場合は、一方的に正式納品へ進めず、その時点で状況をご説明します。
+> ご購入後に、エラー内容や関係しそうなファイルをトークルームで共有してください。こちらで必要な範囲を確認し、修正できる箇所が特定できた場合は修正済みファイルをお返しします。
 >
-> この前提で問題なければ、そのままご購入ください。
+> この内容で問題なければ、そのままご購入ください。
 
 ---
 
 ## B02
 
-stock_id: HRC68-002
-状態: quote_sent
-主質問タイプ: quote_sent_materials_after_payment_flow
-最初に答えるべき問い: 購入後、コードやログをどこで送るか、その後の流れを知りたい。
-選定意図: buyer が支払い前確認を求めていないため、不要な拒否を出さず、支払い後共有とその後の流れを自然につなぐ。
+stock_id: HRC71-002
+状態: prequote
+主質問タイプ: prequote_price_timeline_question
+最初に答えるべき問い: 金額と日数だけ先に知りたい。
+選定意図: `金額と日数の件ですね` ではなく、主質問へ直接答える。
 r0_local_lint: OK
 
 相手文:
 
-> 見積り提案ありがとうございます。購入したらコードやログはどこで送ればいいですか？送った後の流れも簡単に知りたいです。
+> 金額と日数の件だけ先に教えてください。Stripe決済後に注文が作られない状態です。
 
 返信候補:
 
-> ご連絡ありがとうございます。
-> 購入後の共有場所と、その後の流れですね。
+> ご相談ありがとうございます。
 >
-> お支払い完了後に、コードやログをココナラのトークルームで共有してください。受け取った内容をもとに原因確認から進め、修正できる箇所が特定できた場合は修正済みファイルをお返しします。
+> 金額は15,000円です。日数はサービス上3日が目安ですが、コードの状態やエラー内容によって前後します。
 >
-> 追加で必要な情報が出た場合は、その時点でこちらからお伝えします。見積り提案の内容で問題なければ、そのままご購入手続きへ進んでください。
+> Stripe決済後に注文が作られない不具合として、原因確認から進められます。修正できる箇所が特定できた場合は、修正済みファイルをお返しします。
+>
+> この内容で問題なければ、そのままご購入ください。
 
 ---
 
 ## B03
 
-stock_id: HRC68-003
-状態: purchased
-主質問タイプ: purchased_materials_received_next_flow
-最初に答えるべき問い: 購入後にログとスクショを送ったので、追加準備の有無と次の流れを知りたい。
-選定意図: 受領、追加準備不要、次回時刻を処理文の積み上げにせず、buyer が次に何をすればよいかを見せる。
+stock_id: HRC71-003
+状態: quote_sent
+主質問タイプ: quote_sent_materials_timing_github
+最初に答えるべき問い: 支払い後にログを送ればよいか、GitHub招待が必要か知りたい。
+選定意図: 相手の `ログの件` は話題整理として受けつつ、支払い後トークルーム共有と GitHub 招待不可へ戻す。
 r0_local_lint: OK
 
 相手文:
 
-> ログとスクショを送りました。追加で用意するものはありますか？次はどういう流れですか？
+> 見積り提案ありがとうございます。ログの件ですが、支払い後に送ればいいですか？GitHub招待の方が早いですか？
 
 返信候補:
 
-> ログとスクショありがとうございます。届いています。
+> ご確認ありがとうございます。
 >
-> まず受け取っている内容をもとに確認します。追加で必要なものがあれば、その時点でこちらからお伝えします。いま追加で準備いただくものはありません。
+> ログや関係ファイルは、お支払い完了後にトークルームで共有してください。GitHub招待ではなく、ZIPか関係ファイルの添付でお願いします。
 >
-> 本日18:00までに、現時点で見えている点と次に見る箇所をお伝えします。
+> APIキーや.envの値など、秘密情報は含めないでください。共有いただいた内容をもとに、原因確認から進めます。
 
 ---
 
 ## B04
 
-stock_id: HRC68-004
-状態: purchased
-主質問タイプ: purchased_progress_brief_next_focus
-最初に答えるべき問い: 購入後、本番停止中で今見えていることと次に見るところを短く知りたい。
-選定意図: 短い進捗共有で、現在地・未断定・次回時刻が部品化しすぎないかを見る。
+stock_id: HRC71-004
+状態: quote_sent
+主質問タイプ: quote_sent_cause_precheck
+最初に答えるべき問い: 支払い前にログだけ見て原因を判断してもらえるか知りたい。
+選定意図: 支払い前原因確認を止めるが、`注文が作られない件ですね` と案件ラベル化しない。
 r0_local_lint: OK
 
 相手文:
 
-> 本番が止まっていて焦っています。今見えていることと、次に見るところだけ短く教えてください。
+> さっきの注文が作られない件、支払い前にログだけ見てもらうことはできますか？原因が分かれば購入します。
 
 返信候補:
 
 > ご連絡ありがとうございます。
-> 本番で止まっている件、いま見えている範囲を短く共有します。
 >
-> 現時点では、Stripe決済後のイベントを受け取ったあと、アプリ側の注文作成処理まで進んでいるかを見ています。まだ原因は断定していません。
+> 原因確認は、ご購入後にコードやログを共有いただいてから進める形です。支払い前にログだけ先に見て、原因を判断する対応はしていません。
 >
-> 本日18:00までに、見えている点と次に見る箇所を短くお伝えします。
+> 見積り提案の内容で問題なければ、お支払い完了後にトークルームでログと関連コードを共有してください。そこから原因確認を進め、修正できる箇所が特定できた場合は修正済みファイルをお返しします。
 
 ---
 
 ## B05
 
-stock_id: HRC68-005
-状態: delivered
-主質問タイプ: delivered_confirm_points_plain
-最初に答えるべき問い: 納品後承諾前、どこを確認すれば直ったと言えるかだけ知りたい。
-選定意図: 軽い補足説明を、確認ポイント・専門用語回避・次回時刻へ自然につなげる。
+stock_id: HRC71-005
+状態: purchased
+主質問タイプ: purchased_materials_received_next_flow
+最初に答えるべき問い: 購入後、ログが届いているか、この後の流れと追加準備の有無を知りたい。
+選定意図: `ログの件` に引きずられず、受領確認・次の確認行動・追加準備の有無を自然につなげる。
 r0_local_lint: OK
 
 相手文:
 
-> 納品ありがとうございます。専門用語が多くて、どこを確認すれば直ったと言えるかだけ知りたいです。
+> ログの件、届いていますか？この後の流れと、追加で準備しておいた方がいいものがあれば教えてください。
 
 返信候補:
 
-> ご連絡ありがとうございます。
-> 確認箇所が分かりにくい点、短く補足します。
+> ログありがとうございます。届いています。
 >
-> 承諾前なので、どの画面で何を見れば直ったと判断できるかを、このトークルーム内で整理します。専門用語はできるだけ使わず、実際の操作に沿ってお伝えします。
+> まず受け取っている内容をもとに、決済後に注文作成へ進む処理のどこで止まっているかを見ます。追加で必要なものが出た場合は、その時点でこちらからお伝えします。
 >
-> 本日18:00までに、確認ポイントをお送りします。
+> いまの時点で、追加で準備いただくものはありません。本日23:45までに、現時点の確認結果をお返しします。
 
 ---
 
 ## B06
 
-stock_id: HRC68-006
-状態: closed
-主質問タイプ: closed_relation_check_materials_flow
-最初に答えるべき問い: クローズ後、ログをこのメッセージで送れば前回修正との関係だけ見てもらえるか知りたい。
-選定意図: closed 後の `送ってよい -> 届いた範囲で見る -> 実作業は別相談` を、3つの部品ではなく会話の流れとして出せるかを見る。
+stock_id: HRC71-006
+状態: purchased
+主質問タイプ: purchased_progress_brief_update
+最初に答えるべき問い: 購入後、今どこまで分かっているか短く知りたい。
+選定意図: `注文作成の件` を遠いラベルにせず、現在見ている箇所と未確定点を短く返す。
 r0_local_lint: OK
 
 相手文:
 
-> クローズ後ですみません。またStripeエラーが出ています。ログをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？必要なら新規で相談します。
+> 注文作成の件、今どこまで分かっていますか？長い説明はいらないので、現時点の状況だけ短くお願いします。
 
 返信候補:
 
-> ご連絡ありがとうございます。
-> またStripeエラーが出ている件ですね。前回の修正との関係を見るため、まずはこのメッセージ上でエラー内容やログ、スクショを送ってください。
+> お待たせしています。現時点では、決済後の処理が注文作成まで進んでいない箇所を見ています。
 >
-> 届いた範囲で、前回の修正と関係がありそうかを確認します。ただ、前回トークルームは閉じているため、この場で修正作業や修正済みファイルの返却までは進めません。
+> まだ原因は断定していませんが、Stripe側の決済結果を受け取った後のアプリ側処理を中心に確認しています。
 >
-> 実作業が必要そうな場合は、対応方法と費用を先にご相談します。
+> 本日23:45までに、見えている点だけ短くお伝えします。
 
 ---
 
 ## B07
 
-stock_id: HRC68-007
-状態: closed
-主質問タイプ: closed_refund_or_new_materials
-最初に答えるべき問い: クローズ後、再び注文が作られず、返金か新規相談かをログで判断できるか知りたい。
-選定意図: 返金・新規相談・関係確認を要約しつつ、closed 後実作業 promise にせず、塊感を減らす。
+stock_id: HRC71-007
+状態: delivered
+主質問タイプ: delivered_apply_help_no_deploy
+最初に答えるべき問い: 納品後承諾前、反映箇所だけ教えてほしいが、本番反映まで頼めるかも知りたい。
+選定意図: `反映箇所の件` は話題整理として自然に扱い、本番反映代行へ広げず軽い補足へ戻す。
 r0_local_lint: OK
 
 相手文:
 
-> 前回直ったと思ったのですが、また注文が作られません。返金なのか新規なのか、ログを送れば判断できますか？
+> 納品ありがとうございます。反映箇所の件だけ短く教えてください。本番反映までお願いするのは難しいですよね？
 
 返信候補:
 
-> ご連絡ありがとうございます。
-> また注文が作られない状況とのこと、ご不便な状況かと思います。
+> ご確認ありがとうございます。
 >
-> この時点では、前回の修正との関係や費用・返金の扱い、新規相談になるかはまだ断定できません。まずはこのメッセージ上で、今出ているエラー内容やログ、スクショを送ってください。
+> 本番反映はこちらでは行っていませんが、反映箇所だけであれば承諾前の確認として短く補足できます。
 >
-> 届いた範囲で前回の修正と関係がありそうかを確認します。前回トークルームは閉じているため、この場で修正作業や修正済みファイルの返却までは進めません。
->
-> 実作業が必要そうな場合は、対応方法と費用を先にご相談します。
+> 返却した修正ファイルのうち、反映する箇所だけ分かるように整理してお送りします。本日23:45までに、反映箇所を短くお伝えします。
 
 ---
 
 ## B08
 
-stock_id: HRC68-008
+stock_id: HRC71-008
 状態: closed
-主質問タイプ: closed_review_pressure_free_relation
-最初に答えるべき問い: クローズ後、評価前に前回修正との関係と無料対応の可能性を知りたい。
-選定意図: 評価圧と無料対応圧を復唱せず、関係確認・費用扱い未断定・実作業前相談へ自然につなぐ。
+主質問タイプ: closed_previous_thanks_similar_error
+最初に答えるべき問い: クローズ後、前回のお礼を伝えつつ、似たエラーが前回修正と関係あるかこのメッセージで見てもらえるか知りたい。
+選定意図: `前回のStripeの件` に対して `件ですね` で距離を出さず、お礼を受けて関係確認と実作業境界へつなぐ。
 r0_local_lint: OK
 
 相手文:
 
-> 評価を書く前に確認したいです。またStripeエラーが出ました。前回の修正と関係あるかだけ見てほしいです。無料で直せるならそれも知りたいです。
+> 前回のStripeの件ではありがとうございました。しばらく問題なかったのですが、また似たエラーが出ています。このメッセージでログを送れば、前回の修正と関係あるか見てもらえますか？
 
 返信候補:
 
-> ご連絡ありがとうございます。
-> またStripeエラーが出ている件で、前回の修正との関係を確認したいということですね。
+> こちらこそありがとうございました。
+> しばらく問題なかった後に、また似たエラーが出ているとのこと、承知しました。
 >
-> この時点では、前回の修正との関係や費用が発生するかは断定できません。まずはこのメッセージ上で、エラー内容やログ、スクショを送ってください。
+> ログはこのメッセージ上で送っていただいて大丈夫です。届いた範囲で、前回の修正と関係がありそうかを確認します。
 >
-> このメッセージ上でできるのは、届いた内容を確認材料として前回修正との関係を確認するところまでです。コード修正などの作業が必要な場合は、作業に入る前に対応方法と費用が発生するかを先にご相談します。
+> 前回トークルームは閉じているため、この場で修正作業や修正済みファイルの返却までは進めません。実作業が必要そうな場合は、対応方法と費用を先にご相談します。

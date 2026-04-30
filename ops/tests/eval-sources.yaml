@@ -296,6 +296,27 @@ primary_sources:
       - 金額保証、購入後材料共有、受領後流れ、短い進捗、delivered補足、closed後関係確認/返金/評価圧を、安全境界を崩さず自然につなげるかを検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/closed-refund-free-block-rhythm-bugfix69.yaml
+    role: eval
+    purpose:
+      - Pro後の block_rhythm_flow / safe_connection を、closed後の返金・無料・前回修正ミス疑いに厚めに当てる通常 live #RE
+      - 返金/無料/評価圧、支払い前原因だけ先見、購入後返金不安、delivered承諾不安、GitHub/.env共有圧を、境界を崩さず実務チャットとして処理できるかを検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/multi-phase-showcase-naturalness-bugfix70.yaml
+    role: eval
+    purpose:
+      - Proへ見せる直近出力サンプルを増やすための通常 live #RE。prequote / quote_sent / purchased / delivered / closed の混合で、現在の自然化が phase をまたいでも安定するか確認
+      - 非エンジニア不安、金額/納期/保証、GitHub招待、支払い前原因だけ先見、購入後受領/進捗、delivered本番反映圧、closed後関係確認を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/case-label-distance-naturalness-bugfix71.yaml
+    role: eval
+    purpose:
+      - bugfix70で見つかった case_label_distance を、通常 live #RE の別ケースで確認する。`〜の件` を blanket NG にせず、直接やり取り中の困りごとを遠い案件ラベルにしないかを見る
+      - prequote / quote_sent / purchased / delivered / closed で、相手文の `件` に引きずられず、主質問への直答・材料共有タイミング・closed後関係確認を自然につなげられるかを検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

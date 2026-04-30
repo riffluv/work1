@@ -775,6 +775,11 @@ def detect_scenario(source: dict) -> str:
     ):
         return "unfixable_fee_question"
     if (
+        any(marker in combined for marker in ["原因が分からない場合", "原因が分からなかった場合", "原因が分からなかったら"])
+        and any(marker in combined for marker in ["返金", "正式納品"])
+    ):
+        return "unfixable_fee_question"
+    if (
         any(marker in combined for marker in ["Next.jsのビルドが通ら", "ビルドが通らなく", "型エラー", "TypeScript"])
         and any(marker in combined for marker in ["Stripe関係ない", "関係あるのかないのか", "範囲外なら", "別で相談"])
     ):
