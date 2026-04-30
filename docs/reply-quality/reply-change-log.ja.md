@@ -1679,3 +1679,105 @@
 - 想定効果: 相手文の `件` に引きずられず、依頼可否・金額/日数・支払い後材料共有・購入後受領/進捗・delivered補足・closed後関係確認を、距離感を出しすぎず実務チャットとして返せるかを確認できる
 - 確認: candidate-batch lint OK、full regression `pass=635 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
 - 非変更: `〜の件` の blanket NG 化、case_label_distance の hard rule 化、句点/段落数 lint はしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-04-30 / CHG-198
+- 分類: `reply-only`
+- レイヤ: Proレビュー反映 / lens discharge conditions / Gold 41-42
+- 変更: ChatGPT Pro の `ココナラ返信OSレビュー4-30.txt` を受け、`lens-inventory-20260430.ja.md` に soft lens の適用停止条件と `soft_lens_result` の分類を追加した。`safe_connection` は自然化適用前の gate として整理し、`response_weight_mismatch` / `commitment_strength_calibration` / `topic_label_distance` / `buyer_burden_alignment` / `answer_order_calibration` を観察・formal soft lens 候補として再配置した。監査プロンプトには `commitment_strength_calibration`、`topic_label_distance`、soft lens 結果分類、Lens overfire check を追加した。あわせて Gold 41 `topic-label-distance`、Gold 42 `commitment-strength-calibration` を追加した
+- きっかけ: Pro から、今後の最大リスクはレンズ数そのものではなく、各 soft lens の適用停止条件が弱いことだと指摘されたため。自然化を進めても price / scope / phase / secret / public-private / payment route / 作業可否を弱めないよう、停止条件と過剰発火チェックを明文化する必要があった
+- 想定効果: `〜の件`、`大丈夫です`、`相談できます` などを blanket NG にせず、文脈上の距離・主体・約束強度だけを見る。#RE 監査で違和感を `hard_by_underlying_guard / fix_recommended / acceptable_as_is / observe_only / overfire_risk` に分け、好み差や過剰自然化を rule 化しにくくする
+- 確認: markdown 内参照 OK、current #RE candidate-batch lint OK、full regression `pass=635 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: 返信 renderer の挙動はこの変更では直接変えない。新しい hard rule、語句 blanket NG、メール文体の実装、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-199
+- 分類: `reply-only`
+- レイヤ: #RE bugfix72 / post-Pro lens discharge check
+- 変更: `post-pro-lens-discharge-bugfix72.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-72-post-pro-lens-discharge-r0` へ更新した。Proレビュー反映後の `topic_label_distance`、`commitment_strength_calibration`、`safe_connection`、`response_weight_mismatch` が、通常 live #RE で過剰発火しないかを確認する
+- きっかけ: Pro から soft lens の適用停止条件が重要だと整理されたため、`〜の件` の blanket NG 化、必要な拒否の削りすぎ、成果物 promise の強めすぎ、closed 後の無料/返金/実作業誤読を、prequote / quote_sent / purchased / delivered / closed 横断で検査する必要があったため
+- 想定効果: 依頼可否・価格・購入後範囲・支払い前原因確認不可・購入後の見通し・delivered本番反映不可・closed後返金/無料圧を、自然さと安全境界の両方から監査できる
+- 確認: writer candidate batch lint OK、full regression `pass=643 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: 新しい hard rule は追加しない。`〜の件`、`相談できます`、`大丈夫です`、`確認します` の blanket NG 化はしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-04-30 / CHG-200
+- 分類: `reply-only`
+- レイヤ: #RE bugfix73 / light practical calibration
+- 変更: `light-practical-calibration-bugfix73.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-73-light-practical-calibration-r0` へ更新した。Proレビュー後の soft lens を、重い返金・closed 高リスクだけでなく、見本確認、必要ファイル不安、支払い後材料共有、購入後の短い進捗確認、delivered承諾前確認など軽めの実務相談へ当てる
+- きっかけ: bugfix72 r0 が採用されたため、次は lens の停止条件が通常の軽い問い合わせでも効きすぎず、必要な境界を残したまま読みやすく返せるかを確認する必要があった
+- 想定効果: `response_weight_mismatch`、`buyer_burden_alignment`、`commitment_strength_calibration`、`unnecessary_refusal_frame` を、重くしすぎない実務チャットとして確認できる。GitHub招待、支払い前材料共有、購入後の本日中修正圧、closed後別商品相談でも、phase / scope / secret / external work surface を崩さず案内できる
+- 確認: writer candidate batch lint OK、full regression `pass=651 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: 新しい hard rule は追加しない。軽い相談だからといって支払い前作業、外部共有、GitHub作業面化、直接push、本番反映、secret値要求、closed後実作業 promise は許可しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-04-30 / CHG-201
+- 分類: `reply-only`
+- レイヤ: #RE bugfix73 r1 / deliverable wording case fix
+- 変更: 外部監査で B04 の `修正済みファイルまたは差分が分かる形でお返しします` が、live の主軸である `修正済みファイル返却` を少し弱めて見えると分かったため、`修正できる箇所が特定できた場合は、修正済みファイルをお返しします。必要に応じて、反映箇所や差分が分かる形でも整理します。` へ修正した
+- きっかけ: GitHub招待・直接push・公開環境反映を断る場面でも、成果物の主軸は `修正済みファイルの返却` として明確に維持する必要があるため
+- 想定効果: 外部作業面を避けつつ、deliverable promise をサービスページ正本に寄せられる。差分整理は補助表現に下げ、成果物が差分のみへ弱まる誤読を減らす
+- 確認: candidate-batch lint OK、git diff check OK。fixture / eval source は変更していないため、r0 時点の full regression `pass=651 fail=0 skip=65` と service grounding sentries OK_WITH_EXISTING_WARNINGS を維持
+- 非変更: 新規 rule 化はしない。直接push、公開環境への反映、GitHub作業面化、`handoff-25000` live 導線は追加しない
+
+### 2026-04-30 / CHG-202
+- 分類: `reply-only`
+- レイヤ: #RE bugfix74 / light flow smoothing
+- 変更: `light-flow-smoothing-bugfix74.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-74-light-flow-smoothing-r0` へ更新した。bugfix73 で人間監査から出た `処理文・条件文・安全説明が同じリズムで並び、契約説明っぽく見える` 問題を、軽めの実務相談で追加確認する
+- きっかけ: Pro は `block_rhythm_flow` を独立 hard rule ではなく `conversation_flow_naturalness` 配下の soft subtype として扱うべきだと整理しており、軽い prequote / quote_sent / purchased でどこまで自然につなげてよいかをさらに検証する必要があるため
+- 想定効果: 非エンジニアの必要ファイル不安、納品物見本、支払い後材料共有、GitHub作業面、購入後進捗、Event IDのみ、delivered反映箇所、closed後別商品相談で、`fix_recommended / acceptable_as_is / unsafe_to_smooth` を分けやすくする。安全境界を弱めず、不要な塊感だけを減らす方向の材料を増やす
+- 確認: writer candidate batch lint OK、full regression `pass=659 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: `block_rhythm_flow` を hard rule 化しない。句点数・段落数 lint や語句 blanket NG は追加しない。支払い前作業、外部共有、GitHub作業面化、直接push、本番反映、secret値要求、closed後実作業 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-04-30 / CHG-203
+- 分類: `reply-only`
+- レイヤ: #RE bugfix75 / light-vs-boundary flow
+- 変更: `light-vs-boundary-flow-bugfix75.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-75-light-vs-boundary-flow-r0` へ更新した。低リスクの prequote / purchased / delivered では会話の流れを出し、高リスクの quote_sent / secret / closed では必要な境界の硬さを残せるかを確認する
+- きっかけ: bugfix74 が採用圏だったため、次は `block_rhythm_flow` を一律の滑らかさではなく、場面ごとの `fix_recommended / acceptable_as_is / unsafe_to_smooth` に分けて見られる材料を増やす必要があるため
+- 想定効果: 必要ファイル不安、金額/日数/成果物、支払い後ZIP共有、secret値不要、購入後材料過多、今日中見通し、delivered軽い補足、closed後おひねり継続不可を、通常 live #RE として横断確認できる
+- 確認: writer candidate batch lint OK、full regression `pass=667 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: 新しい hard rule は追加しない。`block_rhythm_flow` の句点数・段落数 lint 化、語句 blanket NG、支払い前作業、外部共有、GitHub作業面化、直接push、本番反映、secret値要求、closed後実作業 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-04-30 / CHG-204
+- 分類: `reply-only`
+- レイヤ: #RE bugfix76 / practical warmth boundary
+- 変更: `practical-warmth-boundary-bugfix76.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-76-practical-warmth-boundary-r0` へ更新した。採用が続いている最近の自然化について、実際に来そうな軽い相談・少し急ぎ/不安・購入後短文確認・delivered不安・closed後関係確認を混ぜて確認する
+- きっかけ: bugfix74〜75 で `block_rhythm_flow` / `safe_connection` が採用圏だったため、棚卸し前にもう1本、低リスク自然化と高リスク境界維持が両立するサンプルを増やす必要があるため
+- 想定効果: 非エンジニア依頼可否、急ぎ見通し、支払い後材料共有、軽い修正説明、購入後受領/原因側確認、delivered未解決不安、closed後関係確認で、#R 相当の自然文が service facts と phase を崩さずに出るかを見られる
+- 確認: writer candidate batch lint OK、full regression `pass=675 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: 新しい hard rule は追加しない。`block_rhythm_flow` の句点数・段落数 lint 化、語句 blanket NG、支払い前作業、外部共有、GitHub作業面化、直接push、本番反映、secret値要求、closed後実作業 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-04-30 / CHG-205
+- 分類: `reply-only`
+- レイヤ: #RE bugfix76 r1 / urgent timeline answer coverage case fix
+- 変更: 外部監査で B02 の `今日中に見通しだけでも出せるか` への直答が少し弱いと分かったため、`今日中に修正完了までお約束することはできません。見通しについても、ご購入後に必要な情報がそろうタイミング次第ですが、原因の方向性や次に見る箇所はできるだけ早くお返しします。` へ修正した
+- きっかけ: 急ぎ相談で `今日中に直るか` と `難しければ見通しだけでも出せるか` の2点が出ている場合、修正完了保証を避けるだけでなく、見通し返答も材料受領後の条件付きで正面から扱う必要があるため
+- 想定効果: 今日中修正保証に寄らず、buyer の主質問である見通し可否への答えを明確にできる。`block_rhythm_flow` を過剰に滑らかにせず、約束レベルを分けたまま読める
+- 確認: writer candidate batch lint OK、full regression `pass=675 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: 新規 rule 化はしない。今日中の修正完了、今日中の原因特定、支払い前作業開始、`handoff-25000` live 導線は追加しない
+
+### 2026-04-30 / CHG-206
+- 分類: `reply-only`
+- レイヤ: #RE bugfix77 / compound question boundary
+- 変更: `compound-question-boundary-bugfix77.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-77-compound-question-boundary-r0` へ更新した。棚卸し後の次走として、価格・納期・成功保証・見通し・secret・支払い前作業・返金/無料・closed後導線が同時に出る複合質問を確認する
+- きっかけ: bugfix74〜76 で `block_rhythm_flow` / `safe_connection` は安定してきたが、複合質問では答え落ちや約束強化が起きやすいため、answer coverage と commitment strength を同時に見る必要があるため
+- 想定効果: prequote / quote_sent / purchased / delivered / closed 横断で、主質問への直答、15,000円・3日目安・修正可能時の成果物、secret値不要、支払い前作業不可、closed後関係確認/実作業分離を一括確認できる
+- 確認: writer candidate batch lint OK、full regression `pass=683 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.8 / 10`。価格・日数・保証不可・支払い前作業不可・秘密情報不要・追加原因時の相談・closed後境界を落とさず返せているため、学習採用とする
+- 非変更: 新しい hard rule は追加しない。今日中修正保証、成功保証、返金保証、無料対応断定、支払い前作業開始、GitHub作業面化、secret値要求、closed後実作業 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-05-01 / CHG-207
+- 分類: `reply-only`
+- レイヤ: #RE bugfix78 / answer order and response weight mixed
+- 変更: `answer-order-weight-mixed-bugfix78.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-78-answer-order-weight-mixed-r0` へ更新した。複合質問後の次走として、軽い実務相談と境界が絡む相談を混ぜ、返信の重さ・答えの順番・境界説明の出しすぎを確認する
+- きっかけ: bugfix77 で複合質問の answer coverage は安定したため、次は「低リスクでは会話として軽く、高リスクでは必要な硬さを残す」バランスを追加確認する必要があるため
+- 想定効果: prequote / quote_sent / purchased / delivered / closed 横断で、非エンジニア不安、成果物質問、材料共有、secret値不要、購入後進捗、今日中見通し、delivered補足、closed後関係確認を実務文として確認できる
+- 確認: writer candidate batch lint OK、full regression `pass=691 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 外部監査: r0 は採用圏。必須修正なし。B06 のみ、相手文では Event ID と注文IDだけが明示されているため `アプリ側の注文作成ログ` ではなく `アプリ側の注文作成処理の対応` へ寄せる軽微 case_fix を反映した。再監査 r1 は採用。必須修正なし、軽微修正なし、採点 `9.9 / 10`。新規 rule 化は不要
+- 非変更: 新しい hard rule は追加しない。自然化のために価格・scope・phase・secret・closed後実作業境界・`handoff-25000` live 導線を変えない
+
+### 2026-05-01 / CHG-208
+- 分類: `reply-only`
+- レイヤ: #RE bugfix79 / final practical polish before Pro
+- 変更: `final-practical-polish-bugfix79.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-79-final-practical-polish-r0` へ更新した。Pro分析前の最終寄り走行として、低リスクは軽く、高リスクは境界を残す直近の採用品質を確認する
+- きっかけ: bugfix77/78 が採用され、複合質問・実務混合ケースが安定してきたため、Proへ見せる前にもう1本、実戦に近い相談文で自然さと境界保持を確認する必要があるため
+- 想定効果: 前任者/AIコード、成果物不安、quote_sent準備、ZIP共有、購入後進捗、追加症状、delivered未解消、closed後関係確認を、#R相当の writer candidate で確認できる
+- 確認: writer candidate batch lint OK、full regression `pass=699 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.9 / 10`。低リスクは軽く、高リスクは必要な境界を残す狙いに合っており、final practical polish の確認として十分安定している
+- 非変更: 新しい hard rule は追加しない。自然化のために価格・scope・phase・secret・closed後実作業境界・`handoff-25000` live 導線を変えない

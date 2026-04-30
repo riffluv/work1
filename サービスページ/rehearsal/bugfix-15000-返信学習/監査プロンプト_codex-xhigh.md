@@ -43,6 +43,8 @@
 - `response_weight_mismatch`: buyer の文量・温度・質問数に対して、返信が重すぎて契約説明や安全条件の列挙に見える時に使う。短文化で必要な境界を削るためには使わない
 - `block_rhythm_flow`: `conversation_flow_naturalness` 配下の subtype。句点数や段落数ではなく、処理文・安全説明・条件文が同じリズムで並び、会話ではなく契約説明の塊に見える時に使う。判定は `fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` に分け、滑らかにすると誤読が増える場合は `unsafe_to_smooth` としてください
 - `safe_connection`: `block_rhythm_flow` の補助観点。同じ役割・同じ約束レベルの文だけ自然につなげてよい。価格、保証、返金、無料対応、closed 後実作業、支払い導線、secret、外部共有は、つなぐことで promise が強く読まれるなら分けたままにしてください
+- `commitment_strength_calibration`: phase・受領証拠・原因特定度に対して、約束の強さが合っているかを見る soft lens。prequote / quote_sent で修正済みファイル返却や原因確認を開始済みにしていないか、購入後でも原因未特定なら修正完了・今日中完了を強く約束していないか、closed 後では関係確認と実作業を分けているかを見てください
+- `topic_label_distance`: `case_label_distance` の上位観点。buyer の困りごとを受付票のような案件ラベルにして距離を出していないかを見る observation。`〜の件` は blanket NG にせず、`ログの件` `反映箇所の件` のような自然な topic organizer は許容してください。問題にするのは、直接やり取り中の困りごとを `似たStripeエラーが出ている件ですね` のように遠く扱う場合です
 - `buyer_state_ack_gap`: buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満などを明示しているのに、症状・価格・手順だけを受けて状態シグナルを落としている。QA-07 温度感ズレの下位観点として見る
 - `unnamed_discomfort`: 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある。最大1〜2件まで、実務リスクを説明できる場合だけ観察メモとして挙げてください
 
@@ -84,6 +86,20 @@ Pro後の補助監査レンズ:
 - `block_rhythm_flow` は hard fail ではありません。改善提案を出す場合も、`fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` のどれかを短く添えてください。高リスク場面で境界を分けた方が誤読が少ない場合は、少し硬くても `acceptable_as_is` または `unsafe_to_smooth` として通してください
 - `safe_connection` では、同じ役割・同じ約束レベルの文だけつなげてください。成功保証否定と成果物返却、返金未定と無料対応、closed 後確認と修正作業開始などを、読みやすさのために一息でつなげないでください
 - `conversation_flow_naturalness` の preference only: 句点の有無だけの好み、やや硬いが意味・導線・安全境界が明確な文、より自然な言い換えはあるが修正すると price / scope / phase が揺れそうな文。これらは必須修正にしないでください
+
+soft lens の結果分類:
+- `hard_by_underlying_guard`: soft lens の違和感に見えるが、実際には public/private、phase、secret、成功保証、closed 後作業 promise など deterministic guard が壊れている
+- `fix_recommended`: hard fail ではないが、誤読・AI感・buyer の停滞が出やすく、最小修正した方がよい
+- `acceptable_as_is`: より自然な言い換えはあるが、安全境界・phase・約束レベルを分けるための硬さとして許容できる
+- `observe_only`: まだ再発性や副作用が見えないため、今回の修正には戻さず観察だけ残す
+- `overfire_risk`: 修正すると、必要な拒否、主質問、価格、scope、phase、secret、支払い導線のどれかを弱める可能性がある
+
+Lens overfire check:
+- その修正により price / scope / phase / secret / public-private / payment route / 作業可否は弱まっていないか
+- 単語禁止として誤用される恐れはないか
+- buyer の論点を消していないか
+- 返金、無料対応、今日中対応、成功保証、修正済みファイル返却などの promise を強めていないか
+- 高リスク場面では、少し硬くても `acceptable_as_is` として残した方が安全ではないか
 
 優先順位:
 - 1件ごとの好みより、構造・scope・service facts との整合を優先してください

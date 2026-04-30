@@ -64,6 +64,8 @@
 - `38_agency-alignment.ja.md`
 - `39_negative-frame-emotion-bridge.ja.md`
 - `40_block-rhythm-flow.ja.md`
+- `41_topic-label-distance.ja.md`
+- `42_commitment-strength-calibration.ja.md`
 
 ## Gold 26-33 family index
 
@@ -83,6 +85,8 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 | agency_alignment | 38 | `依頼できますか` `見てもらえますか` `支払い後に送ればいいですか` などで、相談先・対応主体・許可の向きがズレそうな時 | `相談できます` `確認できます` `大丈夫です` を blanket NG にする理由にする時 |
 | negative_frame | 39 | `責めたいわけではない` `返金してほしい` などのネガティブ/圧力語を、実務目的・作業可否・費用扱いへ要約する時 | 謝罪・過失認定・無料対応・返金保証を強める理由にする時 |
 | block_rhythm_flow | 40 | 処理文・安全説明・条件文が同じリズムで並び、契約説明の塊に見える時。`fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` を分けたい時 | 句点数・段落数を機械判定したり、高リスク境界を短文化のために削る時 |
+| topic_label_distance | 41 | `〜の件ですね` が buyer の困りごとを遠い案件ラベルにしている時。自然な topic organizer と距離が出る表現を分けたい時 | `〜の件` を blanket NG にする理由にする時 |
+| commitment_strength | 42 | phase・受領証拠・原因特定度に対して、約束の強さを合わせたい時。購入前/購入後/closed 後で promise level を分けたい時 | 依頼可否・固定価格・必要な次アクションまで弱める理由にする時 |
 
 ### 抽出して validator / renderer へ戻す候補
 
@@ -97,3 +101,5 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 - Gold 38: `agency_alignment` は hard validator 化せず、buyer の主質問の動詞に合わせて、依頼先・対応主体・材料共有の手順がズレない表現へ戻す anchor として使う。
 - Gold 39: `negative_frame_non_echo` は hard validator 化せず、否定されたネガティブ意図や圧力語を、前回修正との関係・作業可否・費用や返金の扱いへ要約する anchor として使う。
 - Gold 40: `block_rhythm_flow` は hard validator 化せず、段落の塊感を `fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` に分ける anchor として使う。自然化してよいのは同じ役割・同じ約束レベルの文だけ。
+- Gold 41: `topic_label_distance` は hard validator 化せず、buyer の困りごとを受付票のような案件ラベルにしていないかを見る anchor として使う。`〜の件` の blanket NG にはしない。
+- Gold 42: `commitment_strength_calibration` は hard validator 化せず、phase・証拠量・原因特定度に合わせて promise level を調整する anchor として使う。依頼可否や固定価格まで弱めない。

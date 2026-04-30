@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC75-001
+    stock_id: HRC75-001
+    category: light_vs_boundary_flow
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: gentle_first_contact
+    scenario: prequote_simple_can_request_without_details
+    question_type: prequote_simple_can_request_without_details
+    primary_question: 詳しい原因や必要ファイルが分からない状態でも依頼できるか、まず何を送ればよいか知りたい。
+    raw_message: "Stripe決済後に注文が作られないです。詳しい原因も必要なファイルも分かっていないのですが、この状態でも依頼できますか？最初は何を送ればいいですか？"
+    note: 通常 live / #RE。低リスク prequote で、依頼可否・購入後材料共有・secret safety を契約説明化しすぎず自然につなげられるかを見る。
+
+  - id: HRC75-002
+    stock_id: HRC75-002
+    category: light_vs_boundary_flow
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious_price_and_output
+    scenario: prequote_price_days_output_plain
+    question_type: prequote_price_days_output_plain
+    primary_question: 金額、日数、作業後に返るものを短く知りたい。
+    raw_message: "Stripe決済後に注文が作られない不具合です。金額と日数、作業後に何が返ってくるかだけ短く教えてください。"
+    note: 通常 live / #RE。低リスクの金額・日数・成果物質問で、直答性を保ちつつ promise consistency を崩さない。
+
+  - id: HRC75-003
+    stock_id: HRC75-003
+    category: light_vs_boundary_flow
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: wants_to_prepare
+    scenario: quote_sent_wants_to_prepare_zip_before_payment
+    question_type: quote_sent_wants_to_prepare_zip_before_payment
+    primary_question: 支払い前にZIPを送っておくべきか、支払い後すぐ進めてもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後すぐ進められるように、今のうちにzipを送っておいた方がいいですか？支払い後に送ればそのまま進めてもらえる認識で合っていますか？"
+    note: 通常 live / #RE。quote_sent で、支払い前作業不可を冷たく出さず、支払い後共有へ手順化できるかを見る。
+
+  - id: HRC75-004
+    stock_id: HRC75-004
+    category: light_vs_boundary_flow
+    route: quote_sent
+    state: quote_sent
+    user_type: engineer
+    emotional_tone: secret_sharing_misunderstanding
+    scenario: quote_sent_secret_values_offer
+    question_type: quote_sent_secret_values_offer
+    primary_question: 支払い後にAPIキーや.env値も送るべきか、どこまで共有すればよいか知りたい。
+    raw_message: "見積りありがとうございます。支払い後にStripeのAPIキーや.envの値も一緒に送った方がいいですか？必要なら全部まとめて送ります。"
+    note: 通常 live / #RE。secret 値不要を buyer の負担軽減として自然に伝え、値を受ける promise へ滑らないかを見る。
+
+  - id: HRC75-005
+    stock_id: HRC75-005
+    category: light_vs_boundary_flow
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: material_overload_anxiety
+    scenario: received_materials_flow_check
+    question_type: received_materials_flow_check
+    primary_question: 購入後に関係ファイルを多めに送った状態で、必要なものだけ見てもらえるか知りたい。
+    raw_message: "購入後に関係ありそうなファイルをまとめて送りました。多すぎたらすみません。必要なものだけ見てもらえますか？"
+    note: 通常 live / #RE。購入後の軽い不安に対して、buyer burden を下げつつ secret / 材料確認の境界を崩さない。
+
+  - id: HRC75-006
+    stock_id: HRC75-006
+    category: light_vs_boundary_flow
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgency_without_pressure
+    scenario: timeline_anxiety
+    question_type: timeline_anxiety
+    primary_question: 本日中に直るかは断定できなくても、本日中にどこまで見通しをもらえるか知りたい。
+    raw_message: "急ぎなのですが、本日中に直るかどうかはまだ分からないと思っています。本日中に原因の方向性だけでも分かりそうですか？"
+    note: 通常 live / #RE。buyer が保証不可を理解している場面で、不要に拒否から入らず、見通し共有へつなげる。
+
+  - id: HRC75-007
+    stock_id: HRC75-007
+    category: light_vs_boundary_flow
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: light_confirmation_request
+    scenario: delivered_confirm_without_jargon
+    question_type: delivered_plain_confirmation_points
+    primary_question: 納品後、専門用語を減らして、どこを見れば直ったと判断できるかだけ短く知りたい。
+    raw_message: "納品ありがとうございます。専門用語が少し分からないので、どこを見れば直ったと判断できるかだけ、もう少し簡単に教えてもらえますか？長い説明までは不要です。"
+    note: 通常 live / #RE。delivered の軽い補足を自然に受け、本格資料・運用マニュアルへ広げない。
+
+  - id: HRC75-008
+    stock_id: HRC75-008
+    category: light_vs_boundary_flow
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_paid_followup_question
+    scenario: closed_same_room_tip_question
+    question_type: closed_same_room_tip_question
+    primary_question: クローズ後、前回と似た不具合をこのメッセージで概要確認できるか、実作業はどう進めるか知りたい。
+    raw_message: "前回はありがとうございました。似たStripeエラーが出ているので、このメッセージで概要だけ送ってもいいですか？もし直す必要がありそうなら、前回の続きとしておひねり追加で進められますか？"
+    note: 通常 live / #RE。closed 後の概要確認は受けつつ、旧トークルーム内おひねり継続や実作業 promise へ滑らないかを見る。

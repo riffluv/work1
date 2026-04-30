@@ -1,0 +1,624 @@
+1. 結論
+
+今の方向は妥当です。Pro視点でも、コア化に向けてこの路線を続けてよいです。
+理由はかなり明確で、現在の設計は「自然さ」を独立した美文ルールではなく、price / scope / phase / secret / public-private / payment route を壊さないための補助レンズとして扱えているからです。service-registry.yaml では bugfix-15000 が public:true、handoff-25000 が public:false と定義され、public_false_must_not_emit_service_name_price_or_purchase_cta も明示されています。さらに live サービス文面側でも、15,000円・不具合1件・秘密値不要・外部連絡/直接push/本番デプロイ対象外が明確です。ここを最優先する骨格は崩してはいけません。
+
+ただし、**今後の最大リスクは「レンズの増えすぎ」ではなく、「レンズの適用停止条件が弱いこと」**です。lens-inventory 自体は「単語 blanket NG にしない」「自然化で価格・範囲・phase・secret・public/private・支払い導線を変えない」と整理できていますが、style-rules 側にはかなり細かい表現ルールも蓄積されているため、これをそのまま lint / hard に上げると、自然化ではなく“校正OS”になってノイズ化します。
+
+評価を点で置くと、現状はこうです。
+
+観点	評価	コメント
+契約安全性	9/10	public/private、価格、secret、外部作業面、closed後作業の境界はかなり安定。
+チャット自然さ	7.5〜8/10	以前の「説明パーツを並べた感」はかなり減っている。ただし一部に受付票・規約説明っぽさは残る。
+レンズ分類設計	8/10	hard / soft / lint / gold / observation の分離は正しい。課題は soft lens の昇格条件。
+lint readiness	6/10	hard guard 系は lint 化しやすい。一方、自然化レンズの lint 化はまだ危険。
+将来コア化	8/10	japanese-chat-natural-ja と coconala-reply-bugfix-ja の分離は良い。メール実装はまだ早い。
+2. 直近出力の評価
+全体評価
+
+bugfix68〜71 は、実務チャットとしてかなり安定しています。特に bugfix71 の batch では、prequote / quote_sent / purchased / delivered / closed を横断しつつ、handoff 漏れなし、GitHub招待・直接push・deploy・secret要求なし、closed後の実作業約束なし、という安全境界を維持できています。batch 側でも local validation、regression、service grounding sentry が通っており、少なくとも「自然化した結果、契約面が崩れる」方向には倒れていません。
+
+直近の品質ケースも、単なる表面文言ではなく、closed refund/free pressure、negative frame、block rhythm、case label distance、precheck refusal、delivery no-deploy など、実運用で事故りやすい場面をかなり良く拾っています。これはよいテスト設計です。
+
+改善している点
+
+B01 / prequote はかなり良いです。
+「原因不明でも15,000円でご依頼いただけます」と agency が明確で、「修正できる箇所が特定できた場合は修正済みファイルを返す」と promise も条件づけできています。これは promise_consistency と agency_alignment の効き方として妥当です。
+
+B03 / quote_sent も安定しています。
+「お支払い完了後にトークルームで共有してください」「GitHub招待ではなくZIPか関係ファイル」「APIキーや.envの値など秘密情報は含めないでください」という並びは、permission ではなく手順案内になっています。permission_benefit_alignment の狙いが自然に入っています。
+
+B08 / closed は今回の中で特に重要です。
+「しばらく問題なかった後に、また似たエラーが出ているとのこと、承知しました」は、受付票っぽい「〜の件ですね」を避けながら、相手の状況を受けています。その後に「届いた範囲で、前回の修正と関係がありそうかを確認」「この場で修正作業や修正済みファイルの返却までは進めない」「実作業が必要なら対応方法と費用を先に相談」と分けているため、closed後の無料作業・返金・修正保証に倒れていません。これはかなり良い closed 返信です。
+
+まだ残る違和感
+
+残っている違和感は、致命的ではありません。ただし、今後の自然化で潰してよいものと、潰しすぎると危険なものを分ける必要があります。
+
+B04：少し拒否が前に出る
+
+現在の B04 は安全ですが、やや「支払い前には見ません」感が先に立ちます。 buyer が「原因が分かれば購入」と言っているので、拒否自体は必要です。ただし、最初の受け方を少しだけ柔らかくできます。
+
+現方向の改善案：
+
+原因が分かれば購入したい、という意図は分かりました。
+原因確認は、お支払い完了後にコードやログを共有いただいてから進めます。支払い前にログだけ先に見て原因を判断する対応はしていません。
+ご購入後に確認できるのは、Stripe決済後に注文が作られない原因の確認、修正方針の整理、必要な修正ファイルの返却です。
+
+ここで大事なのは、unnecessary_refusal_frame を強めすぎて「支払い前確認不可」を消さないことです。このケースでは拒否は不要ではなく、必要な境界説明です。
+
+B05 / B06：時刻表現がやや fixture 臭い
+
+「本日23:45までに」が複数ケースで出ると、実出力では少し機械的に見えます。もちろん約束時刻が必要な場合は出すべきですが、#RE batch で同じ時刻が繰り返されると、文体というより time commitment の型臭さが出ます。
+
+改善案：
+
+本日中に、確認できた範囲と次に必要な作業を整理してお送りします。
+
+ただし、ユーザーに明確な期限を出す必要がある運用なら、時刻を出してよいです。その場合は fixed_time_sanity 的に、実際の送信時刻・作業量・phase と整合しているかを見るべきです。
+
+B06：調査内容がやや抽象的
+
+決済後の処理が注文作成まで進んでいない箇所を見ています
+
+これは意味は通りますが、少し内部処理説明っぽいです。
+
+改善案：
+
+現時点では、Stripe決済後の通知を受け取ったあと、アプリ側で注文作成に進めていない箇所を確認しています。
+
+「何を見ているか」が buyer に近くなります。
+
+B07：安全だが、少し規約説明っぽい
+
+本番反映はこちらでは行っていませんが、反映箇所だけであれば承諾前の確認として短く補足できます。
+
+これは安全です。buyer が本番反映・承諾前確認を聞いているなら、むしろこの明示は必要です。ただ、より実務チャット寄りにするならこうです。
+
+本番反映まではこちらでは行っていません。反映箇所だけであれば、承諾前の確認として短く補足できます。
+
+接続を切ることで、「本番反映はしない」と「補足はできる」の約束レベルを分けられます。これは safe_connection の良い使い方です。
+
+B08：「大丈夫です」は許容
+
+ログはこのメッセージ上で送っていただいて大丈夫です。
+
+これは blanket NG にしないでよいです。buyer が「ここで送ってよいか」を聞いているため、ここでの 大丈夫です は seller の横柄な許可というより、buyer の不安軽減です。ただし、より手順案内に寄せるならこうできます。
+
+ログはこのメッセージ上で送ってください。届いた範囲で、前回の修正と関係がありそうかを確認します。
+
+この差は好みの問題に近いので、lint 化しない方がよいです。
+
+3. レンズ別レビュー表
+レンズ	評価	分類	ノイズリスク	推奨反映先	具体的な文言修正案
+promise_consistency	維持すべき中核 soft lens。 成功保証・成果物返却・原因特定の条件づけに効いている。	formal soft lens。ただし、成功保証・phase逸脱を生む場合だけ hard guard 側で扱う。	条件づけを増やしすぎると「15,000円で依頼可能」という明確さまで弱くなる。	lens inventory / reviewer prompt / gold / skill。lint は narrow warning のみ。	「必ず直せるとはお約束できません。ただ、修正できる箇所が特定できた場合は、修正済みファイルをお返しします。」
+agency_alignment	維持。 「相談できます」問題を構造として扱えている。	formal soft lens。blanket NG 禁止。	相談できます を避けすぎると、自然な余白や相談導線まで消える。	gold 38 / style rule / reviewer prompt。	「15,000円でご依頼いただけます」「こちらで確認します」「ご購入後に共有してください」
+permission_benefit_alignment	維持。 支払い・材料共有・secret で特に有効。	formal soft lens または agency の support lens。	大丈夫です 過剰回避で、buyer の安心表現まで硬くなる。	gold 38 / skill / reviewer prompt。lint は「お支払い完了後で大丈夫です」系だけ warning。	「お支払い完了後にトークルームで共有してください」「secret値は送らなくて大丈夫です」
+negative_frame_non_echo	維持。 closed後・不満・返金/無料要求で非常に重要。	formal soft lens。	ネガティブ語を避けすぎると、返金・無料・今日中などの論点自体を落とす。	gold 39 / emotional caution / reviewer prompt。	「前回修正との関係確認ですね」「状況確認として見ます」「費用や返金の扱いは確認後に整理します」
+responsibility_admission_guard	有効だが、独立 lens 化はまだ早い。	observation / negative_frame の subtype。hard にするのは「過失認定・無料対応・返金保証」を実際に書いた場合のみ。	謝意・受け止めが消えて冷たくなる。closed後が契約書っぽくなる。	emotional caution / gold 39 / reviewer prompt のチェック項目。	「ご不便な状況かと思います。まずは状況を確認します。」
+pressure_word_summarization	有効。特に「今日中」「無料」「返金」を扱う時に必要。	observation 継続。再発が増えたら formal subtype。	要約しすぎて buyer の強い要求を無視したように見える。	gold 39 / emotional caution / reviewer prompt。lint は約束化した場合のみ。	「今日中の作業可否」「費用や返金の扱い」「前回修正との関係」
+block_rhythm_flow	維持。 今回の自然化改善にかなり効いている。	conversation_flow_naturalness 配下の formal soft subtype。	句点数・段落数の機械判定にすると誤爆する。つなぎすぎると scope/phase が弱まる。	gold 40 / japanese-chat-natural / reviewer prompt。lint はメトリクス参考のみ。	「ログは届いています。いまの内容で確認に入れるため、追加で準備いただくものはありません。」
+safe_connection	非常に重要。 自然化の安全弁。	formal gate。soft lens というより、自然化適用前の安全条件。境界が壊れた場合は underlying hard rule 違反。	これを弱めると、自然な一文の中で価格・scope・返金・closed作業が強く読まれる。	japanese-chat-natural / gold 40 / reviewer prompt。	「本番反映までは行っていません。反映箇所だけであれば、承諾前の確認として短く補足できます。」
+case_label_distance	観点は良い。ただし今は過剰昇格しない方がよい。	observation 継続。将来的には topic_label_distance / issue_proximity に抽象化。	〜の件 を消しすぎて、かえって回りくどくなる。「ログの件」など自然な話題整理まで潰す。	lens inventory observation / gold 追加候補。lint 不可。	「しばらく問題なかった後に似たStripeエラーが出ているとのこと、承知しました。」
+unnecessary_refusal_frame	維持。 ただし「不要な拒否」と「必要な境界説明」を分ける必要あり。	formal soft lens。	必要な拒否まで弱めると、支払い前確認・closed後実作業・外部誘導の境界が曖昧になる。	reviewer prompt / style rule / gold。	「ご購入後に確認できます。支払い前に原因判断だけ先に行う対応はしていません。」
+
+この分類は、現在の lens-inventory の方針と概ね一致しています。特に「日本語自然化は hard fail ではない」「句点や語句を blanket NG にしない」「自然化で契約条件を変えない」という整理は維持すべきです。
+
+また、gold replies の使い方も正しいです。現状の README は、gold を「丸写しテンプレ」ではなく、判断例・標準文体・再利用可能な基準として扱う方針になっています。これは今後も守った方がよいです。
+
+4. 現在の分類設計への批判レビュー
+今の分担は基本的に正しい
+
+現在の分担は、かなり良いです。
+
+層	評価
+hard rule	正しい。public/private、price、scope、secret、外部誘導、成功保証、phase boundary はここ。
+soft lens	正しい。agency、promise、permission、negative frame、block rhythm はここ。
+lint	方針は正しい。明らかな表面再発だけに限定すべき。
+gold	正しい。良い判断例・文体例として使う。
+human audit	必須。日本語ネイティブの違和感は自動化だけでは拾いにくい。
+external Codex xhigh audit	有効。route / scope / phase / public leak / naturalness の外部目線として機能している。
+Pro	適切。レンズの昇格・統合・ノイズ化判断に使うべき。
+
+監査プロンプト_codex-xhigh.md でも、hard deterministic accident と naturalness を分け、soft lens を blanket rule にしない方針が明示されています。この分離はかなり重要です。
+
+足した方がよい層
+
+今後は、以下の2層を明示すると安定します。
+
+A. semantic contract layer
+
+hard rule より少し柔らかいが、文体よりは上位の層です。
+
+例：
+
+この phase で答えるべき問いは何か
+buyer の質問に直答しているか
+今回の reply で promise してよい範囲はどこまでか
+closed 後に「確認」「相談」「実作業」を分けているか
+quote_sent で購入前確認に流れていないか
+
+これはすでに coconala-reply-bugfix-ja/SKILL.md の reply_contract や answer_map / ask_map に近い形で存在しています。今後は、hard / soft の間に「契約意味層」として明示した方がよいです。
+
+B. lens discharge conditions
+
+各 lens に「適用しない条件」を書く層です。
+
+例：
+
+agency_alignment：相談できます は blanket NG ではない。
+permission_benefit_alignment：secret 値不要の 大丈夫です は許容。
+case_label_distance：ログの件 は自然な話題整理なら許容。
+block_rhythm_flow：句点3つはそれだけでは問題ではない。
+negative_frame_non_echo：返金・無料・今日中という論点自体は消さない。
+
+この discharge 条件がないと、soft lens が禁止語ルール化します。
+
+5. ノイズ化リスクと予防策
+1. 相談できます を避けすぎる
+
+副作用：
+自然な「相談可能です」「状況に応じて相談します」まで消えて、全部が「ご依頼いただけます」「対応します」になり、逆に約束が強くなります。
+
+予防策：
+相談できます を避けるのは、buyer が明確に「依頼できますか」「15,000円でお願いできますか」と聞いた時だけ。価格・購入可否・依頼先の主体が曖昧になる場合に限定する。
+
+2. 〜の件 を消しすぎる
+
+副作用：
+「ログの件」「請求書の件」「反映箇所の件」まで消すと、日本語として不自然に回りくどくなります。
+
+予防策：
+禁止するのは 〜の件ですね が buyer の生々しい状況を受付ラベル化している時だけ。自然な topic organizer としての 〜の件 は残す。
+
+3. safety を意識しすぎて冷たくなる
+
+副作用：
+closed後や不満時に、「確認します」「対象外です」「費用相談です」だけが並び、相手の困っている状況への受け止めが消えます。
+
+予防策：
+責任認定ではなく、状況認識を置く。
+
+ご不便な状況かと思います。まずは、前回修正との関係がありそうかを確認します。
+
+これは過失認定ではありません。
+
+4. 自然化で scope / price / phase を弱める
+
+副作用：
+「自然につなぐ」ことで、購入前確認、closed後実作業、無料対応、返金対応が曖昧に約束される可能性があります。
+
+予防策：
+safe_connection を gate 化する。
+同じ一文でつないでよいのは、同じ役割・同じ約束レベルの情報だけです。価格、scope、secret、返金、無料、closed後実作業、納期、支払い導線は、迷ったら分ける。
+
+5. closed 後の文面が契約書っぽくなる
+
+副作用：
+正確だが人間味がなくなり、「前回トークルームは閉じているため」「実作業が必要そうな場合は費用を先に相談します」ばかりが目立つ。
+
+予防策：
+closed後は以下の順にする。
+
+軽い受け止め
+届いた範囲で確認すること
+できないこと
+実作業が必要な場合の次の扱い
+
+例：
+
+しばらく問題なかった後に似たエラーが出ているとのこと、承知しました。
+ログを送っていただければ、届いた範囲で前回修正との関係がありそうかを確認します。
+前回トークルームは閉じているため、この場で修正作業や修正済みファイルの返却までは進めません。実作業が必要そうな場合は、対応方法と費用を先にご相談します。
+
+これは今の B08 にかなり近く、良い型です。
+
+6. 新規レンズ候補
+
+追加するなら、次の順番がよいです。全部を一気に入れない方がいいです。
+
+P0：commitment_strength_calibration
+
+追加推奨。
+これは promise_consistency と近いですが、少し違います。
+
+promise_consistency：文中の前後約束が矛盾していないか
+commitment_strength_calibration：その phase / evidence / payment 状態で、その強さの約束をしてよいか
+
+例：
+
+本日23:45までに修正済みファイルを返します
+
+これは、購入後・原因特定後ならありえますが、原因不明・購入前なら強すぎます。
+
+反映先： reviewer prompt / lens inventory / gold 追加候補。
+lint 化： まだ不可。hard violation に接続する場合だけ fail。
+
+P0：response_weight_mismatch
+
+追加推奨。
+すでに監査プロンプト側には観点として存在しますが、formal soft lens に近づけてよいです。
+
+buyer の質問が軽いのに、返答が重すぎると AIっぽくなります。
+
+例：
+
+buyer：「購入後はどこまで見てもらえますか？」
+悪い返答：「支払い前に確認する対応はしていませんが、購入後は...」
+良い返答：「ご購入後は、原因確認、修正方針の整理、必要な修正ファイルの返却まで対応します。」
+
+反映先： reviewer prompt / gold。
+lint 化： 不可。
+
+P1：topic_label_distance / issue_proximity
+
+case_label_distance の上位概念として追加候補。
+今の case_label_distance は良い発見ですが、名前が少し狭いです。将来コア化を考えるなら、topic_label_distance または issue_proximity の方が汎用的です。
+
+見るポイントは、
+
+相手の困りごとを「案件ラベル」にしていないか
+受付票のように「〜の件ですね」と処理していないか
+ただし自然な話題整理まで消していないか
+
+分類： まず observation。
+gold： 1本追加してよい。
+lint： 不可。
+
+P1：buyer_burden_alignment
+
+追加候補。
+「buyer にどれだけ作業を求めるか」の重さを見る lens です。
+
+例：
+
+購入前にログ、ファイル、再現手順、secret、GitHub招待を求めすぎる
+buyer が非エンジニアなのに、技術的な確認を細かく要求する
+一方で、購入後に必要な材料を曖昧にしすぎる
+
+これはメール展開にも効きます。ただし、既存の evidence minimality / permission / phase boundary と重なるので、最初は observation でよいです。
+
+P1：answer_order_calibration
+
+追加候補。
+「何を最初に返すべきか」を見る lens です。
+
+例：
+
+price を聞かれたら、まず価格
+secret を送ってよいか聞かれたら、まず送らないでよい
+closed後に無料修正を求められたら、まず状況確認、その後に作業・費用境界
+購入後の進捗確認なら、まず受領・現在地・次の時刻
+
+これは response_weight_mismatch と一緒に扱ってもよいです。
+
+P2：voice ownership
+
+今すぐ formal 化は不要。
+将来コアでは有効ですが、今の bugfix-15000 では agency / permission / subject clarity でかなりカバーできています。
+
+見るなら、
+
+seller が言うべきことを platform が言っているように見えないか
+buyer の行動を seller が許可しているように見えないか
+システム文のように「対象外です」「仕様です」と断じていないか
+
+程度で observation に留めるのがよいです。
+
+P2：gratitude placement
+
+不要、または gold/style rule 止まり。
+感謝の位置は文体品質には効きますが、構造 lens にするとノイズ化しやすいです。
+
+悪い昇格例：
+
+必ず冒頭に感謝
+closed後は必ず感謝
+delivered後は必ずお礼
+
+これはすぐテンプレ臭くなります。
+
+7. メール展開への見通し
+今のチャット自然化レンズは、そのまま「一部」は使える
+
+使えるもの：
+
+promise_consistency
+agency_alignment
+permission_benefit_alignment
+negative_frame_non_echo
+responsibility_admission_guard
+pressure_word_summarization
+safe_connection
+commitment_strength_calibration
+response_weight_mismatch
+buyer_burden_alignment
+
+これらは、ココナラ専用というより業務返信コアに近いです。実際、japanese-chat-natural-ja はサービス非依存の業務チャット自然化 skill として設計され、事実保持・直答・聞き返し数・自然な流れを扱っています。
+
+メールでは変えるべき点
+
+メールでは、チャットと違って以下が変わります。
+
+項目	チャット	メール
+冒頭	短い受け止めでよい	宛名・お礼・要件整理が必要になることがある
+文量	短く直接	多少長くても自然
+文脈	直前発話に強く依存	引用・過去経緯・件名に依存
+締め	次アクション中心	依頼・期限・署名・補足が必要
+自然さ	会話の近さ	文章としての整い
+risk	端的すぎて冷たい	丁寧すぎて責任認定・約束過多
+
+特にメールでは、block_rhythm_flow の基準が変わります。チャットなら短文連続が自然な場合もありますが、メールでは段落単位のまとまりが必要になります。逆に、メール文体を今チャットに混ぜると、ココナラ返信が重くなります。
+
+今すぐメール実装まで始めるべきか
+
+実装はまだ始めない方がよいです。
+やるなら、設計メモだけで十分です。
+
+今やるべきことは、
+
+チャット返信の hard / semantic / soft / gold / lint 分離を固める
+その後、business-reply-core 的な抽象層を作る
+最後に chat_adapter と email_adapter を分ける
+
+です。
+
+メールを今混ぜると、bugfix-15000 live の返信が、
+
+丁寧すぎる
+説明が長い
+断りが重い
+営業メールっぽい
+closed後が契約文書っぽい
+
+方向に崩れます。
+
+8. 実装ロードマップ
+Step 1：lens-inventory-20260430.ja.md を更新する
+
+優先して更新する内容はこれです。
+
+block_rhythm_flow を conversation_flow_naturalness 配下の正式 subtype として明記
+safe_connection を自然化適用 gate として明記
+case_label_distance は observation 継続。ただし上位概念 topic_label_distance / issue_proximity を候補として記録
+responsibility_admission_guard と pressure_word_summarization は negative_frame_non_echo の subtype に留める
+response_weight_mismatch と commitment_strength_calibration を formal soft lens 候補として追加
+各 lens に 適用停止条件 を書く
+
+特に適用停止条件が重要です。
+
+例：
+
+case_label_distance:
+- NG: buyer の状況を受付票のように「〜の件ですね」と遠く扱う
+- OK: 「ログの件」「反映箇所の件」など、自然な話題整理
+- lint: 不可
+Step 2：監査プロンプト_codex-xhigh.md を少しだけ更新する
+
+追加した方がよい判定ラベルはこれです。
+
+soft_lens_result:
+- hard_by_underlying_guard
+- fix_recommended
+- acceptable_as_is
+- observe_only
+- overfire_risk
+
+これにより、レビュアーが「違和感あり」をすぐ修正指示にせず、修正すべき違和感 / 許容できる違和感 / 観察だけの違和感 / レンズ過剰適用リスクを分けられます。
+
+また、各レビューの最後にこれを入れるとよいです。
+
+Lens overfire check:
+- この修正により price / scope / phase / secret / public-private / payment route は弱まっていないか
+- 単語禁止として誤用される恐れはないか
+- buyer の論点を消していないか
+Step 3：gold reply を1〜2本だけ追加する
+
+追加するなら、この順です。
+
+Gold 41：topic-label-distance / issue-proximity
+
+入れる例：
+
+悪い：
+「しばらく問題なかった後に、似たStripeエラーが出ている件ですね。」
+良い：
+「しばらく問題なかった後に、また似たStripeエラーが出ているとのこと、承知しました。」
+
+ただし、同じ gold 内に必ず OK 例も入れる。
+
+OK：
+「ログの件、ありがとうございます。届いています。」
+OK：
+「反映箇所の件であれば、承諾前の確認として短く補足できます。」
+Gold 42：commitment-strength-calibration
+
+入れる例：
+
+購入前：成果保証しない
+購入後・原因未特定：確認中であることを明示
+原因特定後：修正済みファイル返却などの promise が可能
+closed後：確認と実作業を分ける
+
+gold は増やしすぎない方がよいです。現在の gold README の「少数の再利用可能な判断例」という方針は維持すべきです。
+
+Step 4：#RE をあと2〜3本回す
+
+次の #RE は、以下の組み合わせが良いです。
+
+case_label_distance の過剰適用テスト
+〜の件ですね が不自然なケース
+ログの件 が自然なケース
+反映箇所の件 が自然なケース
+closed後の refund / free / pressure テスト
+「今日中に無料で直して」
+「前回ミスなら返金して」
+「責めたいわけではない」
+ただし論点を消さない
+quote_sent / prequote の refusal frame テスト
+「原因が分かれば購入」
+「支払い前にログだけ見て」
+「購入後はどこまで見てもらえるか」
+purchased progress の commitment テスト
+原因未特定
+原因候補あり
+修正済みファイル返却可能
+時刻 promise の妥当性
+
+ここで重要なのは、renderer baseline の自然さを見すぎないことです。coconala-reply-bugfix-ja 側でも、#RE 観察は直接の生成ルールではなく、writer / reviewer / renderer の違いを区別する方針になっています。
+
+Step 5：#R 実出力 smoke を行う
+
+デモ化前に、最低 10〜15 本の #R-like 実出力を確認した方がよいです。
+
+合格条件はこれくらいでよいです。
+
+条件	合格基準
+public/private leak	0件
+handoff-25000 / 25,000円 / 主要1フロー導線	0件
+secret 値要求	0件
+GitHub招待・直接push・本番デプロイ誘導	0件
+成功保証	0件
+closed後の無料実作業 promise	0件
+price / scope / phase drift	0件
+soft lens fix recommended	1〜2件以内
+人間監査で「AIっぽい」	重大なもの 0件、軽微なら記録
+9. やらない方がいいこと
+1. 全面リライト
+
+避けるべきです。
+今の骨格はかなり良く、問題は局所的なレンズ整理です。全面リライトすると、hard guard と自然化の分離が壊れるリスクが高いです。
+
+やるべきなのは、
+
+lens inventory の局所更新
+reviewer prompt の小改修
+gold 追加
+#RE 追加
+narrow lint
+
+です。
+
+2. 禁止語リスト化
+
+特に避けるべきです。
+
+禁止してはいけない語：
+
+相談できます
+大丈夫です
+〜の件
+はい
+まずは
+確認します
+承知しました
+
+これらは文脈によって自然にも不自然にもなります。禁止語ではなく、行為主体・約束強度・話題距離・phase boundaryで判定すべきです。
+
+3. 過剰な自然化
+
+危険です。
+自然化によって以下が弱まるなら、その自然化は失敗です。
+
+15,000円
+不具合1件 / 同一原因
+購入後に確認
+secret 値不要
+外部連絡不可
+GitHub直接作業不可
+本番デプロイ不可
+closed後は確認と実作業を分ける
+返金/無料対応を一律約束しない
+
+自然にするために削ってはいけない情報があります。safe_connection はそのための gate です。
+
+4. 感情共感の増やしすぎ
+
+避けるべきです。
+特に closed後・返金・無料要求では、共感を増やしすぎると責任認定に見えます。
+
+危険：
+
+ご迷惑をおかけして申し訳ありません。無料で確認します。
+
+安全：
+
+ご不便な状況かと思います。まずは、前回修正との関係がありそうかを確認します。
+
+emotional caution は有効ですが、常時発動させるものではありません。
+
+5. 営業文っぽい提案
+
+避けるべきです。
+特に handoff-25000 が public:false である以上、live / #RE で handoff 導線・25,000円・主要1フロー整理を出すのは事故です。
+
+また、bugfix-15000 は「不具合1件の原因確認・修正内容作成・確認手順整理・修正済みファイル返却」が中心です。営業提案を増やすと、scope が広がって見えます。
+
+6. メール文体を今すぐ混ぜる
+
+避けるべきです。
+メール展開の設計メモは作ってよいですが、チャット返信にメール的な長さ・挨拶・段落構成を混ぜると、ココナラ上では重くなります。
+
+今は、
+
+business-reply-core の抽象メモ
+chat adapter の安定
+その後 email adapter
+
+の順番が安全です。
+
+7. hard rule と soft lens の混同
+
+最も避けるべきです。
+soft lens は「より自然・より誤読されにくい」ためのものです。hard rule は「出したら事故」のものです。
+
+例えば、
+
+handoff-25000 を live に出す → hard
+secret 値を送るよう求める → hard
+GitHub invite で直接作業すると書く → hard
+〜の件ですね が受付っぽい → soft / observation
+相談できます が少し曖昧 → soft
+大丈夫です が許可っぽい → soft
+
+この線引きを崩すと、OS全体が壊れます。
+
+10. Proに次回見せるべきタイミング
+
+あと2本 #RE を回してからで十分です。理想は3本です。
+
+次回 Pro に見せるべき条件は、単に「また #RE を回した」ではなく、次の材料が揃った時です。
+
+次回 Pro に見せる条件
+case_label_distance が少なくとも2 batch で再発または過剰適用された
+responsibility_admission_guard / pressure_word_summarization が closed refund/free 系で複数回出た
+block_rhythm_flow の修正で hard boundary が弱まりそうなケースが出た
+response_weight_mismatch または commitment_strength_calibration を formal soft lens に上げるか迷う材料が出た
+lint 化候補について false positive を見たい材料が出た
+目安
+次の #RE 2〜3本
+↓
+lens inventory 更新
+↓
+gold 1〜2本追加
+↓
+reviewer prompt 小改修
+↓
+#R-like 実出力 10〜15本
+↓
+Pro 再分析
+
+この順番がよいです。
+
+今すぐ Pro に毎回見せる必要はありません。Pro は、個別文面の赤入れよりも、observation を formal soft lens に上げるか、soft lens を lint 化するか、core に抽象化するかの判断に使うのが一番価値があります。
+
+最終判断
+
+この返信OSは、かなり良い方向に進んでいます。
+特に良いのは、自然化を「感じの良い文章にする」ではなく、誤読されにくく、契約境界を保ち、buyer に近い距離で返すための構造レンズとして育てている点です。
+
+次にやるべきことは、レンズを増やすことではありません。
+
+やるべきことは、soft lens ごとの適用停止条件を明文化し、safe_connection を自然化 gate として固定し、case_label_distance を観察のままもう2〜3 batch 見ることです。
+
+この方針なら、bugfix-15000 live を壊さずに、将来の業務チャット/メール返信コアへ展開できます。

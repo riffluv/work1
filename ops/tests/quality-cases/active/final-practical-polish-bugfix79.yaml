@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC79-001
+    stock_id: HRC79-001
+    category: final_practical_polish
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: ai_code_can_request
+    question_type: prequote_ai_code_can_request
+    primary_question: 前任者やAIで作ったコードでも15,000円で依頼できるか、必ず直るかを知りたい。
+    raw_message: "前任者とAIで作ったコードなので中身をあまり把握できていません。Stripe決済後に注文が作られない状態ですが、15,000円でお願いできますか？必ず直るかも気になります。"
+    note: 通常 live / #RE。前任者/AIコードでも受けつつ、成功保証にしない。agency_alignment と promise_consistency を見る。
+
+  - id: HRC79-002
+    stock_id: HRC79-002
+    category: final_practical_polish
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: deliverable_question
+    question_type: prequote_deliverable_question
+    primary_question: 注文作成不具合で、対応範囲と返ってくるものを知りたい。
+    raw_message: "Stripe決済は成功していますが、注文データだけ作られていません。このサービスではどこまで見てもらえて、最後に何が返ってきますか？"
+    note: 通常 live / #RE。価格を聞いていない場面で、成果物と範囲を説明しつつ契約説明の塊になりすぎないかを見る。
+
+  - id: HRC79-003
+    stock_id: HRC79-003
+    category: final_practical_polish
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: quote_sent_prepare_materials
+    question_type: quote_sent_prepare_materials
+    primary_question: 見積り提案後、支払い前に何を準備しておけばよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払いはこれから進めます。先に準備しておくものがあれば教えてください。支払い後にまとめて送ります。"
+    note: 通常 live / #RE。支払い前作業開始にせず、buyer の準備相談として軽く返せるかを見る。
+
+  - id: HRC79-004
+    stock_id: HRC79-004
+    category: final_practical_polish
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: practical
+    scenario: quote_sent_zip_scope_no_external
+    question_type: quote_sent_zip_scope_no_external
+    primary_question: 支払い後にZIPで送る場合、全部送るべきか関係ファイルだけでよいか知りたい。
+    raw_message: "支払い後にZIPで送る予定です。プロジェクト全部を送った方がいいですか？それともStripeや注文作成に関係しそうなファイルだけで足りますか？"
+    note: 通常 live / #RE。材料共有をトークルーム内に保ちつつ、secret なし・関係ファイル優先へ案内できるかを見る。
+
+  - id: HRC79-005
+    stock_id: HRC79-005
+    category: final_practical_polish
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: polite_urgent
+    scenario: progress_anxiety
+    question_type: purchased_polite_progress_anxiety
+    primary_question: 購入後、催促気味にならずに現在地と次の見通しを知りたい。
+    raw_message: "急かすつもりではないのですが、今どこまで分かっていますか？ログは昨日送っています。長い説明はいらないので、次に何を見るかだけ教えてください。"
+    note: 通常 live / #RE。negative_frame_non_echo、進捗の短い現在地、次回見通しを確認する。
+
+  - id: HRC79-006
+    stock_id: HRC79-006
+    category: final_practical_polish
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: extra_scope_question
+    question_type: purchased_extra_symptom_fee_anxiety
+    primary_question: 購入後、注文作成以外の症状も同じ原因なら範囲内か、別原因なら先に相談してもらえるか知りたい。
+    raw_message: "注文作成の件に加えて、購入完了メールも届いていないことに気づきました。同じ原因なら一緒に見てもらえますか？別原因で追加料金が必要なら、先に教えてほしいです。"
+    note: 通常 live / #RE。同じ原因/別原因/追加料金事前相談を自然に分ける。
+
+  - id: HRC79-007
+    stock_id: HRC79-007
+    category: final_practical_polish
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: worried
+    scenario: delivered_cannot_accept_still_broken
+    question_type: delivered_still_broken_next_step
+    primary_question: 納品後承諾前に、まだ直っていないように見える場合の次の動きを知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルを反映したつもりですが、まだ注文が作られていないように見えます。承諾前にどこを確認すればいいですか？"
+    note: 通常 live / #RE。delivered を closed と誤認せず、承諾前確認として自然に材料依頼できるかを見る。
+
+  - id: HRC79-008
+    stock_id: HRC79-008
+    category: final_practical_polish
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite_cautious
+    scenario: closed_relation_check_before_new_request
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、前回修正との関係だけこのメッセージで確認してもらい、必要なら新規相談にしたい。
+    raw_message: "前回はありがとうございました。似たStripeエラーがまた出ています。ログをこのメッセージで送れば、前回の修正と関係がありそうかだけ見てもらえますか？直す必要がありそうなら新規で相談します。"
+    note: 通常 live / #RE。前回のお礼への短い反応、closed後の関係確認、実作業/新規相談境界を自然に扱えるかを見る。

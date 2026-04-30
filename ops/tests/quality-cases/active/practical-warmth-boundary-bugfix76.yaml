@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC76-001
+    stock_id: HRC76-001
+    category: practical_warmth_boundary
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: non_engineer_can_request_without_knowing_files
+    question_type: prequote_non_engineer_can_request
+    primary_question: 非エンジニアで原因や必要ファイルが分からなくても依頼できるか、15,000円で対応できるかを知りたい。
+    raw_message: "Stripe決済後に注文が作られないのですが、コードは自分で触れません。原因も必要なファイルも分かっていない状態でも、15,000円で依頼できますか？"
+    note: 通常 live / #RE。低リスク prequote で、buyer の不安を受けつつ、依頼可否・15,000円・購入後共有を自然につなげる。
+
+  - id: HRC76-002
+    stock_id: HRC76-002
+    category: practical_warmth_boundary
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: urgent_same_day_expectation
+    question_type: prequote_urgent_same_day_timeline
+    primary_question: 急ぎの不具合について、今日中に直るか、少なくとも見通しが出るかを知りたい。
+    raw_message: "本番でStripe決済後に注文が作られず、少し急いでいます。今日中に直る可能性はありますか？難しければ、今日中に見通しだけでも出せますか？"
+    note: 通常 live / #RE。急ぎを受けつつ、今日中修正保証へ寄らず、見通し・購入後材料共有へ自然につなげる。
+
+  - id: HRC76-003
+    stock_id: HRC76-003
+    category: practical_warmth_boundary
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: quote_sent_over_sharing_files
+    question_type: quote_sent_what_to_send_after_payment
+    primary_question: 見積り提案後、購入後にファイルを全部送ればよいか、必要なものだけでよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後に関係ありそうなファイルを全部まとめて送ればいいですか？多すぎる場合は、必要なものだけ見る形でも大丈夫です。"
+    note: 通常 live / #RE。quote_sent で、支払い前作業には入らず、購入後の材料共有を buyer burden 少なめに案内できるかを見る。
+
+  - id: HRC76-004
+    stock_id: HRC76-004
+    category: practical_warmth_boundary
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: quote_sent_explanation_scope
+    question_type: quote_sent_light_explanation_not_manual
+    primary_question: 修正後に何を直したかは知りたいが、報告書やマニュアルまでは不要なことを確認したい。
+    raw_message: "購入した場合、修正後に何を直したかは簡単に教えてもらえますか？社内向けの報告書やマニュアルまでは不要です。"
+    note: 通常 live / #RE。軽い説明と本格資料を混ぜず、修正内容の簡単な説明を自然に約束できるかを見る。
+
+  - id: HRC76-005
+    stock_id: HRC76-005
+    category: practical_warmth_boundary
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: materials_followup
+    scenario: purchased_materials_received_next_flow
+    question_type: purchased_materials_received_next_flow
+    primary_question: 購入後、ログとスクショが届いているか、この後の流れと追加準備の有無を知りたい。
+    raw_message: "ログとスクショを送りました。届いていますか？この後の流れと、こちらで追加で準備しておくものがあるかだけ教えてください。"
+    note: 通常 live / #RE。受領確認、追加準備の有無、次回時刻を、二重確認や処理語密集なしで返せるかを見る。
+
+  - id: HRC76-006
+    stock_id: HRC76-006
+    category: practical_warmth_boundary
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: confused
+    scenario: purchased_stripe_or_code_cause_question
+    question_type: purchased_cause_side_brief
+    primary_question: 購入後、Stripe側の問題かコード側の問題かを短く知りたい。
+    raw_message: "ログを送ったあとで気になったのですが、これはStripe側の設定っぽいですか？それともアプリ側のコードっぽいですか？まだ分からなければ、その状態でも大丈夫です。短く教えてください。"
+    note: 通常 live / #RE。未確定な原因を断定せず、見ている観点だけ短く返せるかを見る。
+
+  - id: HRC76-007
+    stock_id: HRC76-007
+    category: practical_warmth_boundary
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: cannot_accept
+    scenario: delivered_still_not_fixed_acceptance
+    question_type: delivered_still_not_fixed_acceptance
+    primary_question: 納品後承諾前、まだ直っていないように見える場合にどうすればよいか知りたい。
+    raw_message: "納品ありがとうございます。ただ、確認したらまだ注文が作られていないように見えます。このまま承諾していいのか少し不安です。"
+    note: 通常 live / #RE。delivered を closed と誤認せず、承諾前確認として受け、無料/返金/実作業へ急がない。
+
+  - id: HRC76-008
+    stock_id: HRC76-008
+    category: practical_warmth_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_relation_check
+    scenario: closed_thanks_relation_check
+    question_type: closed_thanks_relation_check
+    primary_question: クローズ後、前回のお礼を伝えつつ、似たエラーが前回修正と関係あるかこのメッセージで見てもらえるか知りたい。
+    raw_message: "前回はありがとうございました。しばらく問題なかったのですが、似たStripeエラーが出ています。このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    note: 通常 live / #RE。closed 後でも前回のお礼を軽く受け、関係確認と実作業境界を自然につなげる。

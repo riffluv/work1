@@ -317,6 +317,62 @@ primary_sources:
       - prequote / quote_sent / purchased / delivered / closed で、相手文の `件` に引きずられず、主質問への直答・材料共有タイミング・closed後関係確認を自然につなげられるかを検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/post-pro-lens-discharge-bugfix72.yaml
+    role: eval
+    purpose:
+      - Proレビュー反映後の soft lens 停止条件を確認する通常 live #RE。`topic_label_distance`、`commitment_strength_calibration`、`safe_connection`、`response_weight_mismatch` が過剰発火しないかを見る
+      - prequote / quote_sent / purchased / delivered / closed で、`〜の件` の blanket NG 化、必要な拒否の削りすぎ、成果物 promise の強めすぎ、closed後の無料/返金/実作業誤読が出ないかを検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/light-practical-calibration-bugfix73.yaml
+    role: eval
+    purpose:
+      - Proレビュー後の soft lens を、軽めの実務相談で過剰発火させない通常 live #RE。`response_weight_mismatch`、`buyer_burden_alignment`、`commitment_strength_calibration`、`unnecessary_refusal_frame` を見る
+      - 見本確認、必要ファイル不安、支払い後材料共有、GitHub招待、購入後進捗、Event IDのみ、delivered承諾前確認、closed後別商品相談を、重くしすぎず安全に返せるかを検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/light-flow-smoothing-bugfix74.yaml
+    role: eval
+    purpose:
+      - block_rhythm_flow / safe_connection を軽めの実務相談に当てる通常 live #RE。安全境界を残したまま、処理文・条件文・安全説明の塊感をどこまで減らせるかを見る
+      - 必要ファイル不安、納品物見本、支払い後材料共有、GitHub作業面、購入後進捗、Event IDのみ、delivered反映箇所、closed後別商品相談を、契約説明化しすぎず安全に返せるかを検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/light-vs-boundary-flow-bugfix75.yaml
+    role: eval
+    purpose:
+      - light-flow-smoothing後の追加確認。低リスク prequote / purchased / delivered では会話の流れを少し出し、高リスク quote_sent / secret / closed では境界の硬さを残せるかを見る通常 live #RE
+      - 必要ファイル不安、金額/日数/成果物、支払い後ZIP共有、secret値不要、購入後材料過多、今日中見通し、delivered軽い補足、closed後おひねり継続不可を、block_rhythm_flow / safe_connection / response_weight_mismatch で検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/practical-warmth-boundary-bugfix76.yaml
+    role: eval
+    purpose:
+      - 採用が続いている自然化の追加確認。実際に来そうな軽い相談、少し急ぎ/不安、購入後の短い確認、delivered不安、closed後関係確認を混ぜる通常 live #RE
+      - 低リスクでは会話の流れを出しつつ、成功保証・支払い前作業・secret・本格資料化・closed後実作業を防げるかを、block_rhythm_flow / safe_connection / response_weight_mismatch で検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/compound-question-boundary-bugfix77.yaml
+    role: eval
+    purpose:
+      - 棚卸し後の複合質問確認。価格・納期・成功保証・返金/無料・secret・支払い前作業・closed後導線が同時に出ても、主質問への答え落ちと promise 強化が起きないかを見る通常 live #RE
+      - prequote / quote_sent / purchased / delivered / closed 横断で、answer_order_calibration / commitment_strength_calibration / block_rhythm_flow / safe_connection の両立を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/answer-order-weight-mixed-bugfix78.yaml
+    role: eval
+    purpose:
+      - 複合質問後の実務混合確認。低リスク相談では返信を重くしすぎず、高リスク境界では必要な硬さを残せるかを見る通常 live #RE
+      - 非エンジニア不安、成果物質問、quote_sent材料共有、secret値不要、購入後ログ過多、今日中見通し、delivered反映箇所、closed後関係確認を、answer_order_calibration / response_weight_mismatch / safe_connection で検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/final-practical-polish-bugfix79.yaml
+    role: eval
+    purpose:
+      - Pro分析前の最終寄り実務確認。低リスクは軽く、高リスクは境界を残し、直近の採用品質をもう1本確認する通常 live #RE
+      - 前任者/AIコード、成果物不安、quote_sent準備、ZIP共有、購入後進捗、追加症状、delivered未解消、closed後関係確認を、answer_order_calibration / response_weight_mismatch / promise_consistency / safe_connection で検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

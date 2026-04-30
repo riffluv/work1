@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC78-001
+    stock_id: HRC78-001
+    category: answer_order_weight_mixed
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: uncertain
+    scenario: non_engineer_files_price
+    question_type: prequote_non_engineer_files_price
+    primary_question: コードに詳しくなく、必要ファイルが分からない状態でも15,000円で依頼できるかを知りたい。
+    raw_message: "コードに詳しくなくて、どのファイルを送ればいいか分かりません。Stripe決済後に注文が作られない状態なのですが、この状態でも15,000円で依頼できますか？"
+    note: 通常 live / #RE。非エンジニア不安に対して、依頼可否・15,000円・購入後の最小材料を重くしすぎず返せるかを見る。
+
+  - id: HRC78-002
+    stock_id: HRC78-002
+    category: answer_order_weight_mixed
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: deliverable_question
+    question_type: prequote_deliverable_question
+    primary_question: 注文作成不具合で、対応範囲と返ってくるものを知りたい。
+    raw_message: "Stripe決済は成功していますが、注文データだけ作られていません。このサービスではどこまで見てもらえて、最後に何が返ってきますか？"
+    note: 通常 live / #RE。価格を聞いていない場面で、成果物と範囲を説明しつつ契約説明の塊になりすぎないかを見る。
+
+  - id: HRC78-003
+    stock_id: HRC78-003
+    category: answer_order_weight_mixed
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: screenshot_timing_after_payment
+    question_type: quote_sent_screenshot_timing
+    primary_question: 見積り提案後、スクショやログは支払い前に送るべきか、支払い後でよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。追加でスクショとログがあります。これは支払い前に送った方がいいですか？支払い後にトークルームで共有する流れで合っていますか？"
+    note: 通常 live / #RE。協力的な buyer に不要な拒否から入らず、支払い後共有へ自然に案内できるかを見る。
+
+  - id: HRC78-004
+    stock_id: HRC78-004
+    category: answer_order_weight_mixed
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: zip_without_secret
+    question_type: quote_sent_zip_without_secret
+    primary_question: 支払い後のコード共有で、ZIPで足りるか、秘密値を抜いてよいかを知りたい。
+    raw_message: "支払い後はGitHub招待ではなくZIPで送ろうと思っています。.envの値やStripeのAPIキーは抜いた状態でも確認できますか？"
+    note: 通常 live / #RE。GitHub作業面化を避けつつ、secret 値不要を buyer benefit として自然に返せるかを見る。
+
+  - id: HRC78-005
+    stock_id: HRC78-005
+    category: answer_order_weight_mixed
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: too_many_logs_progress
+    question_type: purchased_too_many_logs_progress
+    primary_question: 購入後、ログを多めに送った状態で、今どこを見ているかと追加で必要なものがあるかを知りたい。
+    raw_message: "ログを多めに送ってしまいました。今どこを見ていますか？追加で必要なものがあれば教えてください。"
+    note: 通常 live / #RE。buyer の負担不安を受けつつ、現状・追加依頼条件・次回時刻を短く返せるかを見る。
+
+  - id: HRC78-006
+    stock_id: HRC78-006
+    category: answer_order_weight_mixed
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: progress_anxiety
+    question_type: purchased_progress_anxiety_event_id_outlook
+    primary_question: 購入後、Event IDと注文IDを送った状態で、今日中に原因特定や修正済みファイル返却まで行けるか、無理なら見通しを知りたい。
+    raw_message: "StripeのEvent IDと注文IDを送りました。今どこまで分かっていますか？今日中に原因特定や修正済みファイルの返却まで行けそうですか？難しければ見通しだけでも知りたいです。"
+    note: 通常 live / #RE。急ぎの購入後質問で、今日中修正保証を避けつつ、見通しへの直答を落とさないかを見る。
+
+  - id: HRC78-007
+    stock_id: HRC78-007
+    category: answer_order_weight_mixed
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: neutral
+    scenario: delivered_reflection_points_only
+    question_type: delivered_reflection_points_only
+    primary_question: 納品後承諾前に、修正ファイルの反映箇所だけ短く教えてほしい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。本格的な説明資料はいらないので、どこを反映すればいいかだけ短く教えてもらえますか？"
+    note: 通常 live / #RE。軽い補足を受けつつ、運用マニュアルや本格資料へ広げず、次アクションを短く返せるかを見る。
+
+  - id: HRC78-008
+    stock_id: HRC78-008
+    category: answer_order_weight_mixed
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite
+    scenario: closed_thanks_relation_check
+    question_type: closed_thanks_relation_check
+    primary_question: クローズ後、前回のお礼を添えつつ、似たStripeエラーと前回修正の関係だけこのメッセージで見てもらえるか知りたい。
+    raw_message: "前回はありがとうございました。しばらく問題なかったのですが、似たStripeエラーが出ています。このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？必要なら新規で相談します。"
+    note: 通常 live / #RE。前回のお礼への短い反応、case label distance、closed後の関係確認/実作業分離を自然に扱えるかを見る。

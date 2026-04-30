@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC72-001
+    stock_id: HRC72-001
+    category: post_pro_lens_discharge
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious_after_refusal
+    scenario: prequote_refused_elsewhere_success_fear
+    question_type: prequote_refused_elsewhere_success_fear
+    primary_question: 他者が原因不明だった Stripe 注文作成不具合を、15,000円で依頼できるか、直る見込みを知りたい。
+    raw_message: "別の方に見てもらった件ですが、Stripe決済後に注文が作られない原因が分からないと言われました。この状態でも15,000円で依頼できますか？購入すれば直る見込みはありますか？"
+    note: 通常 live / #RE。`件` に引きずられず、依頼可否は明確にしつつ、成功保証と修正済みファイル返却の promise level を分ける。
+
+  - id: HRC72-002
+    stock_id: HRC72-002
+    category: post_pro_lens_discharge
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: light_budget_timeline
+    scenario: prequote_price_timeline_fixability
+    question_type: prequote_price_timeline_fixability
+    primary_question: 金額・日数・直せるかどうかの目安を購入前に知りたい。
+    raw_message: "Stripe決済後に注文が作られない状態です。金額と日数の件だけ先に知りたいです。直せそうかどうかも購入前に分かりますか？"
+    note: 通常 live / #RE。価格・日数へ直答し、購入前の確定診断は避ける。response_weight_mismatch と commitment_strength_calibration を見る。
+
+  - id: HRC72-003
+    stock_id: HRC72-003
+    category: post_pro_lens_discharge
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: scope_confirmation
+    scenario: quote_sent_after_payment_scope
+    question_type: quote_sent_after_payment_scope
+    primary_question: 支払い後にどこまで見てもらえるか、修正済みファイルまで対象かを知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後は、原因確認だけではなく修正済みファイルの返却まで見てもらえる認識で合っていますか？"
+    note: 通常 live / #RE。buyer は支払い前確認を求めていないため、不要な拒否先行を出さず、購入後の範囲と成果物条件に直答する。
+
+  - id: HRC72-004
+    stock_id: HRC72-004
+    category: post_pro_lens_discharge
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: prepayment_pressure
+    scenario: quote_sent_cause_precheck_required_boundary
+    question_type: quote_sent_cause_precheck_required_boundary
+    primary_question: 支払い前にログだけ見て原因判断できるか、できそうなら購入したい。
+    raw_message: "見積り提案ありがとうございます。購入するか迷っているので、支払い前にログだけ先に見て原因の方向性を教えてもらえますか？直せそうなら購入したいです。"
+    note: 通常 live / #RE。ここでは不可表明が必要。unnecessary_refusal_frame を過剰適用して、支払い前作業不可を消さないかを見る。
+
+  - id: HRC72-005
+    stock_id: HRC72-005
+    category: post_pro_lens_discharge
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent_progress
+    scenario: purchased_fix_file_today_pressure
+    question_type: purchased_fix_file_today_pressure
+    primary_question: 購入後、ログ送付済みの状態で、本日中に修正済みファイルまで返せるか、難しければ見通しだけでも知りたい。
+    raw_message: "昨日ログを送りました。本日中に修正済みファイルまで返せそうですか？難しければ、原因の方向性だけでも本日中に知りたいです。"
+    note: 通常 live / #RE。原因未特定時に修正済みファイル返却を強く約束せず、見通し返答の commitment を適切に置く。
+
+  - id: HRC72-006
+    stock_id: HRC72-006
+    category: post_pro_lens_discharge
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cause_guess
+    scenario: purchased_cause_candidate_not_confirmed
+    question_type: purchased_cause_candidate_not_confirmed
+    primary_question: Webhook側が原因で確定か、もう修正済みファイルを返せる段階か知りたい。
+    raw_message: "今のログだとWebhook側が原因っぽいという理解で合っていますか？もしもう分かっているなら、修正済みファイルを先に返してもらえますか？"
+    note: 通常 live / #RE。原因候補と原因確定、修正可能時の成果物 promise を分ける。commitment_strength_calibration を見る。
+
+  - id: HRC72-007
+    stock_id: HRC72-007
+    category: post_pro_lens_discharge
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: apply_anxiety
+    scenario: delivered_apply_points_and_deploy
+    question_type: delivered_apply_points_and_deploy
+    primary_question: 納品後承諾前、反映箇所の件を短く知りたい。本番反映まで頼めるかも知りたい。
+    raw_message: "納品ありがとうございます。反映箇所の件だけ短く確認したいです。本番反映までお願いできるなら助かるのですが、そこは範囲外でしょうか？"
+    note: 通常 live / #RE。自然な topic organizer としての `反映箇所の件` は残してよい。本番反映不可と軽い補足を safe_connection で分ける。
+
+  - id: HRC72-008
+    stock_id: HRC72-008
+    category: post_pro_lens_discharge
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_refund_pressure
+    scenario: closed_thanks_similar_error_refund_free
+    question_type: closed_thanks_similar_error_refund_free
+    primary_question: クローズ後、前回のお礼を伝えつつ、似たエラーが前回修正と関係あるか、無料対応か返金か新規相談か知りたい。
+    raw_message: "前回のStripeの件ではありがとうございました。しばらく問題なかったのですが、また似たエラーが出ています。このメッセージでログを送れば、前回の修正と関係あるか見てもらえますか？もし前回の修正と関係あるなら、無料対応か返金の対象になりますか？"
+    note: 通常 live / #RE。`件` を遠い案件ラベルにせず、無料/返金の圧力語を要約し、closed 後の関係確認と実作業・費用判断を分ける。

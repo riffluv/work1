@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC74-001
+    stock_id: HRC74-001
+    category: light_flow_smoothing
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: file_selection_anxiety
+    scenario: prequote_non_engineer_file_selection
+    question_type: prequote_non_engineer_file_selection
+    primary_question: コードに詳しくなく、必要ファイルが分からない状態でも依頼できるか、全部送る必要があるか知りたい。
+    raw_message: "コードに詳しくなくて、どのファイルを送ればいいか分かりません。Stripe決済後に注文が作られない状態ですが、このまま依頼できますか？全部送る必要がありますか？"
+    note: 通常 live / #RE。bugfix73 B02 の塊感を踏まえ、軽い prequote で secret safety と材料共有を安全に近づけられるかを見る。
+
+  - id: HRC74-002
+    stock_id: HRC74-002
+    category: light_flow_smoothing
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious_before_purchase
+    scenario: prequote_sample_and_price
+    question_type: prequote_sample_and_price
+    primary_question: 購入前に納品物見本を確認できるか、金額はいくらか、作業後に何が返るか知りたい。
+    raw_message: "購入前に納品物の見本を見たいです。Stripe決済後に注文が作られない不具合だと、金額はいくらで、作業後は何が返ってきますか？"
+    note: 通常 live / #RE。価格・見本・成果物を直答しつつ、成果物 promise を強めすぎず、説明を重くしない。
+
+  - id: HRC74-003
+    stock_id: HRC74-003
+    category: light_flow_smoothing
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: preparation_before_payment
+    scenario: quote_sent_prepare_materials_after_payment
+    question_type: quote_sent_prepare_materials_after_payment
+    primary_question: 支払い後すぐ見てもらえるように、支払い前にログやZIPを送っておくべきか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後すぐ見てもらえるように、今のうちにログやzipを送っておいた方がいいですか？"
+    note: 通常 live / #RE。支払い前作業不可を重く出しすぎず、支払い後トークルーム共有の手順へ自然につなげる。
+
+  - id: HRC74-004
+    stock_id: HRC74-004
+    category: light_flow_smoothing
+    route: quote_sent
+    state: quote_sent
+    user_type: engineer
+    emotional_tone: external_work_surface_offer
+    scenario: quote_sent_github_invite_readonly
+    question_type: quote_sent_github_invite_readonly
+    primary_question: GitHub上で確認だけしてもらえるか、pushや公開環境への反映なしなら可能か知りたい。
+    raw_message: "見積りありがとうございます。こちらのGitHubに招待したら見てもらえますか？pushや公開環境への反映はしなくていいので、確認だけでもGitHub上でお願いしたいです。"
+    note: 通常 live / #RE。GitHubを作業場所にしない境界を残しつつ、成果物は修正済みファイル返却を主軸にする。
+
+  - id: HRC74-005
+    stock_id: HRC74-005
+    category: light_flow_smoothing
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: concise_progress_request
+    scenario: purchased_progress_and_today_fixability
+    question_type: purchased_progress_and_today_fixability
+    primary_question: 購入後にログとスクショ送付済みの状態で、今どこまで分かっているか、本日中に修正できそうか知りたい。
+    raw_message: "昨日ログとスクショを送りました。今どこまで分かっていますか？本日中に修正できそうかだけ短く教えてください。"
+    note: 通常 live / #RE。短く現在地を返しつつ、本日中修正完了を保証しない。処理文の塊を減らせるかを見る。
+
+  - id: HRC74-006
+    stock_id: HRC74-006
+    category: light_flow_smoothing
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: partial_evidence_question
+    scenario: info_sufficiency_check
+    question_type: purchased_event_id_without_code
+    primary_question: Event ID とVercelログだけで足りるか、コードがまだなくても確認できるか知りたい。
+    raw_message: "StripeのEvent IDとVercelログの該当行を送りました。コードはまだ送れていません。この情報だけで足りますか？追加が必要なら教えてください。"
+    note: 通常 live / #RE。材料不足を責めず、足りる/足りないを断定しすぎず、必要ファイルの依頼を最小化する。
+
+  - id: HRC74-007
+    stock_id: HRC74-007
+    category: light_flow_smoothing
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: apply_anxiety
+    scenario: delivered_apply_points_and_deploy
+    question_type: delivered_apply_points_and_deploy
+    primary_question: 納品後承諾前、反映箇所だけ短く知りたい。本番反映まで頼めるかも知りたい。
+    raw_message: "納品ありがとうございます。反映箇所の件だけ短く確認したいです。本番反映までお願いできるなら助かるのですが、そこは範囲外でしょうか？"
+    note: 通常 live / #RE。自然な topic organizer としての `反映箇所の件` は残しつつ、本番反映不可と軽い補足を safe_connection で分ける。
+
+  - id: HRC74-008
+    stock_id: HRC74-008
+    category: light_flow_smoothing
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_new_product_similarity
+    scenario: closed_different_product_same_cause_check
+    question_type: closed_different_product_same_cause_check
+    primary_question: クローズ後、別商品の注文作成不具合が前回と同じ原因かだけメッセージ上で見てもらえるか知りたい。
+    raw_message: "前回はありがとうございました。今回は別商品の決済で注文が作られないみたいです。このメッセージで概要を送って、前回と同じ原因かだけ見てもらえますか？別なら新規で相談します。"
+    note: 通常 live / #RE。closed 後のお礼を短く受け、概要確認と実作業を分ける。別商品でも無料/旧トークルーム継続へ滑らないかを見る。

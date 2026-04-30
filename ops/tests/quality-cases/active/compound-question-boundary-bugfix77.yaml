@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC77-001
+    stock_id: HRC77-001
+    category: compound_question_boundary
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: price_timeline_unresolved_outcome
+    question_type: prequote_price_timeline_unresolved_outcome
+    primary_question: Stripe決済後に注文が作られない不具合について、金額、日数、必ず直るかを知りたい。
+    raw_message: "Stripe決済後に注文が作られません。金額と、だいたい何日かかるかを教えてください。購入すれば必ず直りますか？"
+    note: 通常 live / #RE。価格・納期・成功保証が混ざる prequote で、15,000円・3日目安・保証不可・修正可能時の成果物を矛盾なく返せるかを見る。
+
+  - id: HRC77-002
+    stock_id: HRC77-002
+    category: compound_question_boundary
+    route: message
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: urgent_guarantee_timeline
+    question_type: prequote_urgent_guarantee_timeline
+    primary_question: 急ぎの本番不具合について、必ず直せるか、今日中の見通しが出るか、15,000円でよいかを知りたい。
+    raw_message: "本番で注文が作られなくて困っています。購入すれば必ず直りますか？今日中に見通しだけでも出せますか？金額は15,000円で合っていますか？"
+    note: 通常 live / #RE。急ぎ・成功保証・今日中見通し・金額の複合質問で、答え落ちと保証強化を防ぐ。
+
+  - id: HRC77-003
+    stock_id: HRC77-003
+    category: compound_question_boundary
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: before_payment_cause_check_after_payment_start
+    question_type: quote_sent_before_payment_cause_check_after_payment_start
+    primary_question: 見積り提案後、支払い前に原因だけ見てもらえるか、支払い後は原因確認と修正に入る認識でよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にログとコードを送って、原因だけ先に見てもらうことはできますか？支払い後はそこから原因確認と修正に入ってもらえる認識で合っていますか？"
+    note: 通常 live / #RE。支払い前作業不可と支払い後の開始範囲を、冷たすぎず直答できるかを見る。
+
+  - id: HRC77-004
+    stock_id: HRC77-004
+    category: compound_question_boundary
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: github_env_zip_after_payment
+    question_type: quote_sent_materials_secret_github
+    primary_question: 支払い後の材料共有で、GitHub招待や.env値が必要か、ZIPで足りるかを知りたい。
+    raw_message: "支払い後にコードを渡す時、GitHubに招待した方がいいですか？それともZIPで大丈夫ですか？.envの値やStripeのAPIキーも入れた方が作業しやすいですか？"
+    note: 通常 live / #RE。GitHub作業面化・secret値要求を止め、トークルーム内ZIP/関係ファイル共有へ戻せるかを見る。
+
+  - id: HRC77-005
+    stock_id: HRC77-005
+    category: compound_question_boundary
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: extra_scope_question
+    question_type: purchased_extra_symptom_same_cause_fee
+    primary_question: 購入後、注文作成不具合とメール不具合がつながっていれば範囲内か、別原因なら追加料金になるかを知りたい。
+    raw_message: "追加で気づいたのですが、注文作成だけでなく購入完了メールも届いていません。つながっている内容なら今回の15,000円内で見てもらえますか？別原因なら追加料金になるのかも先に知りたいです。"
+    note: 通常 live / #RE。購入後の追加症状を、同一原因/別原因/追加対応の事前相談に分け、勝手な追加料金や保証へ寄らないかを見る。
+
+  - id: HRC77-006
+    stock_id: HRC77-006
+    category: compound_question_boundary
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent_progress
+    scenario: progress_anxiety
+    question_type: purchased_urgent_progress_finish
+    primary_question: 購入後、今日中に直るか、現時点でどこまで分かっているか、次に何を見るかを短く知りたい。
+    raw_message: "昨日購入してログも送りました。急ぎなので、今どこまで見ていますか？長い説明はいりません。現時点で分かっていることだけ短く教えてください。"
+    note: 通常 live / #RE。購入後の急ぎ圧で、修正完了保証を避けつつ、現在地・次の確認箇所・次回時刻を短く返せるかを見る。
+
+  - id: HRC77-007
+    stock_id: HRC77-007
+    category: compound_question_boundary
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: worried
+    scenario: delivered_cannot_accept_still_broken
+    question_type: delivered_not_fixed_accept_refund
+    primary_question: 納品後承諾前に、まだ直っていないように見えて承諾できない場合、どうすればよいか知りたい。
+    raw_message: "納品ありがとうございます。ただ、こちらで確認するとまだ注文が作られていないように見えます。このままだと承諾できないのですが、どうすればいいですか？"
+    note: 通常 live / #RE。delivered を closed と誤認せず、承諾前確認・材料依頼・未確認の再修正未断定を自然に分ける。
+
+  - id: HRC77-008
+    stock_id: HRC77-008
+    category: compound_question_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_pressure
+    scenario: closed_relation_free_refund_or_new
+    question_type: closed_relation_free_refund_or_new
+    primary_question: クローズ後、似たStripeエラーが前回修正と関係あるか、このメッセージで見てもらえるか、無料/返金/新規の扱いを知りたい。
+    raw_message: "クローズ後ですみません。似たStripeエラーがまた出ています。ログをこのメッセージで送れば前回の修正と関係あるか見てもらえますか？前回の修正が原因なら無料対応や返金、新規なら再度相談という形になりますか？"
+    note: 通常 live / #RE。closed後の関係確認、無料/返金/新規相談の未断定、旧トークルーム実作業不可を、圧力語反復なしで返せるかを見る。
