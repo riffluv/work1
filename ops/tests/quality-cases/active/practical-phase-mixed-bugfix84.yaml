@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC84-001
+    stock_id: HRC84-001
+    category: practical_phase_mixed
+    route: estimate
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: prequote_non_engineer_can_request
+    question_type: prequote_non_engineer_can_request
+    primary_question: コードに詳しくなく、何を送ればよいか分からない状態でも15,000円で依頼できるか知りたい。
+    raw_message: "Next.jsやStripeに詳しくないのですが、決済は成功しているのに注文が作られません。何を送ればいいか分からない状態でも15,000円で依頼できますか？"
+    note: 通常 live / #RE。低リスク初回相談。非エンジニア不安を受けつつ、15,000円・購入後材料共有・secret値不要を自然に出せるかを見る。
+
+  - id: HRC84-002
+    stock_id: HRC84-002
+    category: practical_phase_mixed
+    route: estimate
+    state: prequote
+    user_type: buyer
+    emotional_tone: practical
+    scenario: prequote_price_timeline_guarantee
+    question_type: prequote_price_timeline_guarantee
+    primary_question: Stripe注文作成不具合の金額、日数目安、必ず直るかを知りたい。
+    raw_message: "Stripe決済後に注文が作られません。金額と大体の日数、必ず直るかだけ先に教えてください。"
+    note: 通常 live / #RE。価格・納期・成功保証の複合質問。15,000円、3日目安、保証不可、修正可能時の成果物を自然につなげる。
+
+  - id: HRC84-003
+    stock_id: HRC84-003
+    category: practical_phase_mixed
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_screenshot_before_or_after_payment
+    question_type: quote_sent_screenshot_before_or_after_payment
+    primary_question: 見積り提案後、支払い前にスクショを送るべきか、支払い後にまとめて送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にスクショだけ送っておいた方がいいですか？支払い後にまとめて送る形でも大丈夫ですか？"
+    note: 通常 live / #RE。quote_sent の低リスク材料共有。支払い前作業へ滑らず、支払い後トークルーム共有へ自然にまとめられるかを見る。
+
+  - id: HRC84-004
+    stock_id: HRC84-004
+    category: practical_phase_mixed
+    route: estimate
+    state: quote_sent
+    user_type: urgent_buyer
+    emotional_tone: urgent
+    scenario: quote_sent_urgent_before_payment_today_fix
+    question_type: quote_sent_urgent_before_payment_today_fix
+    primary_question: 見積り提案後、支払い前でも先に見てもらえるか、今日中に直るなら支払うかを知りたい。
+    raw_message: "見積り提案ありがとうございます。本番が止まっているので、支払い前でも先に見てもらえませんか？今日中に直るならすぐ支払います。"
+    note: 通常 live / #RE。高リスクの支払い前作業・今日中修正圧。購入意思や緊急性に引っ張られず、入金完了後開始へ戻せるかを見る。
+
+  - id: HRC84-005
+    stock_id: HRC84-005
+    category: practical_phase_mixed
+    route: message
+    state: purchased
+    user_type: buyer
+    emotional_tone: concise
+    scenario: purchased_progress_short
+    question_type: purchased_progress_short
+    primary_question: 購入後、送付済みログとスクショをもとに今どこまで見ているか短く知りたい。
+    raw_message: "購入後です。ログとスクショを送りました。今どこまで見ていますか？長い説明はいらないので、短く教えてください。"
+    note: 通常 live / #RE。購入後進捗。現在地・未断定・次回時刻を短く返し、確認語密集や説明過多にしない。
+
+  - id: HRC84-006
+    stock_id: HRC84-006
+    category: practical_phase_mixed
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cost_anxiety
+    scenario: purchased_extra_mail_symptom_fee_anxiety
+    question_type: purchased_extra_mail_symptom_fee_anxiety
+    primary_question: 購入後、購入完了メール不具合も同じ原因なら15,000円内で一緒に見てもらえるか、別の原因なら追加料金になる前に知りたい。
+    raw_message: "購入後です。注文作成だけでなく、購入完了メールも届かないことに気づきました。同じ原因なら15,000円内で一緒に見てもらえますか？別の原因なら追加料金になる前に教えてほしいです。"
+    note: 通常 live / #RE。購入後の追加症状と料金不安。同じ原因なら範囲内、別原因/追加対応は先に相談へ分けられるかを見る。
+
+  - id: HRC84-007
+    stock_id: HRC84-007
+    category: practical_phase_mixed
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: secondary_question_before_acceptance
+    question_type: delivered_plain_language_one_line
+    primary_question: 納品後・承諾前に、修正内容を専門用語少なめで短く説明してもらえるか知りたい。
+    raw_message: "納品ありがとうございます。承諾前に、修正内容を専門用語少なめで分かりやすく説明してもらえますか？一言くらいで大丈夫です。"
+    note: 通常 live / #RE。delivered の軽い補足。本格資料化せず、承諾前の短い説明として自然に返せるかを見る。
+
+  - id: HRC84-008
+    stock_id: HRC84-008
+    category: practical_phase_mixed
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cost_anxiety
+    scenario: closed_same_error_free_or_new
+    question_type: closed_same_error_free_or_new
+    primary_question: クローズ後、同じ原因なら無料修正か、別なら新規依頼か、ログをメッセージで送れるか知りたい。
+    raw_message: "クローズ後です。似たエラーが出ていて、前回と同じ原因なら無料で直してもらえるのか、別なら新規なのか知りたいです。ログはこのメッセージで送れます。"
+    note: 通常 live / #RE。closed 後の費用不安・無料/新規判断。メッセージ上の関係確認と実作業前相談を分けられるかを見る。

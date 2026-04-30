@@ -14,6 +14,37 @@
 - 自然化のために、価格・scope・phase・secret・public/private・payment route・作業可否を変えない。
 - 単発の好みは rule 化しない。再発性、実務ノイズ、既存ルールとの整合を見て戻す。
 
+## 2026-05-01 Pro 分析後の運用前提
+
+Pro 分析では、現行骨格は維持すべきと判断された。理由は、サービス契約、取引状態、返信自然さ、監査学習を同じ場所に混ぜず、分離を保てているため。
+
+現時点の課題は「新しいレンズ不足」ではなく、増えてきた soft lens の階層化、停止条件、lint 化してよい範囲の明文化である。
+
+今後の正本整理では、次を優先する。
+
+- 新レンズ追加より、既存レンズの分類を明確にする。
+- 1件の監査で複数 soft lens が立った場合でも、primary lens は原則1つに絞る。
+- hard guard は public/private、phase、secret、価格、scope、closed、外部作業面など deterministic な事故に限定する。
+- `block_rhythm_flow`、`permission_benefit_alignment`、`negative_frame_non_echo` などは、原則 soft lens として扱い、単語禁止や句点数 lint へ落とさない。
+- 自然化で迷った場合は、`safe_connection` を gate として使い、契約・約束・支払い導線・作業可否が強く読まれないかを先に見る。
+
+## 4層見取り図
+
+返信OSの正本は、次の4層で見る。層をまたいで問題を直す時は、どの層を動かすかを明記する。
+
+| 層 | 役割 | 主な正本 / 戻し先 |
+| --- | --- | --- |
+| Contract / Grounding | サービス事実、公開可否、価格、scope、secret、支払い導線、closed 境界 | `service-registry.yaml`、サービスページ正本、platform contract、service facts |
+| Reply Decision | phase、主質問、約束の強さ、行為主体、回答順、次アクション | bugfix skill、監査プロンプト、quality cases、failure taxonomy |
+| Surface Naturalness | 日本語実務チャットとしての自然さ、塊感、接続、重さ、距離感 | `japanese-chat-natural-ja`、この lens inventory、gold replies、NG expressions |
+| Learning / Audit | #RE/#BR、外部監査、人間監査、採用判断、履歴 | batch files、change log、acceptance gate、adoption policy |
+
+原則:
+
+- Contract / Grounding の事故を Surface Naturalness の言い換えだけで隠さない。
+- Surface Naturalness の違和感を、Contract / Grounding の hard rule として過剰昇格しない。
+- Coconala 固有制約は platform / service adapter 側に閉じ、将来コアへは抽象能力だけを移す。
+
 ## Soft lens の適用停止条件
 
 soft lens は、文面を自然にするための補助であり、契約・料金・phase・secret・公開状態を上書きしない。
@@ -345,60 +376,126 @@ OK 例:
 | `closed_transaction_model` | closed 後に旧トークルーム継続、無料修正、おひねり追加、返金断定へ滑っていないか |
 | `service_grounding` | 15,000円、不具合1件、原因確認、修正可能時の修正済みファイル返却が正本とズレていないか |
 
-## 現在の分類
+## Pro 後の分類
 
-### 正式主力
+### Hard guard / lint
 
-- `promise_consistency`
-- `conversation_flow_naturalness`
-- `jp_business_native_naturalness`
-- `agency_alignment`
+破ったら事故になる deterministic guard。lint / validator 化してよいのは原則ここだけ。
 
-### 補助主力
+- `public/private boundary`
+  - 通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、private CTA が出る。
+- `phase_boundary`
+  - prequote / quote_sent / purchased / delivered / closed の作業開始・材料共有・成果物返却・見積り導線を混ぜる。
+- `secret_safety`
+  - `.env`、APIキー、Webhook secret、DB接続文字列の値そのものを求める、扱う、一覧化する。
+- `external_work_surface`
+  - 外部連絡、外部決済、Drive/GitHub招待/PRコメント、直接 push、本番反映を受ける。
+- `closed_transaction_model`
+  - closed 後に旧トークルーム継続、無料修正、返金保証、おひねり追加、修正済みファイル返却を約束する。
+- `service_grounding`
+  - 15,000円、不具合1件、購入後原因確認、修正可能時の修正済みファイル返却などの service facts と矛盾する。
+- `overpromise`
+  - `必ず直します`、`今日中に直します`、`無料で対応します` など、証拠・phase に合わない確定 promise を出す。
 
-- `permission_benefit_alignment`
-- `unnecessary_refusal_frame`
-- `negative_frame_non_echo`
+lint 化しないもの:
 
-### 観察中
+- `はい`
+- `まずは`
+- `大丈夫です`
+- `相談できます`
+- `確認できます`
+- `〜の件`
+- 句点数、段落数、文数
 
-- `conditional_scope_clarity`
-- `ack_to_answer_bridge`
-- `responsibility_admission_guard`
-- `pressure_word_summarization`
-- `block_rhythm_flow`
-- `safe_connection`
-- response_weight calibration
-- voice ownership
-- certainty calibration
-- burden alignment
-- explicit symptom coverage
-- next action clarity
-- fixed time sanity
+これらは語単体で見ず、行為主体・約束の強さ・会話の流れ・実務上の自然さで見る。
 
-### hard guard
+### Formal soft lens
 
-- public/private
-- phase
-- secret
-- external work surface
-- closed transaction
-- service grounding
+毎回見てもよいが、必ず修正するとは限らない主力レンズ。
 
-## Pro に見せるなら聞くこと
+| lens | 扱い |
+| --- | --- |
+| `promise_consistency` | 維持必須。前段の留保・不可・条件付き回答を、後段の成果物・納期・料金・次アクションが上書きしていないかを見る。deterministic な約束違反だけ hard guard 側へ送る。 |
+| `conversation_flow_naturalness` | 上位の自然さレンズとして維持。受け止め、直答、条件、次アクションの流れを見る。 |
+| `jp_business_native_naturalness` | 日本語実務チャットとしての違和感を見る umbrella lens。語句 blanket NG には使わない。 |
+| `agency_alignment` | 維持必須。誰が何をするか、誰が依頼・確認・共有するかの主体ズレを見る。 |
+| `negative_frame_non_echo` | 維持。返金、無料、怒り、責任追及、否定されたネガティブ意図をそのまま復唱せず、実務判断へ要約できているかを見る。 |
+| `response_weight_mismatch` | 維持。低リスクは軽く、高リスクは境界を残す判断に使う。 |
+| `answer_order_calibration` | Formal soft lens だが統合候補。主質問への直答順を見る。`response_weight_mismatch` / `conversation_flow_naturalness` と重複するため primary lens 乱立は避ける。 |
 
-次に Pro へ聞くなら、この棚卸しを前提に以下を確認する。
+### Soft subtype
 
-1. `正式主力 / 補助主力 / 観察中 / hard guard` の分類は妥当か。
-2. `agency_alignment`、`permission_benefit_alignment`、`unnecessary_refusal_frame` は `jp_business_native_naturalness` 配下の named soft lens として十分か、それとも独立レンズにすべきか。
-3. `negative_frame_non_echo` を補助主力に置く判断は妥当か。`responsibility_admission_guard` と `pressure_word_summarization` は独立レンズにせず subtype に留めるべきか。
-4. `promise_consistency` と `conditional_scope_clarity` の境界は分けるべきか、subtype として統合すべきか。
-5. lint 化してよいものと、gold / reviewer prompt / human audit に留めるべきものの線引き。
-6. 将来の返信OSコアとして、このレンズ体系は他サービス・他媒体に拡張しやすいか。
+formal soft lens の下位観点として使う。単独で hard fail にしない。
+
+| subtype | 上位 lens / 扱い |
+| --- | --- |
+| `permission_benefit_alignment` | `agency_alignment` / `jp_business_native_naturalness` 配下。`大丈夫です` などが buyer benefit ではなく seller の許可調になっていないかを見る。 |
+| `unnecessary_refusal_frame` | `negative_frame_non_echo` / `response_weight_mismatch` 配下。buyer が求めていない拒否を先に出していないかを見る。 |
+| `responsibility_admission_guard` | `negative_frame_non_echo` 配下。closed 後や未確認状態で、過失・前回ミス・返金/無料対応を認めたように見えないかを見る。 |
+| `pressure_word_summarization` | `negative_frame_non_echo` 配下。圧力語を、作業可否・費用や返金の扱い・前回修正との関係へ要約する。 |
+| `block_rhythm_flow` | `conversation_flow_naturalness` 配下。処理文・条件文・安全説明が同じリズムで並ぶ時、`fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` を分ける。lint 化しない。 |
+| `buyer_burden_alignment` | `conversation_flow_naturalness` / `response_weight_mismatch` 配下。buyer に不要な判断・材料選別を押し戻していないかを見る。 |
+| `conditional_scope_clarity` | `promise_consistency` 近接。同一原因・別原因・修正可能時などの条件が明瞭かを見る。 |
+| `ack_to_answer_bridge` | `conversation_flow_naturalness` 配下。受け止めから主回答への橋を見る。 |
+
+### Gate / stop condition
+
+| gate | 扱い |
+| --- | --- |
+| `safe_connection` | 自然化前の停止条件。文を滑らかにつなぐ前に、同じ役割・同じ約束レベルの文だけを接続しているかを見る。独立レンズというより gate として使う。 |
+| `overfire_risk` | soft lens の修正案が、必要な拒否、価格、scope、phase、secret、支払い導線、作業可否を弱める時に止める。 |
+
+### Gold-only / anchor
+
+文体・比較例・判断順序の anchor として残す。原則として lint / hard rule にしない。
+
+- `case_label_distance` / `topic_label_distance`
+  - `〜の件` を blanket NG にせず、buyer の困りごとを遠い案件ラベルにしている時だけ見る。
+- `pressure_word_summarization` の良い言い換え例
+  - 圧力語を消しすぎず、実務判断へ変換する例として使う。
+- `block_rhythm_flow` の対比例
+  - 短くても安全 / 重くても必要 / つなぐと危険の比較 anchor として使う。
+
+### Observe only
+
+今は記録・観察に留め、複数 batch で再発した時だけ昇格を検討する。
+
+- `voice_ownership`
+  - FAQ や窓口案内ではなく、この場の担当者が返している文に見えるか。強めすぎると責任承認・過約束に寄る。
+- `certainty_calibration`
+  - `promise_consistency` / `commitment_strength_calibration` へ統合寄り。独立 hard lens にはしない。
+- `explicit symptom coverage`
+  - buyer が書いた明示症状を落としていないか。原則 case_fix / gold で扱う。
+- `next action clarity`
+  - buyer が次に何をすればよいかを見る。phase / conversation flow の補助。
+- `fixed time sanity`
+  - `本日HH:MMまで` が送信時刻と矛盾しないか。運用チェック。
+
+## 監査出力での推奨フォーマット
+
+soft lens が複数立つ場合は、全部を修正対象にせず、主に見る lens を1つに絞る。
+
+```text
+primary_lens: response_weight_mismatch
+secondary_lenses:
+  - answer_order_calibration
+soft_lens_result: fix_recommended
+hard_guard_impact: none
+contract_risk_if_changed: low
+return_target: batch / gold / reviewer_prompt / none
+```
+
+判定の目安:
+
+- `hard_guard_impact` がある場合は、soft lens 名ではなく、実際に壊れている guard 名で必須修正にする。
+- `contract_risk_if_changed` が高い場合は、多少硬くても `acceptable_as_is` とする。
+- `return_target` は最小にする。1件の違和感で skill / prompt / lint / gold を同時に動かさない。
 
 ## 直近の運用方針
 
-- `negative_frame_non_echo` は bugfix64〜66 で採用圏が続いたため、次に Pro へ投げる価値は出ている。
-- ただし今すぐではなく、次に `#RE` を1〜2本回し、`responsibility_admission_guard` / `pressure_word_summarization` が別パターンでも過剰反応しないことを確認してからが理想。
-- Pro に投げる場合は、この棚卸しメモ、Gold 39、bugfix64〜66 の r0/r1 差分、監査プロンプトをセットで見せる。
+- 次は新レンズ追加ではなく、`#RE80 closed / refund / free / previous-mistake stress batch` を回す。
+- その次に、`#RE81 low-risk / high-risk paired batch` を回し、同じ質問でも場面の重さで文体と境界が変わるか確認する。
+- `lens inventory` はこの分類を維持し、今後の変更は分類の移動として記録する。
+- Gold replies は番号・参照整合性を確認し、必要なら README の family index を更新する。
+- メール対応は今すぐ実装しない。将来のために `surface_profile: chat | email` の概念だけ壊さず、まずはチャット標準品質を締める。
 - #RE の候補は `writer_candidate_manual` / #R 相当を維持し、renderer 固有のぶつ切り癖を本丸の品質問題と誤認しない。

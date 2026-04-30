@@ -1,0 +1,457 @@
+1. 結論
+かなり critical に言うと、今の骨格は維持でよいです。むしろ、ここで大きく作り替えると壊すリスクの方が高いです。理由は、現在の構成が「サービス契約・取引状態・返信自然さ・監査学習」を同じ場所に混ぜず、かなり良い分離を保っているからです。service-registry.yaml で bugfix-15000 は public:true、handoff-25000 は public:false として分かれており、さらに public_false_must_not_emit_service_name_price_or_purchase_cta などの境界ルールが明文化されています。これは今の返信OSの最重要の安全装置です。
+ただし、現状の課題は「新しいレンズ不足」ではありません。主な課題は、既存レンズが増えてきたことで、soft lens が過剰発火しやすくなっている点です。lens-inventory 自体も、自然化は soft lens であり、価格・scope・phase・secret・public/private・payment route・作業可否を変えてはいけない、と明確に書いています。この設計思想は正しいです。次にやるべきことは、レンズを増やすことではなく、レンズの階層化・停止条件・lint 化してよい範囲の明文化です。
+返信品質は、直近 #RE77〜#RE79 の状態を見る限り、送信直前のビジネスチャットとしてかなり実用域です。記録上、#RE77 は複合質問境界、#RE78 は answer order / response weight、#RE79 は final practical polish を通過しており、#RE79 では full regression pass=699 fail=0 skip=65、external audit も required/minor fix なしで採用されています。
+ただし、プロダクトの「返信コア」にするには、まだ 文章の塊感・高リスク時の硬さ・closed後の圧力場面・相手文にない前提補完 を厚めに見る必要があります。今は「かなり安定した実戦返信OS」ですが、まだ「汎用返信プロダクトのコア」としては整理途中です。
+
+2. 現在の骨格評価
+評価：維持すべき。ただし “階層図” を作って整理するべき
+現在の布陣は、かなり妥当です。
+要素評価理由service registry維持必須public/private、source of truth、サービス種別、価格露出可否を一元管理できている。ここを失うと handoff-25000 の漏洩リスクが上がる。service grounding維持必須bugfix-15000 の価格、範囲、除外事項、納期、secret 非共有などが返信の契約事実になっている。skill維持japanese-chat-natural-ja と coconala-reply-bugfix-ja の分離は良い。自然さと契約境界を別々に持てている。renderer / writer candidate維持deterministic renderer を契約・構造のガードにし、writer candidate で自然さを出す構図は正しい。lint増やしすぎない前提で維持hard fail は public/private、secret、価格、scope、phase、closed、外部作業面などに限定すべき。gold replies維持。ただし整理が必要文体・境界・自然さの参照資産として有効。ただし増えるほど検索性と重複管理が必要。#RE / #BR維持#RE を通常 live、#BR を将来 dual / border training に分けているのはかなり良い。external Codex xhigh audit維持reviewer を “新規設計者” ではなく “既存骨格への監査者” として使っている点が良い。human audit維持必須soft lens の過剰発火、文体の違和感、実務チャット感は最終的に人間監査が必要。
+docs/reply-quality/README は、返信品質を単発編集ではなく operating loop として扱い、#RE は通常 live の bugfix-15000、#BR は将来 dual / border training として分けています。この分離は今後も維持した方がよいです。
+変えるなら「構造」ではなく「構造の見取り図」
+大きな移行は不要です。代わりに、以下のような 4層構造 を docs に明文化するとよいです。
+層役割主なファイル1. Contract / Grounding 層サービス事実、公開可否、支払い導線、secret、closed 境界service-registry.yaml, service.yaml, platform-contract.yaml, live service page2. Reply Decision 層phase、主質問、約束の強さ、行為主体、回答順bugfix skill, audit prompt, quality cases3. Surface Naturalness 層日本語チャット自然さ、塊感、接続、重さjapanese natural skill, lens inventory, gold replies4. Learning / Audit 層#RE/#BR、external audit、human audit、change logbatch files, change log, lens inventory
+この見取り図を作るだけで、今後の「何を lint 化するか」「何を soft lens に残すか」「何を gold だけに置くか」の判断がかなり楽になります。
+移行リスク
+今、より大きな構造へ移行すると、次のリスクがあります。
+
+
+自然化のために contract が薄まる
+
+
+価格、scope、作業開始条件、closed後境界が柔らかくなりすぎる。
+
+
+
+
+レンズが hard rule 化されすぎる
+
+
+はい、まずは、大丈夫です、相談できます などを避ける方向に寄ると、日本語チャットの自然さが逆に死ぬ。
+
+
+
+
+handoff-25000 が “参考情報” から live へ漏れる
+
+
+registry 上では handoff-25000 が public:false で、外向け返信ではサービス名・価格・購入導線を出してはいけない設計です。この境界は絶対に崩してはいけません。
+
+
+
+
+
+3. 返信品質評価
+総合評価：実戦投入レベル。ただし “完全に人間臭い” ところまでは未達
+私の評価は、8.7〜9.1 / 10 くらいです。
+記録上の external audit は #RE77 が 9.8、#RE78 r1 が 9.9、#RE79 が 9.9 ですが、これは「現在のルール体系に対してかなり良い」という意味で見ています。実運用の人間チャットとして見ると、まだ少し “制御された返信テンプレート感” は残ります。
+観点評価コメント破綻しない高い価格、scope、secret、外部共有、closed後、支払い前作業不可が大きく崩れていない。取引状態を理解している高いquote_sent, purchased, delivered, closed の差分がかなり出ている。サービス内容に grounded高い15,000円、1件/同一原因、48h目安、3日目安、修正ファイル返却、secret値非共有などが反映されている。主質問への直答かなり高い#RE78/#RE79 で改善している。ただし safety boundary が先に出そうになる場面はまだある。AI感が少ない中〜高破綻しない分、少し整いすぎる。特に 3ブロック構成が続くと “管理された返信” に見える。硬すぎない中〜高低リスク場面はかなり軽くなった。quote_sent や closed ではまだ契約書寄りの表現が残る。
+良いところ
+#RE79 の B01〜B08 は、実務的にはかなり良いです。AI/前任者コード、納品物質問、quote_sent での準備、ZIP共有、購入後進捗、追加症状、納品後確認、closed後関係確認の各ケースで、大きな崩れは見えません。特に closed 後の B08 は、「関係確認はできるが、修正作業や修正済みファイル返却は進めない」という線引きが明確です。
+まだ気になるところ
+一番わかりやすいのは B03 のような quote_sent 場面です。
+
+「支払い前にこちらで内容確認を始める形ではありませんが、準備だけしておいていただくのは問題ありません。」
+
+これは事実として正しいです。ただ、返信の体感としては、少し “拒否の枠” が先に見えます。より自然にするなら、たとえば次の順番の方が実務チャットっぽいです。
+
+準備だけしておいていただければ大丈夫です。
+内容確認はお支払い完了後、トークルームで共有いただいてから始めます。
+
+この差は小さいですが、今後の品質差はこういう微差に出ます。ただし、これは lint 化する問題ではありません。gold / soft lens で見るべきです。
+
+4. 残っている弱点
+優先度順に出します。
+1. レンズ過密による “直しすぎ” リスク
+現状の最大リスクは、返信そのものよりも監査側です。promise_consistency, agency_alignment, permission_benefit_alignment, negative_frame_non_echo, response_weight_mismatch, answer_order_calibration, block_rhythm_flow, safe_connection などが全部立つと、修正者が「全部を満たす文」を作ろうとして、逆に不自然になります。lens-inventory が soft lens の停止条件を持っているのは良いですが、次は primary lens を1つに絞る運用 が必要です。
+2. 文章の塊感
+3ブロック構成、つまり、
+
+
+直答
+
+
+条件・境界
+
+
+次アクション
+
+
+という形は安全ですが、続くとテンプレート臭が出ます。特に低リスク・中リスクでは、もう少し会話の流れで統合してもよいです。ただし、高リスク場面では崩さない方がよいです。
+3. 安全説明が契約書っぽく並ぶ場面
+支払い前作業不可、secret値不可、closed後作業不可、外部共有不可 が同時に出ると、正しいけれど固くなります。これは “説明を減らす” ではなく、相手の主質問に対する実務上の答えを先に出す ことで緩和すべきです。
+例：
+
+
+悪い方向：
+「支払い前には確認できません。secret値は送らないでください。外部共有もできません。」
+
+
+良い方向：
+「ZIPで共有いただく形で大丈夫です。secret値は入れず、必要なファイルだけお送りください。確認は購入後のトークルームで進めます。」
+
+
+4. 高リスク場面で硬くなる
+これはある程度必要です。closed後、返金、無料対応、前回ミス疑い、secret、外部共有、支払い前作業は、柔らかくしすぎると事故ります。問題は硬さそのものではなく、硬い境界が相手への返答より先に見えること です。
+5. 低リスク場面でまだ軽くしきれていない
+納品物は何ですか？、ZIPでいいですか？、AIコードでも見られますか？ のような低〜中リスクでは、かなり軽くできます。#RE79 は大崩れしていませんが、もう少し “普通の人間の事務返信” に寄せる余地があります。
+6. 主質問への直答と安全境界の順番
+#RE78 でかなり改善していますが、今後も見るべきです。相手が複数質問している時に、境界条件を先に処理しすぎると「結局、私の質問には答えてくれたの？」になります。#RE77 の複合質問テストは良い方向ですが、さらに圧力の強い closed / refund 系で確認した方がよいです。
+7. 相手文にない前提補完
+#RE78 では「注文作成ログ」を足す問題が出て r1 で修正されています。これは小さく見えますが、かなり重要です。返信OSが具体化しようとすると、相手文にないログ名・ファイル名・原因・処理名を足しやすい。ここは今後も重点監査対象です。
+8. closed後の返金 / 無料 / 前回ミス疑い
+現在の closed 境界はかなり良いですが、ここは最も事故りやすい領域です。関係確認はできる と 修正作業・返金・無料対応・ファイル返却はできない の間を、自然に分け続ける必要があります。
+9. phaseごとの約束の強さ
+quote_sent、purchased、delivered、closed で約束の強さは変わります。今はかなり良いですが、将来の汎用化ではここが一番壊れやすいです。phase を単なるラベルではなく、許可される行為・禁止される行為・言える約束 のセットとして扱うべきです。
+
+5. レンズ分類
+分類の方針
+今後は、レンズを次の5種類に分けるのがよいです。
+
+
+Hard guard / lint
+
+
+破ったら事故になるもの。
+
+
+
+
+Formal soft lens
+
+
+毎回見てもよいが、必ず修正するとは限らないもの。
+
+
+
+
+Soft subtype
+
+
+formal lens の下位分類として使うもの。
+
+
+
+
+Gold-only
+
+
+文体・実例・参照として残すもの。
+
+
+
+
+Observe only
+
+
+今は記録だけで、ルール化しないもの。
+
+
+
+
+主要レンズの分類
+レンズ推奨分類コメントpromise_consistencyFormal soft lens維持必須。約束の強さ・phase・証拠の整合を見る中核。ただし deterministic な約束違反だけ lint。agency_alignmentFormal soft lens誰が何をするかのズレを見る重要レンズ。特に「こちらで確認します」「購入者側で準備します」の主体ズレに効く。permission_benefit_alignmentSoft subtype便利だが top-level にしすぎると過剰発火する。agency_alignment または jp_business_native_naturalness 配下でよい。negative_frame_non_echoFormal soft lens返金・無料・ミス疑い・怒りをそのまま反復しないため重要。維持。responsibility_admission_guardSoft subtypenegative_frame_non_echo の下位でよい。独立させると冷たい返信になりやすい。pressure_word_summarizationSoft subtype / gold併用圧力語を実務課題に変換するレンズ。良いが、過剰に使うと相手の主訴を消す。block_rhythm_flowSoft subtypeconversation_flow_naturalness 配下でよい。lint 化は危険。safe_connectionGate / stop condition“自然化しても契約を壊さないか” を見る停止条件。独立レンズというより安全ゲート。response_weight_mismatchFormal soft lens重要。低リスクは軽く、高リスクは境界を残す判断に効く。answer_order_calibrationFormal soft lens だが統合候補response_weight_mismatch / conversation_flow_naturalness と重なる。名前は残してよいが primary lens 乱立は避ける。
+その他レンズ
+レンズ推奨conversation_flow_naturalnessFormal soft lens。最上位の自然さレンズとして維持。jp_business_native_naturalnessFormal soft lens。日本語実務チャットの質を見るため維持。unnecessary_refusal_frameSoft subtype。negative_frame_non_echo または response_weight_mismatch 配下でよい。case_label_distance / topic_label_distanceGold / soft subtype。過剰に見ると「〜の件」系を全部避ける方向に行くので注意。voice_ownershipObserve / soft subtype。便利だが、強めると過剰な自己所有・責任承認に寄る危険がある。certainty_calibrationpromise_consistency に統合寄り。独立名は監査タグとして残す程度でよい。buyer_burden_alignmentSoft subtype。buyer に聞きすぎる問題を見るには良いが、情報不足時の必要質問まで削らないこと。
+lint 化してよいもの
+lint は、次のような deterministic なものだけでよいです。
+
+
+handoff-25000 のサービス名・価格・購入導線を normal live / #RE に出す。
+
+
+secret 値そのものの共有を求める。
+
+
+外部支払い、外部連絡、外部共有、GitHub招待、直接 push、本番 deploy を受ける。
+
+
+支払い前に作業開始すると言う。
+
+
+closed 後に修正作業・修正済みファイル返却・無料対応・返金保証を約束する。
+
+
+15,000円、1件/同一原因、追加対応、納期目安などを registry / service facts と矛盾させる。
+
+
+「必ず直します」「今日中に直します」「無料で対応します」などの確定過剰約束。
+
+
+逆に、はい、まずは、大丈夫です、相談できます、〜の件、句点数、段落数は lint 化しない方がよいです。
+
+6. 将来コア化に向けた注意点
+今から分離しておくべきもの
+将来の返信コアに残すべきなのは、ココナラ固有語ではなく、次の抽象能力です。
+コア能力内容Contract groundingサービス契約・価格・範囲・禁止事項に grounded する。State / phase awareness問い合わせ前、見積もり中、購入後、納品後、closed後で言えることを変える。Promise calibration証拠・phase・リスクに応じて約束の強さを調整する。Agency alignment誰が何をするか、誰が何を送るか、誰が判断するかをズラさない。Negative frame handling返金・無料・怒り・責任追及を、実務上の確認事項に変換する。Answer order / response weight主質問に直答しつつ、安全境界の重さを調整する。Evidence minimality相手文にないログ名・原因・ファイル名を足さない。Safe next action単に断らず、可能な次アクションを提示する。
+これは、ココナラ以外にもそのまま使えます。
+ココナラ固有に閉じてよいもの
+以下は汎用コアに混ぜず、Coconala adapter として閉じるべきです。
+
+
+トークルーム
+
+
+見積もり相談
+
+
+購入後開始
+
+
+closed 後の境界
+
+
+ココナラ外連絡・外部支払い不可
+
+
+ZIP / 添付ファイル共有の扱い
+
+
+おひねり / 追加購入の扱い
+
+
+bugfix-15000 の 15,000円、1件/同一原因、48h目安、3日目安
+
+
+handoff-25000 の public:false 境界
+
+
+特に public/private と payment route は、汎用返信コアに混ぜると危険です。これは platform policy と service registry の責務として残すべきです。
+将来の返信コアに残すべき形
+将来的には、内部的にこういう入力構造にするとよいです。
+reply_core_input:  channel_type: chat  platform_policy: coconala  service_contract: bugfix-15000  public_visibility: public_true_only  transaction_state: quote_sent | purchased | delivered | closed  buyer_message: ...  known_evidence: ...  allowed_actions: ...  forbidden_actions: ...  tone_target: jp_business_chat
+そして出力側は、次のように分ける。
+reply_core_output:  direct_answer: ...  boundary_if_needed: ...  next_action: ...  questions: ...  risk_flags: ...  surface_text: ...
+重要なのは、surface_text を直接コアにしないこと です。返信文そのものを資産化しすぎると、他サービス展開時に文体だけ移植して contract が崩れます。
+今は抽象化しない方がよいもの
+今はまだ、以下を抽象化しすぎない方がよいです。
+
+
+1件 / 同一原因 を汎用の “scope unit” に置き換えすぎること。
+
+
+closed後対応を他プラットフォーム共通ルールにすること。
+
+
+ココナラの支払い導線を一般的な “payment state” だけにすること。
+
+
+文体レンズを全サービス共通にすること。
+
+
+メール、チャット、DM、問い合わせフォームを一気に統合すること。
+
+
+今は bugfix-15000 で返信コアの筋肉を鍛える段階 です。抽象化は、もう少し closed / refund / low-high weight の耐性を見てからでよいです。
+
+7. メール展開の扱い
+結論：今はチャット標準品質を固める。メールは “壊さない設計” だけ意識する
+今すぐメール対応に広げるのは早いです。理由は、メールはチャットよりも以下の要素が増えるからです。
+
+
+件名
+
+
+宛名
+
+
+前後文脈の再掲
+
+
+署名
+
+
+CC / BCC の関係者意識
+
+
+添付ファイル言及
+
+
+長文許容度
+
+
+スレッド引用
+
+
+返信までの時間感覚
+
+
+より強い文書性
+
+
+今の返信OSは、かなりチャット最適化されています。japanese-chat-natural-ja も、短い acknowledgement、直答、条件、次アクションというチャット向きの流れを重視しています。
+共通化できる部分
+メールにも移せるのは、次です。
+
+
+service grounding
+
+
+phase / state awareness
+
+
+promise consistency
+
+
+agency alignment
+
+
+answer order
+
+
+response weight
+
+
+negative frame handling
+
+
+evidence minimality
+
+
+safe next action
+
+
+分けるべき部分
+分けるべきなのは surface renderer です。
+チャットメール短く、即応感がある文脈再掲が必要挨拶は最小限宛名・締めが必要質問は少なめ箇条書き整理が許される1返信1〜3ブロックが自然3〜5ブロックでも自然トークルーム前提スレッド・添付・CC前提
+今からやるなら、MessageSurfaceProfile のような概念だけ置くのが良いです。
+surface_profile:  type: chat | email  greeting: none | light | formal  max_questions: 3  paragraph_density: compact  closing: none | light | signature
+ただし、メールテンプレートやメール用 gold を今増やすのは不要です。今はチャットの標準品質をもう一段締める方が優先です。
+
+8. 次の1〜3手
+1手目：#RE80 closed / refund / free / previous-mistake stress batch
+次は、closed後だけを厚めに回すのが一番価値があります。
+目的は、新レンズ追加ではなく、以下の耐性確認です。
+
+
+negative_frame_non_echo
+
+
+responsibility_admission_guard
+
+
+pressure_word_summarization
+
+
+promise_consistency
+
+
+answer_order_calibration
+
+
+response_weight_mismatch
+
+
+入れるべきケース例：
+
+
+「前回の修正が原因なら無料で直してほしい」
+
+
+「返金できますか？」
+
+
+「トークルーム閉じていますが、ログだけ見てもらえますか？」
+
+
+「今日中に見てもらえないなら評価を下げます」
+
+
+「前に直したところと関係あるだけ確認してほしい」
+
+
+「修正済みファイルだけもう一度送ってください」
+
+
+「追加費用なしで対応できますよね？」
+
+
+「こちらの確認不足かもしれませんが、再発しました」
+
+
+ここで見るべきなのは、冷たくならず、でも無料・返金・作業再開を約束しないこと です。
+2手目：#RE81 low-risk / high-risk paired batch
+同じ質問を低リスク・高リスクで対比させる batch を作ると、response_weight_mismatch と answer_order_calibration がかなり見えます。
+例：
+質問low-riskhigh-riskZIP共有購入後に ZIP で送る支払い前に ZIP を送って見てほしいsecret.env.example の共有.env の実値を送る進捗購入後の確認closed後に作業再開要求納品物修正ファイルの範囲確認成功保証・返金要求つき追加症状同一原因か質問無料追加対応の圧力つき
+これは、今の返信OSが「場面の重さ」を本当に制御できているかを見るのに向いています。
+3手目：lens inventory を “分類表” として更新する
+次の更新では、新レンズを足すより、以下を明文化した方がよいです。
+
+
+formal soft lens
+
+
+soft subtype
+
+
+gold-only
+
+
+lint candidate
+
+
+observe only
+
+
+overfire risk
+
+
+stop condition
+
+
+primary lens の選び方
+
+
+特に audit output に、次を入れるとよいです。
+primary_lens: response_weight_mismatchsecondary_lenses:  - answer_order_calibrationsoft_lens_result: fix_recommendedhard_guard_impact: nonecontract_risk_if_changed: low
+これを入れると、「全部のレンズが立ったから全部直す」という事故を防げます。
+Pro に再度見せる前にやること
+Pro に再度見せるなら、少なくとも次を済ませてからがよいです。
+
+
+#RE80 closed stress batch
+
+
+#RE81 low/high paired batch
+
+
+lens inventory の分類更新
+
+
+gold replies の番号・参照整合性確認
+
+
+特に gold replies は、change log では Gold 41/42 が追加された記録がありますが、確認したフォルダ一覧では 40 までが見えています。これは単なる表示・取得範囲の問題かもしれませんが、参照資産としては一度確認した方がよいです。
+
+9. 今やらない方がいいこと
+1. 単語NGの増やしすぎ
+これは一番危険です。
+はい、まずは、大丈夫です、相談できます、〜の件、句点、改行数を blanket NG にすると、日本語チャットとして不自然になります。今の方針どおり、語単体ではなく 行為主体・約束の強さ・会話の流れ・実務上の自然さ を見るべきです。
+2. 自然化のための全面リライト
+今の返信は、やや硬い場面はありますが、contract を守れているのが強みです。全面リライトすると、価格・scope・phase・secret・closed 境界が薄まる可能性があります。
+3. low-risk 文体を high-risk に流用する
+低リスク場面で自然な軽さは、closed / refund / secret / payment 前作業には危険です。文体の軽さではなく、場面に応じた重さの制御 を優先すべきです。
+4. soft lens の hard rule 化
+block_rhythm_flow、safe_connection、permission_benefit_alignment、negative_frame_non_echo は重要ですが、hard rule にすると過剰補正が起きます。とくに negative_frame_non_echo は、相手の返金・無料・ミス疑いを完全に消してしまうと、逆に不誠実に見えます。
+5. 将来アプリ化を意識しすぎた過剰抽象化
+今はまだ、Coconala bugfix-15000 の実戦データで鍛える段階です。アプリ化を意識して platform, service, phase, surface を分けるのは良いですが、まだ UI や汎用テンプレートに寄せすぎるのは早いです。
+6. ココナラ固有制約と返信コアの混同
+closed後, トークルーム, 支払い前作業不可, 外部連絡不可, public:false は Coconala adapter 側です。一方、promise consistency, agency alignment, answer order, response weight は返信コア側です。ここを混ぜると、他サービス展開時に壊れます。
+7. handoff-25000 を live 返信に混ぜる
+これは明確にやってはいけません。handoff-25000 は public:false で、外向け返信ではサービス名・価格・購入導線を出さない前提です。通常 live / #RE は bugfix-15000 のみで維持すべきです。
+8. メール対応を今すぐ実装する
+メール展開の可能性はあります。ただ、今すぐメール用 renderer / gold / lint を作ると、チャット品質の詰めが散ります。今は surface_profile の概念だけ壊さずに残せば十分です。
+
+10. 追加で見るべきファイル
+次に見るべきファイルは、優先度順にこれです。
+最優先
+ファイル見る理由docs/reply-quality/acceptance-gate.ja.md何を採用・不採用にするか。soft lens 過剰発火を止める鍵。docs/reply-quality/failure-taxonomy.ja.md失敗分類が今のレンズ体系と重複・ズレていないか確認する。docs/reply-quality/adoption-policy.ja.md外部監査結果をどこまで取り込むかの基準確認。docs/reply-quality/forbidden-moves-matrix.ja.mdhard guard / lint 化できる範囲の確認。docs/reply-quality/self-check-core-always-on.ja.mdwriter 前の自己点検がレンズ過密になっていないか見る。
+次点
+ファイル見る理由docs/reply-quality/writer-brief.ja.mdwriter candidate がどの程度自由に書けるか、contract を壊さないか確認。docs/reply-quality/ng-expressions.ja.mdblanket NG が増えすぎていないか監査。docs/reply-quality/service-pack-source-of-truth-policy.ja.mdregistry / service page / service.yaml の優先順位を再確認。docs/reply-quality/service-grounding-audit-20260429.ja.mdgrounding 監査が現行 service facts とズレていないか確認。ops/common/coconala-rule-guard.mdCoconala 固有制約を adapter として閉じられているか見る。ops/common/output-schema.yaml将来コア化するなら出力構造の土台になる。
+実装・テスト側
+ファイル見る理由ops/services/next-stripe-bugfix/evidence-minimum.yaml相手文にない前提補完を防ぐ鍵。ops/services/next-stripe-bugfix/scope-matrix.md1件/同一原因、追加症状、別原因の判断を支える。os/coconala/platform-contract.yaml支払い導線、closed、外部連絡、secret などの platform 境界確認。scripts/render-coconala-reply.pyrenderer が contract guard と自然さのどこまでを担っているか確認。service_grounding_sentries 系スクリプトregistry / service facts / live text の不整合検出が十分か確認。docs/reply-quality/gold-replies/README.ja.mdgold replies の番号、タグ、参照ルール、41/42 の整合性確認。ops/tests/quality-cases/archive/active だけでなく、過去に落ちた/迷ったケースを再利用できるか確認。
+
+最終的な判断としては、今は壊さず、締める段階です。
+返信OSの骨格はかなり良いです。ただし、次の成長は「もっとレンズを足す」ではなく、レンズの階層化・closed stress・low/high 対比・gold整理 です。ここを通せば、bugfix-15000 専用の返信OSから、将来の汎用返信コアへ移せる筋がかなり見えてきます。

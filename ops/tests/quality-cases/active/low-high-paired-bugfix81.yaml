@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC81-001
+    stock_id: HRC81-001
+    category: low_high_paired
+    route: estimate
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: quote_sent_related_files_after_payment
+    question_type: quote_sent_related_files_after_payment
+    primary_question: 支払い後に、プロジェクト全部ではなく関係ファイルだけ送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後にファイルを送るとき、プロジェクト全部ではなくStripeと注文作成に関係しそうなファイルだけでも問題ありませんか？"
+    note: 通常 live / #RE。低リスクの材料共有。購入後トークルーム共有へ軽く案内しつつ、secret値を含めない線を保てるかを見る。
+
+  - id: HRC81-002
+    stock_id: HRC81-002
+    category: low_high_paired
+    route: estimate
+    state: quote_sent
+    user_type: buyer
+    emotional_tone: hesitant
+    scenario: quote_sent_github_before_payment_cause_first
+    question_type: quote_sent_github_before_payment_cause_first
+    primary_question: 支払い前にGitHub招待とログ共有をして、原因だけ先に見てもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にGitHubへ招待するので、先にコードとログを見て原因だけ確認してもらえますか？直りそうなら購入します。"
+    note: 通常 live / #RE。高リスクの支払い前作業・GitHub作業面。購入前確認に入らず、支払い後トークルーム内ZIP/添付へ戻せるかを見る。
+
+  - id: HRC81-003
+    stock_id: HRC81-003
+    category: low_high_paired
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: careful
+    scenario: purchased_key_names_settings_screenshot
+    question_type: purchased_key_names_settings_screenshot
+    primary_question: Stripe関連のキー名と設定画面スクショだけで足りるか、値も必要かを知りたい。
+    raw_message: "Stripe関連のキー名だけ共有し、設定画面のスクショも送りました。値そのものは送っていません。この情報で確認に入れますか？"
+    note: 通常 live / #RE。低リスクのsecret-safe材料。値不要を自然に伝え、次に見る箇所へつなげる。
+
+  - id: HRC81-004
+    stock_id: HRC81-004
+    category: low_high_paired
+    route: message
+    state: purchased
+    user_type: buyer
+    emotional_tone: rushed
+    scenario: purchased_env_values_maybe_in_logs
+    question_type: purchased_env_values_maybe_in_logs
+    primary_question: .env値やStripe secret keyが含まれる可能性があるログを、そのまま送ってよいか知りたい。
+    raw_message: "ログをまとめて送ろうとしたら.envの値やStripe secret keyも入っていそうです。そのまま送った方が早いですか？"
+    note: 通常 live / #RE。高リスクのsecret値共有。早さを理由に値を受けず、値を伏せたログ・キー名・設定箇所へ戻せるかを見る。
+
+  - id: HRC81-005
+    stock_id: HRC81-005
+    category: low_high_paired
+    route: message
+    state: purchased
+    user_type: buyer
+    emotional_tone: polite
+    scenario: purchased_progress_short_update
+    question_type: purchased_progress_short_update
+    primary_question: 購入後、急かさずに現在地だけ短く知りたい。
+    raw_message: "昨日ログを送りました。急かすつもりはないのですが、今どこを見ているかだけ短く教えてください。"
+    note: 通常 live / #RE。低リスクの進捗確認。negative frame を復唱せず、現在地と次回見通しへ短くつなげる。
+
+  - id: HRC81-006
+    stock_id: HRC81-006
+    category: low_high_paired
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: urgent
+    scenario: purchased_today_fix_cancel_refund
+    question_type: purchased_today_fix_cancel_refund
+    primary_question: 購入後、本番停止中で今日中に直せるか、難しければキャンセルや返金になるかを知りたい。
+    raw_message: "購入後です。本番が止まっているので今日中に直せますか？難しいならキャンセルや返金になるのかも先に知りたいです。"
+    note: 通常 live / #RE。高リスクの購入後急ぎ・返金圧。今日中修正保証、返金断定、成果物promiseを強めず、すでに受け取っている材料から見通し共有へ戻せるかを見る。
+
+  - id: HRC81-007
+    stock_id: HRC81-007
+    category: low_high_paired
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: delivered_where_to_apply
+    question_type: delivered_where_to_apply
+    primary_question: 納品後、承諾前にどこを反映すればよいかだけ短く知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どこを反映すればいいかだけ短く教えてください。"
+    note: 通常 live / #RE。低リスクのdelivered補足。軽い説明に留め、本格資料・本番反映代行へ広げない。
+
+  - id: HRC81-008
+    stock_id: HRC81-008
+    category: low_high_paired
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cost_anxiety
+    scenario: closed_same_symptom_free_or_repay
+    question_type: closed_same_symptom_free_or_repay
+    primary_question: クローズ後、同じ原因なら無料なのか、別原因なら再度15,000円なのかを知りたい。
+    raw_message: "クローズ後ですが、また同じ症状が出ています。前回と同じ原因なら無料で見てもらえますか？別原因ならもう一度15,000円ですか？"
+    note: 通常 live / #RE。高リスクのclosed費用不安。同じ原因・無料・再料金を未確認で断定せず、関係確認と実作業前相談へ分けられるかを見る。

@@ -1,6 +1,6 @@
 version: 1
 platform: coconala
-last_verified: 2026-04-29
+last_verified: 2026-05-01
 
 purpose: >
   Coconala 全サービス共通の取引仕様と返信ガイダンス。
@@ -88,6 +88,9 @@ facts:
     summary: >
       見積もり相談では、相談 -> 出品者の見積もり提案 -> buyer の承認/購入、の流れがある。
       Workspace の quote_sent は見積り提案済みだが入金完了前の段階で、トークルームが開くのは入金完了後。
+      quote_sent では、現在すでにトークルームで作業中のように書かない。
+      一方で「お支払い完了後にトークルームで共有してください」のように、
+      入金完了後の未来手順としてトークルームを案内することは公式仕様と整合する。
     confidence: official
     outward_assertion: direct
     source_refs:
@@ -147,7 +150,20 @@ facts:
     outward_assertion: cautious
     source_refs:
       - https://coconala-support.zendesk.com/hc/ja/articles/218723147-%E3%83%88%E3%83%BC%E3%82%AF%E3%83%AB%E3%83%BC%E3%83%A0%E3%81%AE%E3%82%AF%E3%83%AD%E3%83%BC%E3%82%BA%E5%BE%8C%E3%81%AB%E8%BF%BD%E5%8A%A0%E3%81%AE%E8%B3%AA%E5%95%8F%E3%82%84%E4%BE%9D%E9%A0%BC%E3%82%92%E3%81%97%E3%81%9F%E3%81%84
+      - https://coconala-support.zendesk.com/hc/ja/articles/218179888-%E3%81%8A%E3%81%B2%E3%81%AD%E3%82%8A-%E8%BF%BD%E5%8A%A0%E6%94%AF%E6%89%95%E3%81%84-%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
       - https://coconala-support.zendesk.com/hc/ja/articles/900001972863-%E3%81%8A%E3%81%B2%E3%81%AD%E3%82%8A-%E6%9C%89%E6%96%99%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3-%E4%B8%80%E9%83%A8%E9%87%91%E9%A1%8D%E3%81%AE%E3%82%AD%E3%83%A3%E3%83%B3%E3%82%BB%E3%83%AB%E6%96%B9%E6%B3%95-%E5%87%BA%E5%93%81%E8%80%85%E5%90%91%E3%81%91
+
+  platform_file_attachment:
+    summary: >
+      メッセージ機能とトークルームの両方でファイル添付は可能。
+      ただし Workspace の通常運用では、購入前にコード一式の重い読解を始める前提にせず、
+      購入後のトークルーム内 ZIP / 関係ファイル共有を優先する。
+      外部共有を避ける方針は Workspace の安全運用であり、外向けに「ココナラ仕様で GitHub / Drive が常に不可」と断定しない。
+    confidence: mixed
+    outward_assertion: cautious
+    source_refs:
+      - https://coconala-support.zendesk.com/hc/ja/articles/218180658-%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E6%B7%BB%E4%BB%98%E6%A9%9F%E8%83%BD%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
+      - /home/hr-hm/Project/work/ops/common/coconala-rule-guard.md
 
   service_scope_vs_payment_route:
     summary: >
@@ -194,6 +210,8 @@ guidance:
     rule: >
       prequote ではトークルーム前提の文言を書かない。
       quote_sent も入金完了前として扱い、トークルームで続ける / 作業中 / 納品後のような文面を出さない。
+      ただし、quote_sent で「お支払い完了後にトークルームが開いたら共有してください」と、
+      未来条件つきの購入後手順として案内するのは許容する。
       purchased / delivered ではトークルーム前提で返し、クローズ後だけメッセージへ戻す。
       closed 後は、旧トークルームでの投稿・ファイル送付・追加購入・継続作業を前提にしない。
       まずメッセージ上で前回との関係を確認し、実作業が必要なら見積り提案または新規依頼へ戻す。
@@ -210,6 +228,9 @@ guidance:
       buyer の不安には提案内容・範囲・購入後の流れで答え、トークルーム open や作業開始を前提にしない。
       「もう作業を始められるか」と聞かれた場合は、現時点では実作業を開始せず、
       購入・入金完了後にトークルームが開いてから正式に作業開始することを返す。
+      「見積り提案の内容で問題なければ、そのままお支払いへ進んでください」は、
+      見積り提案済みであることが buyer 文または state から読める時だけ使う。
+      prequote では、まだ提案済みではないため「見積り提案の内容で問題なければ」と書かない。
       購入前は、必要情報の確認や進め方の整理までに留める。
     based_on:
       - internal_phase_mapping

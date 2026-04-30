@@ -373,6 +373,41 @@ primary_sources:
       - 前任者/AIコード、成果物不安、quote_sent準備、ZIP共有、購入後進捗、追加症状、delivered未解消、closed後関係確認を、answer_order_calibration / response_weight_mismatch / promise_consistency / safe_connection で検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/closed-stress-pro-bugfix80.yaml
+    role: eval
+    purpose:
+      - Pro 2026-05-01 分析後の closed stress 確認。返金・無料対応・前回修正ミス疑い・評価圧・旧トークルーム継続・secret・修正済みファイル再送要求を厚めに見る通常 live #RE
+      - negative_frame_non_echo / responsibility_admission_guard / pressure_word_summarization / promise_consistency / response_weight_mismatch / safe_connection が過剰発火せず、closed 後の関係確認と実作業境界を維持できるかを検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/low-high-paired-bugfix81.yaml
+    role: eval
+    purpose:
+      - Pro 2026-05-01 分析後の low-risk / high-risk paired 確認。同じ論点を低リスクと高リスクの対で置き、軽い場面では重くしすぎず、危険な場面では境界を残せるかを見る通常 live #RE
+      - 材料共有 / secret / 進捗と急ぎ / delivered と closed を対にして、response_weight_mismatch / answer_order_calibration / safe_connection / block_rhythm_flow / promise_consistency を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/platform-phase-contract-bugfix82.yaml
+    role: eval
+    purpose:
+      - ココナラ公式仕様再確認後の platform phase contract 確認。prequote / quote_sent / purchased / closed で、見積り提案前・提案後入金前・購入後トークルーム・クローズ後メッセージの言い分けが崩れないかを見る通常 live #RE
+      - prequote で見積り提案済み文言を使わない、quote_sent で未来条件つきトークルーム案内に留める、purchased で購入後未来形に戻らない、closed で旧トークルーム継続へ戻らないことを検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/platform-phase-contract-bugfix83.yaml
+    role: eval
+    purpose:
+      - platform phase contract の2本目。見積り提案前/提案後入金前/購入後/納品後/closed の実務寄り揺れを確認し、支払い前メッセージ添付、購入期限、購入したつもり発言、購入後トークルーム集約、closed後メッセージ添付と再開不可を検査する通常 live #RE
+      - quote_sent で buyer の購入意思や支払い前ZIP共有に引っ張られず、入金完了後トークルーム開始へ戻す。purchased / delivered では現在トークルーム文脈を扱い、closed では旧トークルーム再開や継続作業を約束しないことを確認する
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/practical-phase-mixed-bugfix84.yaml
+    role: eval
+    purpose:
+      - platform phase contract を通常実務ケースへ戻した混合確認。初回相談、価格/納期/保証、quote_sent の支払い前材料共有と緊急圧、purchased 進捗と追加症状、delivered 補足、closed 費用不安を横断する通常 live #RE
+      - 公式仕様理解が通常返信でも崩れず、低リスクでは重くなりすぎず、高リスクでは支払い前作業・今日中保証・secret・closed後実作業の境界を保てるかを検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

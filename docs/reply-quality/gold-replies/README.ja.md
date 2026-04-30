@@ -93,7 +93,7 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 - Gold 26: `内容ありがとうございます -> この不具合なら15,000円 -> どこで止まっているか確認` の旧三点セット検出。
 - Gold 29: 復旧時間・保証期間・返金/キャンセル質問で、通常の不具合受付テンプレに流さない direct answer。
 - Gold 30/31: 非Stripe名が出た時に、決済サービス全体ではなく `Next.js側のWebhook/API受信処理` へ scope を閉じる。
-- Gold 32/33: `quote_sent` / `closed` の phase 語彙と導線。`トークルーム内` や旧トークルーム継続を validator 候補にする。
+- Gold 32/33: `quote_sent` / `closed` の phase 語彙と導線。`quote_sent` で現在の作業場所として `トークルーム内` と書く事故や、closed 後の旧トークルーム継続を validator 候補にする。入金完了後の未来手順としての `トークルームで共有` は blanket NG にしない。
 - Gold 34: 複合質問で、返金・料金・Slack・秘密情報・closed 後導線など事故りやすい明示質問を落とさない。
 - Gold 35: `response_weight_mismatch` は validator 化せず、短くても安全 / 重くても必要の対比 anchor として使う。
 - Gold 36: `conversation_flow_naturalness` は hard validator 化せず、固定価格・scope・phase を保ったまま、短文断定の連続、確認語密集、次アクション不足を最小差分で整える anchor として使う。

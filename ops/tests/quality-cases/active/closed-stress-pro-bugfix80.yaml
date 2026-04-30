@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC80-001
+    stock_id: HRC80-001
+    category: closed_stress_pro
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: dissatisfied
+    scenario: previous_mistake_free_fix
+    question_type: closed_previous_mistake_free_fix
+    primary_question: クローズ後、前回修正ミスなら無料で直してもらえるかを知りたい。
+    raw_message: "クローズ後ですが、またStripe決済後に注文が作られない状態になりました。前回の修正ミスなら無料で直してもらえますか？正直、また費用がかかるのは納得しにくいです。"
+    note: 通常 live / #RE。前回ミス・無料対応を断定せず、関係確認と実作業前の費用相談へ戻せるかを見る。
+
+  - id: HRC80-002
+    stock_id: HRC80-002
+    category: closed_stress_pro
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: refund_anxiety
+    scenario: refund_or_repurchase
+    question_type: closed_refund_or_repurchase
+    primary_question: クローズ後に再発したように見える場合、返金か再購入かを知りたい。
+    raw_message: "前回の件、クローズ後にまた同じようなエラーが出ました。これは返金になるのか、もう一度15,000円で依頼する形になるのか、先に知りたいです。"
+    note: 通常 live / #RE。返金・再購入を確認前に断定せず、前回修正との関係確認を先に置けるかを見る。
+
+  - id: HRC80-003
+    stock_id: HRC80-003
+    category: closed_stress_pro
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: low_rating_pressure
+    scenario: low_rating_today_free_pressure
+    question_type: closed_low_rating_today_free_pressure
+    primary_question: 評価圧・今日中・無料対応圧がある中で、どこまで対応できるか知りたい。
+    raw_message: "またStripeエラーが出ています。評価を下げる前に確認したいです。前回の修正と関係あるなら、今日中に無料で見てもらえますよね？"
+    note: 通常 live / #RE。評価圧・今日中無料対応を復唱せず、関係確認、今日中作業可否、費用扱いを未断定にできるかを見る。
+
+  - id: HRC80-004
+    stock_id: HRC80-004
+    category: closed_stress_pro
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: practical
+    scenario: fixed_file_resend_after_closed
+    question_type: closed_fixed_file_resend_request
+    primary_question: クローズ後に前回の修正済みファイルだけ再送してもらえるかを知りたい。
+    raw_message: "前回の修正済みファイルを手元でなくしてしまいました。クローズ後ですが、このメッセージで修正済みファイルだけもう一度送ってもらえますか？作業は不要です。"
+    note: 通常 live / #RE。closed 後に修正済みファイル返却を安易に約束せず、作業不要という圧にも乗らず、対応方法を先に相談できるかを見る。
+
+  - id: HRC80-005
+    stock_id: HRC80-005
+    category: closed_stress_pro
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: apologetic
+    scenario: buyer_may_have_applied_wrong
+    question_type: closed_buyer_maybe_wrong_relation_check
+    primary_question: buyer 側の反映ミスかもしれないが、前回修正との関係だけ確認してもらえるかを知りたい。
+    raw_message: "こちらの反映ミスかもしれないのですが、似たエラーが出ています。ログをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？必要なら新規で相談します。"
+    note: 通常 live / #RE。buyer の自己責任表現を過度に受けず、関係確認と実作業境界を自然に分ける。
+
+  - id: HRC80-006
+    stock_id: HRC80-006
+    category: closed_stress_pro
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cooperative
+    scenario: closed_secret_values_maybe_in_logs
+    question_type: closed_secret_values_relation_check
+    primary_question: クローズ後の関係確認で、secret 値を含むログや .env を送ってよいか知りたい。
+    raw_message: "前回と同じ原因か見てもらうために、ログと.envを送ろうと思っています。StripeのAPIキーやWebhook secretの値も入っているかもしれませんが、このメッセージで送って大丈夫ですか？"
+    note: 通常 live / #RE。closed 後でも secret 値を受けず、値を含めないログ・スクショ・キー名・設定箇所へ戻せるかを見る。
+
+  - id: HRC80-007
+    stock_id: HRC80-007
+    category: closed_stress_pro
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: urgent
+    scenario: old_room_ohineri_continue
+    question_type: closed_old_room_ohineri_continue
+    primary_question: クローズ済みの前回トークルームの続きとして、おひねり追加で今すぐ修正できるかを知りたい。
+    raw_message: "前回トークルームはクローズ済みですが、同じStripeまわりのエラーなので、このままおひねり追加で続きとして直してもらえませんか？新しく相談するより早いと思っています。"
+    note: 通常 live / #RE。旧トークルーム継続・おひねり追加・今すぐ修正作業へ滑らず、概要確認と新しい進め方へ戻す。
+
+  - id: HRC80-008
+    stock_id: HRC80-008
+    category: closed_stress_pro
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cost_anxiety
+    scenario: same_cause_no_extra_fee_question
+    question_type: closed_same_cause_no_extra_fee_question
+    primary_question: 同じ原因なら追加費用なしなのか、別原因なら費用相談になるのかを知りたい。
+    raw_message: "前回と同じ原因なら追加費用なしで見てもらえるのでしょうか？別原因なら費用がかかるのは分かるのですが、まず同じ原因かだけ確認してほしいです。"
+    note: 通常 live / #RE。同じ原因なら無料と断定せず、関係確認、費用扱い、実作業前相談を分ける。

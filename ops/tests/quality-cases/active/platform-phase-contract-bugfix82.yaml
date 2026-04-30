@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC82-001
+    stock_id: HRC82-001
+    category: platform_phase_contract
+    route: estimate
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: careful
+    scenario: prequote_can_request_estimate_before_proposal
+    question_type: prequote_can_request_estimate_before_proposal
+    primary_question: 見積り提案前の相談段階で、15,000円で依頼または見積り提案できる内容か知りたい。
+    raw_message: "Stripe決済後に注文が作られないです。まだ見積り提案前ですが、この内容なら15,000円で依頼できますか？見積り提案を出してもらえますか？"
+    note: 通常 live / #RE。prequote で見積り提案済みの文言を出さず、対応可否・価格・見積り提案へ進む流れを区別できるかを見る。
+
+  - id: HRC82-002
+    stock_id: HRC82-002
+    category: platform_phase_contract
+    route: estimate
+    state: prequote
+    user_type: buyer
+    emotional_tone: hesitant
+    scenario: prequote_github_before_estimate
+    question_type: prequote_github_before_estimate
+    primary_question: 見積り提案前にGitHubでコードを先に見てもらえるか知りたい。
+    raw_message: "まだ購入前で、見積り提案もこれからだと思います。先にGitHubへ招待するので、コードを見てから見積り提案してもらえますか？"
+    note: 通常 live / #RE。prequote で購入前コード確認やGitHub作業面に入らず、必要なら見積り提案前の判断材料だけへ留められるかを見る。
+
+  - id: HRC82-003
+    stock_id: HRC82-003
+    category: platform_phase_contract
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_after_payment_talkroom_files
+    question_type: quote_sent_after_payment_talkroom_files
+    primary_question: 見積り提案後、支払い後にトークルームでログや関係ファイルを送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。内容は問題なさそうです。支払い後にトークルームでログや関係ファイルを送ればいいですか？"
+    note: 通常 live / #RE。quote_sent で未来条件つきのトークルーム案内は許容しつつ、現在作業中にはしないことを見る。
+
+  - id: HRC82-004
+    stock_id: HRC82-004
+    category: platform_phase_contract
+    route: estimate
+    state: quote_sent
+    user_type: buyer
+    emotional_tone: hesitant
+    scenario: quote_sent_github_before_payment
+    question_type: quote_sent_github_before_payment
+    primary_question: 見積り提案後、支払い前にGitHub招待とログ共有をして原因だけ先に見てもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にGitHubへ招待するので、先にコードとログを見て原因だけ確認してもらえますか？直りそうなら購入します。"
+    note: 通常 live / #RE。quote_sent の支払い前作業開始を止め、支払い後トークルーム内共有へ戻せるかを見る。
+
+  - id: HRC82-005
+    stock_id: HRC82-005
+    category: platform_phase_contract
+    route: estimate
+    state: quote_sent
+    user_type: first_time_buyer
+    emotional_tone: confused
+    scenario: quote_sent_when_talkroom_opens
+    question_type: quote_sent_when_talkroom_opens
+    primary_question: 見積り提案後、支払い前にトークルームが開いているのか、どこにファイルを送るのか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前ですが、もうトークルームでやり取りできる状態ですか？ファイルはどこに送ればいいですか？"
+    note: 通常 live / #RE。quote_sent は入金前でトークルーム開始前と扱い、入金完了後の共有手順へ自然につなげる。
+
+  - id: HRC82-006
+    stock_id: HRC82-006
+    category: platform_phase_contract
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: purchased_received_files_flow
+    question_type: purchased_received_files_flow
+    primary_question: 購入後、送ったログとスクショが届いているか、追加で必要なものがあるか知りたい。
+    raw_message: "購入後です。昨日、Stripeのログとスクショをトークルームに送りました。届いていますか？追加で何か必要ですか？"
+    note: 通常 live / #RE。purchased で未来の購入後導線へ戻らず、現在受領している材料をもとに返せるかを見る。
+
+  - id: HRC82-007
+    stock_id: HRC82-007
+    category: platform_phase_contract
+    route: message
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: careful
+    scenario: purchased_additional_files_talkroom
+    question_type: purchased_additional_files_talkroom
+    primary_question: 購入後、追加ファイルをトークルーム添付で送ればよいか、全部でなくてよいか知りたい。
+    raw_message: "購入後です。追加で関係ファイルを送ります。トークルーム添付で大丈夫ですか？プロジェクト全部ではなく、関係しそうなファイルだけでいいですか？"
+    note: 通常 live / #RE。purchased の現在トークルーム前提、関係ファイル優先、secret値不要を自然に返せるかを見る。
+
+  - id: HRC82-008
+    stock_id: HRC82-008
+    category: platform_phase_contract
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: careful
+    scenario: closed_message_file_relation_check
+    question_type: closed_message_file_relation_check
+    primary_question: クローズ後、このメッセージ上でログを送れば前回修正との関係だけ見てもらえるか知りたい。
+    raw_message: "クローズ後です。似たStripeエラーが出ています。ログやスクショをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？必要なら新規で相談します。"
+    note: 通常 live / #RE。closed 後のメッセージ上の関係確認と、旧トークルーム継続・実作業・修正済みファイル返却の境界を分けられるかを見る。

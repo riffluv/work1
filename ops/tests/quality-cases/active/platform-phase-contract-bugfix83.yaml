@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC83-001
+    stock_id: HRC83-001
+    category: platform_phase_contract
+    route: estimate
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: careful
+    scenario: prequote_message_attachment_before_estimate
+    question_type: prequote_message_attachment_before_estimate
+    primary_question: 見積り提案前に、メッセージでコードやログを先に送るべきか知りたい。
+    raw_message: "まだ見積り提案前です。Stripe決済後に注文が作られない件で相談したいのですが、先にメッセージでコードやログを添付した方がいいですか？"
+    note: 通常 live / #RE。prequote で購入前の重いコード確認へ入らず、相談段階で必要な概要と購入後の材料共有を分けられるかを見る。
+
+  - id: HRC83-002
+    stock_id: HRC83-002
+    category: platform_phase_contract
+    route: estimate
+    state: prequote
+    user_type: first_time_buyer
+    emotional_tone: confused
+    scenario: prequote_estimate_then_purchase
+    question_type: prequote_estimate_then_purchase
+    primary_question: 見積り提案を受けてから購入する流れでよいか、購入前に作業が始まらないか知りたい。
+    raw_message: "ココナラに慣れていません。まず見積り提案を出してもらって、内容を見てから購入する流れで合っていますか？購入前に作業が始まるわけではないですよね？"
+    note: 通常 live / #RE。prequote で見積り提案前の流れを説明しつつ、作業開始は購入後と区別できるかを見る。
+
+  - id: HRC83-003
+    stock_id: HRC83-003
+    category: platform_phase_contract
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_purchase_deadline_and_start
+    question_type: quote_sent_purchase_deadline_and_start
+    primary_question: 見積り提案後、購入期限内に支払えばよいか、支払い後いつから作業が始まるか知りたい。
+    raw_message: "見積り提案ありがとうございます。購入期限内に支払えば大丈夫ですか？支払いが完了したら、そこからトークルームでやり取りして作業開始という理解で合っていますか？"
+    note: 通常 live / #RE。quote_sent で購入期限・支払い後トークルーム・作業開始の流れを未来条件として案内できるかを見る。
+
+  - id: HRC83-004
+    stock_id: HRC83-004
+    category: platform_phase_contract
+    route: estimate
+    state: quote_sent
+    user_type: buyer
+    emotional_tone: rushed
+    scenario: quote_sent_buyer_says_purchased_but_payment_pending
+    question_type: quote_sent_buyer_says_purchased_but_payment_pending
+    primary_question: buyer が購入したつもりで話すが支払い前のため、どこから正式開始か知りたい。
+    raw_message: "購入するつもりでいます。まだ支払いはこれからですが、先にファイルを送れば今日から見てもらえますか？"
+    note: 通常 live / #RE。quote_sent で buyer の購入意思に引っ張られて purchased 扱いせず、入金完了後の開始へ戻せるかを見る。
+
+  - id: HRC83-005
+    stock_id: HRC83-005
+    category: platform_phase_contract
+    route: estimate
+    state: quote_sent
+    user_type: careful_buyer
+    emotional_tone: cooperative
+    scenario: quote_sent_send_zip_before_or_after_payment
+    question_type: quote_sent_send_zip_before_or_after_payment
+    primary_question: 支払い前にメッセージへZIPを送るべきか、支払い後トークルームで送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。ZIPを用意しています。支払い前にこのメッセージで送った方がいいですか？それとも支払い後にトークルームで送る方がいいですか？"
+    note: 通常 live / #RE。quote_sent で支払い前材料受領へ滑らず、支払い後トークルームへ自然にまとめられるかを見る。
+
+  - id: HRC83-006
+    stock_id: HRC83-006
+    category: platform_phase_contract
+    route: message
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: practical
+    scenario: purchased_message_materials_move_to_talkroom
+    question_type: purchased_message_materials_move_to_talkroom
+    primary_question: 購入後、購入前メッセージ側に送ったログをトークルームにも送るべきか知りたい。
+    raw_message: "購入後です。購入前のメッセージで一部ログを送っていましたが、作業用にはこのトークルームにも同じログを送った方がいいですか？"
+    note: 通常 live / #RE。purchased で現在トークルームを作業場所として扱い、材料をトークルームにまとめる案内が自然かを見る。
+
+  - id: HRC83-007
+    stock_id: HRC83-007
+    category: platform_phase_contract
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: careful
+    scenario: delivered_before_acceptance_question
+    question_type: delivered_before_acceptance_question
+    primary_question: 正式納品後・承諾前に、差し戻しではなく確認質問として聞けるか知りたい。
+    raw_message: "納品ありがとうございます。まだ承諾前です。差し戻しというほどではなく、反映前に確認したいだけなのですが、このトークルームで質問して大丈夫ですか？"
+    note: 通常 live / #RE。delivered を closed と誤認せず、承諾前の軽い補足に留められるかを見る。
+
+  - id: HRC83-008
+    stock_id: HRC83-008
+    category: platform_phase_contract
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cautious
+    scenario: closed_message_attachment_and_reopen
+    question_type: closed_message_attachment_and_reopen
+    primary_question: クローズ後、メッセージに材料を添付できるか、前回トークルームを再開できるか知りたい。
+    raw_message: "クローズ後です。前回トークルームにはもう送れないと思うのですが、このメッセージにログを添付して前回との関係だけ見てもらえますか？もし関係ありそうなら、前回トークルームを再開できますか？"
+    note: 通常 live / #RE。closed 後のメッセージ上材料確認と、旧トークルーム再開不可・実作業前相談を分けられるかを見る。

@@ -172,6 +172,9 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - `post_purchase_quick` / `post_purchase_report` では、`phase_act` を `purchase_check_started` か `purchase_scope_recheck` に寄せる。
 - `purchase_check_started` は、購入後に現在見ている対象や次に見る箇所を返す。
 - `purchase_scope_recheck` は、購入後に別論点や追加要求が出て、今回範囲とつながるかを見直す時に使う。
+- `state` と buyer 文の見え方がズレないようにする。`purchased` では `ご購入後に...` と未来導線へ戻さず、`受け取っている材料` `いただいた内容` など現在地に合う表現を使う。#RE fixture では buyer 文だけで状態が読みにくい時、`購入後です` `見積り提案ありがとうございます` `クローズ後です` などを相手文に明示する。
+- `quote_sent` は見積り提案済み・支払い前。現在すでにトークルームで作業中のように書かない。ただし、`お支払い完了後にトークルームで共有してください` のような未来条件つきの購入後手順は使ってよい。
+- `prequote` では見積り提案済みではないため、`見積り提案の内容で問題なければ` を使わない。提案前なら、対応可否・価格・必要なら見積り提案へ進む旨に留める。
 
 ## renderer の固定
 - 最初に renderer 化するのは `estimate_initial` と `post_purchase_quick` の2つだけに絞る。

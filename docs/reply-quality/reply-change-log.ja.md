@@ -1781,3 +1781,81 @@
 - 確認: writer candidate batch lint OK、full regression `pass=699 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
 - 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.9 / 10`。低リスクは軽く、高リスクは必要な境界を残す狙いに合っており、final practical polish の確認として十分安定している
 - 非変更: 新しい hard rule は追加しない。自然化のために価格・scope・phase・secret・closed後実作業境界・`handoff-25000` live 導線を変えない
+
+### 2026-05-01 / CHG-209
+- 分類: `reply-only`
+- レイヤ: lens inventory / Pro 2026-05-01 analysis integration
+- 変更: `docs/reply-quality/lens-inventory-20260430.ja.md` に、Pro 分析後の運用前提、4層見取り図、レンズ分類、監査出力フォーマット、直近の運用方針を追記した。レンズ分類は `Hard guard / lint`、`Formal soft lens`、`Soft subtype`、`Gate / stop condition`、`Gold-only / anchor`、`Observe only` に整理した。あわせて `docs/reply-quality/acceptance-gate.ja.md` に `soft lens gate` を追加し、soft lens を即 fail にしない停止条件を明記した
+- きっかけ: Pro 分析で、現行骨格は維持すべきだが、課題は新レンズ不足ではなく soft lens の階層化・停止条件・lint 化してよい範囲の明文化だと整理されたため
+- 想定効果: 複数 soft lens が同時に立った時に、primary lens を1つに絞り、hard guard と自然化の好み差を混ぜずに判断できる。`safe_connection` を自然化前の gate として扱い、`block_rhythm_flow` や `negative_frame_non_echo` を過剰に hard rule 化する事故を減らす
+- 確認: docs only。`lens-inventory` の既存本文は残し、分類と停止条件を追加する形に留めた。Gold 41/42 は実ファイルと README に存在することを確認済み。`acceptance-gate` は gate 順に soft lens gate を足すだけで、既存の事実/phase/会話/日本語 gate は維持した
+- 非変更: 新しい hard rule、句点数/段落数 lint、語句 blanket NG、メール用 renderer / gold / lint は追加しない。`handoff-25000` の public:false 境界、bugfix-15000 live 限定、価格・scope・phase・secret・closed後実作業境界は変更しない
+
+### 2026-05-01 / CHG-210
+- 分類: `reply-only`
+- レイヤ: #RE bugfix80 / closed stress after Pro
+- 変更: `closed-stress-pro-bugfix80.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-80-closed-stress-pro-r0` へ更新し、Pro 2026-05-01 分析後の closed / refund / free / previous-mistake stress batch として8件を作成した
+- きっかけ: Pro 分析で、次は新レンズ追加ではなく closed 後の返金・無料対応・前回修正ミス疑い・評価圧・旧トークルーム継続・secret・修正済みファイル再送要求を厚めに見るべきだと整理されたため
+- 想定効果: `negative_frame_non_echo`、`responsibility_admission_guard`、`pressure_word_summarization`、`promise_consistency`、`response_weight_mismatch`、`safe_connection` が過剰発火せず、closed 後の関係確認と実作業境界を維持できるか確認できる
+- 確認: writer candidate batch lint OK、full regression `pass=707 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.9 / 10`。closed 後の関係確認と実作業の分離、無料修正・返金保証・今日中対応・旧トークルーム継続・おひねり追加・修正済みファイル返却 promise なし。高圧な closed batch として安定しており、新規 rule 化は不要
+- 非変更: 新しい hard rule は追加しない。返金保証、無料対応断定、今日中作業保証、旧トークルーム継続、おひねり追加、secret値要求、closed後の修正済みファイル返却 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-05-01 / CHG-211
+- 分類: `reply-only`
+- レイヤ: #RE bugfix81 / low-high paired after Pro
+- 変更: `low-high-paired-bugfix81.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-81-low-high-paired-r0` へ更新し、同じ論点を低リスク/高リスクの対で確認する8件を作成した
+- きっかけ: Pro 2026-05-01 分析と #RE80 の採用を受け、次は closed stress 単独ではなく、材料共有 / secret / 進捗と急ぎ / delivered と closed のような同型論点で、軽い場面と危ない場面の返信の重さを切り替えられるかを見る必要があるため
+- 想定効果: `response_weight_mismatch`、`answer_order_calibration`、`safe_connection`、`block_rhythm_flow`、`promise_consistency` を、低リスクでは軽く、高リスクでは境界を残す対比で検査できる。語句 blanket NG ではなく、risk band に応じた自然化を育てる
+- 確認: writer candidate batch lint OK、full regression `pass=715 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`。`low-high-paired-bugfix81.yaml` 単体も unified reply lint OK
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.9 / 10`。low-risk は軽く、high-risk は必要な境界を残せており、soft lens の過剰発火なし。支払い前作業禁止、secret値禁止、closed後実作業未約束、返金/無料未断定は既存ルールで吸収できるため、新規 rule 戻し不要
+- 非変更: 新しい hard rule は追加しない。自然化のために価格・scope・phase・secret・支払い前作業・GitHub作業面・closed後実作業境界・`handoff-25000` live 導線を変えない
+
+### 2026-05-01 / CHG-212
+- 分類: `reply-only`
+- レイヤ: #RE bugfix81 r1 / phase-source alignment human audit
+- 変更: 人間監査で、B06 の `state=purchased` と相手文・返信文の phase 表現が噛み合いにくいと分かったため、相手文に `購入後です。` を追加し、返信の `ご購入後に受け取っている材料` を `受け取っている材料` へ修正した。あわせて `acceptance-gate` と `coconala-reply-bugfix-ja` に、purchased では未来導線へ戻さず現在地に合う表現を使うこと、#RE fixture では buyer 文だけで状態が読みにくい時に phase を明示することを追記した
+- きっかけ: low/high paired batch では state メタデータに頼りすぎると、外向け文面だけを読んだ時に「購入前なのか購入後なのか」が揺れて見えるため。これは Pro 後の自然化悪化ではなく、fixture と返信候補の phase-source alignment が弱かった問題として扱う
+- 想定効果: quote_sent / purchased / closed の状態が、監査者・buyer から見ても自然につながる。購入済み場面で `ご購入後に...` と戻る事故や、未購入場面で購入後作業へ進んで見える事故を減らす
+- 確認: writer candidate batch lint OK、full regression `pass=715 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK
+- 非変更: `quote_sent` は「見積り提案済み・支払い前」の状態として維持する。B02 の `見積り提案ありがとうございます` は quote_sent と整合するため、prequote へ変更しない。新しい hard rule や語句 blanket NG は追加しない
+
+### 2026-05-01 / CHG-213
+- 分類: `reply-only`
+- レイヤ: platform spec audit / quote_sent talkroom future guidance
+- 変更: #AR / web 検索でココナラ公式ヘルプを再確認し、`docs/reply-quality/platform-spec-audit-20260501.ja.md` を追加した。`platform-contract.yaml` の `last_verified` を更新し、quote_sent は見積り提案済み・支払い前であり、現在の作業場所としてトークルーム扱いしない一方、`お支払い完了後にトークルームで共有してください` のような未来条件つきの購入後手順は公式仕様と整合すると明記した。あわせて `acceptance-gate`、`coconala-reply-bugfix-ja`、Gold 33、Gold README の `トークルーム内` 禁止表現を blanket NG から phase-aware な表現へ修正した
+- きっかけ: 人間監査で、quote_sent / purchased の読み取りが state メタデータと buyer 文だけに依存して揺れる懸念が出たため。公式では、見積り相談 -> 見積り提案 -> buyer 購入 -> 入金完了後トークルーム open の流れであり、古い Gold 33 の `quote_sent ではトークルーム内と書かない` が未来手順まで縛るノイズになり得た
+- 想定効果: prequote で未送信の見積り提案を前提にする事故と、quote_sent で入金前なのに作業中扱いする事故を減らす。同時に、quote_sent で未来の購入後手順を自然に案内できる余地は残す
+- 確認: 公式ソース照合。見積り機能、見積り提案後の流れ、メッセージ機能、トークルーム、クローズ後、おひねり、ファイル添付を確認。コード生成ロジック変更ではないため full regression は未実行
+- 非変更: quote_sent で支払い前作業開始は許可しない。prequote で `見積り提案の内容で問題なければ` は使わない。closed 後のおひねり / 旧トークルーム継続 / 修正済みファイル返却 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-05-01 / CHG-214
+- 分類: `reply-only`
+- レイヤ: #RE bugfix82 / platform phase contract after official spec audit
+- 変更: `platform-phase-contract-bugfix82.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-82-platform-phase-contract-r0` へ更新し、公式仕様再確認後の `prequote / quote_sent / purchased / closed` の言い分けを8件で確認する batch にした
+- きっかけ: 人間監査で、quote_sent / purchased の state 読み取りに不安が出たため。CHG-213 で公式仕様を整理した後、その理解が実際の #RE 候補文へ反映されているかを検証する必要があるため
+- 想定効果: prequote で見積り提案済み文言を使う事故、quote_sent で支払い前作業や現在トークルーム作業へ滑る事故、purchased で購入後未来形へ戻る事故、closed で旧トークルーム継続へ戻る事故をまとめて確認できる
+- 確認: writer candidate batch lint OK、full regression `pass=723 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.9 / 10`。prequote / quote_sent / purchased / closed のフェーズ境界が安定しており、handoff-25000 / 25,000円 / 主要1フロー整理の live 漏れなし。特に quote_sent と closed の境界サンプルとして価値あり。B06 の `届いています` は実運用では実際に確認済みの時だけ使う観察メモに留める
+- 非変更: 新しい hard rule は追加しない。quote_sent で支払い前作業開始は許可しない。prequote で `見積り提案の内容で問題なければ` は使わない。purchased で `ご購入後に...` と戻さない。closed 後のおひねり / 旧トークルーム継続 / 修正済みファイル返却 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-05-01 / CHG-215
+- 分類: `reply-only`
+- レイヤ: #RE bugfix83 / platform phase contract practical second run
+- 変更: `platform-phase-contract-bugfix83.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-83-platform-phase-contract-2-r0` へ更新し、支払い前メッセージ添付、購入期限、購入したつもり発言、購入後トークルーム集約、delivered承諾前質問、closed後メッセージ添付と再開不可を8件で確認する batch にした
+- きっかけ: #RE82 が採用されたため、次は platform phase contract をより実務寄りにし、buyer の言い方に引っ張られて quote_sent / purchased / closed の境界が崩れないかを追加確認する必要があるため
+- 想定効果: quote_sent で購入意思・支払い予定・ZIP用意済みに引っ張られて purchased 扱いする事故、purchased で材料がメッセージ側に散る事故、closed で旧トークルーム再開や継続作業を約束する事故を検査できる
+- 確認: writer candidate batch lint OK、full regression `pass=731 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: r0 は採用圏。必須修正なし、採点 `9.7 / 10`。B07のみ、質問本文をまだ受け取っていない段階で `本日18:00までに` と固定時刻を約束している点を commitment_budget の軽微 case_fix として修正した。再監査 r1 は採用。必須修正なし、軽微修正なし、採点 `10 / 10`。rule 戻しは不要
+- 非変更: 新しい hard rule は追加しない。quote_sent で支払い前作業開始は許可しない。purchased で `ご購入後に...` と戻さない。closed 後のおひねり / 旧トークルーム再開 / 継続作業 / 修正済みファイル返却 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-05-01 / CHG-216
+- 分類: `reply-only`
+- レイヤ: #RE bugfix84 / practical phase mixed after platform phase runs
+- 変更: `practical-phase-mixed-bugfix84.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-84-practical-phase-mixed-r0` へ更新し、初回相談、価格/納期/保証、quote_sent の支払い前材料共有と緊急圧、purchased 進捗と追加症状、delivered 補足、closed 費用不安を8件で横断確認する batch にした
+- きっかけ: #RE82/83 で platform phase contract は安定したため、次は通常実務ケースへ戻しても、低リスクでは重くなりすぎず、高リスクでは支払い前作業・今日中保証・secret・closed後実作業の境界を保てるかを確認する必要があるため
+- 想定効果: platform phase の理解を単独検査で終わらせず、実務寄りの混合相談でも `prequote / quote_sent / purchased / delivered / closed` の言い分け、15,000円軸、修正可能時の修正済みファイル返却、秘密値不要、closed後の費用未断定を維持できる
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=739 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `10 / 10`。`bugfix-15000` の 15,000円、不具合1件、原因確認、修正可能時の修正済みファイル返却、秘密値不要が崩れていない。`prequote / quote_sent / purchased / delivered / closed` の phase 境界、closed 後の関係確認と実作業境界、handoff-25000 / 25,000円 / 主要1フロー整理の live 漏れなし。B07 は「一言くらい」に対して3段落だが、軽い補足に留まり本格資料化や追加作業に広がっていないため許容
+- メモ: local lint 前に、B06 の費用不安は `追加料金` と `別の原因` を明示する形へ、B07 の delivered 補足は既存 validator が読める `secondary_question_before_acceptance` / 分かりやすい説明系へ fixture 表現を寄せた。どちらも新しい hard rule ではなく、既存の費用不安・delivered補足検査へ正しく接続するための batch 整形
+- 非変更: 新しい hard rule は追加しない。quote_sent で支払い前作業開始は許可しない。今日中修正完了を保証しない。secret 値要求、closed 後のおひねり / 旧トークルーム再開 / 継続作業 / 修正済みファイル返却 promise、`handoff-25000` live 導線は許可しない
