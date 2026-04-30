@@ -935,7 +935,7 @@ def is_non_stripe_webhook_scope_case(source: dict) -> bool:
 def is_emergency_recovery_time_case(source: dict) -> bool:
     combined = f"{source.get('raw_message', '')}\n{source.get('note', '')}"
     urgent = any(marker in combined for marker in ["急ぎ", "今日中", "何時間", "いつ復旧", "なんとかなりますか", "お客さんにも迷惑"])
-    stopped = any(marker in combined for marker in ["止ま", "動かなく", "復旧", "決済がおかしく", "決済が止"])
+    stopped = any(marker in combined for marker in ["止ま", "動かなく", "復旧", "決済がおかしく", "決済が止", "注文が作られ", "注文作成"])
     return urgent and stopped
 
 
@@ -2394,15 +2394,20 @@ def render_non_stripe_webhook_scope_case(case: dict) -> str:
 def render_emergency_recovery_time_case(case: dict) -> str:
     raw = case.get("raw_message", "")
     symptom = "Webhookの設定を変更してから決済が止まり、元の設定が分からなくなっている状態ですね。" if "Webhook" in raw else "決済が止まっている状態ですね。"
-    return "\n\n".join(
-        [
-            "ご相談ありがとうございます。\nお急ぎの状況は承知しました。",
-            symptom,
-            "この不具合なら15,000円で対応できます。",
-            "今日中に復旧できるかは、原因を確認してからでないとお約束できません。\n復旧の見通しは、購入後にまず決済が止まっている箇所を確認してからお返しします。",
-            "この内容で進める場合は、そのままご購入ください。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。これは復旧時間の保証ではなく、最初の確認結果の目安です。",
-        ]
+    paragraphs = [
+        "ご相談ありがとうございます。\nお急ぎの状況は承知しました。",
+        symptom,
+        "この不具合なら15,000円で対応できます。",
+        "今日中に復旧できるかは、原因を確認してからでないとお約束できません。\n復旧の見通しは、購入後にまず決済が止まっている箇所を確認してからお返しします。",
+    ]
+    if is_budget_completion_gate_case(case):
+        paragraphs.append(
+            "確認の結果、この金額内では修正完了まで進められないと分かった場合は、未完成のまま正式納品へは進めず、そこで止めて状況をご説明します。\n勝手に料金が増えたり、そのまま追加作業へ進むことはありません。"
+        )
+    paragraphs.append(
+        "この内容で進める場合は、そのままご購入ください。必要情報がそろい次第、一次結果は48時間以内を目安にお返しします。これは復旧時間の保証ではなく、最初の確認結果の目安です。"
     )
+    return "\n\n".join(paragraphs)
 
 
 def render_spec_vs_bug_boundary_case(case: dict) -> str:

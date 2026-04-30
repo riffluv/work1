@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC64-001
+    stock_id: HRC64-001
+    category: ai_feel_structure_observation
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: non_engineer_can_request_without_knowing_files
+    question_type: prequote_non_engineer_can_request
+    primary_question: 非エンジニアで原因や必要ファイルが分からなくても依頼できるか、15,000円で対応できるかを知りたい。
+    raw_message: "Stripe決済後に注文が作られないのですが、私はエンジニアではなく、どのファイルを送ればいいかも分かりません。この状態でも依頼できますか？15,000円で対応できますか？"
+    note: 通常 live / #RE。voice_ownership と agency_alignment を見つつ、相手へ判断負担を返しすぎない。
+
+  - id: HRC64-002
+    stock_id: HRC64-002
+    category: ai_feel_structure_observation
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: urgent_same_day_expectation
+    question_type: prequote_urgent_same_day_timeline
+    primary_question: 急ぎの不具合について、今日中に直るか、少なくとも見通しが出るかを知りたい。
+    raw_message: "本番で注文が作られず急いでいます。今日中に直る可能性はありますか？無理でも、今日中に原因の見通しだけでも出せますか？"
+    note: 通常 live / #RE。certainty_calibration と promise_consistency を見る。
+
+  - id: HRC64-003
+    stock_id: HRC64-003
+    category: ai_feel_structure_observation
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: quote_sent_over_sharing_files
+    question_type: quote_sent_what_to_send_after_payment
+    primary_question: 見積り提案後、購入後にファイルを全部送ればよいか、必要なものだけでよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。購入後に関係ありそうなファイルを全部まとめて送ればいいですか？多すぎるかもしれませんが、こちらでは判断できません。"
+    note: 通常 live / #RE。burden_alignment と unnecessary_refusal_frame を見る。
+
+  - id: HRC64-004
+    stock_id: HRC64-004
+    category: ai_feel_structure_observation
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: quote_sent_explanation_scope
+    question_type: quote_sent_light_explanation_not_manual
+    primary_question: 修正後に何を直したかは知りたいが、報告書やマニュアルまでは不要なことを確認したい。
+    raw_message: "購入した場合、修正後に何を直したかは簡単に教えてもらえますか？詳しい報告書やマニュアルまでは不要です。"
+    note: 通常 live / #RE。question_granularity_match を見て、軽い説明と本格資料を混ぜない。
+
+  - id: HRC64-005
+    stock_id: HRC64-005
+    category: ai_feel_structure_observation
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: embarrassed
+    scenario: purchased_sent_too_many_files
+    question_type: purchased_overshared_files_next_step
+    primary_question: 購入後、ファイルを多めに送った状態で、足りないものや不要なものがあるか知りたい。
+    raw_message: "購入後に関係ありそうなファイルをまとめて送りました。多すぎたらすみません。足りないものや不要なものがあれば教えてください。"
+    note: 通常 live / #RE。buyer の負担感を受けつつ、必要材料だけこちらから伝える流れを見る。
+
+  - id: HRC64-006
+    stock_id: HRC64-006
+    category: ai_feel_structure_observation
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: confused
+    scenario: purchased_stripe_or_code_cause_question
+    question_type: purchased_cause_side_brief
+    primary_question: 購入後、Stripe側の問題かコード側の問題かを短く知りたい。
+    raw_message: "ログを送ったあとで気になったのですが、これはStripe側の問題っぽいですか？それともこちらのコード側の問題っぽいですか？まだ分からなければ、その状態でも大丈夫です。短く教えてください。"
+    note: 通常 live / #RE。certainty_calibration と specificity_without_invention を見る。
+
+  - id: HRC64-007
+    stock_id: HRC64-007
+    category: ai_feel_structure_observation
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: confused
+    scenario: delivered_confirm_without_jargon
+    question_type: delivered_plain_confirmation_points
+    primary_question: 納品後承諾前、専門用語が分からないので、どこを見れば直ったと判断できるかを知りたい。
+    raw_message: "納品ありがとうございます。専門用語が少し分からないので、どこを見れば直ったと判断できるかだけ、もう少し簡単に教えてもらえますか？"
+    note: 通常 live / #RE。question_granularity_match と conversation_flow_naturalness を見る。
+
+  - id: HRC64-008
+    stock_id: HRC64-008
+    category: ai_feel_structure_observation
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: closed_not_angry_relation_check
+    question_type: closed_relation_check_no_blame
+    primary_question: クローズ後、責めたいわけではなく、似たエラーが前回修正と関係あるかだけ確認したい。
+    raw_message: "クローズ後ですみません。責めたいわけではないのですが、似たStripeエラーが出ています。ログをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？必要なら新規で相談します。"
+    note: 通常 live / #RE。emotion_to_action_bridge と closed transaction model を見る。

@@ -168,14 +168,14 @@ def detect_scenario(source: dict) -> str:
             return "closed_secret_send_question"
     if any(marker in combined for marker in ["ZIPでコード", "コード一式", "直して返して", "修正して返"]):
         return "closed_zip_fix_return"
+    if any(marker in combined for marker in ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
+        return "closed_free_followup_price"
     if any(marker in combined for marker in ["ログとスクショ", "ログやスクショ", "関係あるかだけ", "関係があるかだけ"]):
         return "closed_materials_check"
     if any(marker in combined for marker in ["おひねり", "同じトークルーム", "前の続き", "前回の続き"]) and any(
         marker in combined for marker in ["クローズ後", "クローズ済み", "閉じ"]
     ):
         return "closed_old_talkroom_ohineri"
-    if any(marker in combined for marker in ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
-        return "closed_free_followup_price"
     if any(marker in combined for marker in ["先に原因だけ", "原因だけ先に", "原因だけ見てもら", "見積り前", "お願いするか決めたい"]):
         return "closed_pre_estimate_cause_check"
     if (

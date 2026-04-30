@@ -1504,3 +1504,122 @@
 - きっかけ: 主質問・料金・同一原因・事前相談の軸は崩れていなかったが、buyer が書いた明示症状の片方だけを拾うと、片方しか見ないように読める可能性があったため
 - 想定効果: scope や料金を広げずに、相手が書いた具体情報を落とさない自然な返信へ寄せる
 - 非変更: 新規 rule 化はしない。今回の修正は case_fix として扱い、`handoff-25000` の live 導線、追加料金断定、secret値要求、closed後無料対応 promise は追加しない
+
+### 2026-04-30 / CHG-179
+- 分類: `reply-only`
+- レイヤ: lens inventory / reviewer taxonomy
+- 変更: `docs/reply-quality/lens-inventory-20260430.ja.md` を追加し、主要監査レンズを `正式主力 / 補助主力 / 観察中 / hard guard` に棚卸しした。正式主力は `promise_consistency`、`conversation_flow_naturalness`、`jp_business_native_naturalness`、`agency_alignment`。補助主力は `permission_benefit_alignment`、`unnecessary_refusal_frame`。観察中として `conditional_scope_clarity`、`ack_to_answer_bridge`、明示症状拾い漏れ、次アクション明瞭性、固定時刻整合を整理した
+- きっかけ: `#RE` bugfix51〜62 で、約束レベル、会話の流れ、行為主体、許可調、不要な拒否フレームがそれぞれ実務上の違和感として出揃い、どれを正式レンズとして扱うかを一度正本化する必要が出たため
+- 想定効果: 今後の #RE / #BR / human audit で、好み差を hard fail 化せず、再発性のある違和感だけを適切な戻し先へ返しやすくなる。Pro に相談する場合も、レンズ名・正式度・重複論点をまとめて見せられる
+- 非変更: 新規 hard validator は追加しない。`相談できます`、`確認できます`、`大丈夫です`、`はい`、`まずは`、句点「。」の blanket NG はしない。自然化のために価格・scope・phase・secret・public/private・payment route・作業可否は変更しない
+
+### 2026-04-30 / CHG-180
+- 分類: `reply-only`
+- レイヤ: #RE bugfix63 / lens inventory cross-check
+- 変更: `lens-inventory-cross-check-bugfix63.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-63-lens-inventory-cross-check-r0` へ更新した。主要レンズ棚卸し後の確認走行として、`promise_consistency` / `conversation_flow_naturalness` / `jp_business_native_naturalness` / `agency_alignment` / `permission_benefit_alignment` / `unnecessary_refusal_frame` を、他者未解決、原因不明相談、支払い後材料共有、GitHub招待、secret値、購入後進捗、delivered補足、closed後無料/返金圧の混合ケースで検査する
+- きっかけ: CHG-179 で主要レンズの現在位置を正本化したため、分類が実際の通常 live #RE でノイズにならず、hard guard と両立するかを確認する必要があったため
+- 想定効果: 各レンズを単体でなく混合ケースの中で見ても、15,000円・不具合1件・修正可能時の修正済みファイル返却・購入後開始・secret値不要・外部作業面なし・closed後作業境界を崩さず、自然な #R 相当候補として監査できる
+- 確認: candidate-batch lint OK、full regression `pass=571 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: 新規 hard validator は追加しない。`agency_alignment` や `permission_benefit_alignment` を理由に `相談できます` / `確認できます` / `大丈夫です` を全面禁止しない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-181
+- 分類: `reply-only`
+- レイヤ: #RE bugfix63 r1 / delivered next action case fix
+- 変更: 外部監査で `RE-2026-04-30-bugfix-63-lens-inventory-cross-check-r0` が採用圏・必須修正なしとなったため、B07 の軽微1点のみ反映し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-63-lens-inventory-cross-check-r1` へ更新した。B07 は、別のStripeメール不具合が今回の修正と同じ原因につながるかを見る前提で、エラー文・発生タイミングが分かるスクショ/ログをトークルームで送ってもらう次アクションを追加した
+- きっかけ: delivered の範囲確認としては成立していたが、buyer が次に何を送ればよいかが少し弱く、phase 上の次アクションを1文だけ補う方が実務上安定するため
+- 想定効果: delivered 承諾前の軽い補足と追加症状確認を、同一原因/別原因の条件分岐を保ったまま自然に進められる
+- 確認: 外部再監査で `RE-2026-04-30-bugfix-63-lens-inventory-cross-check-r1` は採用、必須修正なし、軽微修正なし、9.9/10。B07 の case_fix は完了し、追加の学習戻しは不要と判定
+- 非変更: 新規 rule 化はしない。今回の修正は case_fix として扱い、追加料金断定、無料対応 promise、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-182
+- 分類: `reply-only`
+- レイヤ: #RE bugfix64 / AI-feel structure observation
+- 変更: `ai-feel-structure-observation-bugfix64.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-64-ai-feel-structure-observation-r0` へ更新した。AI感の構造候補として `voice_ownership` / `question_granularity_match` / `burden_alignment` / `certainty_calibration` / `emotion_to_action_bridge` / `specificity_without_invention` を、正式レンズ化せず観察項目として扱う
+- きっかけ: `agency_alignment` などが効果を出したため、表面語の修正ではなく「AIっぽさの構造」を次に観察し、全体に効くレンズ候補を早めに見つける価値が出たため
+- 想定効果: 非エンジニア不安、急ぎの見通し、購入後材料共有、軽い説明、購入後ファイル過多、原因側の短答、delivered確認、closed後関係確認で、正しいだけでなく実務者が返しているように読めるかを #RE で確認できる
+- 追加調整: local lint で露出したため、prequote renderer の緊急復旧判定に `注文が作られない` 系を含め、delivered renderer の軽い補足説明判定に `どこを見れば直ったと判断できるか` 系を含めた。B02 は、今日中修正完了だけでなく今日中の見通し可否にも直答する形へ締めた。B05 は秘密情報混入時の扱いを自然化し、B07 は `補足できます` ではなく `こちらで短く補足します` として対応主体を明確にした
+- 確認: candidate-batch lint OK、full regression `pass=579 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: 新規 hard validator や正式 lens は追加しない。AI感観察を理由に価格・scope・phase・secret・public/private・payment route・作業可否を変更しない。`handoff-25000` は public:false のまま通常 live / #RE へ出さない
+
+### 2026-04-30 / CHG-183
+- 分類: `reply-only`
+- レイヤ: #RE bugfix64 r1 / negative frame non-echo
+- 変更: 人間監査で B08 の `責めたいわけではなく、前回の修正との関係だけ確認したいということですね` が、相手の否定したネガティブ意図をオウム返ししており不自然だと分かったため、`似たStripeエラーが出ている件で、前回の修正との関係を確認したいということですね` へ修正した。あわせて `negative_frame_non_echo` を観察項目として batch / 監査プロンプト / lens inventory に追加し、`japanese-chat-natural-ja` / bugfix style / emotional caution / NG expressions へ最小反映した
+- きっかけ: `責めたいわけではない` `文句を言いたいわけではない` `苦情ではない` のような文は、そのまま復唱すると buyer が否定したフレームをこちらが再提示してしまい、実務チャットとして不自然かつ危険なため
+- 想定効果: ネガティブ感情や苦情ラベルを本文で増幅せず、事実・目的・次アクションへ変換できる。closed 後の関係確認や苦情寄りの相談でも、冷たさや挑発感を減らしつつ、作業境界は維持できる
+- 確認: candidate-batch lint OK、full regression OK、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: 正式 hard lens 化、lint 自動検知、`責めたい` `苦情` などの blanket NG 化はしない。実際の苦情では不便の認知と確認行動を優先し、無料対応・返金・旧トークルーム継続・`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-184
+- 分類: `reply-only`
+- レイヤ: #RE bugfix65 / negative frame emotion bridge
+- 変更: `negative-frame-emotion-bridge-bugfix65.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-65-negative-frame-emotion-bridge-r0` へ更新した。`文句ではない` `疑っているわけではない` `苦情ではない` `責めたいわけではない` のような否定されたネガティブ意図と、実際の不満・返金/無料対応圧を、prequote / quote_sent / purchased / delivered / closed の混合ケースで確認する
+- きっかけ: bugfix64 r1 で `negative_frame_non_echo` が採用圏に入ったため、1ケースの修正に留めず、別の語彙・phase・不満強度でもノイズ化せず効くかを確認する必要が出たため
+- 想定効果: ネガティブ語のオウム返しを避けながら、buyer の目的を `依頼可否` `原因確認` `進捗確認` `承諾前補足` `前回修正との関係確認` へ変換できるかを見る。実際の不満では、不便の認知と確認行動へ移し、返金・無料対応・修正ミス・closed後実作業を未確認のまま断定しない
+- 追加調整: local lint で露出したため、delivered renderer の軽い補足説明判定に `専門用語が難しい` + `どこを確認すればいいか` 系を含めた
+- 確認: candidate-batch lint OK、full regression `pass=587 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: `negative_frame_non_echo` の hard rule 化、ネガティブ語の blanket NG、返金/無料対応の断定、closed後旧トークルーム作業、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-185
+- 分類: `reply-only`
+- レイヤ: #RE bugfix65 r1 / closed complaint responsibility wording
+- 変更: 外部監査で B08 の `またStripeエラーが出ているとのこと、ご不便をおかけしています。` が、closed 後の前回修正ミス疑い・返金/無料対応相談では責任認定に読まれる余地があると分かったため、`またStripeエラーが出ているとのこと、ご不便な状況かと思います。` へ修正した
+- きっかけ: 実際の不満を受ける場面では、不便の認知は必要だが、確認前にこちらの過失・修正ミス・返金/無料対応を認めたように読まれる表現は避ける必要があるため
+- 想定効果: 強い不満や返金/無料対応圧がある closed 後相談でも、冷たくせずに状況確認へ移しつつ、責任認定・無料対応・返金断定を避けられる
+- 確認: candidate-batch lint OK、git diff check OK。r0 時点の full regression `pass=587 fail=0 skip=65` と service grounding sentries OK_WITH_EXISTING_WARNINGS から、今回は B08 文面のみの case_fix
+- 非変更: `ご不便をおかけしています` を blanket NG 化しない。購入後やこちら起因が確定した場面での謝意・お詫び表現までは削らない
+
+### 2026-04-30 / CHG-186
+- 分類: `reply-only`
+- レイヤ: #RE bugfix66 / strong emotion boundary
+- 変更: `strong-emotion-boundary-bugfix66.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-66-strong-emotion-boundary-r0` へ更新した。低評価圧、返金圧、無料対応圧、今日中対応圧が混ざる prequote / quote_sent / purchased / delivered / closed の混合ケースで、`negative_frame_non_echo` と `emotion_to_action_bridge` が冷たくなりすぎず機能するかを確認する
+- きっかけ: bugfix65 r1 が採用され、ネガティブ語の反復回避は安定してきたため、次はより実務圧の高い場面で、責任認定・返金/無料断定・今日中保証・低評価圧への迎合に滑らないかを見る必要が出たため
+- 想定効果: 強い不満や急ぎでも、感情ラベルの反復ではなく、依頼可否・現在地・関係確認・承諾前確認・実作業前相談へ自然につなげる。安全境界を守りつつ、buyer から見て突き放された印象を減らす
+- 追加調整: local lint で露出したため、B01 に勝手な追加料金/追加作業へ進めない一文を追加した。purchased renderer は `今何を見ているんですか` / `今日中に直せますか` を timeline anxiety として拾い、delivered renderer は `承諾できない` + `まだ注文が作られていない` 系を redelivery same-error として拾うようにした
+- 確認: candidate-batch lint OK、full regression `pass=595 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: 低評価・返金・無料・急ぎの圧力を理由に、成功保証、今日中修正保証、無料対応、返金、旧トークルーム継続作業、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-187
+- 分類: `reply-only`
+- レイヤ: #RE bugfix66 r1 / pressure-word summarization
+- 変更: 外部監査で B08 の `今日中に無料対応できるか、返金になるか` が、相手の強い要求語をそのまま再提示して少し防御的に見えると分かったため、`今日中の作業可否、費用や返金の扱い` へ要約した
+- きっかけ: 強い不満・返金圧・無料対応圧では、要求語をそのまま並べるより、判断対象を実務語へ変換した方が冷たさや対立感を減らせるため
+- 想定効果: 返金・無料・今日中対応の圧力に迎合せず、かつ防御的な復唱を避け、作業可否と費用扱いの未確定として自然に整理できる
+- 確認: candidate-batch lint OK、git diff check OK。r0 時点の full regression `pass=595 fail=0 skip=65` と service grounding sentries OK_WITH_EXISTING_WARNINGS から、今回は B08 文面のみの case_fix
+- 非変更: `無料対応` `返金` という論点自体は消さない。確認前の返金/無料対応断定、今日中作業保証、closed後旧トークルーム作業、`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-188
+- 分類: `reply-only`
+- レイヤ: lens inventory / Gold 39 / negative frame family
+- 変更: bugfix64〜66 の採用結果を受けて、`negative_frame_non_echo` を観察中から補助主力 soft lens へ上げ、下位観点として `responsibility_admission_guard` と `pressure_word_summarization` を整理した。`Gold Reply 39 — negative frame emotion bridge` を追加し、ng-expressions、japanese-chat-natural-ja、bugfix style / emotional caution、監査プロンプトへ最小反映した
+- きっかけ: `責めたいわけではない` のオウム返し、closed 後の責任認定に見える不便認知、`今日中に無料対応` `返金` などの圧力語反復が、単発表現ではなく同じ構造の違和感として複数 batch で確認できたため
+- 想定効果: ネガティブ/圧力語を消すのではなく、実務目的・作業可否・費用や返金の扱い・前回修正との関係へ要約し、冷たさ・防御感・責任認定リスクを減らす
+- 確認: lens inventory / Gold 39 / README / ng-expressions / skills / reviewer prompt への反映確認済み、git diff check OK
+- 非変更: hard rule 化、lint 自動検知、ネガティブ語の blanket NG はしない。返金・無料・今日中対応の論点自体は消さず、確認前の断定だけ避ける
+
+### 2026-04-30 / CHG-189
+- 分類: `reply-only`
+- レイヤ: #RE bugfix67 / negative frame overcorrection check
+- 変更: `negative-frame-overcorrection-bugfix67.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-67-negative-frame-overcorrection-r0` へ更新した。`negative_frame_non_echo` / `responsibility_admission_guard` / `pressure_word_summarization` が過剰反応して、謝意・状況認知・購入後進捗・承諾前補足まで削って冷たくならないかを確認する
+- きっかけ: bugfix64〜66 でネガティブ/圧力語の変換は安定してきた一方、今後は「安全にしすぎて実務者らしさを失う」方向の drift も監視する必要があるため
+- 想定効果: 否定フレームや圧力語を復唱しないまま、buyer の不安・お礼・進捗確認・説明不足・closed後相談を自然に受け、価格・scope・phase・secret・closed後作業境界を維持できる
+- 確認: candidate-batch lint OK、full regression `pass=603 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: `negative_frame_non_echo` 系を hard rule 化しない。謝罪・お礼・不便認知を blanket NG にしない。`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-190
+- 分類: `reply-only`
+- レイヤ: #RE bugfix67 r1 / unnecessary refusal trim
+- 変更: 外部監査で B02 の `支払い前にコードやログを確認する対応はしていませんが` が、buyer が求めていない拒否を先に出していると分かったため削除し、`ご購入後は、共有いただいたコードやログをもとに原因確認から進めます` へ直答寄りに修正した
+- きっかけ: quote_sent で buyer が「購入後はどこまで見てもらえるか」を聞いているだけなら、支払い前作業不可を先に出すより、購入後の確認範囲へ答えた方が自然で、overcorrection も抑えられるため
+- 想定効果: phase 境界を保ったまま、不要な拒否先行を減らし、購入後に何をするかを読みやすくする
+- 確認: candidate-batch lint OK、git diff check OK
+- 非変更: 支払い前のコード/ログ確認は引き続き行わない。`handoff-25000` の live 導線は追加しない
+
+### 2026-04-30 / CHG-191
+- 分類: `reply-only`
+- レイヤ: #RE bugfix68 / block rhythm flow check
+- 変更: `block-rhythm-flow-bugfix68.yaml` を追加し、`返信監査_batch-01.md` を `RE-2026-04-30-bugfix-68-block-rhythm-flow-r0` へ更新した。`conversation_flow_naturalness` のうち、短い処理文や安全説明の塊が同じリズムで並びすぎていないかを確認する
+- きっかけ: bugfix67 r1 で安全境界と過剰反応は安定したが、closed 後や返金/評価圧の文面で「見やすいが少し塊に見える」余地が残っており、最終コアではここを soft lens として観察する価値があるため
+- 想定効果: `送ってよい -> 届いた範囲で見る -> 実作業は別相談` のような高リスク文を、境界を崩さず会話の流れとして読める形に寄せられる
+- 確認: candidate-batch lint OK、full regression `pass=611 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、git diff check OK
+- 非変更: 句点や3段落構成を blanket NG にしない。自然化のために価格・scope・phase・secret・closed後作業境界を弱めない。`handoff-25000` の live 導線は追加しない

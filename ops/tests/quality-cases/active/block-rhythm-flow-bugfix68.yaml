@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC68-001
+    stock_id: HRC68-001
+    category: block_rhythm_flow
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious_guarantee
+    scenario: prequote_price_success_guarantee_flow
+    question_type: prequote_price_and_guarantee
+    primary_question: Stripe 注文作成不具合を15,000円で依頼できるか、必ず直るかを知りたい。
+    raw_message: "Stripe決済後に注文が作られないです。15,000円で依頼できますか？必ず直るかも先に知りたいです。"
+    note: 通常 live / #RE。金額・保証不可・修正可能時の成果物を、短文断定の連発ではなく自然につなげるかを見る。
+
+  - id: HRC68-002
+    stock_id: HRC68-002
+    category: block_rhythm_flow
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: quote_sent_payment_after_materials_flow
+    question_type: quote_sent_materials_after_payment_flow
+    primary_question: 購入後、コードやログをどこで送るか、その後の流れを知りたい。
+    raw_message: "見積り提案ありがとうございます。購入したらコードやログはどこで送ればいいですか？送った後の流れも簡単に知りたいです。"
+    note: 通常 live / #RE。buyer が支払い前確認を求めていないため、不要な拒否を出さず、支払い後共有とその後の流れを自然につなぐ。
+
+  - id: HRC68-003
+    stock_id: HRC68-003
+    category: block_rhythm_flow
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: purchased_materials_received_next_flow
+    question_type: purchased_materials_received_next_flow
+    primary_question: 購入後にログとスクショを送ったので、追加準備の有無と次の流れを知りたい。
+    raw_message: "ログとスクショを送りました。追加で用意するものはありますか？次はどういう流れですか？"
+    note: 通常 live / #RE。受領、追加準備不要、次回時刻を処理文の積み上げにせず、buyer が次に何をすればよいかを見せる。
+
+  - id: HRC68-004
+    stock_id: HRC68-004
+    category: block_rhythm_flow
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent_progress_request
+    scenario: purchased_progress_brief_next_focus
+    question_type: purchased_progress_brief_next_focus
+    primary_question: 購入後、本番停止中で今見えていることと次に見るところを短く知りたい。
+    raw_message: "本番が止まっていて焦っています。今見えていることと、次に見るところだけ短く教えてください。"
+    note: 通常 live / #RE。短い進捗共有で、現在地・未断定・次回時刻が部品化しすぎないかを見る。
+
+  - id: HRC68-005
+    stock_id: HRC68-005
+    category: block_rhythm_flow
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: confused
+    scenario: delivered_confirm_points_plain
+    question_type: delivered_confirm_points_plain
+    primary_question: 納品後承諾前、どこを確認すれば直ったと言えるかだけ知りたい。
+    raw_message: "納品ありがとうございます。専門用語が多くて、どこを確認すれば直ったと言えるかだけ知りたいです。"
+    note: 通常 live / #RE。軽い補足説明を、確認ポイント・専門用語回避・次回時刻へ自然につなげる。
+
+  - id: HRC68-006
+    stock_id: HRC68-006
+    category: block_rhythm_flow
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_followup
+    scenario: closed_relation_check_materials_flow
+    question_type: closed_relation_check_materials_flow
+    primary_question: クローズ後、ログをこのメッセージで送れば前回修正との関係だけ見てもらえるか知りたい。
+    raw_message: "クローズ後ですみません。またStripeエラーが出ています。ログをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？必要なら新規で相談します。"
+    note: 通常 live / #RE。closed 後の `送ってよい -> 届いた範囲で見る -> 実作業は別相談` を、3つの部品ではなく会話の流れとして出せるかを見る。
+
+  - id: HRC68-007
+    stock_id: HRC68-007
+    category: block_rhythm_flow
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: refund_anxiety
+    scenario: closed_refund_or_new_materials
+    question_type: closed_refund_or_new_materials
+    primary_question: クローズ後、再び注文が作られず、返金か新規相談かをログで判断できるか知りたい。
+    raw_message: "前回直ったと思ったのですが、また注文が作られません。返金なのか新規なのか、ログを送れば判断できますか？"
+    note: 通常 live / #RE。返金・新規相談・関係確認を要約しつつ、closed 後実作業 promise にせず、塊感を減らす。
+
+  - id: HRC68-008
+    stock_id: HRC68-008
+    category: block_rhythm_flow
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: review_pressure
+    scenario: closed_review_pressure_free_relation
+    question_type: closed_review_pressure_free_relation
+    primary_question: クローズ後、評価前に前回修正との関係と無料対応の可能性を知りたい。
+    raw_message: "評価を書く前に確認したいです。またStripeエラーが出ました。前回の修正と関係あるかだけ見てほしいです。無料で直せるならそれも知りたいです。"
+    note: 通常 live / #RE。評価圧と無料対応圧を復唱せず、関係確認・費用扱い未断定・実作業前相談へ自然につなぐ。

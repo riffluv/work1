@@ -472,7 +472,7 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         elif any(marker in raw for marker in ["長い説明はいりません", "長い説明はいい", "今どこまで分か", "今どこまでわか", "分かっているかだけ", "わかっているかだけ"]):
             direct_answer_line = "現時点では、決済後の反映処理がどこで止まっているかを見ている段階です。まだ原因は断定していません。"
         elif any(marker in raw for marker in ["進捗はどう", "今どこまで見て", "今どこまで見ていただけ", "2日経って", "待たされた経験"]):
-            direct_answer_line = "いまは、今回の不具合がどこで止まっているかを確認している段階です。"
+            direct_answer_line = "いまは、今回の不具合がどこで止まっているかを確認している段階です。まだ原因は断定していません。"
         elif any(marker in raw for marker in ["対応するかしないか", "どうなってるんですか", "まだ何も返事"]):
             direct_answer_line = "対応可否も含めて確認に入っており、まず今の状況を整理してお返しします。"
         else:
@@ -680,6 +680,9 @@ def detect_scenario(source: dict) -> str:
     ) or (
         any(marker in combined for marker in ["初めてこういうサービス", "流れで進む", "イメージできてなく"])
         and any(marker in combined for marker in ["追加で用意", "準備しておきます", "ログ", "スクショ"])
+    ) or (
+        any(marker in combined for marker in ["ログ", "スクショ"])
+        and any(marker in combined for marker in ["追加で用意", "次はどういう流れ", "次の流れ"])
     ):
         return "received_materials_flow_check"
     if (
@@ -888,9 +891,9 @@ def detect_scenario(source: dict) -> str:
         return "extra_scope_question"
     if "追加料金" in combined or "別原因" in combined or "話が違う" in combined or "フロント側だった" in combined:
         return "extra_fee_anxiety"
-    if any(marker in combined for marker in ["どのくらいかかりそう", "いつ直るのか", "目安だけでも", "クライアントから進捗", "進捗を聞かれて", "その後いかがでしょうか"]):
+    if any(marker in combined for marker in ["どのくらいかかりそう", "いつ直るのか", "目安だけでも", "クライアントから進捗", "進捗を聞かれて", "その後いかがでしょうか", "今何を見て", "今日中に直せ"]):
         return "timeline_anxiety"
-    if any(marker in combined for marker in ["3日経ち", "何も進んでいません", "2時間以内", "放置", "返金してほしい"]):
+    if any(marker in combined for marker in ["3日経ち", "何も進んでいません", "2時間以内", "放置", "返金してほしい", "返金になる"]):
         return "delay_complaint_refund"
     return "generic_followup"
 
@@ -2385,8 +2388,12 @@ def draft_opening_anchor(case: dict) -> str:
     pending_commitment = has_unfulfilled_commitment(case)
 
     if scenario == "delay_complaint_refund":
-        lines = ["まず状況を整理します。お待たせしてしまい、申し訳ありません。"]
-        lines.append(deadline_phrase or "連絡が空いてしまった点、申し訳ありません。")
+        if any(marker in raw for marker in ["3日経ち", "何も進んでいません", "2時間以内", "放置", "連絡"]):
+            lines = ["まず状況を整理します。お待たせしてすみません。"]
+        else:
+            lines = ["返金についてのご確認ですね。まず現在の作業状況を整理します。"]
+        if deadline_phrase:
+            lines.append(deadline_phrase)
         return "\n".join(lines)
     if scenario == "progress_anxiety":
         if pending_commitment and repeated_followup:
@@ -2635,7 +2642,7 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         _append_unique(
             paragraphs,
             (
-                f"{direct_answer}この後はこちらで内容を確認し、追加で必要なものが出た場合だけお伝えします。\n"
+                f"{direct_answer}まず受け取っている内容をもとに確認します。追加で必要なものがあれば、その時点でこちらからお伝えします。\n"
                 "いまの時点で、追加で準備いただくものはありません。"
             ),
         )

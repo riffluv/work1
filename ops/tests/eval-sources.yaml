@@ -254,6 +254,48 @@ primary_sources:
       - 他者未解決と成功保証、今日中見通し、支払い前原因だけ先見、zip/env値共有、購入後進捗不安、追加症状と追加料金、delivered別エラー、closed後無料/返金不安を検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/lens-inventory-cross-check-bugfix63.yaml
+    role: eval
+    purpose:
+      - 主要レンズ棚卸し後の通常 live #RE。promise_consistency / conversation_flow_naturalness / agency_alignment / permission_benefit_alignment / unnecessary_refusal_frame を混合ケースで確認
+      - 他者未解決、原因不明相談、支払い後材料共有、GitHub招待、secret値、購入後進捗、delivered補足、closed後無料/返金圧を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/ai-feel-structure-observation-bugfix64.yaml
+    role: eval
+    purpose:
+      - AI感の構造候補を正式レンズ化せず観察する通常 live #RE。voice ownership / question granularity / burden alignment / certainty calibration が実務返信に効くか確認
+      - 非エンジニア不安、急ぎの見通し、購入後材料共有、軽い説明、購入後ファイル過多、原因側の短答、delivered確認、closed後関係確認を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/negative-frame-emotion-bridge-bugfix65.yaml
+    role: eval
+    purpose:
+      - negative_frame_non_echo を通常 live #RE で確認し、否定されたネガティブ意図を復唱せず実務目的へ要約できるかを見る
+      - 文句ではない/疑っていない/苦情ではない/責めたいわけではない/実際の不満を、prequote・quote_sent・purchased・delivered・closed で検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/strong-emotion-boundary-bugfix66.yaml
+    role: eval
+    purpose:
+      - negative_frame_non_echo / emotion_to_action_bridge を、低評価圧・返金圧・無料対応圧・急ぎ圧が混ざる通常 live #RE で確認
+      - 他者未解決、支払い前不安、今日中確実要求、購入後急ぎ、返金/キャンセル不安、delivered承諾不可、closed後低評価圧/強い不満を検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/negative-frame-overcorrection-bugfix67.yaml
+    role: eval
+    purpose:
+      - negative_frame_non_echo / responsibility_admission_guard / pressure_word_summarization の過剰反応を通常 live #RE で確認
+      - 否定フレーム、不安、購入後進捗、説明不足、closed後のお礼/返金不安/評価圧を、冷たくなりすぎず処理できるかを検査
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/block-rhythm-flow-bugfix68.yaml
+    role: eval
+    purpose:
+      - conversation_flow_naturalness のうち、block rhythm / 段落の塊感を通常 live #RE で確認
+      - 金額保証、購入後材料共有、受領後流れ、短い進捗、delivered補足、closed後関係確認/返金/評価圧を、安全境界を崩さず自然につなげるかを検査
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

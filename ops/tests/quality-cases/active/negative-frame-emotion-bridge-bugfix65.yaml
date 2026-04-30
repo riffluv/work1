@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC65-001
+    stock_id: HRC65-001
+    category: negative_frame_emotion_bridge
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: prequote_no_complaint_other_person_failed
+    question_type: prequote_not_complaint_can_request
+    primary_question: 文句ではなく、他者が原因不明だった Stripe 注文作成不具合でも依頼できるかを知りたい。
+    raw_message: "文句を言いたいわけではないのですが、別の方に見てもらっても原因が分かりませんでした。Stripe決済後に注文が作られない状態です。この状態でも依頼できますか？"
+    note: 通常 live / #RE。否定されたネガティブ意図を復唱せず、依頼可否と成功保証不可を自然に返す。
+
+  - id: HRC65-002
+    stock_id: HRC65-002
+    category: negative_frame_emotion_bridge
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent
+    scenario: prequote_not_rushing_but_urgent
+    question_type: prequote_no_pressure_urgent_timeline
+    primary_question: 急かしたいわけではないが、本番停止中なので早く見てもらえるか、今日中の見通しが出るか知りたい。
+    raw_message: "急かしたいわけではないのですが、本番で注文が作られず止まっています。購入したら早めに見てもらえますか？今日中に原因の方向性だけでも分かりますか？"
+    note: 通常 live / #RE。`急かしたいわけではない` を復唱せず、急ぎへの受けと保証不可を分ける。
+
+  - id: HRC65-003
+    stock_id: HRC65-003
+    category: negative_frame_emotion_bridge
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: quote_sent_not_doubting_cause_first
+    question_type: quote_sent_not_doubting_precheck
+    primary_question: 疑っているわけではないが、支払い前に原因だけ見てもらえるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。疑っているわけではないのですが、支払い前にログだけ送って、原因だけ先に見てもらうことはできますか？直りそうなら購入したいです。"
+    note: 通常 live / #RE。購入前作業開始を止めつつ、`疑っているわけではない` をオウム返ししない。
+
+  - id: HRC65-004
+    stock_id: HRC65-004
+    category: negative_frame_emotion_bridge
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: worried
+    scenario: purchased_not_complaint_progress_check
+    question_type: purchased_not_complaint_progress
+    primary_question: 文句ではないが、昨日送ったログを見てもらえているか、今どこまで進んでいるか知りたい。
+    raw_message: "文句ではないのですが、昨日送ったログは見てもらえていますか？今どこまで分かっているかだけ短く教えてほしいです。"
+    note: 通常 live / #RE。購入後の進捗不安に対して、否定フレームを復唱せず現在地と次回時刻へつなぐ。
+
+  - id: HRC65-005
+    stock_id: HRC65-005
+    category: negative_frame_emotion_bridge
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: purchased_previous_vendor_ignored
+    question_type: purchased_anxiety_progress_visibility
+    primary_question: 前の依頼で放置された経験があり不安なので、今どこを見ているかだけ知りたい。
+    raw_message: "正直少し不安です。前に別の方へ頼んだとき、途中から連絡がなくなったので…。今どこを見ているかだけ、短く教えてもらえますか？"
+    note: 通常 live / #RE。実際の不安に対して感情を広げず、現在地の可視化へ移す。
+
+  - id: HRC65-006
+    stock_id: HRC65-006
+    category: negative_frame_emotion_bridge
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: delivered_not_complaint_explanation
+    question_type: delivered_not_complaint_simple_explanation
+    primary_question: 苦情ではなく、納品後承諾前に専門用語が難しいため、確認箇所を簡単に知りたい。
+    raw_message: "納品ありがとうございます。苦情ではないのですが、専門用語が少し難しくて、どこを確認すればいいか分かりません。承諾前に簡単に教えてもらえますか？"
+    note: 通常 live / #RE。`苦情ではない` を復唱せず、承諾前の軽い補足として受ける。
+
+  - id: HRC65-007
+    stock_id: HRC65-007
+    category: negative_frame_emotion_bridge
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: closed_no_blame_free_or_new
+    question_type: closed_not_blaming_free_or_new
+    primary_question: 責めたいわけではないが、似たエラーが前回修正と関係あるか、無料対応か新規相談か知りたい。
+    raw_message: "クローズ後ですみません。責めたいわけではないのですが、また似たStripeエラーが出ています。前回の修正と関係あるのか、無料で見てもらえるのか、新規で相談した方がいいのか知りたいです。"
+    note: 通常 live / #RE。closed 後の関係確認、無料/新規の未断定、否定フレーム非反復を見る。
+
+  - id: HRC65-008
+    stock_id: HRC65-008
+    category: negative_frame_emotion_bridge
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: complaint_like
+    scenario: closed_actual_complaint_refund_free
+    question_type: closed_complaint_refund_free_boundary
+    primary_question: クローズ後、強い不満として同じようなエラー・前回修正ミス疑い・返金/無料対応可否を聞かれている。
+    raw_message: "すみません、またStripeエラーが出ています。これ前回の修正ミスじゃないですか？返金か無料で見てもらうことはできますか？"
+    note: 通常 live / #RE。実際の不満をラベル化せず、不便の認知、関係確認、返金/無料/実作業の未断定を分ける。

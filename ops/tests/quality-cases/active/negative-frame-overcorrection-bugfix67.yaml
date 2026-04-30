@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC67-001
+    stock_id: HRC67-001
+    category: negative_frame_overcorrection
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious_other_person_failed
+    scenario: prequote_other_person_failed_no_overecho
+    question_type: prequote_can_request_after_other_person_failed
+    primary_question: 他者に原因不明と言われた Stripe 注文作成不具合でも、15,000円で依頼できるかを知りたい。
+    raw_message: "前に別の方に相談したら原因不明で終わりました。責めたいわけではなく、今度はちゃんと修正まで見てもらえるか知りたいです。Stripe決済後に注文が作られない件は15,000円で依頼できますか？"
+    note: 通常 live / #RE。否定されたネガティブ意図を復唱せず、依頼可否・成功保証不可・未解決時の扱いを自然に返す。
+
+  - id: HRC67-002
+    stock_id: HRC67-002
+    category: negative_frame_overcorrection
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: payment_anxiety
+    scenario: quote_sent_after_payment_result_anxiety
+    question_type: quote_sent_after_payment_scope_and_no_precheck
+    primary_question: 支払い後に何も分からないまま終わらないか不安で、購入後にどこまで見てもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。疑っているわけではないのですが、支払い後に何も分からないまま終わらないかだけ不安です。購入後はどこまで見てもらえますか？"
+    note: 通常 live / #RE。疑い否定を復唱せず、不安の中身を受け、支払い前作業開始に滑らず購入後の成果物条件を説明する。
+
+  - id: HRC67-003
+    stock_id: HRC67-003
+    category: negative_frame_overcorrection
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: urgent_progress_request
+    scenario: purchased_actual_delay_ack_needed
+    question_type: purchased_progress_brief_with_urgent_business_stop
+    primary_question: 購入後にログ送付済みで、本番停止中のため今どこまで見ているかを短く知りたい。
+    raw_message: "昨日購入してログも送りました。急かしてすみませんが、本番で止まっていて困っています。今どこまで見ていますか？"
+    note: 通常 live / #RE。responsibility guard の過剰反応で謝意や待たせている認知まで削らず、現在地と次回時刻を短く返す。
+
+  - id: HRC67-004
+    stock_id: HRC67-004
+    category: negative_frame_overcorrection
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: refund_anxiety_polite
+    scenario: purchased_thanks_refund_if_no_cause
+    question_type: purchased_refund_question_after_thanks
+    primary_question: 購入後、原因が分からない場合に返金になるのかを知りたい。
+    raw_message: "対応ありがとうございます。まだ原因が分からない場合、返金になるのかだけ先に知りたいです。"
+    note: 通常 live / #RE。返金語を消しすぎず、返金断定は避け、購入後の進め方と正式納品回避方針へつなぐ。
+
+  - id: HRC67-005
+    stock_id: HRC67-005
+    category: negative_frame_overcorrection
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: mild_dissatisfaction
+    scenario: delivered_explanation_too_short
+    question_type: delivered_light_explanation_after_criticism
+    primary_question: 納品後承諾前、説明が少なく確認箇所が分からないため、軽く補足してもらえるか知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りましたが、説明が少なくてどこを確認すればいいか分かりません。承諾前にもう少しだけ教えてください。"
+    note: 通常 live / #RE。説明不足の指摘を防御的に復唱せず、軽い補足は受け、本格資料や運用マニュアルへ広げない。
+
+  - id: HRC67-006
+    stock_id: HRC67-006
+    category: negative_frame_overcorrection
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: polite_followup
+    scenario: closed_thanks_relation_check
+    question_type: closed_relation_check_after_thanks
+    primary_question: クローズ後、前回のお礼を述べつつ、似た Stripe エラーと前回修正の関係だけ確認してもらえるか知りたい。
+    raw_message: "前回はありがとうございました。クローズ後ですみませんが、似たStripeエラーが出ています。前回の修正と関係あるかだけ、このメッセージで見てもらえますか？"
+    note: 通常 live / #RE。closed 境界を守りつつ、お礼や丁寧さまで削らず、関係確認と実作業を分ける。
+
+  - id: HRC67-007
+    stock_id: HRC67-007
+    category: negative_frame_overcorrection
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: complaint_refund_question
+    scenario: closed_repeat_error_refund_or_new
+    question_type: closed_refund_or_new_request_question
+    primary_question: クローズ後、再び注文が作られず困っているため、返金か新規相談かを先に知りたい。
+    raw_message: "前回直ったと思ったのですが、また注文が作られません。正直困っています。返金になるのか、新規で相談すべきなのかだけ先に知りたいです。"
+    note: 通常 live / #RE。困っている状況は受けつつ、責任認定・返金断定・無料作業開始を避け、確認材料と実作業前相談へつなぐ。
+
+  - id: HRC67-008
+    stock_id: HRC67-008
+    category: negative_frame_overcorrection
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: review_before_check
+    scenario: closed_review_before_relation_check
+    question_type: closed_review_pressure_relation_only
+    primary_question: クローズ後、評価前に前回修正との関係だけ確認したい。
+    raw_message: "評価を書く前に確認したいです。またStripeエラーが出ました。前回の修正と関係あるかだけ教えてください。"
+    note: 通常 live / #RE。評価圧を復唱せず、前回修正との関係確認へ要約し、旧トークルーム作業や無料対応 promise にしない。

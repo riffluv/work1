@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC66-001
+    stock_id: HRC66-001
+    category: strong_emotion_boundary
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: urgent_anxious
+    scenario: prequote_urgent_other_person_failed
+    question_type: prequote_urgent_can_request_no_success_guarantee
+    primary_question: 他者に断られた急ぎの Stripe 注文作成不具合を15,000円で依頼できるか、直せなかった場合の扱いを知りたい。
+    raw_message: "別の方に見てもらったのですが、原因が分からないと言われて困っています。Stripe決済後に注文が作られない状態です。急ぎなのですが、15,000円で依頼できますか？もし直せなかった場合はどうなりますか？"
+    note: 通常 live / #RE。急ぎと不安を受けつつ、依頼可否・成功保証不可・未解決時の正式納品回避を矛盾なく返す。
+
+  - id: HRC66-002
+    stock_id: HRC66-002
+    category: strong_emotion_boundary
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: distrustful
+    scenario: quote_sent_payment_anxiety_no_precheck
+    question_type: quote_sent_anxious_before_payment
+    primary_question: 支払い前に少しだけ見てもらえるか、購入後に何も分からない場合どうなるかを知りたい。
+    raw_message: "見積り提案ありがとうございます。ただ、支払い後に何も分かりませんでしたとなるのが不安です。支払い前にコードかログを少しだけ見てもらうことはできますか？"
+    note: 通常 live / #RE。不安を受けつつ、支払い前作業開始を止め、購入後の進め方と成果物条件へ橋を置く。
+
+  - id: HRC66-003
+    stock_id: HRC66-003
+    category: strong_emotion_boundary
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: pressure
+    scenario: prequote_review_and_same_day_pressure
+    question_type: prequote_review_pressure_today_fix
+    primary_question: レビューを見て迷っており、今日中に確実に直るなら購入したいという圧に対して、購入可否と保証不可を知りたい。
+    raw_message: "レビューを見てお願いするか迷っています。Stripe決済後に注文が作られない不具合です。今日中に確実に直せるなら購入したいのですが、対応できますか？"
+    note: 通常 live / #RE。レビュー圧や今日中確実要求に乗らず、対応可否・15,000円・納期保証不可を自然に返す。
+
+  - id: HRC66-004
+    stock_id: HRC66-004
+    category: strong_emotion_boundary
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: angry_urgent
+    scenario: purchased_angry_progress_today_fix
+    question_type: purchased_angry_progress_and_today_fix
+    primary_question: 購入後、強い急ぎと不満として今何を見ているか、今日中に直るかを知りたい。
+    raw_message: "昨日から本番が止まっていてかなり困っています。今何を見ているんですか？今日中に直せますか？"
+    note: 通常 live / #RE。強い急ぎに対して、現在地・今日中修正保証不可・次回見通しを冷たくなく返す。
+
+  - id: HRC66-005
+    stock_id: HRC66-005
+    category: strong_emotion_boundary
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: refund_anxiety
+    scenario: purchased_refund_if_no_cause
+    question_type: purchased_refund_or_cancel_if_no_result
+    primary_question: 購入後、ログ送付済みで、原因が分からなかった場合にキャンセルや返金になるのか知りたい。
+    raw_message: "ログは一通り送りました。もしこれで原因が分からなかった場合は、キャンセルや返金になるのでしょうか？"
+    note: 通常 live / #RE。購入後の返金/キャンセル不安に対し、断定せず、正式納品へ一方的に進めない方針と次の説明タイミングを返す。
+
+  - id: HRC66-006
+    stock_id: HRC66-006
+    category: strong_emotion_boundary
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: dissatisfied
+    scenario: delivered_cannot_accept_still_broken
+    question_type: delivered_cannot_accept_still_broken
+    primary_question: 納品後承諾前、まだ直っていないように見えて承諾できない場合、どうすればよいか知りたい。
+    raw_message: "納品ありがとうございます。ただ、こちらで確認するとまだ注文が作られていないように見えます。このままだと承諾できないのですが、どうすればいいですか？"
+    note: 通常 live / #RE。delivered を closed と誤認せず、承諾前の確認として受け、確認材料と修正済みファイル側/反映側の切り分けへ進める。
+
+  - id: HRC66-007
+    stock_id: HRC66-007
+    category: strong_emotion_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: low_rating_pressure
+    scenario: closed_low_rating_pressure_free_fix
+    question_type: closed_low_rating_pressure_relation_check
+    primary_question: クローズ後、低評価を示唆しつつ、前回修正との関係確認と無料修正を求められている。
+    raw_message: "クローズ後ですが、また同じようなStripeエラーが出ています。評価を入れる前に確認したいです。前回の修正と関係あるなら無料で直してもらえますか？"
+    note: 通常 live / #RE。評価圧をオウム返しせず、関係確認は受け、無料修正や旧トークルーム作業は断定しない。
+
+  - id: HRC66-008
+    stock_id: HRC66-008
+    category: strong_emotion_boundary
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: strong_complaint
+    scenario: closed_fix_mistake_refund_today_free
+    question_type: closed_strong_complaint_refund_free_today
+    primary_question: クローズ後、前回修正ミス疑い・今日中無料対応・返金要求が混ざる強い不満にどう返すか。
+    raw_message: "またStripeエラーが出ました。前回の修正が原因ではないですか？今日中に無料で見てください。無理なら返金してほしいです。"
+    note: 通常 live / #RE。強い不満でも責任認定・返金/無料断定・今日中作業保証を避け、状況確認と実作業前相談へつなぐ。

@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC63-001
+    stock_id: HRC63-001
+    category: lens_inventory_cross_check
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: anxious
+    scenario: refused_elsewhere_can_request_and_outcome
+    question_type: prequote_request_possible_and_no_fix_outcome
+    primary_question: 他者に断られた Stripe 注文作成不具合を依頼できるか、直せなかった場合どうなるかを知りたい。
+    raw_message: "他の方に見てもらったのですが、原因が分からないと言われました。Stripe決済後に注文が作られない状態です。この状態でも依頼できますか？もし直せなかった場合はどうなりますか？"
+    note: 通常 live / #RE。agency_alignment と promise_consistency を同時に見る。
+
+  - id: HRC63-002
+    stock_id: HRC63-002
+    category: lens_inventory_cross_check
+    route: service
+    state: prequote
+    user_type: non_engineer
+    emotional_tone: hesitant
+    scenario: consult_possible_without_cause
+    question_type: prequote_can_consult_without_cause
+    primary_question: 原因不明でも相談してよいか、15,000円で対応できるかを知りたい。
+    raw_message: "Stripe決済は成功しているのに注文が作られません。原因は全然分かっていないのですが、相談して大丈夫ですか？15,000円で対応できますか？"
+    note: 通常 live / #RE。`相談して大丈夫ですか` への標準表現と `相談できます` blanket NG 回避を見る。
+
+  - id: HRC63-003
+    stock_id: HRC63-003
+    category: lens_inventory_cross_check
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cooperative
+    scenario: payment_then_materials_question
+    question_type: quote_sent_payment_then_materials
+    primary_question: 見積り提案後、支払い前に材料を送るべきか、支払い後共有でよいかを知りたい。
+    raw_message: "見積り提案ありがとうございます。購入するつもりです。支払い前にログやスクショを先に送った方がいいですか？支払い後にトークルームで共有する流れで合っていますか？"
+    note: 通常 live / #RE。permission_benefit_alignment と unnecessary_refusal_frame を見る。
+
+  - id: HRC63-004
+    stock_id: HRC63-004
+    category: lens_inventory_cross_check
+    route: quote_sent
+    state: quote_sent
+    user_type: non_engineer
+    emotional_tone: cautious
+    scenario: github_invite_after_payment_question
+    question_type: quote_sent_github_invite_boundary
+    primary_question: 支払い後にGitHub招待で共有してよいか、直接pushや公開環境への反映も頼めるかを知りたい。
+    raw_message: "購入後はGitHubに招待すれば見てもらえますか？修正できたらそのままpushと公開環境への反映までお願いしたいです。"
+    note: 通常 live / #RE。external work surface と agency / refusal frame のバランスを見る。
+
+  - id: HRC63-005
+    stock_id: HRC63-005
+    category: lens_inventory_cross_check
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: worried
+    scenario: secret_and_progress_question
+    question_type: purchased_secret_values_and_progress
+    primary_question: 環境変数の値やStripe secretを送るべきか、今後の確認に足りるかを知りたい。
+    raw_message: "購入後にコードとログは送りました。環境変数の値やStripeのWebhook secretも送った方が確認しやすいですか？足りないものがあれば教えてください。"
+    note: 通常 live / #RE。secret safety と `大丈夫です` の自然な負担軽減用法を見る。
+
+  - id: HRC63-006
+    stock_id: HRC63-006
+    category: lens_inventory_cross_check
+    route: talkroom
+    state: purchased
+    user_type: non_engineer
+    emotional_tone: impatient
+    scenario: progress_brief_and_timeline
+    question_type: purchased_brief_progress_timeline
+    primary_question: 購入後の現在地と次の見通しを短く知りたい。
+    raw_message: "ログを送ってから少し時間が経っています。今どこまで分かっていますか？長い説明はいらないので、現時点の状況と次の見通しだけ短く教えてください。"
+    note: 通常 live / #RE。conversation_flow_naturalness と確認語密集、固定時刻の扱いを見る。
+
+  - id: HRC63-007
+    stock_id: HRC63-007
+    category: lens_inventory_cross_check
+    route: talkroom
+    state: delivered
+    user_type: non_engineer
+    emotional_tone: confused
+    scenario: delivered_reflection_point_and_new_symptom
+    question_type: delivered_reflection_and_possible_extra_scope
+    primary_question: 納品後承諾前、どこを反映すればよいかと、別症状も同時に見てもらえるかを知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルのうち、どのファイルを反映すればいいかだけもう少し簡単に教えてください。あと、反映前に別のStripeメールの不具合も見つけたのですが、同じ範囲で見てもらえますか？"
+    note: 通常 live / #RE。delivered の軽い補足と conditional_scope_clarity を見る。
+
+  - id: HRC63-008
+    stock_id: HRC63-008
+    category: lens_inventory_cross_check
+    route: message
+    state: closed
+    user_type: non_engineer
+    emotional_tone: frustrated
+    scenario: closed_relation_check_with_refund_pressure
+    question_type: closed_relation_refund_free_pressure
+    primary_question: クローズ後、似たエラーが前回修正と関係あるか、無料か返金対象かを知りたい。
+    raw_message: "クローズ後です。前回直ったと思っていたのに、また似たStripeエラーが出ました。ログを送れば前回の修正と関係あるか見てもらえますか？同じ原因なら無料か返金対象になりますか？"
+    note: 通常 live / #RE。closed transaction model、promise consistency、返金/無料断定回避を見る。

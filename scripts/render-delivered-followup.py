@@ -325,6 +325,14 @@ def detect_scenario(source: dict) -> str:
             and any(marker in combined for marker in ["修正ファイル", "確認手順", "説明"])
         )
         or (
+            any(marker in combined for marker in ["どこを見れば", "どこを確認", "何を見れば"])
+            and any(marker in combined for marker in ["直った", "判断", "確認でき"])
+        )
+        or (
+            any(marker in combined for marker in ["どこを確認", "どこを見れば"])
+            and any(marker in combined for marker in ["専門用語", "承諾前", "簡単に教えて"])
+        )
+        or (
             any(marker in combined for marker in ["どこを反映", "反映すれば", "反映箇所"])
             and "修正ファイル" in combined
         )
@@ -358,6 +366,10 @@ def detect_scenario(source: dict) -> str:
         or "また違うエラー" in combined
         or ("Vercel" in combined and "ステータスが切り替わらない" in combined)
         or ("まだ同じ症状" in combined and "もう一度見てもらえますか" in combined)
+        or (
+            any(marker in combined for marker in ["承諾できない", "承諾できません"])
+            and any(marker in combined for marker in ["まだ", "直っていない", "注文が作られていない", "作られていない"])
+        )
     ):
         return "redelivery_same_error"
     if (

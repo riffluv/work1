@@ -62,6 +62,7 @@
 - `36_conversation-flow-naturalness.ja.md`
 - `37_promise-consistency.ja.md`
 - `38_agency-alignment.ja.md`
+- `39_negative-frame-emotion-bridge.ja.md`
 
 ## Gold 26-33 family index
 
@@ -79,6 +80,7 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 | conversation_flow | 36 | 内容は正しいが、短文断定の連続・確認語密集・次アクション不足で会話の流れが切れている時 | 価格・scope・phase・secret・payment route を弱めて自然化する理由にする時 |
 | promise_consistency | 37 | 先に置いた留保・不可・条件付き回答を、後段の成果物・納期・料金・次アクションが上書きして見える時 | 固定価格・対応可能範囲・修正済みファイル成果物を弱める理由にする時 |
 | agency_alignment | 38 | `依頼できますか` `見てもらえますか` `支払い後に送ればいいですか` などで、相談先・対応主体・許可の向きがズレそうな時 | `相談できます` `確認できます` `大丈夫です` を blanket NG にする理由にする時 |
+| negative_frame | 39 | `責めたいわけではない` `返金してほしい` などのネガティブ/圧力語を、実務目的・作業可否・費用扱いへ要約する時 | 謝罪・過失認定・無料対応・返金保証を強める理由にする時 |
 
 ### 抽出して validator / renderer へ戻す候補
 
@@ -91,3 +93,4 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 - Gold 36: `conversation_flow_naturalness` は hard validator 化せず、固定価格・scope・phase を保ったまま、短文断定の連続、確認語密集、次アクション不足を最小差分で整える anchor として使う。
 - Gold 37: `promise_consistency` は hard validator 化せず、成功保証・原因未確定・購入前着手・closed 後作業などの留保と、後段の成果物・作業 promise の約束レベルを分ける anchor として使う。
 - Gold 38: `agency_alignment` は hard validator 化せず、buyer の主質問の動詞に合わせて、依頼先・対応主体・材料共有の手順がズレない表現へ戻す anchor として使う。
+- Gold 39: `negative_frame_non_echo` は hard validator 化せず、否定されたネガティブ意図や圧力語を、前回修正との関係・作業可否・費用や返金の扱いへ要約する anchor として使う。

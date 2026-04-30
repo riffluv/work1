@@ -102,6 +102,9 @@
 - 古い gold が現行ルールと矛盾した場合は、良い例として残さない。
 
 ## Lens Notes
+- `lens-inventory-20260430.ja.md`
+  - 主要監査レンズを `正式主力 / 補助主力 / 観察中 / hard guard` に棚卸しした正本メモ。
+  - `promise_consistency`、`conversation_flow_naturalness`、`jp_business_native_naturalness`、`agency_alignment`、`permission_benefit_alignment`、`unnecessary_refusal_frame` の現在位置と、Pro に見せる論点をまとめる。
 - `promise-consistency-lens-20260429.ja.md`
   - 留保・不可・条件付き回答を、後段の成果物・納期・料金・次アクションが上書きして見えないかを見る soft lens。
   - 現時点では #RE / #BR 監査プロンプト + Gold 37 で運用し、lint / renderer / common skill へは再発 subtype を確認してから戻す。
