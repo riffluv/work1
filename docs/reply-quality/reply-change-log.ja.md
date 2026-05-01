@@ -2085,3 +2085,147 @@
 - きっかけ: Pro 分析で、完成には「memory / phase / reply_contract を実例化するだけでなく、完成を測れる形にすること」と、「facts 正本の所在ズレを残さないこと」が指摘されていたため
 - 想定効果: contract packet が手書きメモで終わらず、最低限の schema 整合をローカルで確認できる。将来 Pro や app 化レビューに見せる時も、返信文ではなく前段の判断 packet と canonical facts の接続を説明しやすくなる
 - 非変更: `facts.yaml` pointer には公開 facts を複製しない。canonical facts は `service-pack/facts.yaml` のまま。renderer / validator / lint / skill の挙動は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-241
+- 分類: `reply-only`
+- レイヤ: v1 completion seal / service truth / contract packet gate
+- 変更: Pro 分析 `chatgptPro/ココナラ返信OS分析２個目5-01.txt` を受け、`service-registry.yaml` に `public_facts_file` と `runtime_capability_file` を追加し、公開事実正本と既存 runtime 能力ファイルを分離した。各 phase renderer の service grounding は `public_facts_file` 優先の共有 loader へ寄せた。`check-contract-packets.py` は explicit question coverage、`answer_after_check` の `hold_reason` / `revisit_trigger`、`ask_map` と `blocking_missing_facts`、`required_moves` / `forbidden_moves` enum、外向け判断文の private term leak、packet meta fields を見るよう強化した。`failure-taxonomy.yaml` へ service truth / runtime pipeline / memory state / evaluation artifact / user override / gold overfit 系の failure class を追加し、`bugfix-15000-v1-scope-seal.ja.md` を追加した
+- きっかけ: Pro が「v1 completion candidate だが release sealed ではない。次は同型 #RE ではなく、service truth canonicalization、contract packet checker、coverage map、failure taxonomy、scope seal を固めるべき」と指摘したため
+- 想定効果: 外向け返信の事実源が `service-pack/facts.yaml` に寄り、legacy `service.yaml` と混ざりにくくなる。contract packet は返信テンプレートではなく、主質問・保留理由・不足情報・禁止 move を先に固定する gate として使える。高飽和 family は `synthetic_rehearsal: high / real_stock: low` と分け、routine #RE の無駄打ちを止めやすくなる。購入前の納品物見本は `prequote_sample_policy` として、購入前診断とは別に扱う
+- 確認: `./scripts/check-contract-packets.py` は OK（絶対パスと `writer_notes.use` のテンプレ圧は warning）。`check-service-pack-fidelity.py --save-report` は `pass=19 fail=0`。`check-service-grounding-sentries.py --save-report` は `pass=21 warn=26 fail=0`。`check-coconala-reply-role-suites.py --save-report` は OK。`git diff --check` と `os-check` も OK
+- 非変更: renderer の本文分岐や自然化方針は大きく変更しない。`facts_file` は既存互換として残す。soft lens を hard rule 化しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-242
+- 分類: `reply-only`
+- レイヤ: contract packet traceability
+- 変更: `ops/tests/contract-packets/bugfix-15000-v1-fixtures.yaml` と `scripts/check-contract-packet-fixtures.py` を追加し、contract packet sample が phase / buyer message / explicit question と追跡可能かを確認できるようにした。`ops/tests/contract-packets/README.ja.md` と `bugfix-15000-v1-scope-seal.ja.md` に traceability smoke の位置づけを追記した
+- きっかけ: Pro 分析後の次工程として、contract packet sample を作るだけでなく、sample が入力相当の fixture と結びついていることを検査できる最小ゲートが必要になったため
+- 想定効果: contract packet が手書きメモとして空中に浮くリスクを下げ、将来の runtime packet builder / app 化へ進む前に、まず sample と入力の対応を機械的に確認できる。#RE / #R のズレを見つける時も、返信文ではなく packet の trace から点検しやすくなる
+- 確認: `./scripts/check-contract-packet-fixtures.py` は `OK contract packet fixture trace: 5 fixture(s)`。`./scripts/check-contract-packets.py` は OK（既存の絶対パスと `writer_notes.use` は warning）。`check-service-pack-fidelity.py --save-report` は `pass=19 fail=0`。`check-service-grounding-sentries.py --save-report` は `pass=21 warn=26 fail=0`。`check-coconala-reply-role-suites.py --save-report` は OK。`git diff --check` と `os-check` も OK
+- 非変更: `check-contract-packet-fixtures.py` は runtime packet builder ではない。renderer / validator / lint / skill の挙動は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-243
+- 分類: `reply-only`
+- レイヤ: minimal contract packet builder
+- 変更: `scripts/build-contract-packets.py` を追加し、`bugfix-15000-v1-fixtures.yaml` と `phase-contract-schema.yaml` / `service-registry.yaml` から最小 generated packet を作れるようにした。`--check-against-samples` では、sample packet と全文一致ではなく、phase / family / channel / visible service / buyer latest message / explicit questions / redaction policy / phase allowed・forbidden の重要項目だけを比較する。`ops/tests/contract-packets/README.ja.md`、`ops/tests/README.ja.md`、`bugfix-15000-v1-scope-seal.ja.md` に導線を追加した
+- きっかけ: trace fixture だけでは「対応している」確認に留まり、fixture から packet を作る最小 runtime path がまだなかったため。いきなり writer 判断や `answer_brief` 生成まで実装すると、既存 #R / #RE の意味契約を再実装して壊すリスクが高いので、まず重要項目だけの builder smoke に絞った
+- 想定効果: 将来アプリ化で必要になる `input -> memory/phase/reply_contract packet` の最小経路を、既存 renderer から独立して確認できる。sample packet が単なる手書き理想形で終わらず、fixture と schema から機械生成した packet と照合できる
+- 確認: `./scripts/build-contract-packets.py --check-against-samples` は `OK generated contract packet comparison: 5 packet(s)`。`./scripts/check-contract-packet-fixtures.py` は OK。`./scripts/check-contract-packets.py` は OK（既存 warning のみ）。`check-service-pack-fidelity.py --save-report` は `pass=19 fail=0`。`check-service-grounding-sentries.py --save-report` は `pass=21 warn=26 fail=0`。`check-coconala-reply-role-suites.py --save-report` は OK。`git diff --check` と `os-check` も OK
+- 非変更: production runtime builder ではない。`answer_brief`、writer 自然文、rich な `response_decision_plan` はまだ生成しない。renderer / validator / lint / skill の挙動は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-244
+- 分類: `reply-only`
+- レイヤ: minimal answer/ask contract generation
+- 変更: `build-contract-packets.py` の最小 generated packet に family ごとの `answer_map.answer_brief`、closed 関係確認用の `ask_map`、`response_decision_plan.blocking_missing_facts` / `direct_answer_line` を追加した。比較 checker も `answer_map` の question id / disposition / answer_brief 有無、`ask_map` の question ids / reason / evidence kind、blocking missing facts の有無を見るようにした
+- きっかけ: 前工程では generated packet が explicit question を列挙するだけで、どの質問に答え、どれを追加材料待ちにするかの contract 生成が弱かったため
+- 想定効果: Writer に自然文を書かせる前に、主質問・副質問への最小回答、追加材料が必要な場合の `ask_map`、closed 後の確認範囲を固定しやすくなる。将来の app 化でも「質問は拾ったが回答/追加確認の扱いが曖昧」という崩れを早めに検知できる
+- 確認: `./scripts/build-contract-packets.py --check-against-samples` は `OK generated contract packet comparison: 5 packet(s)`。`./scripts/check-contract-packet-fixtures.py` は OK。`./scripts/check-contract-packets.py` は OK（既存 warning のみ）。`check-service-pack-fidelity.py --save-report` は `pass=19 fail=0`。`check-service-grounding-sentries.py --save-report` は `pass=21 warn=26 fail=0`。`check-coconala-reply-role-suites.py --save-report` は OK。`git diff --check` と `os-check` も OK
+- 非変更: full runtime builder ではない。新しい自然文 renderer は追加しない。rich な `response_decision_plan.response_order` や writer 文体判断はまだ生成しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-245
+- 分類: `reply-only`
+- レイヤ: minimal response order / move contract generation
+- 変更: `build-contract-packets.py` の最小 generated packet に `issue_plan`、`required_moves`、`forbidden_moves`、`response_decision_plan.primary_concern`、`facts_known`、`response_order` を追加した。比較 checker もこれらの重要項目を sample packet と照合するようにした
+- きっかけ: `answer_map` / `ask_map` だけでは、Writer に「どの順番で答えるか」「何を必ず入れるか」「何を出してはいけないか」が十分に渡らず、自然文生成時に肯定順・拒否順・境界説明の重さが揺れやすかったため
+- 想定効果: Writer に自然文を書かせる前に、主質問への回答順、必須 move、禁止 move、既知事実を packet 側で固定できる。将来の app 化でも、返信文ではなく `input -> packet -> writer` の中間契約として検査しやすくなる
+- 確認: `./scripts/build-contract-packets.py --check-against-samples` は `OK generated contract packet comparison: 5 packet(s)`。`./scripts/check-contract-packet-fixtures.py` は OK。`./scripts/check-contract-packets.py` は OK（既存 warning のみ）。`check-service-pack-fidelity.py --save-report` は `pass=19 fail=0`。`check-service-grounding-sentries.py --save-report` は `pass=21 warn=26 fail=0`。`check-coconala-reply-role-suites.py --save-report` は OK。`git diff --check` と `os-check` も OK
+- 非変更: production runtime builder ではない。新しい自然文 renderer は追加しない。writer 文体判断、ビジネスチャット自然化、最終返信文生成はまだ writer / renderer 側の責務として残す。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-246
+- 分類: `reply-only`
+- レイヤ: contract packet / #R writer brief sync
+- 変更: `scripts/check-contract-packet-writer-brief-sync.py` を追加し、contract packet fixture から一時的な #R case を作って `render-coconala-reply.py --writer-brief` と照合できるようにした。同期確認で見つかったズレとして、`quote_sent` の軽い支払い後共有確認が `prepayment_materials_before_payment` に寄る問題を修正し、`purchased_current_status` と `delivered_light_supplement` の secondary question も writer brief の `answer_map` に出るようにした。prequote writer brief には最小 `response_decision_plan` を追加した
+- きっかけ: generated packet は整ったが、#R 側 writer brief が別 scenario / 薄い answer coverage に落ちると、#RE で鍛えた意味契約が本丸 #R に届かないため
+- 想定効果: 同型 #RE を追加で回す前に、`input -> packet` と `input -> #R writer brief` の接続ズレを機械的に検出できる。軽い手順確認は通常フロー先行に寄せ、購入後現在地説明・納品後補足では secondary question の扱い漏れを見つけやすくなる
+- 確認: `python3 scripts/check-contract-packet-writer-brief-sync.py` は `OK contract packet writer brief sync: 5 fixture(s), 0 warning(s)`。`./scripts/build-contract-packets.py --check-against-samples` は `OK generated contract packet comparison: 5 packet(s)`。`./scripts/check-contract-packet-fixtures.py` は `OK contract packet fixture trace: 5 fixture(s)`。`./scripts/check-contract-packets.py` は OK（既存 warning のみ）。`python3 scripts/check-service-pack-fidelity.py` は `total_pass: 19 / total_fail: 0`。`python3 scripts/check-service-grounding-sentries.py` は `pass: 21 / warn: 26 / fail: 0`（既存 warning のみ）。`./scripts/check-coconala-reply-role-suites.py --save-report` は OK。`git diff --check` と `./scripts/os-check.sh` も OK
+- 非変更: この checker は返信本文の自然さ監査ではない。production runtime builder ではない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-247
+- 分類: `reply-only`
+- レイヤ: regression gate / contract packet sync
+- 変更: `check-coconala-reply-role-suites.py` に `contract_packet_writer_brief_sync` gate を追加し、seed / edge / eval / holdout / renderer_seed の通常 role suite と同じ report に `check-contract-packet-writer-brief-sync.py` の結果を出すようにした。あわせて、`quote_sent` の GitHub / Drive / URL / コード共有を含む軽い支払い後共有確認を `after_payment_zip_share_timing` に寄せ、PRコメントや「購入はその後」系の支払い前診断要求は `prepayment_materials_before_payment` として落とせるようにした
+- きっかけ: CHG-246 の同期 checker を手動実行のままにすると、今後また #R writer brief と contract packet の接続ズレを見落とすため。実際に role suite へ組み込む前の全体回帰で、古い `quote_sent` eval 3件が汎用 followup に落ちるズレを検出した
+- 想定効果: 高コストの routine #RE を増やす前に、通常の role suite だけで contract / #R 接続の崩れを検出できる。軽い手順確認は通常フロー先行、境界突破要求は不可表明先行、という `positive_flow_before_refusal` 系の判断を本丸 #R 側でも維持しやすくなる
+- 確認: `python3 -m py_compile scripts/check-coconala-reply-role-suites.py scripts/check-contract-packet-writer-brief-sync.py` は OK。`./scripts/check-coconala-reply-role-suites.py --role renderer_seed --save-report` は `contract_packet_writer_brief_sync: OK` を含めて OK。`./scripts/check-coconala-reply-role-suites.py --save-report` は OK。`python3 scripts/check-service-pack-fidelity.py` は `total_pass: 19 / total_fail: 0`。`python3 scripts/check-service-grounding-sentries.py` は `pass: 21 / warn: 26 / fail: 0`（既存 warning のみ）。`git diff --check` と `./scripts/os-check.sh` も OK
+- 非変更: 新しい #RE batch は追加しない。自然文の好み判定やビジネスチャット最終監査をこの gate に入れない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-248
+- 分類: `reply-only`
+- レイヤ: contract packet / app memory seed
+- 変更: `bugfix-15000-v1-fixtures.yaml` と `bugfix-15000-v1-samples.yaml` に `purchased_commitment_followup` packet を追加した。購入後に buyer が「前に次の見通しを返すと言われた」「ログとスクショは送付済み」「今の現在地と追加材料の有無を短く知りたい」と聞く場面を、`known_commitments` / `received_materials` / `pending_actions` / `forbidden_assumptions` 付きで固定した。`build-contract-packets.py` と `check-contract-packet-writer-brief-sync.py` にも同 family を追加し、`app_memory` coverage を `seeded` に更新した
+- きっかけ: routine #RE の追加ではなく、まだ薄かった `app_memory` の previous commitments / materials / phase 接続を contract packet として見える化する必要があったため
+- 想定効果: 将来アプリ化で、返信文を書く前に「過去に何を約束したか」「どの材料を受け取ったか」「新しい返答時刻や未提示技術語を勝手に足していないか」を packet 側で確認しやすくなる。購入後の現在地返信で、同じ材料を再要求したり、原因未断定なのに技術語を盛ったりする崩れを早く検出できる
+- 確認: `python3 -m py_compile scripts/build-contract-packets.py scripts/check-contract-packet-writer-brief-sync.py scripts/check-contract-packet-fixtures.py scripts/check-contract-packets.py` は OK。`python3 scripts/check-contract-packet-writer-brief-sync.py` は `OK contract packet writer brief sync: 6 fixture(s), 0 warning(s)`。`./scripts/build-contract-packets.py --check-against-samples` は `OK generated contract packet comparison: 6 packet(s)`。`./scripts/check-contract-packet-fixtures.py` は `OK contract packet fixture trace: 6 fixture(s)`。`./scripts/check-contract-packets.py` は OK（既存 warning のみ）。`./scripts/check-coconala-reply-role-suites.py --role renderer_seed --save-report` と `./scripts/check-coconala-reply-role-suites.py --save-report` は OK。`python3 scripts/check-service-pack-fidelity.py` は `total_pass: 19 / total_fail: 0`。`python3 scripts/check-service-grounding-sentries.py` は `pass: 21 / warn: 26 / fail: 0`（既存 warning のみ）
+- 非変更: 新しい自然文 renderer は追加しない。`purchased_commitment_followup` は返信テンプレートではなく、memory / phase / reply_contract の最小 seed。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-249
+- 分類: `reply-only`
+- レイヤ: contract packet / app memory deadline seed
+- 変更: `bugfix-15000-v1-fixtures.yaml` と `bugfix-15000-v1-samples.yaml` に `purchased_deadline_followup` packet を追加した。購入後に buyer が「前に本日18:00までに状況を返すと言われた」「18:00を過ぎている」「今の現在地・見えている範囲・追加材料の有無を知りたい」と聞く場面を、`known_commitments` / `pending_actions.due_optional` / `forbidden_assumptions` 付きで固定した。`render-post-purchase-quick.py` の `progress_anxiety` writer brief では、「追加で何か送る必要があるか」を secondary question として拾えるようにした。`build-contract-packets.py` と `check-contract-packet-writer-brief-sync.py` にも同 family を追加し、`app_memory` coverage を deadline まで seed 済みに更新した
+- きっかけ: CHG-248 で previous commitments / materials / phase は seed 化できたが、将来アプリ化で重要な「過去に約束した返答時刻を buyer が持ち出した時」の deadline memory がまだ薄かったため
+- 想定効果: 返信OSが過去の時刻約束を無視したり、新しい返答時刻を勝手に足したり、今日中の修正完了を保証したりする崩れを packet 側で早く検出できる。購入後の進捗返信で、主質問だけでなく「追加で何か必要か」も writer brief が拾いやすくなる
+- 確認: `python3 -m py_compile scripts/render-post-purchase-quick.py scripts/build-contract-packets.py scripts/check-contract-packet-writer-brief-sync.py` は OK。`./scripts/check-contract-packet-fixtures.py` は `OK contract packet fixture trace: 7 fixture(s)`。`./scripts/build-contract-packets.py --check-against-samples` は `OK generated contract packet comparison: 7 packet(s)`。`./scripts/check-contract-packets.py` は OK（既存 warning のみ）。`python3 scripts/check-contract-packet-writer-brief-sync.py` は `OK contract packet writer brief sync: 7 fixture(s), 0 warning(s)`。`./scripts/check-coconala-reply-role-suites.py --role renderer_seed --save-report` と `./scripts/check-coconala-reply-role-suites.py --save-report` は OK。`python3 scripts/check-service-pack-fidelity.py` は `total_pass: 19 / total_fail: 0`。`python3 scripts/check-service-grounding-sentries.py` は `pass: 21 / warn: 26 / fail: 0`（既存 warning のみ）。`git diff --check` と `./scripts/os-check.sh` も OK
+- 非変更: 新しい自然文 renderer は追加しない。`purchased_deadline_followup` は返信テンプレートではなく、memory / phase / reply_contract の deadline seed。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-250
+- 分類: `reply-only`
+- レイヤ: service truth traceability
+- 変更: `render-quote-sent-followup.py`、`render-post-purchase-quick.py`、`render-delivered-followup.py`、`render-closed-followup.py` の `service_grounding` に、`source_of_truth`、`public_facts_file`、`runtime_capability_file`、`service_pack_root` を保持するようにした。あわせて `check-rendered-prequote-estimate.py`、`check-rendered-quote-sent-followup.py`、`check-rendered-post-purchase-quick.py`、`check-rendered-delivered-followup.py`、`check-rendered-closed-followup.py` で、公開事実正本と内部能力参照の trace が欠けた場合に落とせるようにした
+- きっかけ: Pro 分析で、`service truth` を v1 sealed へ近づけるには `public_facts_file` と `runtime_capability_file` の分離を出力ケース側でも追跡できる必要があると整理されたため
+- 想定効果: #R / #RE / regression の各 phase case で、外向け事実が `service-pack/facts.yaml` 由来であることを確認しやすくなる。将来アプリ化や複数サービス展開時に、legacy `facts_file` / runtime 能力参照を外向け公開事実として誤用するリスクを下げる
+- 確認: `python3 -m py_compile scripts/render-quote-sent-followup.py scripts/render-post-purchase-quick.py scripts/render-delivered-followup.py scripts/render-closed-followup.py scripts/check-rendered-prequote-estimate.py scripts/check-rendered-quote-sent-followup.py scripts/check-rendered-post-purchase-quick.py scripts/check-rendered-delivered-followup.py scripts/check-rendered-closed-followup.py` は OK。`./scripts/check-coconala-reply-role-suites.py --save-report` は OK。`python3 scripts/check-service-grounding-sentries.py` は `pass: 21 / warn: 26 / fail: 0`（既存 warning のみ）。`python3 scripts/check-service-pack-fidelity.py` は `total_pass: 19 / total_fail: 0`
+- 非変更: 返信文本文の自然化や分岐文は変更しない。`facts_file` は既存互換として残す。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-251
+- 分類: `reply-only`
+- レイヤ: v1 completion gate
+- 変更: `scripts/check-v1-completion-gates.py` を追加し、completion docs、service registry、coverage map、service-pack fidelity、service grounding sentries、contract packet、fixture trace、generated packet comparison、writer brief sync をまとめて確認できるようにした。fast gate では role suite を意図的に skip し、公開前や大きな正本変更後だけ `--deep` で role suite まで含める。`ops/tests/README.ja.md`、`core-completion-checklist.ja.md`、`completion-shelf-20260501.ja.md` に導線を追加した
+- きっかけ: 同型 #RE の追加費用対効果が下がっており、次に必要なのは返信文を増やすことではなく、`v1_completion_candidate` と既知 gap を毎回同じ基準で確認する入口だったため
+- 想定効果: `functional_core_complete` / `v1_completion_candidate` / `v1_release_sealed` を混同せず、routine #RE を止める判断、Pro に投げるタイミング、実案件 stock / contract gap の優先度を見える化できる
+- 確認: `python3 -m py_compile scripts/check-v1-completion-gates.py` は OK。`./scripts/check-v1-completion-gates.py --save-report` と `./scripts/check-v1-completion-gates.py --deep --save-report` はどちらも `classification: v1_completion_candidate`、`v1_release_sealed: no`、`[OK] v1 completion candidate with known gaps`
+- 非変更: この gate は release seal ではない。既知 gap（real_stock / multi_service / app_memory / email_channel）は残す。返信本文・renderer 分岐・自然化 skill は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-252
+- 分類: `reply-only`
+- レイヤ: real stock intake gate
+- 変更: `scripts/check-real-stock-intake-gate.py` を追加し、`ops/tests/stock/inbox` の stock を移動せずに、実案件候補 / generated supplement / synthetic stock / shadow review、推定 family、risk tag、推奨 action、Pro 候補へ仕分けできるようにした。`check-v1-completion-gates.py` からも fast gate の一部として呼び出す。`ops/tests/stock/README.ja.md`、`ops/tests/README.ja.md`、`completion-shelf-20260501.ja.md` に導線を追加した
+- きっかけ: v1 完成候補の次に必要なのは routine #RE ではなく、実案件 stock が来た時に、既存 family の real_stock evidence として使うのか、edge / contract packet / Pro review に回すのかを判断する入口だったため
+- 想定効果: `stock/inbox` に置いた文章を、すぐ #RE へ流さず、release seal に効く real_stock か、生成補完に留めるべき stock かを分けられる。高飽和 family でも real_stock は価値がある一方、generated stock だけで routine #RE を再開しない判断がしやすくなる
+- 確認: `python3 -m py_compile scripts/check-real-stock-intake-gate.py` は OK。`./scripts/check-real-stock-intake-gate.py --save-report --write-manifest` は `real_stock_candidate_cases: 0`、`[OK] real stock intake gate passed with no real-stock candidates`
+- 非変更: stock ファイルを自動移動しない。`eval-sources.yaml` へ自動接続しない。返信本文・renderer 分岐・自然化 skill は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-253
+- 分類: `reply-only`
+- レイヤ: service truth resolver gate
+- 変更: `scripts/check-service-truth-resolver.py` を追加し、`service-registry.yaml` の `public_facts_file` / `runtime_capability_file` / `facts_file` / `service_pack_root` / `source_of_truth` の役割が崩れていないか確認できるようにした。`check-v1-completion-gates.py` の fast gate にも組み込み、`ops/tests/README.ja.md`、`core-completion-checklist.ja.md`、`bugfix-15000-v1-scope-seal.ja.md` に導線を追加した
+- きっかけ: Pro 分析で、`v1_release_sealed` に近づけるには service truth の二重正本化を避け、公開事実正本と runtime 能力参照のズレを機械的に検出する必要があると整理されたため
+- 想定効果: 価格・addon・scope・source refs・public/private のズレを、返信文生成後ではなく service truth 解決段階で落としやすくなる。将来のアプリ化や複数サービス化でも、legacy `facts_file` を外向け公開事実として誤用するリスクを下げる
+- 確認: `python3 scripts/check-service-truth-resolver.py` は `OK service truth resolver clean: 2 service(s)`。`./scripts/check-v1-completion-gates.py --save-report` は `service_truth_resolver: OK` を含めて `v1_completion_candidate`
+- 非変更: 返信本文・renderer 分岐・自然化 skill は変更しない。`facts_file` は既存互換として残す。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-254
+- 分類: `reply-only`
+- レイヤ: contract packet runtime export
+- 変更: `scripts/build-contract-packets.py` に `--save-report` / `--write-generated` を追加し、fixture と schema / registry から作った generated contract packet を `runtime/regression/coconala-reply/contract-packets/latest.generated.yaml` と履歴ファイルへ保存できるようにした。`check-v1-completion-gates.py` の generated comparison gate も `--save-report` 付きで実行し、`ops/tests/README.ja.md`、`core-completion-checklist.ja.md`、`bugfix-15000-v1-scope-seal.ja.md` に導線を追加した
+- きっかけ: Pro 分析で、contract packet を sample 比較だけで終わらせず、将来の app / runtime protocol に近い生成成果物として保存できる状態へ進める必要があると整理されたため
+- 想定効果: contract packet が手書き sample と比較 smoke に留まらず、実行時に保存される中間成果物として確認できる。#R / #RE / app 化のズレを、自然文ではなく generated packet の段階から追跡しやすくなる
+- 確認: `./scripts/build-contract-packets.py --check-against-samples --save-report` は `OK generated contract packet comparison: 7 packet(s)`。`./scripts/check-v1-completion-gates.py --save-report` は `contract_packet_generated_comparison: OK` を含めて `v1_completion_candidate`
+- 非変更: 返信本文・renderer 分岐・自然化 skill は変更しない。generated packet は Writer の自然文そのものではなく、返信前の事実制約として扱う。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-255
+- 分類: `reply-only`
+- レイヤ: contract packet / app memory requested materials seed
+- 変更: `bugfix-15000-v1-fixtures.yaml` と `bugfix-15000-v1-samples.yaml` に `purchased_requested_materials_received` packet を追加した。購入後に seller が追加でログ・スクショを依頼済みで、buyer がそれを送ったあと「これで足りるか / 次に何を見るか」を聞く場面を、`known_commitments` / `received_materials` / `forbidden_assumptions` 付きで固定した。`build-contract-packets.py` と `check-contract-packet-writer-brief-sync.py`、`render-post-purchase-quick.py` にも同 family / scenario を追加し、`app_memory` coverage note を更新した
+- きっかけ: Pro 分析後の残タスクとして、`app_memory` を previous commitments / deadline だけで終わらせず、「こちらが依頼した追加材料が届いた」状態を packet と #R writer brief の両方で扱えるようにする必要があったため
+- 想定効果: 将来アプリ化で、buyer が追加材料を送ったのに同じ材料を再要求する、未受領扱いする、未提示技術語を足す、次に何を見るかを答えない、といった memory state failure を早めに検出できる
+- 確認: `./scripts/check-contract-packet-fixtures.py` は `OK contract packet fixture trace: 8 fixture(s)`。`./scripts/build-contract-packets.py --check-against-samples --save-report` は `OK generated contract packet comparison: 8 packet(s)`。`python3 scripts/check-contract-packet-writer-brief-sync.py` は `OK contract packet writer brief sync: 8 fixture(s), 0 warning(s)`
+- 非変更: 新しい自然文テンプレートは追加しない。`purchased_requested_materials_received` は memory / phase / reply_contract の seed。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-256
+- 分類: `reply-only`
+- レイヤ: contract packet / app memory secret redaction seed
+- 変更: `bugfix-15000-v1-fixtures.yaml` と `bugfix-15000-v1-samples.yaml` に `purchased_redacted_resend_received` packet を追加した。購入後に seller が秘密値を伏せた形で送り直すよう依頼済みで、buyer が APIキー / `.env` 値を伏せたZIPを送り直し、「これで確認できるか」「前のZIPは見ないでほしい」と聞く場面を、`known_commitments` / `received_materials` / `forbidden_assumptions` 付きで固定した。`build-contract-packets.py`、`check-contract-packet-writer-brief-sync.py`、`render-post-purchase-quick.py` に同 family / scenario を追加し、`app_memory` coverage note を更新した
+- きっかけ: `app_memory` の残ギャップとして、追加材料の受領だけでなく「secret 混入後に伏せ直し済み材料が届いた」状態を、#R が前のZIPや秘密値へ戻らずに扱える必要があったため
+- 想定効果: 将来アプリ化で、buyer が伏せ直し済みファイルを送った後に、前のZIPを確認対象にしてしまう、秘密値を再要求する、送り直し分を未受領扱いする、未提示技術語を足す、といった memory / secret failure を早めに検出できる
+- 確認: `python3 -m py_compile scripts/render-post-purchase-quick.py scripts/build-contract-packets.py scripts/check-contract-packet-writer-brief-sync.py` は OK。`./scripts/check-contract-packet-fixtures.py` は `OK contract packet fixture trace: 9 fixture(s)`。`./scripts/check-contract-packets.py` は `OK 9 contract packet(s)`（既存 warning のみ）。`./scripts/build-contract-packets.py --check-against-samples --save-report` は `OK generated contract packet comparison: 9 packet(s)`。`python3 scripts/check-contract-packet-writer-brief-sync.py` は `OK contract packet writer brief sync: 9 fixture(s), 0 warning(s)`。`./scripts/check-v1-completion-gates.py --save-report` は `v1_completion_candidate`。`./scripts/check-coconala-reply-role-suites.py --role renderer_seed --save-report` は OK
+- 非変更: 新しい自然文テンプレートは追加しない。`purchased_redacted_resend_received` は memory / phase / reply_contract の secret redaction seed。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない

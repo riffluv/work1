@@ -22,8 +22,19 @@ public_facts:
     - 修正済みZIPまたはpatch
     - 動作確認メモ
   reply_expectation:
-    initial_reply: "24時間以内（通常数時間以内）"
     first_result_target: "必要情報がそろい次第48時間以内を目標に一次結果"
+
+internal_reply_expectation:
+  initial_reply: "24時間以内（通常数時間以内）"
+  note: "内部運用目安。公開ページに同粒度で出ていないため、buyer へ毎回 public fact として案内しない。"
+
+prequote_sample_policy:
+  can_send_sample_deliverable: true
+  sample_is_generic: true
+  must_not_include_actual_diagnosis: true
+  must_not_require_code_or_logs_before_payment: true
+  public_basis: "購入前に納品物の見本もお送りします。"
+  wording_note: "納品物の見本は、実際のコード診断や原因特定ではなく、納品形式のイメージとして案内する。"
 
 scope_unit:
   rule: "same_cause_and_same_flow_and_same_endpoint"

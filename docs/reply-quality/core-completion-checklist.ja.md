@@ -18,9 +18,9 @@ Pro 分析 `chatgptPro/ココナラ返信OS設計レビュー5-01.txt` の結論
 
 | 領域 | 完成条件 | 現在の正本 | 現状 | 次に見ること |
 | --- | --- | --- | --- | --- |
-| Service truth | 公開状態、価格、scope、成果物、禁止事項が一意に解決できる | `os/core/service-registry.yaml`, `サービスページ/bugfix-15000.live.txt`, `ops/services/next-stripe-bugfix/service-pack/facts.yaml` | ほぼ安定 | service page と service-pack facts の意味一致を定期確認する |
+| Service truth | 公開状態、価格、scope、成果物、禁止事項が一意に解決できる | `os/core/service-registry.yaml` の `public_facts_file`, `サービスページ/bugfix-15000.live.txt`, `ops/services/next-stripe-bugfix/service-pack/facts.yaml`, `scripts/check-service-truth-resolver.py` | 安定化中 | 全 phase の `service_grounding` に `public_facts_file` / `runtime_capability_file` trace を残し、公開事実正本と内部能力参照を混ぜない |
 | Phase contract | `prequote / quote_sent / purchased / delivered / closed` ごとの可否と次アクションが分かれている | `ops/common/interaction-states.yaml`, `ops/common/routing-table.yaml`, `ops/common/coconala-rule-guard.md` | 安定 | ココナラ仕様変更時だけ再監査する |
-| Reply decision | 主質問、answer_map、ask_map、required/forbidden moves が返信生成前に固定される | `ops/common/output-schema.yaml`, intake / bugfix skills | 安定 | #R と #RE の candidate 生成経路がズレていないかを見る |
+| Reply decision | 主質問、answer_map、ask_map、required/forbidden moves が返信生成前に固定される | `ops/common/output-schema.yaml`, `ops/tests/contract-packets/`, `runtime/regression/coconala-reply/contract-packets/latest.generated.yaml`, intake / bugfix skills | 安定 | `check-contract-packets.py` と `build-contract-packets.py --check-against-samples --save-report` を通し、質問漏れ・ask_map 不整合・hidden leak を先に落とす |
 | Evidence / grounding | 相手文にない技術語・原因候補・作業状況を足さない | `evidence-minimum.yaml`, service-pack evidence, sentries | 安定化中 | 実案件 stock で確認する |
 | Secret safety | `.env` / APIキー / Webhook secret / DB接続文字列の生値を扱わない | `risk-gates.yaml`, service-pack boundaries | 安定 | zip 共有案内時の伏せ直し導線を維持する |
 | Writer preservation | AI の思考を潰さず、Classifier / Writer / Reviewer を分ける | `writer-brief.ja.md`, `skill-thought-preservation-minimal.ja.md` | 良好 | Writer に監査プロンプト全文を背負わせない |
@@ -31,13 +31,17 @@ Pro 分析 `chatgptPro/ココナラ返信OS設計レビュー5-01.txt` の結論
 
 ## 完成判定ゲート
 
+機械確認の入口は `./scripts/check-v1-completion-gates.py --save-report`。
+通常は fast gate として使い、公開前・大きな正本変更後だけ `--deep` で role suite まで含める。
+
 次をすべて満たしたら、`bugfix-15000` の返信コアは「v1 完成候補」とみなす。
 
-1. `bugfix-15000` の public facts が service page / registry / service-pack で矛盾しない。
+1. `bugfix-15000` の public facts が service page / registry `public_facts_file` / service-pack で矛盾しない。
+   - `./scripts/check-service-truth-resolver.py` が通り、公開事実正本と runtime capability の価格・scope・source refs が一致する。
 2. `handoff-25000` が public:false のまま live / #RE に漏れない。
 3. phase ごとの forbidden move が deterministic test で落ちない。
-4. #R と #RE の writer candidate が同じ contract packet から作られていることを確認できる。
-5. #RE family ごとの saturation が coverage map に記録されている。
+4. #R と #RE の writer candidate が同じ contract packet から作られていることを確認でき、generated packet を `runtime/regression` に保存できる。
+5. #RE family ごとの saturation が `synthetic_rehearsal` と `real_stock` に分かれて coverage map に記録されている。
 6. 3本以上の同 family batch で deterministic fail がなく、指摘が preference / acceptable_as_is に収まる。
 7. soft lens の新規追加がなくても、human audit の違和感を taxonomy へ分類できる。
 8. Pro / xhigh に投げる理由が routine ではなく、未知 failure / lens 昇格 / 公開前判定 / app 化判断のいずれかに説明できる。
@@ -59,4 +63,3 @@ Pro 分析 `chatgptPro/ココナラ返信OS設計レビュー5-01.txt` の結論
 3. `reply-memory-schema.yaml` と `phase-contract-schema.yaml` でアプリ化前の contract packet を固める。
 4. 実案件 stock を取り込み、synthetic では見えない business chat viability を検証する。
 5. Pro / xhigh は節目だけに使う。
-

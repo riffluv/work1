@@ -33,6 +33,21 @@ packets:
     title: "prequote: 原因不明でも15,000円で依頼できるか"
     phase: prequote
     family: prequote_service_fit
+    channel: coconala_message
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: prequote
+      source: buyer_latest_message
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - business_chat_standard
+    redaction_policy:
+      raw_secret_values: do_not_request
     memory_packet:
       platform: coconala
       service_id: bugfix-15000
@@ -107,6 +122,21 @@ packets:
     title: "quote_sent: 支払い後にスクショやログをまとめて送ればよいか"
     phase: quote_sent
     family: quote_sent_payment_after_share
+    channel: coconala_message
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: quote_sent
+      source: prior_thread_summary
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - positive_flow_before_refusal
+    redaction_policy:
+      raw_secret_values: do_not_request
     memory_packet:
       platform: coconala
       service_id: bugfix-15000
@@ -191,6 +221,21 @@ packets:
     title: "purchased: 受領済みログ・スクショから現在地を短く返す"
     phase: purchased
     family: purchased_current_status
+    channel: coconala_talkroom
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: purchased
+      source: platform_state
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - semantic_grounding
+    redaction_policy:
+      raw_secret_values: ignore_and_request_redacted_resend_if_needed
     memory_packet:
       platform: coconala
       service_id: bugfix-15000
@@ -283,6 +328,21 @@ packets:
     title: "delivered: 承諾前に反映箇所だけ短く補足する"
     phase: delivered
     family: delivered_light_supplement
+    channel: coconala_talkroom
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: delivered
+      source: platform_state
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - light_supplement_only
+    redaction_policy:
+      raw_secret_values: do_not_request
     memory_packet:
       platform: coconala
       service_id: bugfix-15000
@@ -368,6 +428,21 @@ packets:
     title: "closed: 前回修正との関係確認だけ受け、実作業は別相談"
     phase: closed
     family: closed_relation_check
+    channel: coconala_message
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: closed
+      source: platform_state
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - closed_work_boundary
+    redaction_policy:
+      raw_secret_values: do_not_request
     memory_packet:
       platform: coconala
       service_id: bugfix-15000
@@ -457,3 +532,473 @@ packets:
         - "旧トークルームで続けます"
         - "無料で対応します"
         - "修正済みファイルをお返しします"
+
+  - packet_id: CP-BUGFIX15000-V1-006
+    title: "purchased: 既存コミットメントを踏まえて現在地と追加材料の有無を返す"
+    phase: purchased
+    family: purchased_commitment_followup
+    channel: coconala_talkroom
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: purchased
+      source: platform_state
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - app_memory_commitment_grounding
+    redaction_policy:
+      raw_secret_values: ignore_and_request_redacted_resend_if_needed
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: purchased
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "buyer は購入済み"
+          source: platform_state
+        - fact: "buyer はログとスクショを送付済み"
+          source: prior_buyer_message
+        - fact: "seller は次の見通しを返すと伝えていた"
+          source: prior_seller_message
+        - fact: "原因はまだ確定していない"
+          source: seller_internal_state
+      buyer_latest_message: "昨日ログとスクショを送りました。前に次の見通しを返すと言ってもらっていました。今どこまで見ていますか？現時点で分かっていることと、次に見る箇所だけ短く教えてください。追加で何か送る必要はありますか？"
+      known_commitments:
+        - commitment: "次の見通しを返す"
+          source_message: prior_seller_message
+          status: active
+      received_materials:
+        - material_type: log
+          description: "不具合に関係しそうなログ"
+          contains_secret_unknown: true
+          source_message: prior_buyer_message
+        - material_type: screenshot
+          description: "不具合発生時の画面スクショ"
+          contains_secret_unknown: false
+          source_message: prior_buyer_message
+      pending_actions:
+        - actor: seller
+          action: "受領済み材料をもとに、現時点の状況と次に見る箇所を短く返す"
+      forbidden_assumptions:
+        - "既に原因が特定できた前提にしない"
+        - "追加資料が必ず必要だと決めつけない"
+        - "新しい返答時刻を勝手に足さない"
+        - "Event ID / Webhook / DB など未提示の技術語を足さない"
+    phase_contract:
+      allowed:
+        - confirm_received_materials
+        - progress_update
+        - explain_current_known_status_without_overclaiming
+      forbidden:
+        - claim_unreceived_materials_as_received
+        - assert_unconfirmed_cause
+        - ask_raw_secret_value
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "前に伝えられていた次の見通しについて、今どこまで見ているかと次に見る箇所を短く教えてください。"
+          priority: primary
+        - id: q2
+          text: "追加で何か送る必要はありますか？"
+          priority: secondary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "前に伝えていた見通し共有として、受領済み材料をもとに現時点で見えている範囲と次に見る箇所を短く返す。原因はまだ断定しない。"
+        - question_id: q2
+          disposition: answer_now
+          answer_brief: "いま追加で必要なものはない。必要になった場合だけこちらから絞って伝える。"
+      ask_map: []
+      issue_plan:
+        - issue: "既存コミットメント付きの購入後進捗共有"
+          disposition: answer_now
+          reason: "known_commitments と received_materials を踏まえ、見通し共有を浮かせず返す。"
+      required_moves:
+        - answer_directly_now
+        - confirm_receipt
+      forbidden_moves:
+        - internal_term_exposure
+        - vague_hold_without_reason
+        - ask_client_to_prioritize_when_burden_owner_us
+    response_decision_plan:
+      primary_concern: "既存コミットメントを踏まえた現在地共有"
+      facts_known:
+        - "ログとスクショは受領済み"
+        - "次の見通しを返すコミットメントが active"
+        - "原因未断定"
+      blocking_missing_facts: []
+      direct_answer_line: "前にお伝えしていた見通し共有として、今はいただいたログとスクショをもとに、現時点で見えている範囲と次に見る箇所を整理しています。"
+      response_order:
+        - acknowledge_existing_commitment
+        - receipt_and_current_status
+        - not_yet_concluded
+        - extra_material_policy
+    writer_notes:
+      use:
+        - "前にお伝えしていた見通し共有として"
+        - "追加で必要なものが出た場合だけ、こちらからお伝えします"
+      avoid:
+        - "もう一度ログを送ってください"
+        - "Webhookを見ています"
+        - "本日XX:XXまでに"
+
+  - packet_id: CP-BUGFIX15000-V1-007
+    title: "purchased: 約束済み返答時刻を過ぎた後の現在地と追加材料有無"
+    phase: purchased
+    family: purchased_deadline_followup
+    channel: coconala_talkroom
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: purchased
+      source: platform_state
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - app_memory_deadline_grounding
+    redaction_policy:
+      raw_secret_values: ignore_and_request_redacted_resend_if_needed
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: purchased
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "buyer は購入済み"
+          source: platform_state
+        - fact: "seller は本日18:00までに状況を返すと伝えていた"
+          source: prior_seller_message
+        - fact: "buyer は約束していた返答時刻を過ぎていると伝えている"
+          source: buyer_latest_message
+        - fact: "原因はまだ確定していない"
+          source: seller_internal_state
+      buyer_latest_message: "前に本日18:00までに状況を返すと言ってもらっていました。18:00を過ぎていますが、今どこまで見ていますか？現時点で分かっていることと、次に見る箇所だけ短く教えてください。追加で何か送る必要はありますか？"
+      known_commitments:
+        - commitment: "本日18:00までに状況を返す"
+          source_message: prior_seller_message
+          status: active
+      received_materials: []
+      pending_actions:
+        - actor: seller
+          action: "約束済みの状況共有として、現時点の状況と次に見る箇所を返す"
+          due_optional: "本日18:00"
+      forbidden_assumptions:
+        - "約束していた返答時刻を無視しない"
+        - "新しい返答時刻を勝手に足さない"
+        - "今日中の修正完了を保証しない"
+        - "原因や修正方針を断定しない"
+        - "追加資料が必ず必要だと決めつけない"
+    phase_contract:
+      allowed:
+        - confirm_received_materials
+        - progress_update
+        - explain_current_known_status_without_overclaiming
+      forbidden:
+        - claim_unreceived_materials_as_received
+        - assert_unconfirmed_cause
+        - ask_raw_secret_value
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "約束していた返答時刻を過ぎた状態で、今どこまで見ているかを知りたい。"
+          priority: primary
+        - id: q2
+          text: "現時点で分かっていることと、次に見る箇所だけ短く教えてください。"
+          priority: secondary
+        - id: q3
+          text: "追加で何か送る必要はありますか？"
+          priority: secondary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "約束していた返答時刻を過ぎていることを踏まえ、現時点の状況を返す。ただし修正完了時刻は断定しない。"
+        - question_id: q2
+          disposition: answer_now
+          answer_brief: "現時点で見えている範囲と、次に見る箇所を短く返す。原因はまだ断定しない。"
+        - question_id: q3
+          disposition: answer_now
+          answer_brief: "いま追加で必要なものはない。必要になった場合だけこちらから伝える。"
+      ask_map: []
+      issue_plan:
+        - issue: "約束済み返答時刻を過ぎた後の購入後進捗共有"
+          disposition: answer_now
+          reason: "known_commitments の時刻を無視せず、過剰な完了保証や新しい時刻追加は避ける。"
+      required_moves:
+        - react_briefly_first
+        - answer_directly_now
+      forbidden_moves:
+        - internal_term_exposure
+        - vague_hold_without_reason
+        - ask_client_to_prioritize_when_burden_owner_us
+    response_decision_plan:
+      primary_concern: "約束済み返答時刻を過ぎた後の現在地共有"
+      facts_known:
+        - "本日18:00までに状況を返すコミットメントが active"
+        - "buyer は18:00を過ぎていると伝えている"
+        - "原因未断定"
+      blocking_missing_facts: []
+      direct_answer_line: "お待たせしています。前にお伝えしていた状況共有として、現時点で見えている範囲と次に見る箇所を整理してお返しします。"
+      response_order:
+        - acknowledge_missed_or_due_commitment
+        - current_status
+        - not_yet_concluded
+        - extra_material_policy
+    writer_notes:
+      use:
+        - "お待たせしています"
+        - "前にお伝えしていた状況共有として"
+        - "追加で必要なものが出た場合だけ、こちらからお伝えします"
+      avoid:
+        - "本日中に直します"
+        - "原因は分かりました"
+        - "もう一度ログを送ってください"
+        - "新しい時刻を断定する"
+
+  - packet_id: CP-BUGFIX15000-V1-008
+    title: "purchased: 依頼済み追加材料の受領確認と次の確認"
+    phase: purchased
+    family: purchased_requested_materials_received
+    channel: coconala_talkroom
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: purchased
+      source: platform_state
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - app_memory_requested_materials_grounding
+    redaction_policy:
+      raw_secret_values: ignore_and_request_redacted_resend_if_needed
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: purchased
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "buyer は購入済み"
+          source: platform_state
+        - fact: "seller は追加でログとスクショを依頼済み"
+          source: prior_seller_message
+        - fact: "buyer は追加のログとスクショを送付済み"
+          source: buyer_latest_message
+        - fact: "原因はまだ確定していない"
+          source: seller_internal_state
+      buyer_latest_message: "追加でお願いされたログとスクショを送りました。これで足りますか？次は何を見ますか？"
+      known_commitments:
+        - commitment: "追加でログとスクショを確認する"
+          source_message: prior_seller_message
+          status: active
+      received_materials:
+        - material_type: log
+          description: "追加で依頼していたログ"
+          contains_secret_unknown: true
+          source_message: buyer_latest_message
+        - material_type: screenshot
+          description: "追加で依頼していたスクショ"
+          contains_secret_unknown: false
+          source_message: buyer_latest_message
+      pending_actions:
+        - actor: seller
+          action: "追加で受け取ったログとスクショをもとに確認を進める"
+      forbidden_assumptions:
+        - "追加で依頼したログとスクショが未受領だと扱わない"
+        - "同じ材料をもう一度求めない"
+        - "原因や修正方針を断定しない"
+        - "Event ID / Webhook / DB など未提示の技術語を足さない"
+    phase_contract:
+      allowed:
+        - confirm_received_materials
+        - progress_update
+        - explain_current_known_status_without_overclaiming
+      forbidden:
+        - claim_unreceived_materials_as_received
+        - assert_unconfirmed_cause
+        - ask_raw_secret_value
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "追加で依頼されていたログとスクショが届いているか、これで足りるかを知りたい。"
+          priority: primary
+        - id: q2
+          text: "これで足りますか？"
+          priority: secondary
+        - id: q3
+          text: "次は何を見ますか？"
+          priority: secondary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "追加で依頼していたログとスクショは受領済みとして扱う。"
+        - question_id: q2
+          disposition: answer_now
+          answer_brief: "いま追加で必要なものはない。受領済み材料をもとに確認を進め、必要になった場合だけこちらから絞って伝える。"
+        - question_id: q3
+          disposition: answer_now
+          answer_brief: "次は受領済み材料をもとに、不具合に関係する流れを確認する。原因はまだ断定しない。"
+      ask_map: []
+      issue_plan:
+        - issue: "依頼済み追加材料の受領確認と次の確認"
+          disposition: answer_now
+          reason: "seller が依頼した材料が届いた状態として扱い、同じ材料を再要求しない。"
+      required_moves:
+        - answer_directly_now
+        - confirm_receipt
+      forbidden_moves:
+        - internal_term_exposure
+        - vague_hold_without_reason
+        - ask_client_to_prioritize_when_burden_owner_us
+    response_decision_plan:
+      primary_concern: "依頼済み追加材料の受領確認と次の確認"
+      facts_known:
+        - "seller は追加でログとスクショを依頼済み"
+        - "buyer は追加のログとスクショを送付済み"
+        - "原因未断定"
+      blocking_missing_facts: []
+      direct_answer_line: "追加でお願いしていたログとスクショは受け取りました。まずはいただいた内容をもとに確認を進めます。"
+      response_order:
+        - confirm_requested_materials_received
+        - next_check_focus_without_overclaiming
+        - extra_material_policy
+    writer_notes:
+      use:
+        - "追加でお願いしていたログとスクショは受け取りました"
+        - "追加で必要なものが出た場合だけ、こちらからお伝えします"
+      avoid:
+        - "まだ届いていません"
+        - "もう一度ログを送ってください"
+        - "原因は分かりました"
+        - "Webhookを見ます"
+
+  - packet_id: CP-BUGFIX15000-V1-009
+    title: "purchased: 秘密値を伏せたZIPの送り直し受領"
+    phase: purchased
+    family: purchased_redacted_resend_received
+    channel: coconala_talkroom
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: purchased
+      source: platform_state
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - app_memory_secret_redaction_grounding
+    redaction_policy:
+      raw_secret_values: ignore_and_request_redacted_resend_if_needed
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: purchased
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "buyer は購入済み"
+          source: platform_state
+        - fact: "seller は秘密値を伏せた形で送り直すよう依頼済み"
+          source: prior_seller_message
+        - fact: "buyer は APIキーと .env の値を伏せたZIPを送り直した"
+          source: buyer_latest_message
+        - fact: "buyer は前のZIPを見ないでほしいと伝えている"
+          source: buyer_latest_message
+        - fact: "原因はまだ確定していない"
+          source: seller_internal_state
+      buyer_latest_message: "言われた通り、APIキーと.envの値が見えないように伏せたZIPを送り直しました。これで確認できますか？前のZIPは見ないでください。"
+      known_commitments:
+        - commitment: "秘密値を伏せた形で送り直してもらい、その内容をもとに確認する"
+          source_message: prior_seller_message
+          status: active
+      received_materials:
+        - material_type: zip
+          description: "APIキーと .env の値を伏せた送り直しZIP"
+          contains_secret_unknown: false
+          source_message: buyer_latest_message
+      pending_actions:
+        - actor: seller
+          action: "送り直された伏せ済みZIPをもとに確認を進める"
+      forbidden_assumptions:
+        - "前のZIPの秘密値を確認対象にしない"
+        - "秘密値そのものを再送するよう依頼しない"
+        - "送り直し済みZIPが未受領だと扱わない"
+        - "原因や修正方針を断定しない"
+        - "Event ID / Webhook / DB など未提示の技術語を足さない"
+    phase_contract:
+      allowed:
+        - confirm_received_materials
+        - progress_update
+        - explain_current_known_status_without_overclaiming
+      forbidden:
+        - claim_unreceived_materials_as_received
+        - assert_unconfirmed_cause
+        - ask_raw_secret_value
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "秘密値を伏せたZIPを送り直したので、これで確認できるかを知りたい。"
+          priority: primary
+        - id: q2
+          text: "前のZIPは見ないでほしい。"
+          priority: secondary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "伏せ直したZIPは受領済みとして扱い、その内容をもとに確認を進められる。"
+        - question_id: q2
+          disposition: answer_now
+          answer_brief: "前のZIPの秘密値は確認対象にせず、送り直し分をもとに確認する。"
+      ask_map: []
+      issue_plan:
+        - issue: "秘密値を伏せた送り直しZIPの受領と確認対象"
+          disposition: answer_now
+          reason: "secret 値を扱わず、redacted resend を正として確認する。"
+      required_moves:
+        - answer_directly_now
+        - confirm_receipt
+      forbidden_moves:
+        - internal_term_exposure
+        - vague_hold_without_reason
+        - ask_client_to_prioritize_when_burden_owner_us
+    response_decision_plan:
+      primary_concern: "秘密値を伏せた送り直しZIPの受領と確認対象"
+      facts_known:
+        - "seller は秘密値を伏せた形で送り直すよう依頼済み"
+        - "buyer は APIキーと .env の値を伏せたZIPを送り直した"
+        - "buyer は前のZIPを見ないでほしいと伝えている"
+        - "原因未断定"
+      blocking_missing_facts: []
+      direct_answer_line: "伏せ直していただいたZIPを受け取りました。前のZIPの秘密値は確認対象にせず、送り直し分をもとに確認します。"
+      response_order:
+        - confirm_redacted_resend_received
+        - confirm_previous_secret_zip_excluded
+        - next_check_focus_without_overclaiming
+        - extra_material_policy
+    writer_notes:
+      use:
+        - "伏せ直していただいたZIPを受け取りました"
+        - "前のZIPの秘密値は確認対象にせず"
+        - "送り直し分をもとに確認します"
+      avoid:
+        - "前のZIPも確認します"
+        - "APIキーの値を送ってください"
+        - "原因は分かりました"
+        - "Webhookを見ます"

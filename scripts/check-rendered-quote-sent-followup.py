@@ -63,6 +63,10 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("service_grounding base_price is missing or does not match the public service")
         if not service_grounding.get("hard_no"):
             errors.append("service_grounding is missing hard_no bindings")
+        if not service_grounding.get("public_facts_file"):
+            errors.append("service_grounding is missing public_facts_file trace")
+        if not service_grounding.get("runtime_capability_file"):
+            errors.append("service_grounding is missing runtime_capability_file trace")
         if not service_grounding.get("capability"):
             errors.append("service_grounding is missing capability map")
         if not service_grounding.get("diagnostic_patterns"):
@@ -93,7 +97,7 @@ def lint_case(module, source: dict) -> list[str]:
         explicit_after_payment = has_any(rendered, ["ご購入後", "購入後", "入金完了後", "お支払い完了後", "支払い完了後"])
         if has_any(rendered, ["送ってください", "教えてください"]) and not explicit_after_payment:
             errors.append("quote_sent pre-payment work request asks for materials before purchase/payment")
-        if not has_any(rendered, ["購入・入金完了前", "入金完了前", "支払い前", "ご購入後", "入金完了後"]):
+        if not has_any(rendered, ["購入・入金完了前", "入金完了前", "支払い前", "ご購入後", "購入後", "入金完了後", "お支払い完了後", "支払い完了後"]):
             errors.append("quote_sent pre-payment work request does not state work starts after purchase/payment")
     if primary["answer_brief"] not in rendered and direct_answer_line != primary["answer_brief"]:
         pass

@@ -17,7 +17,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - 共通原則は `/home/hr-hm/Project/work/docs/reply-quality/skill-thought-preservation-minimal.ja.md` を参照する。
 
 ## 固定条件（変更禁止）
-- 価格・追加料金・公開状態・基本範囲は hardcode せず、毎回 `service-registry.yaml` で `bugfix-15000` を解決して `facts_file` を正本にする
+- 価格・追加料金・公開状態・基本範囲は hardcode せず、毎回 `service-registry.yaml` で `bugfix-15000` を解決して `public_facts_file` を公開事実正本にする。`facts_file` / `runtime_capability_file` は既存互換・内部能力参照として扱う
 - 確認範囲の説明は `estimate-decision.yaml` と `source_of_truth` を正本にする
 - 公開中サービスに確認専用の別料金プランはない
 - 不具合1件の扱いは `同一原因 / 1フロー / 1エンドポイント` を基準にする
@@ -41,10 +41,10 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 
 ## required_facts
 - ココナラ共通の取引仕様（メッセージ / トークルーム / 正式な納品 / キャンセル）は、毎回 `/home/hr-hm/Project/work/os/coconala/platform-contract.yaml` を先に読む。
-- bugfix の hard facts は、毎回 `/home/hr-hm/Project/work/os/core/service-registry.yaml` と、そこから辿る `facts_file` を正本として読む。
-- 現在の公開 bugfix サービスは `bugfix-15000` のみで、価格・追加料金・公開状態・範囲は `service-registry.yaml` で `bugfix-15000` を解決し、その `facts_file` を正本にする。
+- bugfix の外向け hard facts は、毎回 `/home/hr-hm/Project/work/os/core/service-registry.yaml` と、そこから辿る `public_facts_file` を正本として読む。
+- 現在の公開 bugfix サービスは `bugfix-15000` のみで、価格・追加料金・公開状態・範囲は `service-registry.yaml` で `bugfix-15000` を解決し、その `public_facts_file` を正本にする。
 - 公開状態と外向け自然文の参照は、`service-registry.yaml` の `public` と `source_of_truth` を使う。
-- サービスページ本文は外向け自然文の正本として参照してよいが、価格・追加料金・公開状態の機械判定は `service.yaml` を優先する。
+- サービスページ本文は外向け自然文の正本として参照してよいが、価格・追加料金・公開状態の機械判定は `public_facts_file` と `service-registry.yaml` を優先する。`service.yaml` は runtime capability / legacy compatibility として扱う。
 - 古いテンプレや過去の返信例に旧確認プラン前提の文面が残っていても、外向け bugfix では採用しない。
 - `#RE` や外部調査の最新知見は、正本 rule ではなく観察メモとして読む。採用済みの最小 rule / guard は `docs/reply-quality` と `os/coconala/platform-contract.yaml` 側を優先する。
 
@@ -53,7 +53,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - `/home/hr-hm/Project/work/os/core/service-registry.yaml`
 - `/home/hr-hm/Project/work/ops/common/coconala-rule-guard.md`
 - `/home/hr-hm/Project/work/ops/common/output-schema.yaml`
-- `service-registry.yaml` の `bugfix-15000` から辿る `facts_file`
+- `service-registry.yaml` の `bugfix-15000` から辿る `public_facts_file`
 - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/evidence-minimum.yaml`
 - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/scope-matrix.md`
 - `/home/hr-hm/Project/work/docs/coconala-japanese-banlist.ja.md`

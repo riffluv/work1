@@ -50,28 +50,37 @@ def load_service_grounding() -> dict:
     if not service.get("public"):
         raise RuntimeError(f"prequote service is not public: {PUBLIC_BUGFIX_SERVICE_ID}")
 
-    facts_path = Path(service.get("facts_file") or "")
-    if not facts_path.is_file():
-        raise RuntimeError(f"missing service facts file: {facts_path}")
-    facts = load_yaml_file(facts_path)
-
     pack_root = Path(service.get("service_pack_root") or "")
     if not pack_root.is_dir():
         raise RuntimeError(f"missing service pack root: {pack_root}")
-    pack_facts = load_yaml_file(pack_root / "facts.yaml")
+
+    public_facts_path = Path(service.get("public_facts_file") or service.get("service_pack_facts_file") or pack_root / "facts.yaml")
+    if not public_facts_path.is_file():
+        raise RuntimeError(f"missing public service facts file: {public_facts_path}")
+    pack_facts = load_yaml_file(public_facts_path)
+
+    runtime_capability_path = Path(service.get("runtime_capability_file") or service.get("facts_file") or "")
+    if not runtime_capability_path.is_file():
+        raise RuntimeError(f"missing runtime capability file: {runtime_capability_path}")
+    facts = load_yaml_file(runtime_capability_path)
     boundaries = load_yaml_file(pack_root / "boundaries.yaml")
 
-    base_price = int(facts.get("base_price") or (pack_facts.get("public_facts") or {}).get("base_price") or 15000)
+    public_facts = pack_facts.get("public_facts") or {}
+    base_price = int(public_facts.get("base_price") or facts.get("base_price") or 15000)
     return {
         "service_id": service.get("service_id"),
         "public_service": bool(service.get("public")),
         "source_of_truth": service.get("source_of_truth"),
-        "facts_file": str(facts_path),
+        "public_facts_file": str(public_facts_path),
+        "runtime_capability_file": str(runtime_capability_path),
+        "facts_file": str(runtime_capability_path),
         "service_pack_root": str(pack_root),
         "display_name": facts.get("display_name") or pack_facts.get("public_name") or "",
         "fee_text": f"{base_price:,}円",
         "base_price": base_price,
         "scope_unit": facts.get("scope_unit") or ((pack_facts.get("scope_unit") or {}).get("rule")) or "",
+        "capability": facts.get("capability") or {},
+        "diagnostic_patterns": facts.get("diagnostic_patterns") or [],
         "hard_no": facts.get("hard_no") or boundaries.get("hard_no") or [],
         "out_of_scope": facts.get("out_of_scope") or boundaries.get("out_of_scope") or [],
     }
@@ -1806,6 +1815,19 @@ def build_case_from_source(source: dict) -> dict:
             "internal_term_exposure",
             "numbered_QA_for_all_questions",
         ],
+    }
+    if disposition == "answer_now":
+        response_order = ["direct_answer", "answer_detail", "purchase_path"]
+    else:
+        response_order = ["hold_reason", "ask", "next_action"]
+    case["response_decision_plan"] = {
+        "primary_question_id": primary_question["id"],
+        "primary_concern": primary_question["text"],
+        "buyer_emotion": source.get("emotional_tone"),
+        "facts_known": case.get("known_facts"),
+        "blocking_missing_facts": case.get("missing_info"),
+        "direct_answer_line": primary_answer_item.get("answer_brief"),
+        "response_order": response_order,
     }
     return case
 

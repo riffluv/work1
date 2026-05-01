@@ -97,6 +97,10 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("service_grounding base_price is missing or does not match the public service")
         if not service_grounding.get("hard_no"):
             errors.append("service_grounding is missing hard_no bindings")
+        if not service_grounding.get("public_facts_file"):
+            errors.append("service_grounding is missing public_facts_file trace")
+        if not service_grounding.get("runtime_capability_file"):
+            errors.append("service_grounding is missing runtime_capability_file trace")
     if not hard_constraints:
         errors.append("hard_constraints is missing")
     else:

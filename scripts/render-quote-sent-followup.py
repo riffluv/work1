@@ -41,18 +41,16 @@ def load_service_grounding() -> dict:
     if not service.get("public"):
         raise RuntimeError(f"quote_sent service is not public: {PUBLIC_QUOTE_SERVICE_ID}")
 
-    facts_path = Path(service.get("facts_file") or "")
-    if not facts_path.is_file():
-        raise RuntimeError(f"missing service facts file: {facts_path}")
-
-    with facts_path.open("r", encoding="utf-8") as f:
-        facts = yaml.safe_load(f) or {}
-
+    facts = shared.load_service_grounding()
     base_price = int(facts.get("base_price") or 15000)
     fee_text = f"{base_price:,}円"
     return {
         "service_id": service.get("service_id"),
         "public_service": bool(service.get("public")),
+        "source_of_truth": service.get("source_of_truth"),
+        "public_facts_file": facts.get("public_facts_file"),
+        "runtime_capability_file": facts.get("runtime_capability_file"),
+        "service_pack_root": facts.get("service_pack_root"),
         "display_name": facts.get("display_name") or "",
         "fee_text": fee_text,
         "base_price": base_price,
@@ -766,10 +764,36 @@ def detect_scenario(source: dict) -> str:
             "ウェブソケット",
         ]
     )
+    asks_after_payment_material_flow = (
+        any(marker in combined for marker in ["支払い後", "お支払い完了後", "購入後", "支払ったら", "支払いが済んだら", "支払い完了後"])
+        and any(marker in combined_lower for marker in ["zip", "ファイル", "ログ", "スクショ", "画像", "コード", "github", "drive", "url"])
+        and any(marker in combined for marker in ["送る形", "送れば", "送って", "送った方", "共有", "まとめて"])
+        and any(marker in combined for marker in ["大丈夫", "不要なもの", "混ざ", "いいですか", "進められ", "進めれば"])
+    )
+    asks_prepayment_work = any(
+        marker in combined
+        for marker in [
+            "原因だけ",
+            "先に見",
+            "先に確認",
+            "先に調べ",
+            "確認してもら",
+            "見てもら",
+            "軽く見",
+            "直りそう",
+            "判断",
+            "コメント",
+            "購入はその後",
+            "必要なファイル",
+            "必要ファイル",
+            "足りて",
+        ]
+    )
     if (
         any(marker in combined for marker in ["支払い", "入金", "購入前", "購入する前", "買う前"])
         and any(marker in combined for marker in ["先に", "支払い前", "入金前"])
         and any(marker in combined for marker in ["コード", "ログ", "原因", "エラー画面", "スクショ", "画像", "zip", "ZIP", "直せそう", "判断"])
+        and asks_prepayment_work
     ):
         return "prepayment_materials_before_payment"
     if (
@@ -778,6 +802,8 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["足りて", "必要なファイル", "必要ファイル", "先に見"])
     ):
         return "prepayment_zip_sufficiency_check"
+    if asks_after_payment_material_flow:
+        return "after_payment_zip_share_timing"
     has_bugfix_surface = any(
         marker in combined
         for marker in [
@@ -854,13 +880,6 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["招待", "共有方法", "どの範囲まで共有", "どこまで共有"])
     ):
         return "private_repo_share_question"
-    if (
-        any(marker in combined for marker in ["支払い後", "お支払い完了後", "購入後"])
-        and any(marker in combined_lower for marker in ["zip", "ファイル", "ログ", "スクショ"])
-        and any(marker in combined for marker in ["送る形", "送れば", "送って", "共有", "まとめて"])
-        and any(marker in combined for marker in ["大丈夫", "不要なもの", "混ざ", "いいですか", "進められ", "進めれば"])
-    ):
-        return "after_payment_zip_share_timing"
     if ("githubじゃなくてzip" in combined_lower or "zipで送ってもいい" in combined_lower or "zipで送ってもいい？" in combined_lower):
         return "zip_share_question"
     if (

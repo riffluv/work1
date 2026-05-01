@@ -1,0 +1,768 @@
+1. 結論
+
+🧭 判定：bugfix-15000 の返信コアは「v1 completion candidate」と言ってよいです。
+ただし、「v1 complete / release sealed」と言い切るにはまだ早いです。
+
+理由は明確です。
+
+返信文そのもの、phase 境界、public/private 境界、secret 境界、closed 後境界はかなり安定しています。
+completion checklist も「もっと #RE を回す」ではなく「何を検証済みとみなすか」に軸足を移しており、この判断方向は妥当です。
+completion shelf も bugfix-15000 を v1 完成候補 / 機能コア完成圏 と明示しつつ、real_stock、app_memory、multi_service、email_channel を未検証として残しています。これは現状認識として正しいです。
+
+ただし、辛口に言うと、今の弱点は返信文ではありません。弱点はこの4つです。
+
+領域	現状評価	問題
+返信品質	高い	同型 #RE は飽和気味
+completion 定義	良い	candidate と sealed v1 の境界がまだ少し曖昧
+contract packet	有望	sample と shape check 止まり。runtime 入力としては未封印
+service truth	かなり良いが危険	canonical facts と legacy service.yaml が二重正本化しうる
+app / 汎用コア骨格	ある	まだ移植性・入力 schema・resolver が弱い
+
+最終判断：
+
+bugfix-15000 は v1 completion candidate として棚に上げてよい。
+ただし次にやるべきは #RE 追加ではなく、service truth の単一化、contract packet の実行可能化、checker の強化、synthetic / real stock の区別明文化です。
+この4点を潰す前に「完成」と呼ぶと、将来アプリ化時に設計負債になります。⚠️
+
+2. v1 completion 判定
+判定
+判定対象	判定
+bugfix-15000 返信コアの機能完成圏	✅ Yes
+v1 completion candidate	✅ Yes
+v1 complete / release sealed	⚠️ まだ早い
+汎用返信コア完成	❌ No
+app 化可能な入力契約完成	⚠️ 骨格あり、未封印
+completion checklist / completion shelf の妥当性
+
+core-completion-checklist.ja.md の完成条件は、方向としてかなり妥当です。特に、完成条件を「返信文をさらに磨く」ではなく、Service truth、Phase contract、Reply decision、Evidence、Secret safety、Writer preservation、Naturalizer safety、Evaluation coverage、Learning loop に分解しているのは正しいです。
+
+また、completion shelf が bugfix-15000 の対象範囲を、
+
+ココナラ通常 live
+bugfix-15000
+prequote / quote_sent / purchased / delivered / closed
+Next.js / Stripe / API 不具合修正
+人間または Codex が最終送信判断する返信候補生成
+
+に限定しているのも健全です。
+
+ただし足りない完成条件
+
+現状の完成条件に、次の4つを追加した方がいいです。
+
+1. v1 candidate と v1 sealed を分ける
+
+今の文書は v1 完成候補 / 機能コア完成圏 という表現が適切ですが、実装者が読み進めると「もう完成でよい」と誤読しやすいです。
+
+おすすめは次の3段階です。
+
+ラベル	意味
+functional_core_complete	返信文・境界・主要 phase は安定
+v1_completion_candidate	synthetic rehearsal では高飽和。meta layer も揃い始めた
+v1_release_sealed	contract packet / service truth / #R-#RE 経路 / real stock 受け入れ方まで封印済み
+
+今は 2段階目です。
+
+2. synthetic_high と real_high を分ける
+
+coverage map 上では主要 family が saturation: high ですが、全て source_type: synthetic_rehearsal です。
+
+なので、今後は saturation: high だけではなく、
+
+saturation:
+  synthetic: high
+  real_stock: low
+
+のように分けた方が安全です。
+
+今のままでも v1 candidate は名乗れます。
+ただし、real stock が少ないまま v1 complete と呼ぶのは早いです。
+
+3. #R と #RE が同一 contract packet から作られている の証跡が必要
+
+completion checklist では「#R と #RE の writer candidate が同じ contract packet から作られていること」が完成判定ゲートに入っています。
+
+しかし現物を見る限り、contract packet sample は存在するものの、runtime の #R / #RE がそこから実際に生成されていることを証明する pipeline まではまだ見えていません。contract packet README も「実装前に見える形で確認するためのサンプル」と位置づけています。
+
+ここは candidate から sealed へ進むための最大ゲートです。
+
+4. service truth の canonical resolver が必要
+
+この後詳しく書きますが、service-pack/facts.yaml を canonical にしたい意図はある一方で、registry の facts_file は旧 service.yaml を指しており、render scripts もそこを読んでいます。
+
+これは将来サービス追加時に破綻しやすいです。
+
+3. contract packet 評価
+総評
+
+✅ 方向はかなり良いです。
+memory_packet / phase_contract / reply_contract / response_decision_plan / writer_notes の分離は、#R / app 化の入力単位としてかなり近いです。
+
+特に、5 phase の sample があるのは強いです。prequote / quote_sent / purchased / delivered / closed それぞれで、buyer 最新文、known commitments、received materials、forbidden assumptions、answer_map、ask_map、direct_answer_line が具体化されています。
+
+ただし、現時点では **「runtime packet」ではなく「設計サンプル」**です。
+
+良い点
+1. memory と reply_contract の責務分離は正しい
+
+reply-memory-schema.yaml は、保持すべき取引記憶を facts として定義しており、writer へテンプレートではなく事実制約として渡す方針が明確です。
+
+これは良いです。
+
+特に、
+
+known_commitments
+received_materials
+pending_actions
+forbidden_assumptions
+
+は app 化時にも必要になります。
+
+2. phase_contract は安全境界として使える
+
+phase-contract-schema.yaml は phase ごとの allowed / forbidden / preferred next actions が分かれており、prequote、quote_sent、purchased、delivered、closed の境界がかなり明確です。
+
+特に closed の、
+
+reopen_old_talkroom_work 禁止
+promise_free_repair 禁止
+return_fixed_files_in_closed_message 禁止
+実作業が必要なら費用相談
+
+は強いです。
+
+3. reply_contract の answer_map / ask_map は実行契約として良い
+
+output-schema.yaml で answer_map と ask_map を executable source of truth と位置づけているのは正しいです。
+
+これは将来アプリ化するときも使えます。
+
+問題点
+問題1：checker がまだ「形だけ」
+
+check-contract-packets.py は現状、
+
+required fields の存在
+phase の一致
+hidden service が visible_public_services に入っていないこと
+primary_question_id が explicit_questions に存在すること
+answer_map / ask_map の参照先が存在すること
+direct_answer_line / response_order の存在
+
+を見るに留まっています。
+
+これは最低限としては良いですが、v1 completion gate としては弱いです。
+
+追加すべき検査は次です。
+
+追加検査	理由
+全 explicit_questions が answer_map か ask_map によって処理されている	複合質問落ちを防ぐ
+primary_question_id の answer が direct_answer_line と矛盾しない	主質問直答の担保
+answer_after_check に hold_reason / revisit_trigger がある	保留の空文化防止
+ask_map が blocking_missing_facts と対応する	不要質問防止
+forbidden_moves / required_moves が output-schema enum に含まれる	typo / 独自増殖防止
+hidden services / 25,000円 / handoff 導線が packet 全文字列に出ない	public false 漏洩防止
+writer_notes.use が exact phrase 強制になりすぎていないか warning	Writer preservation 保護
+absolute path が入っていないか warning	app 化移植性
+問題2：direct_answer_line が完成文に近すぎる
+
+response_decision_plan.direct_answer_line は便利ですが、今の sample では完成文にかなり近いです。
+
+これは二面性があります。
+
+良い面：
+Writer が主質問から逃げにくい。
+
+悪い面：
+Writer が「この文を少し変えるだけ」になりやすい。
+
+対策として、field を分けるとよいです。
+
+direct_answer_intent: "原因不明でも15,000円で依頼可能。ただし成功保証はしない"
+suggested_answer_line: "原因が分からない状態でも、15,000円の不具合修正としてご依頼いただけます。"
+preserve_policy: intent_not_exact_wording
+
+v1 では direct_answer_line を残してよいですが、checker で **「verbatim copy required ではない」**ことを明記した方がいいです。
+
+問題3：writer_notes.use / avoid が少し危ない
+
+sample の writer_notes は実用的ですが、use に具体文が入りすぎると、Gold テンプレ化と同じ方向に寄ります。
+
+特に危ないのはこれです。
+
+use:
+  - "ご依頼いただけます"
+  - "コードとエラー内容を見る前に、必ず直せるとはお約束できません"
+avoid:
+  - "相談できます"
+
+この粒度は、単発 case では有効です。
+ただし app 化時は Writer の自由度を狭めます。
+
+おすすめはこうです。
+
+writer_notes:
+  semantic_preferences:
+    - "依頼可否への返答なので、相談可否ではなく依頼可能性を明示する"
+  risky_wording:
+    - phrase: "相談できます"
+      reason: "この buyer 文では依頼可否への答えとして主体が弱い"
+      blanket_ng: false
+
+つまり、phrase ではなく判断理由を渡す方がよいです。
+
+問題4：足りない field
+
+今の packet に足すべき field は多くありません。増やしすぎると壊れます。
+ただし、以下は app 化 / #R 同期に必要です。
+
+追加 field	必要性
+channel	coconala_message / coconala_talkroom / quote_room / email_future を platform と分ける
+transaction_state_evidence	phase 判定の根拠。platform_state か buyer 文か prior summary か
+service_truth_version	service page / registry / pack のどの hash で作ったか
+packet_source	generated / sample / human_adjusted
+source_type	synthetic_rehearsal / real_stock / regression / live_case
+gold_anchor_id	使った場合のみ。最大1本
+style_constraints	Writer Brief の最小 subset。長い naturalizer rule は渡さない
+redaction_policy	受領資料に secret 可能性がある時の扱い
+sendability	draft_candidate / send_ready / human_review_required
+
+逆に、今すぐ入れなくていい field は、
+
+email 用 header
+複数サービス比較
+app UI 入力項目
+LLM 内部推論ログ
+reviewer の長い判定理由
+
+です。
+
+4. #RE / xhigh / Pro 運用判断
+#RE88〜94 付近の routine 停止は妥当
+
+✅ 止めてよいです。
+
+coverage map では、
+
+purchased_current_status
+quote_sent_payment_after_share
+delivered_light_supplement
+closed_relation_check
+
+がすべて saturation: high で、複数 batch が adopted / adopted_with_minor_case_fix になっています。
+
+rehearsal operating policy でも、同一 family で3 batch 連続必須修正なし、軽微指摘のみ、local green なら停止する条件が明記されています。
+
+これは正しいです。
+
+ただし表記は変えるべき
+
+今の saturation: high は誤読されやすいです。
+
+おすすめ：
+
+saturation:
+  synthetic_rehearsal: high
+  real_stock: low
+routine_re_status: frozen
+resume_triggers:
+  - real_stock_unknown_failure
+  - contract_change
+  - service_truth_change
+  - r_re_divergence
+
+これで「実案件でも高飽和」と誤読されません。
+
+まだ #RE を回すなら優先 family
+
+同型 #RE は不要です。
+回すなら、次のような 未知 failure 発見用に限定してください。
+
+優先度	family / risk	理由
+1	closed + refund/free/責任圧	closed_relation_check は高飽和だが、返金・無料・過失認定が混ざると別リスク
+2	quote_sent + 外部共有 / GitHub / ZIP / secret	支払い前作業境界と材料共有導線が衝突しやすい
+3	purchased + previous commitment / deadline pressure	app memory の本丸。約束履歴が絡むと崩れやすい
+4	delivered + remand / dissatisfaction / accepted-before-close confusion	delivered と closed の境界がズレやすい
+5	prequote + 価格・保証・納品物見本・原因不明	サービスページに「購入前に納品物の見本」記述があり、packet 側の扱いが薄い
+6	real stock only	synthetic でなく、実案件文の変な短文・雑な依頼・圧・誤字を拾う
+xhigh の使い方
+
+xhigh は routine 採用確認に使わない方がいいです。
+使うならこの4つだけです。
+
+未知 failure class が出た
+soft lens を formal に上げるか迷う
+service truth / public launch 前の最終監査
+#R と #RE の生成経路がズレた疑い
+
+これは operating policy の方針とも一致しています。
+
+Pro の使い方
+
+Pro は batch 採点ではなく、今回のような completion review / 設計判断に使うのが正しいです。completion shelf でもその方向が明記されています。
+
+5. taxonomy / lens / gold の評価
+failure taxonomy
+
+総評：✅ かなり良いです。
+
+failure-taxonomy.yaml は、
+
+hard_contract_failure
+hard_grounding_failure
+decision_failure
+promise_failure
+soft_business_chat_failure
+preference
+overfire_risk
+
+に分けており、default action と return target も整理されています。
+
+これは実務上かなり使えます。
+
+足りない failure class
+
+ただし、v1 completion / app 化まで見るなら、次を足した方がいいです。
+
+追加 class	内容
+service_truth_resolution_failure	registry / service page / service-pack / legacy service.yaml の矛盾
+runtime_pipeline_failure	#R と #RE、renderer baseline と writer candidate の経路ズレ
+memory_state_failure	previous commitments、deadline、received materials の記憶崩れ
+evaluation_artifact_failure	fixture が不自然、synthetic が #R 実態と違う
+user_override_conflict_failure	ユーザー補足指示が hard constraints と衝突
+gold_overfit_failure	Gold がテンプレとして使われ、文面が固定化する
+
+特に service_truth_resolution_failure は必須です。
+今の構成だと service truth の二重正本化が最大リスクだからです。
+
+lens taxonomy
+
+総評：✅ 思想は良いが、soft lens が増えすぎる入口にいます。
+
+lens-taxonomy.yaml は hard guards と formal soft lenses を分け、blanket NG を避ける設計になっています。これは正しいです。
+
+特に、
+
+business_chat_viability
+response_weight_mismatch
+positive_flow_before_refusal
+agency_alignment
+promise_consistency
+conversation_flow_naturalness
+commitment_strength_calibration
+negative_frame_non_echo
+
+の主力 lens は妥当です。
+
+ただし、運用上は次の整理が必要です。
+
+lens 整理案
+lens	判断
+business_chat_viability	umbrella。primary lens にしない方がよい
+response_weight_mismatch	formal soft lens のままでよい
+positive_flow_before_refusal	formal subtype。独立 top-level ではなく response_weight / conversation_flow 配下がよい
+agency_alignment	formal でよい
+permission_benefit_alignment	agency_alignment の subtype でよい
+promise_consistency	formal でよい
+commitment_strength_calibration	promise_consistency 近接。formal でもよいが primary 乱立注意
+conversation_flow_naturalness	formal でよい
+block_rhythm_flow	conversation_flow_naturalness の subtype
+safe_connection	lens ではなく naturalizer gate
+negative_frame_non_echo	formal でよい
+responsibility_admission_guard	negative_frame_non_echo 配下。ただし underlying hard に接続したら hard
+pressure_word_summarization	negative_frame_non_echo 配下
+topic_label_distance	observe_only / Gold anchor 止まりがよい
+buyer_burden_alignment	observe_only
+answer_order_calibration	observe_only。ただし decision_failure に接続したら hard/decision
+certainty_calibration	commitment_strength_calibration に統合
+hard rule 化してはいけない lens
+
+次は hard rule 化しない方がいいです。
+
+business_chat_viability
+response_weight_mismatch
+positive_flow_before_refusal
+agency_alignment
+conversation_flow_naturalness
+block_rhythm_flow
+topic_label_distance
+negative_frame_non_echo
+
+理由は、どれも文脈依存だからです。
+hard 化すると、必要な安全境界まで削る overfire が起きます。
+
+lens taxonomy 自体も、soft lens を blanket NG や過剰 lint 化しない目的で作られており、この思想は維持すべきです。
+
+Gold map
+
+総評：✅ Gold をテンプレではなく anchor として扱う方針は正しいです。
+
+gold-reply-map.yaml は copy_policy: do_not_copy_verbatim とし、Gold を answer order / temperature / boundary wording anchor として扱っています。
+
+README でも「近い1本だけ見る」「そのまま流用しない」と明記されています。
+
+ただし、Gold が42本まで増えているので、今後は selector が必要です。
+
+おすすめ：
+
+gold_selection:
+  max_gold: 1
+  required_reason: true
+  allowed_use:
+    - answer_order_anchor
+    - temperature_anchor
+    - boundary_wording_anchor
+  forbidden_use:
+    - fixed_template
+    - service_fact_source
+
+Gold は今後増やすより、選び方を固定する段階です。
+
+6. service truth / phase / memory の評価
+service truth
+
+総評：⚠️ 現在は十分に強いが、canonical 接続が危ないです。
+
+良い点
+
+service-registry.yaml は、
+
+bugfix-15000 public:true
+handoff-25000 public:false
+public false は service name / price / purchase CTA を出さない
+
+というルールを明確に持っています。
+
+サービスページも、
+
+15,000円
+不具合1件
+原因確認
+修正内容作成
+確認手順整理
+修正済みファイル返却
+secret 値不要
+外部連絡 / 外部決済 / GitHub push / 本番デプロイ不可
+
+を明記しています。
+
+service-pack も facts / boundaries / decision / evidence に分かれていて、構造は良いです。
+
+危ない点：facts が二重正本化している
+
+ここはかなり重要です。
+
+ops/services/next-stripe-bugfix/facts.yaml は canonical facts が service-pack/facts.yaml にあると明記しています。
+
+一方で、service-registry.yaml の facts_file は ops/services/next-stripe-bugfix/service.yaml を指しています。
+
+さらに render scripts は registry の facts_file を読み、そこから base_price などを取得しています。
+
+つまり現状はこうです。
+
+意図上の canonical:
+  service-pack/facts.yaml
+
+実行上の facts:
+  service-registry.yaml -> facts_file -> service.yaml
+
+補助:
+  service_pack_facts_file -> service-pack/facts.yaml
+
+これは今は値が揃っているので事故っていません。
+ただし、今後サービスが増えると破綻しやすいです。
+
+さらに注意：fidelity checker は意味一致まで見ていない
+
+check-service-pack-fidelity.py は expected refs が service-pack 内に存在するかを確認する checker です。semantic equality までは見ていません。
+
+check-service-grounding-sentries.py はより強く、service page / service.yaml / service-pack / rendered reply の価格・scope・secret などを smoke していますが、renderer literal drift については warning 扱いです。
+
+つまり、local OK は大事ですが、truth の完全単一化を保証するものではありません。
+
+service truth で直すべき具体点
+1. registry の canonical を一本化する
+
+おすすめはこれです。
+
+services:
+  - service_id: bugfix-15000
+    public: true
+    source_of_truth: サービスページ/bugfix-15000.live.txt
+    public_facts_file: ops/services/next-stripe-bugfix/service-pack/facts.yaml
+    boundaries_file: ops/services/next-stripe-bugfix/service-pack/boundaries.yaml
+    decision_contract_file: ops/services/next-stripe-bugfix/service-pack/decision-contract.yaml
+    evidence_contract_file: ops/services/next-stripe-bugfix/service-pack/evidence-contract.yaml
+    runtime_capability_file: ops/services/next-stripe-bugfix/service.yaml
+
+旧 service.yaml は public facts 正本ではなく、runtime_capability_file に格下げした方がいいです。
+
+2. service-pack facts の initial_reply: 24時間以内 を見直す
+
+service-pack facts には、
+
+initial_reply: "24時間以内（通常数時間以内）"
+first_result_target: "必要情報がそろい次第48時間以内を目標に一次結果"
+
+があります。
+
+サービスページ側には 48時間目標は明示されていますが、24時間初回返信は少なくとも読んだ範囲では同じ粒度で見えていません。
+
+これを public fact として出すなら、サービスページにも載せるか、internal_reply_expectation に分けるべきです。
+
+3. サービスページの「購入前に納品物の見本」扱い
+
+サービスページには「購入前に納品物の見本もお送りします」とあります。
+
+これは buyer から聞かれた時に返信 OS が扱うべき public fact です。
+現状の service-pack / contract packet では、この論点の扱いが薄いです。
+
+追加候補：
+
+prequote_sample_policy:
+  can_send_sample_deliverable: true
+  sample_is_generic: true
+  must_not_include_actual_diagnosis: true
+  must_not_require_code_or_logs_before_payment: true
+
+これを入れないと、prequote で「納品物の見本ください」と来た時に、支払い前診断境界と混ざる可能性があります。
+
+phase / memory
+
+phase contract は v1 として十分強いです。
+
+memory schema も方向は良いです。
+
+ただし app 化前に足すなら、
+
+channel
+transaction_state_evidence
+last_seller_reply_summary
+last_promised_deadline
+commitment_fulfillment_state
+material_redaction_state
+human_override
+service_truth_version
+
+です。
+
+7. いますぐ実装すべきこと
+優先度1：service truth canonicalization
+
+🎯 最優先です。
+
+やること：
+
+service-registry.yaml で canonical public facts を service-pack/facts.yaml に寄せる。
+旧 service.yaml は runtime_capability_file または legacy_service_file に格下げする。
+render scripts が facts_file ではなく resolver 経由で facts を読むようにする。
+checker で service.yaml と service-pack/facts.yaml の価格・scope・deliverable・hard_no 差分を検出する。
+
+完了条件：
+
+bugfix-15000 の価格・公開状態・成果物・secret・外部共有・closed 後境界が一箇所から解決できる。
+handoff-25000 public:false がどの resolver からも live に出ない。
+優先度2：check-contract-packets.py を semantic gate 化する
+
+今の checker は shape check としては良いですが、v1 completion gate には足りません。
+
+追加すべき検査：
+
+answer_map が全 explicit_questions を処理している
+primary answer が direct_answer_line に反映されている
+hidden service / 25,000円 / handoff 導線が packet 全体にない
+ask_map が blocking_missing_facts と矛盾しない
+required_moves / forbidden_moves が output-schema の allowed に入っている
+writer_notes.use が exact phrase 強制になりすぎる場合 warning
+source_schemas の絶対パス warning
+優先度3：contract packet を sample から runtime protocol に昇格する
+
+今の bugfix-15000-v1-samples.yaml は良いサンプルです。
+次はこれを runtime の contract builder 出力と比較する golden packet にしてください。
+
+具体的には：
+
+fixture -> contract_builder -> generated_packet
+generated_packet vs v1_sample_packet
+generated_packet -> writer_candidate
+writer_candidate -> naturalizer -> reviewer
+
+この流れを1本作る。
+
+完了条件：
+
+5 phase sample で generated packet と expected packet の差分が見える
+#R / #RE が同じ packet を参照していると説明できる
+優先度4：coverage map を synthetic と real に分ける
+
+今の high saturation は妥当ですが、synthetic high です。
+
+追加するなら：
+
+saturation:
+  synthetic_rehearsal: high
+  real_stock: low
+freeze_reason: "synthetic saturation reached"
+resume_triggers:
+  - real_stock_unknown_failure
+  - service_truth_change
+  - contract_packet_change
+  - r_re_divergence
+優先度5：lens taxonomy を1回だけ整理する
+
+やること：
+
+business_chat_viability を umbrella と明記し、primary lens にしない
+permission_benefit_alignment を agency_alignment 配下へ
+block_rhythm_flow を conversation_flow_naturalness 配下へ
+safe_connection を lens ではなく gate として固定
+topic_label_distance は observe_only / gold anchor に留める
+audit log に primary_lens を1つだけ持つ
+優先度6：Gold selector policy を作る
+
+Gold は増やすより、選び方を固定してください。
+gold-reply-map.yaml の思想は正しいです。
+
+追加するもの：
+
+gold_selector:
+  max_gold_per_reply: 1
+  require_family_match: true
+  forbid_verbatim_copy: true
+  forbid_service_fact_source: true
+  log_selected_gold_id: true
+優先度7：bugfix-15000-v1-scope-seal.ja.md を作る
+
+これは release note です。
+
+内容：
+
+v1 candidate と呼べる範囲
+まだ未完成な範囲
+frozen family
+resume triggers
+service truth canonical path
+contract packet gate
+real stock の扱い
+やらないこと
+
+これがあると、今後 #RE を再開すべきか迷いにくくなります。
+
+8. まだやらない方がいいこと
+routine xhigh #RE
+
+❌ やらない方がいいです。
+
+今の高飽和 family に対して xhigh を回しても、得られるのは「少し硬い」「ここは好み」程度になりやすいです。
+それは completion ではなく、費用の浪費です。
+
+soft lens の hard rule 化
+
+❌ やらない方がいいです。
+
+特に以下は hard rule 化禁止です。
+
+response_weight_mismatch
+positive_flow_before_refusal
+agency_alignment
+conversation_flow_naturalness
+negative_frame_non_echo
+topic_label_distance
+
+hard 化するなら underlying guard 名でやるべきです。
+
+例：
+
+NG: positive_flow_before_refusal hard fail
+OK: prepurchase_work_start hard fail
+Gold のテンプレ化
+
+❌ やらない方がいいです。
+
+Gold は anchor であり、service fact source ではありません。gold-reply-map.yaml もそう定義しています。
+
+今は Gold を増やすより、selector と usage log を作るべきです。
+
+email / multi-service への早すぎる拡張
+
+❌ 今はやらない方がいいです。
+
+骨格はあります。
+ただし、service truth resolver と contract packet gate が未封印なので、email / multi-service を始めると未確定部分が拡散します。
+
+Writer に監査ルールを背負わせる
+
+❌ やらない方がいいです。
+
+Writer Brief の「実際に Writer へ渡す既定は11行だけ」という思想は守るべきです。
+
+coconala-reply-bugfix-ja も Writer / Reviewer 分離を前提にしており、self-check は Writer に読ませず draft 後に通す方針です。
+
+ここは壊さないでください。
+
+Naturalizer に service facts を持たせすぎる
+
+⚠️ 今すぐ大改修は不要ですが、注意です。
+
+japanese-chat-natural-ja は汎用自然化 skill として定義されていますが、実際には Coconala / Stripe / payment route / closed 後など、かなりサービス固有の記述も含んでいます。
+
+bugfix v1 では許容できます。
+ただし、将来の汎用コア化では分離が必要です。
+
+9. 追加で見たいファイル
+
+次にさらに厳密に見るなら、このあたりです。
+
+os/coconala/platform-contract.yaml
+ops/common/interaction-states.yaml
+ops/common/routing-table.yaml
+ops/common/coconala-rule-guard.md
+docs/reply-quality/service-pack-source-of-truth-policy.ja.md
+ops/services/next-stripe-bugfix/evidence-minimum.yaml
+ops/services/next-stripe-bugfix/scope-matrix.md
+ops/services/next-stripe-bugfix/estimate-decision.yaml
+ops/services/next-stripe-bugfix/service-pack/routing-playbooks.yaml
+ops/services/next-stripe-bugfix/service-pack/state-schema.yaml
+runtime/regression/service-pack-fidelity/latest.txt
+runtime/regression/service-grounding-sentries/latest.txt
+#RE88〜94 の actual batch markdown
+r-smoke-style-anchors-20260429.ja.md
+docs/reply-quality/adoption-policy.ja.md
+
+特に見たいのは、platform-contract / routing-table / actual #R smoke / runtime regression report です。
+ここを見れば「packet が本当に #R とつながっているか」がもっと確実に判断できます。
+
+10. このまま進めるなら「次の一手」
+
+次の一手は、#RE ではありません。
+
+次の一手：bugfix-15000 v1 seal PR を作る
+
+内容はこの4点に絞るのが良いです。
+
+PR: Seal bugfix-15000 v1 candidate
+
+1. service truth resolver を一本化
+2. check-contract-packets.py を semantic gate 化
+3. contract packet sample を runtime generated packet と比較できる形にする
+4. coverage map に synthetic_high / real_low を分けて記録する
+
+最小実装順はこれです。
+
+Step 1:
+  service-registry.yaml の public facts canonical を決める
+
+Step 2:
+  render scripts が canonical resolver 経由で facts を読むようにする
+
+Step 3:
+  check-contract-packets.py に semantic checks を追加する
+
+Step 4:
+  bugfix-15000-v1-scope-seal.ja.md を作る
+
+Step 5:
+  frozen family は #RE 停止のまま、real stock が来た時だけ再開する
+
+この順番が一番安全です。
+今は返信文を増やす段階ではなく、完成候補を壊さずに封印する段階です。

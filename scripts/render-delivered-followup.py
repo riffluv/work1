@@ -44,18 +44,16 @@ def load_service_grounding() -> dict:
     if not service.get("public"):
         raise RuntimeError(f"delivered service is not public: {PUBLIC_BUGFIX_SERVICE_ID}")
 
-    facts_path = Path(service.get("facts_file") or "")
-    if not facts_path.is_file():
-        raise RuntimeError(f"missing service facts file: {facts_path}")
-
-    with facts_path.open("r", encoding="utf-8") as f:
-        facts = yaml.safe_load(f) or {}
-
+    facts = shared.load_service_grounding()
     base_price = int(facts.get("base_price") or 15000)
     fee_text = f"{base_price:,}円"
     return {
         "service_id": service.get("service_id"),
         "public_service": bool(service.get("public")),
+        "source_of_truth": service.get("source_of_truth"),
+        "public_facts_file": facts.get("public_facts_file"),
+        "runtime_capability_file": facts.get("runtime_capability_file"),
+        "service_pack_root": facts.get("service_pack_root"),
         "display_name": facts.get("display_name") or "",
         "fee_text": fee_text,
         "base_price": base_price,
@@ -1531,6 +1529,7 @@ def build_case_from_source(source: dict) -> dict:
 
     if scenario == "doc_explanation_request":
         asks_fee = any(marker in raw for marker in ["追加料金", "費用", "料金", "別料金"])
+        asks_screenshot_need = "スクショ" in raw and any(marker in raw for marker in ["送った方", "送るべき", "必要", "要りますか", "いりますか"])
         explicit_questions = [{"id": "q1", "text": "もう少しかみ砕いた説明をお願いできるか", "priority": "primary"}]
         answer_map = [
                 {
@@ -1541,18 +1540,28 @@ def build_case_from_source(source: dict) -> dict:
         ]
         question_ids = ["q1"]
         required_moves = ["react_briefly_first", "answer_directly_now", "request_minimum_evidence", "commit_next_update_time"]
-        if asks_fee:
-            explicit_questions.append({"id": "q2", "text": "追加料金がかかるか", "priority": "secondary"})
+        if asks_screenshot_need:
+            explicit_questions.append({"id": "q2", "text": "画面スクショも送った方がよいか", "priority": "secondary"})
             answer_map.append(
                 {
                     "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "画面スクショは、必要になった場合だけこちらからお願いします。",
+                }
+            )
+        if asks_fee:
+            next_id = f"q{len(explicit_questions) + 1}"
+            explicit_questions.append({"id": next_id, "text": "追加料金がかかるか", "priority": "secondary"})
+            answer_map.append(
+                {
+                    "question_id": next_id,
                     "disposition": "answer_after_check",
                     "answer_brief": "料金は、補足で足りる範囲かを見てからお伝えします。",
                     "hold_reason": "まずはどの部分が難しかったかを見て、補足で足りるかを先に切ります。",
                     "revisit_trigger": "分かりにくかった箇所を受領したあとにお返しします。",
                 }
             )
-            question_ids.append("q2")
+            question_ids.append(next_id)
             required_moves.insert(2, "defer_with_reason")
         case["reply_contract"] = {
             "primary_question_id": "q1",

@@ -33,13 +33,18 @@
 ## source of truth
 - 公開文面:
   - `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
-- service-pack facts:
+- 外向け返信で参照する公開事実:
   - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack/facts.yaml`
-  - 2026-05-01 時点では、このファイルを service-pack 側の公開事実正本として扱う。ルート直下の `service.yaml` は既存互換の facts 参照として残す。
+  - `os/core/service-registry.yaml` では `public_facts_file` として登録する。
+  - 価格、公開範囲、成果物、buyer に案内してよい条件はこのファイルを優先する。
+  - `prequote_sample_policy` は、購入前に納品物見本を求められた時の公開事実。汎用見本であり、購入前診断やコード確認ではない。
+  - `internal_reply_expectation` は内部運用目安であり、公開ページに同粒度で出ていない限り buyer へ毎回案内しない。
+- 実行時能力・内部互換:
+  - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml`
+  - `os/core/service-registry.yaml` では `runtime_capability_file` として登録する。
+  - 既存 renderer / validator 互換のため `facts_file` としても残すが、外向け返信の公開事実正本にはしない。
 - 公開ページ由来の回帰源:
   - FAQ とトークルーム回答例は `/home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml` で contract 回帰源として扱う
-- 既存 facts:
-  - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml`
 - 既存 route / scope 判断:
   - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/estimate-decision.yaml`
   - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/evidence-minimum.yaml`

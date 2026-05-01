@@ -1,0 +1,189 @@
+version: 1
+updated: "2026-05-01"
+service_id: bugfix-15000
+source_packets: ops/tests/contract-packets/bugfix-15000-v1-samples.yaml
+purpose: >
+  contract packet sample が、実際の入力に相当する phase / buyer message /
+  explicit question と追跡可能かを見るための最小 fixture。
+  これは返信文テンプレートではなく、packet の traceability smoke 用です。
+
+fixtures:
+  - fixture_id: CPFX-BUGFIX15000-V1-001
+    expected_packet_id: CP-BUGFIX15000-V1-001
+    phase: prequote
+    family: prequote_service_fit
+    channel: coconala_message
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "Stripe決済後に注文が作られないのですが、原因がまったく分かっていません。この状態でも15,000円で依頼できますか？"
+    primary_question_id: q1
+    primary_question: "原因が分からない状態でも15,000円で依頼できますか？"
+    explicit_questions:
+      - id: q1
+        text: "原因が分からない状態でも15,000円で依頼できますか？"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-002
+    expected_packet_id: CP-BUGFIX15000-V1-002
+    phase: quote_sent
+    family: quote_sent_payment_after_share
+    channel: coconala_message
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "見積り提案ありがとうございます。支払い前にスクショだけ送っておいた方がいいですか？支払い後にまとめて送る形でも大丈夫ですか？"
+    primary_question_id: q1
+    primary_question: "支払い前にスクショだけ送っておいた方がいいですか？"
+    explicit_questions:
+      - id: q1
+        text: "支払い前にスクショだけ送っておいた方がいいですか？"
+      - id: q2
+        text: "支払い後にまとめて送る形でも大丈夫ですか？"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-003
+    expected_packet_id: CP-BUGFIX15000-V1-003
+    phase: purchased
+    family: purchased_current_status
+    channel: coconala_talkroom
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "昨日購入してログとスクショを送りました。今どこまで見ていますか？長い説明はいりません。現時点で分かっていることだけ短く教えてください。"
+    primary_question_id: q1
+    primary_question: "今どこまで見ていますか？"
+    explicit_questions:
+      - id: q1
+        text: "今どこまで見ていますか？"
+      - id: q2
+        text: "現時点で分かっていることだけ短く教えてください。"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-004
+    expected_packet_id: CP-BUGFIX15000-V1-004
+    phase: delivered
+    family: delivered_light_supplement
+    channel: coconala_talkroom
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どの修正ファイルを反映すればいいかだけもう一度短く教えてもらえますか？こちらの画面スクショも送った方がいいですか？"
+    primary_question_id: q1
+    primary_question: "どの修正ファイルを反映すればいいかだけもう一度短く教えてもらえますか？"
+    explicit_questions:
+      - id: q1
+        text: "どの修正ファイルを反映すればいいかだけもう一度短く教えてもらえますか？"
+      - id: q2
+        text: "画面スクショも送った方がいいですか？"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-005
+    expected_packet_id: CP-BUGFIX15000-V1-005
+    phase: closed
+    family: closed_relation_check
+    channel: coconala_message
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "前回はありがとうございました。しばらく問題なかったのですが、似たStripeエラーが出ています。このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    primary_question_id: q1
+    primary_question: "このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    explicit_questions:
+      - id: q1
+        text: "このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-006
+    expected_packet_id: CP-BUGFIX15000-V1-006
+    phase: purchased
+    family: purchased_commitment_followup
+    channel: coconala_talkroom
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "昨日ログとスクショを送りました。前に次の見通しを返すと言ってもらっていました。今どこまで見ていますか？現時点で分かっていることと、次に見る箇所だけ短く教えてください。追加で何か送る必要はありますか？"
+    primary_question_id: q1
+    primary_question: "前に伝えられていた次の見通しについて、今どこまで見ているかと次に見る箇所を短く教えてください。"
+    explicit_questions:
+      - id: q1
+        text: "前に伝えられていた次の見通しについて、今どこまで見ているかと次に見る箇所を短く教えてください。"
+      - id: q2
+        text: "追加で何か送る必要はありますか？"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-007
+    expected_packet_id: CP-BUGFIX15000-V1-007
+    phase: purchased
+    family: purchased_deadline_followup
+    channel: coconala_talkroom
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "前に本日18:00までに状況を返すと言ってもらっていました。18:00を過ぎていますが、今どこまで見ていますか？現時点で分かっていることと、次に見る箇所だけ短く教えてください。追加で何か送る必要はありますか？"
+    primary_question_id: q1
+    primary_question: "約束していた返答時刻を過ぎた状態で、今どこまで見ているかを知りたい。"
+    explicit_questions:
+      - id: q1
+        text: "約束していた返答時刻を過ぎた状態で、今どこまで見ているかを知りたい。"
+      - id: q2
+        text: "現時点で分かっていることと、次に見る箇所だけ短く教えてください。"
+      - id: q3
+        text: "追加で何か送る必要はありますか？"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-008
+    expected_packet_id: CP-BUGFIX15000-V1-008
+    phase: purchased
+    family: purchased_requested_materials_received
+    channel: coconala_talkroom
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "追加でお願いされたログとスクショを送りました。これで足りますか？次は何を見ますか？"
+    primary_question_id: q1
+    primary_question: "追加で依頼されていたログとスクショが届いているか、これで足りるかを知りたい。"
+    explicit_questions:
+      - id: q1
+        text: "追加で依頼されていたログとスクショが届いているか、これで足りるかを知りたい。"
+      - id: q2
+        text: "これで足りますか？"
+      - id: q3
+        text: "次は何を見ますか？"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-009
+    expected_packet_id: CP-BUGFIX15000-V1-009
+    phase: purchased
+    family: purchased_redacted_resend_received
+    channel: coconala_talkroom
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "言われた通り、APIキーと.envの値が見えないように伏せたZIPを送り直しました。これで確認できますか？前のZIPは見ないでください。"
+    primary_question_id: q1
+    primary_question: "秘密値を伏せたZIPを送り直したので、これで確認できるかを知りたい。"
+    explicit_questions:
+      - id: q1
+        text: "秘密値を伏せたZIPを送り直したので、これで確認できるかを知りたい。"
+      - id: q2
+        text: "前のZIPは見ないでほしい。"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000

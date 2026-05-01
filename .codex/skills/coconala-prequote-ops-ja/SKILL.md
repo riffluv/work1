@@ -36,7 +36,7 @@ description: "ココナラ見積り相談の前段専用。相手文を、入口
 4. `/home/hr-hm/Project/work/ops/common/interaction-states.yaml`
 5. `/home/hr-hm/Project/work/ops/common/coconala-rule-guard.md`
 6. `/home/hr-hm/Project/work/ops/common/routing-table.yaml`
-7. `service-registry.yaml` で解決した live service の `facts_file`
+7. `service-registry.yaml` で解決した live service の `public_facts_file`
 8. `/home/hr-hm/Project/work/docs/reply-quality/writer-brief.ja.md`
 9. `/home/hr-hm/Project/work/docs/reply-quality/prequote-compression-rules.ja.md`
 10. `/home/hr-hm/Project/work/docs/coconala-reply-self-check.ja.md`

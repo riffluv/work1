@@ -34,11 +34,12 @@
 
 ## 整理の流れ
 1. 新しい実ストックを `inbox/` に置く
-2. 代表性が高いものを `seed/` へ移す
-3. 通常改善に使うものを `eval/` へ移す
-4. 最後の検定専用は `holdout/` へ移す
-5. 危険ケースは `edge/` へ移す
-6. 必要なら `ops/tests/eval-sources.yaml` に active source として足す
+2. `./scripts/check-real-stock-intake-gate.py --save-report --write-manifest` で、実案件候補 / 生成補完 / edge / contract packet 候補を確認する
+3. 代表性が高いものを `seed/` へ移す
+4. 通常改善に使うものを `eval/` へ移す
+5. 最後の検定専用は `holdout/` へ移す
+6. 危険ケースは `edge/` へ移す
+7. 必要なら `ops/tests/eval-sources.yaml` に active source として足す
 
 ## ルール
 - `holdout/` は改善中の正解合わせに使わない。
@@ -48,4 +49,5 @@
 
 ## すすめ方
 - 実ストックを追加したら、まず `inbox/` に置く。
-- まとまったら、こちらで `seed / eval / holdout / edge` に仕分けし、回帰へ接続する。
+- まとまったら、`check-real-stock-intake-gate.py` の report を見てから `seed / eval / holdout / edge` に仕分けし、回帰へ接続する。
+- `claude` / `gemini` / `generated` / `bulk` 系は補完 stock として扱い、release seal の実案件根拠には数えない。

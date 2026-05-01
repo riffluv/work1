@@ -34,11 +34,16 @@
 ## source of truth
 - 公開準備文面:
   - `/home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt`
-- service 理解の契約コア:
+- 内部参照する公開準備事実:
   - `facts.yaml`
+  - `os/core/service-registry.yaml` では `public_facts_file` として登録する。ただし `public:false` のため、通常 live / #RE には出さない。
+- service 理解の契約コア:
   - `boundaries.yaml`
   - `decision-contract.yaml`
   - `evidence-contract.yaml`
+- 実行時能力・内部互換:
+  - `/home/hr-hm/Project/work/ops/services/handoff-25000/service.yaml`
+  - `os/core/service-registry.yaml` では `runtime_capability_file` として登録する。
 
 ## 会話運用の補助
 - `routing-playbooks.yaml`
@@ -53,8 +58,6 @@
 - runtime は `service_pack_root` を入口にして、共通 interface に従って読む
 
 ## derivation input
-- 既存 structured file:
-  - `/home/hr-hm/Project/work/ops/services/handoff-25000/service.yaml`
 - 既存 route / scope 判断:
   - `/home/hr-hm/Project/work/ops/services/handoff-25000/evidence-minimum.yaml`
   - `/home/hr-hm/Project/work/ops/services/handoff-25000/scope-matrix.md`

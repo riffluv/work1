@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 FULL_REGRESSION = ROOT_DIR / "scripts/check-coconala-reply-full-regression.py"
+CONTRACT_PACKET_WRITER_BRIEF_SYNC = ROOT_DIR / "scripts/check-contract-packet-writer-brief-sync.py"
 SERVICE_GROUNDING_SENTRIES = ROOT_DIR / "scripts/check-service-grounding-sentries.py"
 TIMESTAMP_POLICY = ROOT_DIR / "scripts/check-timestamp-policy.py"
 REPORT_DIR = ROOT_DIR / "runtime/regression/coconala-reply/suites"
@@ -37,6 +38,16 @@ def run_service_grounding_sentries() -> tuple[int, str]:
     return proc.returncode, output
 
 
+def run_contract_packet_writer_brief_sync() -> tuple[int, str]:
+    proc = subprocess.run(
+        ["python3", str(CONTRACT_PACKET_WRITER_BRIEF_SYNC)],
+        capture_output=True,
+        text=True,
+    )
+    output = ((proc.stdout or "") + (proc.stderr or "")).strip()
+    return proc.returncode, output
+
+
 def run_timestamp_policy() -> tuple[int, str]:
     proc = subprocess.run(
         ["python3", str(TIMESTAMP_POLICY)],
@@ -50,6 +61,8 @@ def run_timestamp_policy() -> tuple[int, str]:
 def build_report_text(
     started_at: datetime,
     results: list[tuple[str, int, str]],
+    contract_sync_status: int,
+    contract_sync_output: str,
     sentry_status: int,
     sentry_output: str,
     timestamp_status: int,
@@ -65,6 +78,13 @@ def build_report_text(
         lines.append(f"[{role}]")
         lines.append(output or "<no output>")
         lines.append("")
+    if contract_sync_status != 0:
+        overall_ok = False
+    lines.append(f"contract_packet_writer_brief_sync: {'OK' if contract_sync_status == 0 else 'NG'}")
+    lines.append("")
+    lines.append("[contract_packet_writer_brief_sync]")
+    lines.append(contract_sync_output or "<no output>")
+    lines.append("")
     if sentry_status != 0:
         overall_ok = False
     lines.append(f"service_grounding_sentries: {'OK' if sentry_status == 0 else 'NG'}")
@@ -106,16 +126,35 @@ def main() -> int:
     for role in roles:
         status, output = run_role(role)
         results.append((role, status, output))
+    contract_sync_status, contract_sync_output = run_contract_packet_writer_brief_sync()
     sentry_status, sentry_output = run_service_grounding_sentries()
     timestamp_status, timestamp_output = run_timestamp_policy()
 
-    report_text = build_report_text(started_at, results, sentry_status, sentry_output, timestamp_status, timestamp_output)
+    report_text = build_report_text(
+        started_at,
+        results,
+        contract_sync_status,
+        contract_sync_output,
+        sentry_status,
+        sentry_output,
+        timestamp_status,
+        timestamp_output,
+    )
     if args.save_report:
         latest_path, history_path = save_report(report_text, started_at)
         print(f"report_latest: {latest_path}")
         print(f"report_history: {history_path}")
     print(report_text.rstrip())
-    return 0 if timestamp_status == 0 and sentry_status == 0 and all(status == 0 for _, status, _ in results) else 1
+    return (
+        0
+        if (
+            contract_sync_status == 0
+            and timestamp_status == 0
+            and sentry_status == 0
+            and all(status == 0 for _, status, _ in results)
+        )
+        else 1
+    )
 
 
 if __name__ == "__main__":

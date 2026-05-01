@@ -20,7 +20,7 @@
 
 次のいずれかに当てはまる時だけ、新規 #RE を回す。
 
-- coverage map で `saturation: low` または `medium` の family がある。
+- coverage map で `synthetic_rehearsal` または `real_stock` の `saturation` が `low` / `medium` の family がある。
 - 実案件 stock から、既存 fixture にない buyer 文が来た。
 - 新しい soft lens を candidate から formal に上げる前。
 - renderer / validator / naturalizer / service pack を変更した。
@@ -52,7 +52,7 @@
 使わない場面:
 
 - 同型 #RE の routine 採用確認。
-- 既に saturation: high の family。
+- 既に `synthetic_rehearsal: high` の同型 family。
 - 軽微 case_fix の再監査。
 - 句点数、段落数、単語の好み差だけ。
 
@@ -76,17 +76,16 @@ ChatGPT Pro は、batch そのものの採点より、設計判断に使う。
 
 ## 現在の停止判断
 
-#RE88〜94 は、以下の family で `saturation: high` と扱う。
+#RE88〜94 は、以下の family で `synthetic_rehearsal: high / real_stock: low` と扱う。
 
 - purchased_current_status
 - quote_sent_payment_after_share
 - delivered_light_supplement
 - closed_relation_check
 
-この family は、次のどれかが出るまで routine #RE を止める。
+この family は、次のどれかが出るまで routine #RE を止める。`real_stock: low` は、実案件 stock が来た時に targeted に見るという意味で、合成 #RE を追加で回す理由にはしない。
 
 - 実案件 stock で未知の崩れが出る。
 - #R で再現する違和感が出る。
 - service pack / phase contract / writer brief を変更する。
 - Pro / human audit が未検証領域を指定する。
-

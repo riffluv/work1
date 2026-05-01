@@ -37,6 +37,87 @@ severity_levels:
       - reviewer_prompt
       - sentry
 
+  service_truth_resolution_failure:
+    description: "公開事実正本、service-pack、legacy runtime facts の解決順が曖昧になり、外向け返信が誤った正本を参照する崩れ"
+    examples:
+      - public_reply_uses_legacy_runtime_capability_as_public_fact
+      - service_registry_facts_path_ambiguity
+      - public_false_service_fact_used_in_live
+      - source_of_truth_mirror_used_as_authority
+    default_action: "fix_required"
+    return_targets:
+      - service_registry
+      - service_pack
+      - service_truth_resolver
+      - validator
+
+  runtime_pipeline_failure:
+    description: "#R / #RE / renderer / writer_candidate の生成経路がズレ、監査対象と本丸出力が一致しない崩れ"
+    examples:
+      - re_candidate_not_r_equivalent
+      - renderer_baseline_style_artifact
+      - writer_brief_not_applied
+      - naturalizer_gate_not_called
+    default_action: "fix_required_or_fix_recommended"
+    return_targets:
+      - renderer
+      - writer_brief
+      - rehearsal_pipeline
+      - contract_packet
+
+  memory_state_failure:
+    description: "phase、受領材料、過去約束、次回時刻などの取引記憶が欠ける/古い/衝突することで返信がズレる崩れ"
+    examples:
+      - quote_sent_treated_as_prequote
+      - delivered_treated_as_closed
+      - old_deadline_reused
+      - received_material_claim_without_state
+    default_action: "fix_required_or_case_fix"
+    return_targets:
+      - reply_memory_schema
+      - phase_contract
+      - contract_packet
+      - validator
+
+  evaluation_artifact_failure:
+    description: "評価 fixture / batch / stock / gold が本丸とズレ、改善しているように見えて実出力へ効かない崩れ"
+    examples:
+      - synthetic_rehearsal_overfit
+      - stale_fixture_phase
+      - gold_used_as_template
+      - reviewer_prompt_missing_current_lens
+    default_action: "fix_recommended_or_observe_only"
+    return_targets:
+      - fixture_coverage_map
+      - gold_reply_map
+      - reviewer_prompt
+      - rehearsal_operating_policy
+
+  user_override_conflict_failure:
+    description: "ユーザーの後続指示、支払い導線の例外、口調指定などが hard guard と衝突する崩れ"
+    examples:
+      - user_requests_hidden_service_live_leak
+      - user_requests_external_contact_route
+      - user_style_override_weakens_phase_boundary
+      - same_talkroom_payment_override_without_phase_check
+    default_action: "fix_required_or_clarify"
+    return_targets:
+      - platform_contract
+      - reply_contract
+      - reviewer_prompt
+
+  gold_overfit_failure:
+    description: "Gold reply を anchor ではなくテンプレートとして使い、現在の相手文・phase・service facts に合わない文を出す崩れ"
+    examples:
+      - copied_gold_phrase_with_wrong_phase
+      - gold_wording_overrides_current_buyer_question
+      - standard_reply_ignores_received_materials
+    default_action: "fix_recommended"
+    return_targets:
+      - gold_reply_map
+      - writer_brief
+      - reviewer_prompt
+
   decision_failure:
     description: "主質問に答えない、複合質問の片方を落とす、次アクションが phase と合わない崩れ"
     examples:
@@ -147,4 +228,3 @@ return_policy:
       - one_off_case
       - no_clear_recurrence
       - fixed_by_case_wording
-

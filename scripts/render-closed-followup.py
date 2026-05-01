@@ -44,17 +44,15 @@ def load_service_grounding() -> dict:
     if not service.get("public"):
         raise RuntimeError(f"closed service is not public: {PUBLIC_BUGFIX_SERVICE_ID}")
 
-    facts_path = Path(service.get("facts_file") or "")
-    if not facts_path.is_file():
-        raise RuntimeError(f"missing service facts file: {facts_path}")
-
-    with facts_path.open("r", encoding="utf-8") as f:
-        facts = yaml.safe_load(f) or {}
-
+    facts = shared.load_service_grounding()
     base_price = int(facts.get("base_price") or 15000)
     return {
         "service_id": service.get("service_id"),
         "public_service": bool(service.get("public")),
+        "source_of_truth": service.get("source_of_truth"),
+        "public_facts_file": facts.get("public_facts_file"),
+        "runtime_capability_file": facts.get("runtime_capability_file"),
+        "service_pack_root": facts.get("service_pack_root"),
         "display_name": facts.get("display_name") or "",
         "base_price": base_price,
         "fee_text": f"{base_price:,}円",

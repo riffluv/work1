@@ -30,10 +30,10 @@ description: "ココナラ向けの自然な日本語返信を作る。相手文
 `希望: ...`
 
 ## required_facts
-- 価格・追加料金・公開状態・public/private は、毎回 `/home/hr-hm/Project/work/os/core/service-registry.yaml` と、そこから辿る `facts_file` を正本として読む。
-- `bugfix-15000` / `handoff-25000` の hard facts は直書きで前提にせず、`service-registry.yaml` で `service_id` を解決して、その `facts_file` を正本にする。
+- 価格・追加料金・公開状態・public/private は、毎回 `/home/hr-hm/Project/work/os/core/service-registry.yaml` と、そこから辿る `public_facts_file` を外向け公開事実正本として読む。
+- `bugfix-15000` / `handoff-25000` の hard facts は直書きで前提にせず、`service-registry.yaml` で `service_id` を解決して、その `public_facts_file` を正本にする。`facts_file` / `runtime_capability_file` は既存互換・内部能力参照として扱う。
 - 外向け自然文の参照は、`service-registry.yaml` の `source_of_truth` を使う。
-- サービスページ本文は外向け自然文の正本として参照してよいが、価格・追加料金・公開状態の機械判定は `service.yaml` を優先する。
+- サービスページ本文は外向け自然文の正本として参照してよいが、価格・追加料金・公開状態の機械判定は `service-registry.yaml` と `public_facts_file` を優先する。
 - `public: false` のサービスは、外向け返信でサービス名・価格・購入導線を出さない。
 - prequote の約束範囲は `/home/hr-hm/Project/work/docs/coconala-prequote-commitment-policy.ja.md` を正本としつつ、buyer 向け wording は `source_of_truth` も合わせて確認する。
 

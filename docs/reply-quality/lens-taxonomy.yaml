@@ -20,6 +20,8 @@ formal_soft_lenses:
   business_chat_viability:
     umbrella: true
     description: "返信が受付票、FAQ、規約説明、自動応答ではなく、担当者の実務チャットとして読めるか"
+    role: "umbrella_only"
+    usage_note: "一次判定名として乱用せず、下位 lens のどれが効いているかを併記する"
     hard_fail: false
     overfire_note: "高リスク場面の硬さは acceptable_as_is にできる"
     preferred_return_targets:
@@ -41,6 +43,8 @@ formal_soft_lenses:
 
   positive_flow_before_refusal:
     description: "軽い手順確認では、不可表明より先に通常フローを案内する"
+    parent_lens: response_weight_mismatch
+    role: "soft_subtype"
     hard_fail: false
     apply_when:
       - buyer_asks_share_timing_only
@@ -59,6 +63,10 @@ formal_soft_lenses:
   agency_alignment:
     description: "buyer / seller / third party の行為主体、依頼先、確認者、許可の向きが主質問とズレていないか"
     hard_fail: false
+    subtypes:
+      - permission_benefit_alignment
+      - actor_direction_alignment
+      - request_target_alignment
     standard_examples:
       request_can_i_order: "ご依頼いただけます / 対応できます"
       can_you_check: "こちらで確認します / 対応できます"
@@ -92,8 +100,9 @@ formal_soft_lenses:
     hard_fail: false
     subtypes:
       - block_rhythm_flow
-      - safe_connection
       - topic_label_distance
+    related_gates:
+      - safe_connection
     preferred_return_targets:
       - japanese_chat_natural_skill
       - gold_reply
@@ -129,7 +138,7 @@ observe_only:
   - topic_label_distance
   - buyer_burden_alignment
   - answer_order_calibration
-  - certainty_calibration
+  - certainty_calibration # use commitment_strength_calibration when the issue is promise strength
 
 preference_only:
   - punctuation_count
@@ -148,4 +157,3 @@ review_output_labels:
   - observe_only
   - overfire_risk
   - preference
-

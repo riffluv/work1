@@ -47,18 +47,16 @@ def load_service_grounding() -> dict:
     if not service.get("public"):
         raise RuntimeError(f"purchased service is not public: {PUBLIC_BUGFIX_SERVICE_ID}")
 
-    facts_path = Path(service.get("facts_file") or "")
-    if not facts_path.is_file():
-        raise RuntimeError(f"missing service facts file: {facts_path}")
-
-    with facts_path.open("r", encoding="utf-8") as f:
-        facts = yaml.safe_load(f) or {}
-
+    facts = shared.load_service_grounding()
     base_price = int(facts.get("base_price") or 15000)
     fee_text = f"{base_price:,}円"
     return {
         "service_id": service.get("service_id"),
         "public_service": bool(service.get("public")),
+        "source_of_truth": service.get("source_of_truth"),
+        "public_facts_file": facts.get("public_facts_file"),
+        "runtime_capability_file": facts.get("runtime_capability_file"),
+        "service_pack_root": facts.get("service_pack_root"),
         "display_name": facts.get("display_name") or "",
         "fee_text": fee_text,
         "base_price": base_price,
@@ -74,7 +72,13 @@ def load_service_grounding() -> dict:
 
 
 SERVICE_GROUNDING = load_service_grounding()
-FOLLOWUP_MEMORY_SCENARIOS = {"progress_anxiety", "progress_summary_request", "timeline_anxiety"}
+FOLLOWUP_MEMORY_SCENARIOS = {
+    "progress_anxiety",
+    "progress_summary_request",
+    "timeline_anxiety",
+    "requested_materials_received",
+    "redacted_resend_received",
+}
 
 
 def has_technical_cancel_context(text: str) -> bool:
@@ -135,6 +139,10 @@ def detect_commitment_kind(case: dict, rendered: str) -> str:
         return "share_summary"
     if scenario == "timeline_anxiety":
         return "share_eta"
+    if scenario == "requested_materials_received":
+        return "share_status"
+    if scenario == "redacted_resend_received":
+        return "share_status"
     if scenario == "progress_anxiety":
         return "share_status"
     if "確認結果をお返し" in rendered or "状況を整理してお送りします" in rendered:
@@ -269,6 +277,10 @@ def next_action_line(case: dict, hours: int = 2) -> str:
         return f"本日{target:%H:%M}までに、注文反映の件の現時点の確認結果をお返しします。"
     if case.get("scenario") == "progress_summary_request":
         return f"本日{target:%H:%M}までに、現時点で見えている点を箇条書きでお送りします。"
+    if case.get("scenario") == "requested_materials_received":
+        return f"本日{target:%H:%M}までに、追加分を含めた確認結果をお返しします。"
+    if case.get("scenario") == "redacted_resend_received":
+        return f"本日{target:%H:%M}までに、伏せ直し分を含めた確認結果をお返しします。"
     return f"本日{target:%H:%M}までに、現時点の確認結果をお返しします。"
 
 
@@ -280,6 +292,10 @@ def opener_for(source: dict) -> str:
     if source.get("scenario") == "env_fix_recheck":
         return ""
     if source.get("scenario") == "info_sufficiency_check":
+        return ""
+    if source.get("scenario") == "requested_materials_received":
+        return ""
+    if source.get("scenario") == "redacted_resend_received":
         return ""
     if source.get("scenario") in {"external_share_request", "late_info_share"}:
         return ""
@@ -374,6 +390,10 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "いま何が進んでいて、次の連絡がいつ来るのか不安"
     if scenario == "progress_summary_request":
         return "社内共有に使える中間報告として、現時点で分かっていることをまとめてほしい"
+    if scenario == "requested_materials_received":
+        return "追加で依頼されていたログとスクショが届いているか、これで足りるか、次に何を見るかを知りたい"
+    if scenario == "redacted_resend_received":
+        return "秘密値を伏せたZIPを送り直したので、それをもとに確認できるか知りたい"
     if scenario == "mixed_status_timeline_fee":
         return "送ったコードの構成が見えているか、今日中に返事があるか、追加費用が出るなら先に知りたい"
     if scenario == "repo_access_confirm":
@@ -480,6 +500,12 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "progress_summary_request":
         direct_answer_line = "現時点で見えている点は、中間報告としてまとめます。"
+        response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "requested_materials_received":
+        direct_answer_line = "追加でお願いしていたログとスクショは受け取りました。まずはいただいた内容をもとに確認を進めます。"
+        response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "redacted_resend_received":
+        direct_answer_line = "伏せ直していただいたZIPを受け取りました。前のZIPの秘密値は確認対象にせず、送り直し分をもとに確認します。"
         response_order = ["opening", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "mixed_status_timeline_fee":
         direct_answer_line = "はい、送っていただいたコードのフォルダ構成は見えています。"
@@ -615,6 +641,19 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["ボタン", "出力", "ダウンロード"])
     ):
         return "feature_addon_scope"
+    if (
+        any(marker in combined for marker in ["追加でお願いされた", "追加でお願いしていた", "追加で依頼された", "追加で依頼していた"])
+        and "ログ" in combined
+        and "スクショ" in combined
+        and any(marker in combined for marker in ["これで足り", "次は何", "次に何"])
+    ):
+        return "requested_materials_received"
+    if (
+        any(marker in combined for marker in ["伏せたZIP", "伏せたzip", "伏せ直したZIP", "伏せ直して"])
+        and any(marker in combined for marker in ["送り直し", "送り直しました", "送直し"])
+        and any(marker in combined for marker in ["前のZIP", "前のzip", "前に送ったZIP", "前に送ったzip"])
+    ):
+        return "redacted_resend_received"
     if any(
         marker in combined
         for marker in [
@@ -1033,6 +1072,62 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "requested_materials_received":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "追加で依頼されていたログとスクショが届いているか、これで足りるかを知りたい。", "priority": "primary"},
+                {"id": "q2", "text": "これで足りますか？", "priority": "secondary"},
+                {"id": "q3", "text": "次は何を見ますか？", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "追加でお願いしていたログとスクショは受け取りました。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "いまの時点で、追加でお願いするものはありません。必要になった場合だけこちらからお伝えします。",
+                },
+                {
+                    "question_id": "q3",
+                    "disposition": "answer_now",
+                    "answer_brief": "まずはいただいた内容をもとに、今回の不具合に関係する流れを確認します。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["answer_directly_now", "confirm_receipt", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "redacted_resend_received":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "秘密値を伏せたZIPを送り直したので、これで確認できるかを知りたい。", "priority": "primary"},
+                {"id": "q2", "text": "前のZIPは見ないでほしい。", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "伏せ直したZIPは受け取りました。送り直し分をもとに確認します。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "前のZIPの秘密値は確認対象にしません。",
+                },
+            ],
+            "ask_map": [],
+            "required_moves": ["answer_directly_now", "confirm_receipt", "commit_next_update_time"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "progress_anxiety":
         answers = [
             {
@@ -1044,11 +1139,31 @@ def build_case_from_source(source: dict) -> dict:
             }
         ]
         explicit_questions = [{"id": "q1", "text": "今どんな状況か", "priority": "primary"}]
-        if any(marker in raw for marker in ["Slack", "slack", "電話", "Zoom", "LINE"]):
-            explicit_questions.append({"id": "q2", "text": "外部チャネルに切り替えた方が早いか", "priority": "secondary"})
+        if any(marker in raw for marker in ["現時点で分かっていること", "分かっていることだけ", "短く教えて"]):
+            explicit_questions.append({"id": "q2", "text": "現時点で分かっていることだけ短く教えてほしい", "priority": "secondary"})
             answers.append(
                 {
                     "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "原因はまだ断定していません。現時点で見えている範囲だけ短く返します。",
+                }
+            )
+        if any(marker in raw for marker in ["追加で何か", "追加で送る必要", "追加で準備", "追加で用意"]):
+            next_id = f"q{len(explicit_questions) + 1}"
+            explicit_questions.append({"id": next_id, "text": "追加で何か送る必要があるか", "priority": "secondary"})
+            answers.append(
+                {
+                    "question_id": next_id,
+                    "disposition": "answer_now",
+                    "answer_brief": "いま追加で必要なものはありません。必要になった場合だけこちらからお伝えします。",
+                }
+            )
+        if any(marker in raw for marker in ["Slack", "slack", "電話", "Zoom", "LINE"]):
+            next_id = f"q{len(explicit_questions) + 1}"
+            explicit_questions.append({"id": next_id, "text": "外部チャネルに切り替えた方が早いか", "priority": "secondary"})
+            answers.append(
+                {
+                    "question_id": next_id,
                     "disposition": "answer_now",
                     "answer_brief": "外部チャネルへ切り替えず、このトークルーム内で進めます。",
                 }
@@ -2155,6 +2270,10 @@ def reaction_line(case: dict) -> str:
         if any(marker in case.get("raw_message", "") for marker in ["週明けに社内で報告", "社内で報告する必要"]):
             return "ありがとうございます。週明けの社内報告に使える形でまとめます。"
         return "ありがとうございます。社内共有に使える形でまとめます。"
+    if scenario == "requested_materials_received":
+        return "追加のログとスクショありがとうございます。"
+    if scenario == "redacted_resend_received":
+        return "伏せ直しZIPありがとうございます。"
     if scenario == "mixed_status_timeline_fee":
         return "3点の確認、ありがとうございます。"
     if opening_move == "action_first":
@@ -2283,6 +2402,10 @@ def current_focus_line(case: dict) -> str | None:
         return "いまは、原因の切り分けを進めています。"
     if scenario == "progress_summary_request":
         return "いまは、原因の切り分けを進めながら、見えている候補と次に見る点をまとめています。"
+    if scenario == "requested_materials_received":
+        return "まずはいただいた内容をもとに、今回の不具合に関係する流れを確認します。"
+    if scenario == "redacted_resend_received":
+        return "送り直し分をもとに、今回の不具合に関係する流れを確認します。"
     if scenario == "repo_access_confirm":
         return None
     if scenario == "info_sufficiency_check":
@@ -2427,6 +2550,10 @@ def draft_opening_anchor(case: dict) -> str:
         if pending_commitment and repeated_followup:
             return "お待たせしています。社内共有に使えるよう、現時点で見えている点を整理します。"
         return "社内共有に使える形でまとめます。"
+    if scenario == "requested_materials_received":
+        return "追加のログとスクショありがとうございます。"
+    if scenario == "redacted_resend_received":
+        return "伏せ直しZIPありがとうございます。"
     if scenario == "timeline_anxiety":
         if pending_commitment and repeated_followup:
             return "お待たせしています。今の時点で出せる見通しを整理します。"
@@ -2502,6 +2629,10 @@ def draft_opening_anchor(case: dict) -> str:
         return "GitHub招待とスクショ共有の件、確認しました。"
     if scenario == "received_materials_flow_check":
         return "昨日のログとスクショは届いています。"
+    if scenario == "requested_materials_received":
+        return "追加のログとスクショありがとうございます。"
+    if scenario == "redacted_resend_received":
+        return "伏せ直しZIPありがとうございます。"
     if scenario == "screenshot_followup":
         return "スクショありがとうございます。"
     if scenario == "keys_shared":
@@ -2546,6 +2677,33 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         ):
             _append_unique(paragraphs, focus_line)
         return paragraphs
+
+    if scenario == "requested_materials_received":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "いまの時点で、追加でお願いするものはありません。",
+                    "必要になった場合だけ、こちらから絞ってお伝えします。",
+                ]
+            ),
+        )
+        return paragraphs
+
+    if scenario == "redacted_resend_received":
+        _append_unique(paragraphs, direct_answer)
+        _append_unique(
+            paragraphs,
+            _paragraph_from_lines(
+                [
+                    "いまの時点で、追加でお願いするものはありません。",
+                    "必要になった場合だけ、こちらから絞ってお伝えします。",
+                ]
+            ),
+        )
+        return paragraphs
+
     if scenario == "feature_addon_scope":
         _append_unique(
             paragraphs,

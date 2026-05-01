@@ -6,6 +6,9 @@ services:
     public: true
     kind: bugfix
     facts_service_id: next-stripe-bugfix
+    public_facts_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack/facts.yaml
+    runtime_capability_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml
+    # legacy_compat: use public_facts_file for external reply facts.
     facts_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml
     service_pack_root: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack
     service_pack_facts_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack/facts.yaml
@@ -16,6 +19,9 @@ services:
     public: false
     kind: handoff
     facts_service_id: handoff-25000
+    public_facts_file: /home/hr-hm/Project/work/ops/services/handoff-25000/service-pack/facts.yaml
+    runtime_capability_file: /home/hr-hm/Project/work/ops/services/handoff-25000/service.yaml
+    # legacy_compat: handoff remains public:false; do not expose in live replies.
     facts_file: /home/hr-hm/Project/work/ops/services/handoff-25000/service.yaml
     service_pack_root: /home/hr-hm/Project/work/ops/services/handoff-25000/service-pack
     service_pack_facts_file: /home/hr-hm/Project/work/ops/services/handoff-25000/service-pack/facts.yaml
@@ -26,3 +32,5 @@ rules:
   - private_services_are_internal_reference_only
   - public_false_must_not_emit_service_name_price_or_purchase_cta
   - registry_source_of_truth_overrides_pack_assets_for_public_contract
+  - public_facts_file_is_external_reply_fact_source
+  - runtime_capability_file_is_internal_execution_reference

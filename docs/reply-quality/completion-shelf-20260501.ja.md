@@ -35,10 +35,12 @@
 - closed 後の関係確認と実作業の分離
 - 成功保証、無料修正、返金、今日中修正完了の未断定
 - `promise_consistency`、`agency_alignment`、`permission_benefit_alignment`、`positive_flow_before_refusal` などの主要 soft lens
+- 全 phase の `service_grounding` で、公開事実の出所 `public_facts_file` と内部能力参照 `runtime_capability_file` を追跡できること
 
 ## 高飽和として止める family
 
-`ops/tests/fixture-coverage-map.yaml` 上で、次の family は `saturation: high` と扱う。
+`ops/tests/fixture-coverage-map.yaml` 上で、次の family は `synthetic_rehearsal: high / real_stock: low` と扱う。
+つまり「合成 #RE では十分に見た」が、「実案件 stock での確認はまだ薄い」という状態です。
 
 - `purchased_current_status`
 - `quote_sent_payment_after_share`
@@ -52,12 +54,14 @@
 - service pack / phase contract / writer brief / validator を変更した
 - Pro / human audit が未検証領域を指定した
 
+`high` は「完成」ではなく「同型合成 rehearsal の追加費用対効果が低い」という意味で扱う。
+
 ## まだ薄いもの
 
 次は未完成または未検証として残す。
 
 - `real_stock`: 実案件文の stock がまだ少ない
-- `app_memory`: previous commitments / materials / deadlines / phase を持つアプリ用 memory schema の実例検証がまだ薄い
+- `app_memory`: previous commitments / materials / requested-materials received / secret redacted resend / deadline / phase の最小 contract packet は追加済み。実案件 real_stock はまだ薄い
 - `multi_service`: `handoff-25000` は public:false のため、通常 live では未公開。#BR でのみ future-dual として扱う
 - `email_channel`: ココナラチャット優先。メール展開は今は未着手
 - `generic_* fallback`: blanket NG ではないが、#RE で鍛えた family が汎用分岐へ落ちていないかだけ targeted に見る
@@ -65,11 +69,13 @@
 ## 次にやること
 
 1. 同型 #RE を routine で回さない。
-2. `reply-memory-schema.yaml` と `phase-contract-schema.yaml` に沿った contract packet sample を、`ops/tests/contract-packets/bugfix-15000-v1-samples.yaml` に保持する。
-3. contract packet の形は `./scripts/check-contract-packets.py` で確認する。
-4. #R 実出力で違和感が出たら、まず writer brief / scenario routing / contract packet のズレを確認する。
-5. 実案件 stock が来たら、`ops/tests/stock/inbox` に入れて、既存 family にないものだけ eval へ接続する。
-6. Pro へ投げる場合は、batch 採点ではなく、`v1 completion review` として「何が未完成か / 何を止めるか / 何を次に作るか」を聞く。
+2. `./scripts/check-v1-completion-gates.py --save-report` で、v1 完成候補の gate と既知 gap をまとめて確認する。
+3. `reply-memory-schema.yaml` と `phase-contract-schema.yaml` に沿った contract packet sample を、`ops/tests/contract-packets/bugfix-15000-v1-samples.yaml` に保持する。
+4. contract packet の形は `./scripts/check-contract-packets.py` で確認する。
+5. #R 実出力で違和感が出たら、まず writer brief / scenario routing / contract packet のズレを確認する。
+6. 実案件 stock が来たら、`ops/tests/stock/inbox` に入れて、`./scripts/check-real-stock-intake-gate.py --save-report --write-manifest` で仕分け候補を確認する。
+7. 実案件 stock のうち、既存 family にないもの、または real_stock として価値が高いものだけ eval / edge / contract packet へ接続する。
+8. Pro へ投げる場合は、batch 採点ではなく、`v1 completion review` として「何が未完成か / 何を止めるか / 何を次に作るか」を聞く。
 
 ## やらないこと
 
@@ -86,7 +92,7 @@
 
 - 現在の `bugfix-15000` 返信コアは v1 completion candidate と言えるか
 - 高飽和 family を止める判断は妥当か
-- 次に埋めるべき coverage gap は `real_stock` / `app_memory` / `multi_service` / `email_channel` のどれか
+- 次に埋めるべき coverage gap は `real_stock` / `multi_service` / `email_channel` のどれか。`app_memory` は依頼済み追加材料の受領、secret 伏せ直し受領、deadline まで最小 seed 済み
 - ココナラ固有コアから、将来アプリ化できる汎用返信コアへ切り出す時の最小 contract packet は何か
 - これ以上 #RE を回すより、どの設計物を作るべきか
 

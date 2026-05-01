@@ -19,10 +19,11 @@
 
 1. `service-registry.yaml`
 2. `source_of_truth`
-3. `facts_file`
-4. service-pack / decision / evidence
-5. skill references
-6. 過去テンプレ / gold replies / mirror
+3. `public_facts_file`
+4. `runtime_capability_file` / `facts_file`（既存互換・内部能力参照）
+5. service-pack / decision / evidence
+6. skill references
+7. 過去テンプレ / gold replies / mirror
 
 ## 役割分担
 

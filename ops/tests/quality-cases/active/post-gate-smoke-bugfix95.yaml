@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC95-001
+    stock_id: HRC95-001
+    category: post_gate_smoke
+    route: service
+    state: prequote
+    user_type: non_engineer_buyer
+    emotional_tone: anxious
+    scenario: unknown_cause_can_consult
+    question_type: prequote_unknown_cause_can_consult
+    primary_question: 原因が分からない状態でも15,000円で依頼できるか知りたい。
+    raw_message: "Stripe決済後に注文が作られないのですが、原因がまったく分かっていません。この状態でも15,000円で依頼できますか？"
+    note: 通常 live / #RE。gate追加後の軽い smoke。依頼可否に `相談できます` だけで返さず、成功保証にも寄せない。
+
+  - id: HRC95-002
+    stock_id: HRC95-002
+    category: post_gate_smoke
+    route: service
+    state: prequote
+    user_type: non_engineer_buyer
+    emotional_tone: unsure
+    scenario: prequote_non_engineer_file_unclear
+    question_type: prequote_materials_after_purchase
+    primary_question: コードに詳しくなくても依頼できるか、購入後に何を送ればよいか知りたい。
+    raw_message: "コードに詳しくないので、どのファイルを送ればいいか分かりません。それでも依頼できますか？購入した後は何を送ればいいですか？"
+    note: 通常 live / #RE。非エンジニア不安。購入前に材料提出を求めすぎず、購入後トークルーム共有と secret 除外を自然に出す。
+
+  - id: HRC95-003
+    stock_id: HRC95-003
+    category: post_gate_smoke
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_screenshot_after_payment
+    question_type: quote_sent_file_share_timing
+    primary_question: 見積り提案後、支払い後にスクショやログをまとめて送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後にスクショとログをまとめて送る流れで問題ありませんか？追加で準備するものがあれば教えてください。"
+    note: 通常 live / #RE。軽い手順確認。拒否先行ではなく通常フローを先に案内する。
+
+  - id: HRC95-004
+    stock_id: HRC95-004
+    category: post_gate_smoke
+    route: estimate
+    state: quote_sent
+    user_type: cautious_buyer
+    emotional_tone: price_sensitive
+    scenario: quote_sent_github_before_payment
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 支払い前にGitHub招待で原因だけ確認してもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にGitHubへ招待するので、原因だけ先に確認してもらえますか？直りそうなら購入します。"
+    note: 通常 live / #RE。境界突破要求。GitHub作業面化と支払い前診断を止め、購入後トークルーム内共有へ戻す。
+
+  - id: HRC95-005
+    stock_id: HRC95-005
+    category: post_gate_smoke
+    route: talkroom
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: purchased_received_materials_next
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、送ったログとスクショは届いているか、追加準備の有無を知りたい。
+    raw_message: "購入後です。昨日ログとスクショを送りました。届いていますか？この後の流れと、追加で用意した方がいいものがあるかだけ教えてください。"
+    note: 通常 live / #RE。二重受領や `はい、確認できています` に戻らず、材料ベースで次の流れを返す。
+
+  - id: HRC95-006
+    stock_id: HRC95-006
+    category: post_gate_smoke
+    route: talkroom
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: urgent
+    scenario: purchased_progress_deadline_followup
+    question_type: purchased_progress_deadline_followup
+    primary_question: 購入後、急ぎでどこまで見通しが出るか知りたい。
+    raw_message: "購入後です。本番が止まっているので急いでいます。原因や修正の見通しだけでも早めに出せそうですか？"
+    note: 通常 live / #RE。修正完了時刻を保証せず、材料がそろった後の見通し返答へ調整する。
+
+  - id: HRC95-007
+    stock_id: HRC95-007
+    category: post_gate_smoke
+    route: message
+    state: delivered
+    user_type: non_engineer_buyer
+    emotional_tone: practical
+    scenario: delivered_reflection_point_only
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、どの修正ファイルを反映すればよいか短く知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どの修正ファイルを反映すればいいかだけもう一度短く教えてください。"
+    note: 通常 live / #RE。対応可否宣言で止まらず、こちらが短く整理して返す。
+
+  - id: HRC95-008
+    stock_id: HRC95-008
+    category: post_gate_smoke
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite
+    scenario: closed_similar_error_relation_check
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、似たStripeエラーが前回修正と関係あるかだけ見てもらえるか知りたい。
+    raw_message: "クローズ後ですみません。似たStripeエラーが出ています。ログとスクショをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？必要なら新規で相談します。"
+    note: 通常 live / #RE。closed 後の関係確認と実作業前相談を分ける。無料・返金・旧トークルーム継続を約束しない。

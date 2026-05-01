@@ -10,6 +10,8 @@
   - 返信OSコアの完成条件、#RE停止条件、次の優先順位。
 - `completion-shelf-20260501.ja.md`
   - #RE88〜94 と Pro 分析後の v1 完成棚卸し。高飽和 family、停止判断、次に作るべき contract packet をまとめる。
+- `bugfix-15000-v1-scope-seal.ja.md`
+  - `bugfix-15000` を v1 completion candidate として扱う範囲、止める family、resume trigger、service truth、contract packet gate を固定する seal メモ。
 - `rehearsal-operating-policy.ja.md`
   - #RE / #BR / xhigh / Pro をいつ使い、いつ止めるかの運用ポリシー。
 - `self-check-core-always-on.ja.md`

@@ -366,6 +366,10 @@ def lint_case(module, case: dict) -> list[str]:
         return ["service_grounding is missing hard_no bindings"]
     if not service_grounding.get("source_of_truth"):
         return ["service_grounding is missing source_of_truth"]
+    if not service_grounding.get("public_facts_file"):
+        return ["service_grounding is missing public_facts_file trace"]
+    if not service_grounding.get("runtime_capability_file"):
+        return ["service_grounding is missing runtime_capability_file trace"]
     contract = normalized["reply_contract"]
     temperature_plan = normalized.get("temperature_plan") or {}
     primary_id = contract["primary_question_id"]

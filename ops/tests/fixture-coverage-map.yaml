@@ -18,7 +18,15 @@ families:
       - conversation_flow_naturalness
       - response_weight_mismatch
     source_type: synthetic_rehearsal
-    saturation: high
+    saturation:
+      synthetic_rehearsal: high
+      real_stock: low
+    routine_re_status: frozen
+    resume_triggers:
+      - real_stock_unknown_failure
+      - contract_change
+      - service_truth_change
+      - r_re_divergence
     last_results:
       - batch: RE-2026-05-01-bugfix-89
         result: adopted
@@ -54,7 +62,15 @@ families:
       - response_weight_mismatch
       - agency_alignment
     source_type: synthetic_rehearsal
-    saturation: high
+    saturation:
+      synthetic_rehearsal: high
+      real_stock: low
+    routine_re_status: frozen
+    resume_triggers:
+      - real_stock_unknown_failure
+      - contract_change
+      - service_truth_change
+      - r_re_divergence
     last_results:
       - batch: RE-2026-05-01-bugfix-85
         result: adopted
@@ -87,7 +103,15 @@ families:
       - agency_alignment
       - response_weight_mismatch
     source_type: synthetic_rehearsal
-    saturation: high
+    saturation:
+      synthetic_rehearsal: high
+      real_stock: low
+    routine_re_status: frozen
+    resume_triggers:
+      - real_stock_unknown_failure
+      - contract_change
+      - service_truth_change
+      - r_re_divergence
     last_results:
       - batch: RE-2026-05-01-bugfix-87
         result: adopted
@@ -121,7 +145,15 @@ families:
       - business_chat_viability
       - response_weight_mismatch
     source_type: synthetic_rehearsal
-    saturation: high
+    saturation:
+      synthetic_rehearsal: high
+      real_stock: low
+    routine_re_status: frozen
+    resume_triggers:
+      - real_stock_unknown_failure
+      - contract_change
+      - service_truth_change
+      - r_re_divergence
     last_results:
       - batch: RE-2026-05-01-bugfix-88
         result: adopted
@@ -155,9 +187,8 @@ coverage_gaps:
     status: low
     note: "handoff-25000 public:false のため future-dual は #BR 限定。通常 live へ戻さない。"
   app_memory:
-    status: low
-    note: "アプリ化前に previous commitments / materials / deadlines / phase を schema 化する。"
+    status: seeded
+    note: "previous commitments / materials / requested-materials received / secret redacted resend / deadline / phase の最小 contract packet を追加済み。実案件 real_stock はまだ薄い。"
   email_channel:
     status: not_started
     note: "今はココナラチャット優先。メール展開は core schema 後。"
-

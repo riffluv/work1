@@ -101,7 +101,12 @@ def check_semantic_smoke() -> tuple[list[str], list[str], list[str]]:
     service = load_registry_service(PUBLIC_BUGFIX_SERVICE_ID)
     page_text = Path(service["source_of_truth"]).read_text(encoding="utf-8")
     service_yaml = load_yaml(Path(service["facts_file"]))
-    pack_facts = load_yaml(Path(service["service_pack_root"]) / "facts.yaml")
+    public_facts_value = service.get("public_facts_file") or service.get("service_pack_facts_file")
+    runtime_capability_value = service.get("runtime_capability_file") or service.get("facts_file")
+    public_facts_path = Path(public_facts_value) if public_facts_value else None
+    runtime_capability_path = Path(runtime_capability_value) if runtime_capability_value else None
+    pack_facts_path = Path(service["service_pack_root"]) / "facts.yaml"
+    pack_facts = load_yaml(public_facts_path if public_facts_path else pack_facts_path)
     pack_text = "\n".join(flatten_strings(pack_facts))
     service_text = "\n".join(flatten_strings(service_yaml))
 
@@ -113,6 +118,30 @@ def check_semantic_smoke() -> tuple[list[str], list[str], list[str]]:
         failures.append(f"[NG] semantic_smoke: renderer failed for {BUGFIX_SEMANTIC_FIXTURE}")
         failures.append(rendered)
         return passes, warnings, failures
+
+    if public_facts_path is None:
+        failures.append("[NG] semantic_smoke: registry missing public_facts_file for bugfix-15000")
+    elif not public_facts_path.exists():
+        failures.append(f"[NG] semantic_smoke: public_facts_file does not exist: {public_facts_path}")
+    elif public_facts_path.resolve() != pack_facts_path.resolve():
+        warnings.append(
+            "[WARN] semantic_smoke: public_facts_file differs from service_pack_root/facts.yaml; "
+            f"{public_facts_path} != {pack_facts_path}"
+        )
+    else:
+        passes.append("[OK] semantic_smoke: public_facts_file resolves to service-pack facts.yaml")
+
+    if runtime_capability_path is None:
+        failures.append("[NG] semantic_smoke: registry missing runtime_capability_file for bugfix-15000")
+    elif not runtime_capability_path.exists():
+        failures.append(f"[NG] semantic_smoke: runtime_capability_file does not exist: {runtime_capability_path}")
+    elif runtime_capability_path.resolve() != Path(service["facts_file"]).resolve():
+        warnings.append(
+            "[WARN] semantic_smoke: runtime_capability_file differs from legacy facts_file; "
+            f"{runtime_capability_path} != {service['facts_file']}"
+        )
+    else:
+        passes.append("[OK] semantic_smoke: runtime_capability_file keeps legacy facts_file compatibility")
 
     checks = [
         (
