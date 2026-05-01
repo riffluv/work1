@@ -1,0 +1,150 @@
+version: 1
+updated: "2026-05-01"
+purpose: >
+  #RE / #BR / human audit / external audit の指摘を、単発修正ではなく
+  戻し先と採否に分けるための machine-readable taxonomy。
+
+severity_levels:
+  hard_contract_failure:
+    description: "公開状態、価格、scope、phase、secret、支払い導線など deterministic guard の崩れ"
+    examples:
+      - public_false_service_leak
+      - wrong_price_or_private_cta
+      - prepurchase_work_start
+      - raw_secret_value_request
+      - closed_after_work_promise
+      - direct_push_or_prod_deploy_promise
+    default_action: "fix_required"
+    return_targets:
+      - service_registry
+      - platform_contract
+      - service_pack
+      - validator
+      - lint
+      - reviewer_prompt
+
+  hard_grounding_failure:
+    description: "相手文・受領材料・正本にない技術語、原因候補、作業状況、事実を足す崩れ"
+    examples:
+      - unmentioned_webhook_error
+      - unmentioned_stripe_event_id
+      - unreceived_log_claim
+      - cause_candidate_assertion_without_evidence
+    default_action: "fix_required"
+    return_targets:
+      - evidence_contract
+      - renderer
+      - reviewer_prompt
+      - sentry
+
+  decision_failure:
+    description: "主質問に答えない、複合質問の片方を落とす、次アクションが phase と合わない崩れ"
+    examples:
+      - nonanswer
+      - price_answer_without_timeline
+      - quote_sent_missing_purchase_path
+      - delivered_question_answered_as_closed
+    default_action: "fix_required_or_case_fix"
+    return_targets:
+      - intake_router
+      - output_schema
+      - reply_contract
+      - batch
+
+  promise_failure:
+    description: "留保・条件・不可表明を、後段の成果物・納期・無料/返金・作業導線が上書きして見える崩れ"
+    examples:
+      - success_guarantee_shadow
+      - unconditional_fixed_file_after_no_guarantee
+      - today_completion_shadow
+      - free_or_refund_shadow
+    default_action: "fix_required_or_fix_recommended"
+    return_targets:
+      - reviewer_prompt
+      - gold_reply
+      - naturalizer_gate
+
+  soft_business_chat_failure:
+    description: "意味は通るが、担当者の実務チャットではなく、受付票・FAQ・規約説明・AI文に見える問題"
+    examples:
+      - response_weight_mismatch
+      - agency_alignment_gap
+      - positive_flow_missing
+      - negative_frame_echo
+      - block_rhythm_overexposure
+      - topic_label_distance
+    default_action: "fix_recommended_or_acceptable_as_is"
+    return_targets:
+      - japanese_chat_natural_skill
+      - gold_reply
+      - reviewer_prompt
+      - no_change
+
+  preference:
+    description: "好み差、文体差、句点数、やや硬い/やや柔らかい程度で実務リスクが弱いもの"
+    examples:
+      - punctuation_count
+      - paragraph_count_only
+      - mild_formality
+      - alternative_wording_without_risk
+    default_action: "no_change"
+    return_targets:
+      - no_change
+
+  overfire_risk:
+    description: "自然化や soft lens を適用すると、必要な安全境界を弱める可能性があるもの"
+    examples:
+      - closed_refund_softening_too_much
+      - secret_warning_removed_for_smoothness
+      - prepurchase_refusal_removed
+      - fixed_file_condition_removed
+    default_action: "acceptable_as_is_or_no_change"
+    return_targets:
+      - no_change
+      - reviewer_note
+
+adoption_decision:
+  fix_required:
+    use_when:
+      - deterministic_guard_is_broken
+      - buyer_may_pay_or_act_under_wrong_phase
+      - secret_or_external_policy_risk_exists
+  fix_recommended:
+    use_when:
+      - business_risk_exists_but_contract_is_safe
+      - minimal_change_keeps_all_boundaries
+  acceptable_as_is:
+    use_when:
+      - safer_to_keep_hard_boundary
+      - wording_is_stiff_but_not_misleading
+  observe_only:
+    use_when:
+      - new_discomfort_without_recurrence
+      - effect_unclear
+  no_change:
+    use_when:
+      - preference_only
+      - change_would_increase_noise
+
+return_policy:
+  rule_or_validator:
+    conditions:
+      - recurrence_count_gte_2
+      - deterministic_detection_possible
+      - false_positive_risk_low
+  gold_reply:
+    conditions:
+      - good_standard_wording_exists
+      - pattern_is_contextual
+      - hard_lint_would_overfire
+  naturalizer_skill:
+    conditions:
+      - wording_issue_is_common
+      - meaning_can_stay_same
+      - service_facts_not_changed
+  batch_only:
+    conditions:
+      - one_off_case
+      - no_clear_recurrence
+      - fixed_by_case_wording
+

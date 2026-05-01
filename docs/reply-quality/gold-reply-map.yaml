@@ -1,0 +1,236 @@
+version: 1
+updated: "2026-05-01"
+purpose: >
+  Gold replies をテンプレートではなく、近い判断順序・温度感・境界の anchor として
+  参照するための map。Writer に大量投入せず、必要な family から近い 1 本だけ見る。
+
+copy_policy:
+  default: "do_not_copy_verbatim"
+  use_as:
+    - "answer_order_anchor"
+    - "temperature_anchor"
+    - "boundary_wording_anchor"
+  do_not_use_as:
+    - "fixed_template"
+    - "service_fact_source"
+    - "public_service_visibility_source"
+
+families:
+  concrete_prequote:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/26_prequote-concrete-symptom-pickup.ja.md
+    phases:
+      - prequote
+    use_when:
+      - "具体症状があり、まず buyer の語を拾ってから価格・購入導線へ進める"
+    do_not_use_when:
+      - "主質問が保証・返金・復旧時間などの契約条件"
+
+  closed_general_check:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/27_closed-general-check-method.ja.md
+    phases:
+      - closed
+    use_when:
+      - "closed 後に一般的な確認方法だけを聞かれ、実作業に入らない"
+    do_not_use_when:
+      - "コード修正指示、成果物返却、返金要求が混ざる"
+
+  price_scope_boundary:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/28_prequote-price-scope-boundaries.ja.md
+      - docs/reply-quality/gold-replies/29_price-guarantee-refund-risk.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - closed
+    use_when:
+      - "値引き、保証、返金、復旧時間、複数症状、追加料金不安に答える"
+    do_not_use_when:
+      - "通常の症状受けだけで足りる"
+
+  technical_boundary:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/30_normal-boundary-routing.ja.md
+      - docs/reply-quality/gold-replies/31_normal-scope-support.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+    use_when:
+      - "非Stripe決済、ブラウザ依存、本番/preview差、秘密情報、外部共有、テスト追加などを切る"
+    do_not_use_when:
+      - "provider 管理画面操作や外部共有を受ける方向に見える"
+
+  boundary_transfer:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/32_boundary-mixed-routing.ja.md
+      - docs/reply-quality/gold-replies/33_boundary-transfer.ja.md
+      - docs/reply-quality/gold-replies/34_post-chg068-near-miss.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - closed
+    use_when:
+      - "仕様/不具合境界、quote_sent 語彙、closed 後別件、複数質問混在を回収する"
+    do_not_use_when:
+      - "phase が単純な通常 prequote"
+
+  response_weight:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/35_response-weight-mismatch.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - response_weight_mismatch
+      - surface_overexposure
+    use_when:
+      - "安全境界は守れているが、buyer の文量・温度・質問数に対して返信が重い"
+    do_not_use_when:
+      - "返金/保証/closed/secret/payment route の必要境界を削る理由にする"
+
+  conversation_flow:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/36_conversation-flow-naturalness.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - conversation_flow_naturalness
+      - block_rhythm_flow
+    use_when:
+      - "短文断定の連続、確認語密集、次アクション不足で会話の流れが切れている"
+    do_not_use_when:
+      - "価格・scope・phase・secret・payment route を弱める理由にする"
+
+  promise_consistency:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/37_promise-consistency.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - promise_consistency
+      - commitment_strength_calibration
+    use_when:
+      - "留保・不可・条件付き回答を、後段の成果物・納期・料金・次アクションが上書きして見える"
+    do_not_use_when:
+      - "修正済みファイル成果物や固定価格の事実そのものを弱める"
+
+  agency_alignment:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/38_agency-alignment.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - agency_alignment
+      - permission_benefit_alignment
+    use_when:
+      - "依頼できますか、見てもらえますか、支払い後に送ればいいですか等で行為主体がズレる"
+    do_not_use_when:
+      - "相談できます、確認できます、大丈夫ですを blanket NG にする"
+
+  negative_frame:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/39_negative-frame-emotion-bridge.ja.md
+    phases:
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - negative_frame_non_echo
+      - pressure_word_summarization
+      - responsibility_admission_guard
+    use_when:
+      - "責めたいわけではない、返金してほしい等のネガティブ/圧力語を実務目的へ要約する"
+    do_not_use_when:
+      - "謝罪、過失認定、無料対応、返金保証を強める"
+
+  block_rhythm_flow:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/40_block-rhythm-flow.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - block_rhythm_flow
+      - safe_connection
+    use_when:
+      - "処理文・安全説明・条件文が同じリズムで並び、契約説明の塊に見える"
+    do_not_use_when:
+      - "句点数や段落数だけで判定する"
+      - "高リスク境界を短文化のために削る"
+
+  topic_label_distance:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/41_topic-label-distance.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - topic_label_distance
+      - issue_proximity
+    use_when:
+      - "〜の件ですね が buyer の困りごとを遠い案件ラベルにしている"
+    do_not_use_when:
+      - "〜の件 を blanket NG にする"
+
+  commitment_strength:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/42_commitment-strength-calibration.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - commitment_strength_calibration
+      - promise_consistency
+    use_when:
+      - "phase、受領証拠、原因特定度に対して、返答時刻・納期・成果物 promise の強さを合わせる"
+    do_not_use_when:
+      - "依頼可否、固定価格、必要な次アクションまで弱める"
+
+private_or_shadow_families:
+  handoff_private:
+    status: shadow_only
+    gold_files:
+      - docs/reply-quality/gold-replies/05_handoff_private_quote-gate.ja.md
+      - docs/reply-quality/gold-replies/07_handoff_explanation_non_engineer.ja.md
+      - docs/reply-quality/gold-replies/16_handoff_followup_deeper-memo-paid-supplement.ja.md
+    warning: "通常 live / #RE には handoff-25000、25,000円、主要1フロー整理、購入導線を戻さない。"
+

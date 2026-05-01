@@ -28,6 +28,7 @@ public_facts:
 scope_unit:
   rule: "same_cause_and_same_flow_and_same_endpoint"
   same_cause_principle: "修正箇所数ではなく原因で判定する"
+  public_wording_note: "外向けには主に「同一原因」「処理の流れが異なる場合は別件」と説明する。endpoint は内部判定の補助軸であり、購入者向けに毎回出さない。"
 
 phase_rules:
   prequote:
@@ -98,3 +99,4 @@ buyer_anxieties:
 source_refs:
   service_page: "/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt"
   service_yaml: "/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml"
+  service_registry: "/home/hr-hm/Project/work/os/core/service-registry.yaml"

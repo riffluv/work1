@@ -1,0 +1,459 @@
+version: 1
+updated: "2026-05-01"
+service_id: bugfix-15000
+purpose: >
+  bugfix-15000 の v1 完成候補を、memory / phase / reply_contract の
+  最小 packet として確認するためのサンプル。返信文テンプレートではなく、
+  Writer が自然文を書く前の事実制約として使う。
+
+source_schemas:
+  reply_memory: /home/hr-hm/Project/work/ops/common/reply-memory-schema.yaml
+  phase_contract: /home/hr-hm/Project/work/ops/common/phase-contract-schema.yaml
+  output_schema: /home/hr-hm/Project/work/ops/common/output-schema.yaml
+
+global_public_context:
+  platform: coconala
+  visible_public_services:
+    - bugfix-15000
+  hidden_services:
+    - handoff-25000
+  live_service_constraints:
+    price: "15,000円"
+    unit: "不具合1件"
+    work_starts_after: "購入 / 支払い完了後"
+    deliverable_condition: "修正できる箇所が特定できた場合、修正済みファイルを返却"
+    forbidden_public_mentions:
+      - handoff-25000
+      - "25,000円"
+      - 主要1フロー整理
+      - handoff購入導線
+
+packets:
+  - packet_id: CP-BUGFIX15000-V1-001
+    title: "prequote: 原因不明でも15,000円で依頼できるか"
+    phase: prequote
+    family: prequote_service_fit
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: prequote
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "buyer は Stripe決済後に注文が作られないと相談している"
+          source: buyer_latest_message
+        - fact: "buyer は原因が分からない状態でも依頼できるかを聞いている"
+          source: buyer_latest_message
+      buyer_latest_message: "Stripe決済後に注文が作られないのですが、原因がまったく分かっていません。この状態でも15,000円で依頼できますか？"
+      known_commitments: []
+      received_materials: []
+      pending_actions: []
+      forbidden_assumptions:
+        - "購入前にコードやログを確認済みの前提にしない"
+        - "必ず直せると約束しない"
+        - "handoff-25000 や 25,000円を案内しない"
+    phase_contract:
+      allowed:
+        - answer_service_fit
+        - explain_price_if_asked
+        - explain_purchase_flow
+      forbidden:
+        - start_code_or_log_diagnosis
+        - promise_fix_success
+        - request_raw_secret_value
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "原因が分からない状態でも15,000円で依頼できますか？"
+          priority: primary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "原因不明の状態でも、Stripe決済後に注文が作られない不具合として15,000円で依頼できる。ただし成功保証はしない。"
+      ask_map: []
+      issue_plan:
+        - issue: "依頼可否と価格"
+          disposition: answer_now
+          reason: "service scope に合う bugfix 相談。購入前診断は不要。"
+      required_moves:
+        - answer_directly_now
+        - give_purchase_path
+      forbidden_moves:
+        - internal_term_exposure
+        - vague_hold_without_reason
+        - frontload_branching_risk_when_not_asked
+    response_decision_plan:
+      primary_concern: "依頼可否と価格"
+      facts_known:
+        - "Stripe決済後に注文が作られない"
+        - "原因は未特定"
+      blocking_missing_facts: []
+      direct_answer_line: "原因が分からない状態でも、15,000円の不具合修正としてご依頼いただけます。"
+      response_order:
+        - direct_answer
+        - no_success_guarantee
+        - after_purchase_flow
+        - purchase_path
+    writer_notes:
+      use:
+        - "ご依頼いただけます"
+        - "コードとエラー内容を見る前に、必ず直せるとはお約束できません"
+      avoid:
+        - "相談できます" # 依頼可否への返答としては agency が弱い
+        - "まずファイルを送ってください"
+
+  - packet_id: CP-BUGFIX15000-V1-002
+    title: "quote_sent: 支払い後にスクショやログをまとめて送ればよいか"
+    phase: quote_sent
+    family: quote_sent_payment_after_share
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: quote_sent
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "出品者は見積り提案を送付済み"
+          source: prior_thread_summary
+        - fact: "buyer は支払い前にスクショを送るべきか、支払い後にまとめて送ればよいかを聞いている"
+          source: buyer_latest_message
+      buyer_latest_message: "見積り提案ありがとうございます。支払い前にスクショだけ送っておいた方がいいですか？支払い後にまとめて送る形でも大丈夫ですか？"
+      known_commitments:
+        - commitment: "15,000円の見積り提案を送付済み"
+          source_message: prior_seller_message
+          status: active
+      received_materials: []
+      pending_actions:
+        - actor: buyer
+          action: "購入するか判断する"
+      forbidden_assumptions:
+        - "支払い前にスクショやログを確認する前提にしない"
+        - "トークルームが開始済みの前提にしない"
+        - "GitHub や外部共有へ誘導しない"
+    phase_contract:
+      allowed:
+        - answer_questions_about_estimate
+        - explain_after_payment_material_share
+        - clarify_scope_before_purchase
+      forbidden:
+        - start_code_or_log_diagnosis
+        - imply_talkroom_started
+        - accept_github_invite_as_work_surface
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "支払い前にスクショだけ送っておいた方がいいですか？"
+          priority: primary
+        - id: q2
+          text: "支払い後にまとめて送る形でも大丈夫ですか？"
+          priority: secondary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "支払い前に送らなくてよい。"
+        - question_id: q2
+          disposition: answer_now
+          answer_brief: "お支払い完了後にトークルームでまとめて共有する流れでよい。"
+      ask_map: []
+      issue_plan:
+        - issue: "材料共有のタイミング"
+          disposition: answer_now
+          reason: "quote_sent では購入後共有の通常フローを先に案内する。"
+      required_moves:
+        - answer_directly_now
+        - give_purchase_path
+      forbidden_moves:
+        - internal_term_exposure
+        - overexplain_branching
+        - frontload_scope_explanation_when_not_asked
+    response_decision_plan:
+      primary_concern: "材料共有のタイミング"
+      facts_known:
+        - "見積り提案済み"
+        - "buyer はまだ支払い前"
+      blocking_missing_facts: []
+      direct_answer_line: "スクショやログは、お支払い完了後にトークルームでまとめて共有してください。"
+      response_order:
+        - normal_flow_first
+        - after_payment_material_share
+        - purchase_path
+    writer_notes:
+      use:
+        - "お支払い完了後にトークルームで共有してください"
+        - "見積り提案の内容で問題なければ、ご購入手続きへ進んでください"
+      avoid:
+        - "支払い前に材料を受け取って原因確認を進める形ではありません" # 軽い手順確認では拒否先行にしない
+        - "お支払い完了後で大丈夫です" # permission / benefit の向きが弱い
+
+  - packet_id: CP-BUGFIX15000-V1-003
+    title: "purchased: 受領済みログ・スクショから現在地を短く返す"
+    phase: purchased
+    family: purchased_current_status
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: purchased
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "buyer は購入済み"
+          source: platform_state
+        - fact: "buyer はログとスクショを送付済み"
+          source: prior_buyer_message
+        - fact: "原因はまだ確定していない"
+          source: seller_internal_state
+      buyer_latest_message: "昨日購入してログとスクショを送りました。今どこまで見ていますか？長い説明はいりません。現時点で分かっていることだけ短く教えてください。"
+      known_commitments: []
+      received_materials:
+        - material_type: log
+          description: "不具合に関係しそうなログ"
+          contains_secret_unknown: true
+          source_message: prior_buyer_message
+        - material_type: screenshot
+          description: "不具合発生時の画面スクショ"
+          contains_secret_unknown: false
+          source_message: prior_buyer_message
+      pending_actions:
+        - actor: seller
+          action: "受領済み材料をもとに現時点の見立てを短く返す"
+      forbidden_assumptions:
+        - "Event ID を受け取った前提にしない"
+        - "Webhook / DB / Stripe側記録など未提示の技術語を足さない"
+        - "原因や修正方針を断定しない"
+    phase_contract:
+      allowed:
+        - confirm_received_materials
+        - progress_update
+        - explain_current_known_status_without_overclaiming
+      forbidden:
+        - claim_unreceived_materials_as_received
+        - assert_unconfirmed_cause
+        - ask_raw_secret_value
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "今どこまで見ていますか？"
+          priority: primary
+        - id: q2
+          text: "現時点で分かっていることだけ短く教えてください。"
+          priority: secondary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "受領済みのログとスクショをもとに、不具合に関係する流れを確認している。"
+        - question_id: q2
+          disposition: answer_now
+          answer_brief: "原因はまだ断定していない。追加で必要なものが出た場合だけ伝える。"
+      ask_map: []
+      issue_plan:
+        - issue: "購入後の現在地説明"
+          disposition: answer_now
+          reason: "received_materials にある範囲だけで説明する。"
+      required_moves:
+        - answer_directly_now
+        - confirm_receipt
+      forbidden_moves:
+        - internal_term_exposure
+        - vague_hold_without_reason
+        - ask_client_to_prioritize_when_burden_owner_us
+    response_decision_plan:
+      primary_concern: "現在地の短い共有"
+      facts_known:
+        - "ログとスクショは受領済み"
+        - "原因未断定"
+      blocking_missing_facts: []
+      direct_answer_line: "今は、いただいたログとスクショをもとに、今回の不具合に関係する流れを確認しています。"
+      response_order:
+        - receipt_and_current_status
+        - not_yet_concluded
+        - next_update_or_extra_material_policy
+    writer_notes:
+      use:
+        - "いただいたログとスクショをもとに"
+        - "まだ原因は断定していません"
+      avoid:
+        - "Stripe側の記録とアプリ側ログを照合しています"
+        - "Webhook周りを見ています"
+        - "Event IDを確認しています"
+
+  - packet_id: CP-BUGFIX15000-V1-004
+    title: "delivered: 承諾前に反映箇所だけ短く補足する"
+    phase: delivered
+    family: delivered_light_supplement
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: delivered
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "seller は修正ファイルを納品済み"
+          source: prior_seller_delivery
+        - fact: "buyer はまだ承諾前"
+          source: platform_state
+        - fact: "buyer はどの修正ファイルを反映すればよいかを短く知りたい"
+          source: buyer_latest_message
+      buyer_latest_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どの修正ファイルを反映すればいいかだけもう一度短く教えてもらえますか？こちらの画面スクショも送った方がいいですか？"
+      known_commitments:
+        - commitment: "修正ファイルを納品済み"
+          source_message: prior_seller_delivery
+          status: completed
+      received_materials: []
+      pending_actions:
+        - actor: seller
+          action: "反映箇所を短く補足する"
+      forbidden_assumptions:
+        - "取引が closed 済みの前提にしない"
+        - "本番反映代行を引き受けない"
+        - "本格的な運用マニュアル作成へ広げない"
+    phase_contract:
+      allowed:
+        - light_explanation
+        - clarify_changed_files
+        - clarify_verification_points
+      forbidden:
+        - treat_as_closed
+        - start_new_unagreed_work
+        - promise_prod_deploy
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "どの修正ファイルを反映すればいいかだけもう一度短く教えてもらえますか？"
+          priority: primary
+        - id: q2
+          text: "画面スクショも送った方がいいですか？"
+          priority: secondary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "反映する修正ファイルだけ短く整理して返す。"
+        - question_id: q2
+          disposition: answer_now
+          answer_brief: "画面スクショは必要になった場合だけこちらから依頼する。"
+      ask_map: []
+      issue_plan:
+        - issue: "納品後の軽い補足"
+          disposition: answer_now
+          reason: "delivered の承諾前補足として扱える。"
+      required_moves:
+        - answer_directly_now
+      forbidden_moves:
+        - internal_term_exposure
+        - overexplain_branching
+        - frontload_scope_explanation_when_not_asked
+    response_decision_plan:
+      primary_concern: "反映箇所の短い補足"
+      facts_known:
+        - "修正ファイルは納品済み"
+        - "buyer は承諾前"
+      blocking_missing_facts: []
+      direct_answer_line: "反映する修正ファイルだけ、こちらで短く整理します。"
+      response_order:
+        - direct_supplement_commitment
+        - screenshot_policy
+        - send_supplement
+    writer_notes:
+      use:
+        - "反映する修正ファイルだけ、こちらで短く整理します"
+        - "画面スクショは、必要になった場合だけこちらからお願いします"
+      avoid:
+        - "補足できます" # 可否宣言で止まる
+        - "反映作業そのものの代行ではなく" # buyer が代行を求めていない場面では拒否が先に出る
+
+  - packet_id: CP-BUGFIX15000-V1-005
+    title: "closed: 前回修正との関係確認だけ受け、実作業は別相談"
+    phase: closed
+    family: closed_relation_check
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: closed
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "前回トークルームは closed"
+          source: platform_state
+        - fact: "buyer は似た Stripe エラーが出ていると連絡している"
+          source: buyer_latest_message
+        - fact: "buyer は前回修正との関係だけ見てほしいと聞いている"
+          source: buyer_latest_message
+      buyer_latest_message: "前回はありがとうございました。しばらく問題なかったのですが、似たStripeエラーが出ています。このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+      known_commitments:
+        - commitment: "前回取引は完了済み"
+          source_message: platform_state
+          status: completed
+      received_materials: []
+      pending_actions:
+        - actor: buyer
+          action: "このメッセージ上でログや概要を送るか判断する"
+      forbidden_assumptions:
+        - "旧トークルームで修正作業を再開できる前提にしない"
+        - "無料対応または返金になると断定しない"
+        - "修正済みファイルを closed 後メッセージで返せると約束しない"
+    phase_contract:
+      allowed:
+        - receive_summary_in_message
+        - relation_check_to_previous_fix
+        - explain_new_estimate_or_new_request_if_work_needed
+      forbidden:
+        - reopen_old_talkroom_work
+        - promise_free_repair
+        - promise_refund
+        - return_fixed_files_in_closed_message
+        - ohineri_as_old_room_continuation
+    reply_contract:
+      primary_question_id: q1
+      explicit_questions:
+        - id: q1
+          text: "このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+          priority: primary
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "このメッセージ上で送られた範囲をもとに、前回修正との関係確認まではできる。実作業は別途相談する。"
+      ask_map:
+        - id: ask1
+          question_ids:
+            - q1
+          ask_text: "今出ているエラー内容やログ、画面の状況をこのメッセージ上で送ってもらう"
+          why_needed: "前回修正との関係確認に必要なため"
+          evidence_kind: safe_material_summary
+      issue_plan:
+        - issue: "closed 後の関係確認"
+          disposition: answer_now
+          reason: "関係確認だけならメッセージ上で受ける。実作業は別相談。"
+      required_moves:
+        - answer_directly_now
+        - request_minimum_evidence
+        - explain_scope_boundary
+      forbidden_moves:
+        - internal_term_exposure
+        - vague_hold_without_reason
+        - overexplain_branching
+    response_decision_plan:
+      primary_concern: "closed 後の関係確認可否"
+      facts_known:
+        - "前回トークルームは closed"
+        - "似た Stripe エラーが出ている"
+      blocking_missing_facts:
+        - "今回のエラー内容やログは未受領"
+      direct_answer_line: "このメッセージ上では、届いた内容をもとに前回修正との関係を確認するところまで対応します。"
+      response_order:
+        - receive_goodwill_briefly
+        - relation_check_boundary
+        - ask_safe_material_summary
+        - work_if_needed_consultation
+    writer_notes:
+      use:
+        - "再度ご連絡いただきありがとうございます"
+        - "前回修正との関係を確認するところまで対応します"
+        - "実作業が必要そうな場合は、対応方法と費用を先にご相談します"
+      avoid:
+        - "前回の件ですね" # 距離が出る案件ラベル
+        - "旧トークルームで続けます"
+        - "無料で対応します"
+        - "修正済みファイルをお返しします"

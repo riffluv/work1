@@ -1,0 +1,151 @@
+version: 1
+updated: "2026-05-01"
+purpose: >
+  日本語自然化・ビジネスチャット品質・取引判断の監査レンズを階層化し、
+  blanket NG や過剰 lint 化を防ぐ。
+
+hard_guards:
+  description: "レンズではなく deterministic guard。壊れたら必須修正。"
+  items:
+    - public_private_boundary
+    - price_and_service_scope
+    - phase_contract
+    - raw_secret_value
+    - external_contact_share_payment
+    - direct_push_or_prod_deploy
+    - closed_after_work_boundary
+    - success_refund_free_guarantee
+
+formal_soft_lenses:
+  business_chat_viability:
+    umbrella: true
+    description: "返信が受付票、FAQ、規約説明、自動応答ではなく、担当者の実務チャットとして読めるか"
+    hard_fail: false
+    overfire_note: "高リスク場面の硬さは acceptable_as_is にできる"
+    preferred_return_targets:
+      - reviewer_prompt
+      - japanese_chat_natural_skill
+      - gold_reply
+
+  response_weight_mismatch:
+    description: "buyer の質問量・温度・risk に対して返信が重すぎる/軽すぎる/拒否先行すぎないか"
+    hard_fail: false
+    subtypes:
+      - surface_overexposure
+      - unnecessary_refusal_frame
+      - answer_order_calibration
+      - buyer_burden_alignment
+    preferred_return_targets:
+      - gold_reply
+      - reviewer_prompt
+
+  positive_flow_before_refusal:
+    description: "軽い手順確認では、不可表明より先に通常フローを案内する"
+    hard_fail: false
+    apply_when:
+      - buyer_asks_share_timing_only
+      - buyer_asks_after_payment_flow
+      - buyer_asks_light_procedure
+    do_not_apply_when:
+      - prepurchase_diagnosis_requested
+      - github_drive_external_work_surface
+      - raw_secret_value_offer
+      - direct_push_or_prod_deploy
+      - closed_free_refund_or_repair_request
+    preferred_return_targets:
+      - reviewer_prompt
+      - gold_reply
+
+  agency_alignment:
+    description: "buyer / seller / third party の行為主体、依頼先、確認者、許可の向きが主質問とズレていないか"
+    hard_fail: false
+    standard_examples:
+      request_can_i_order: "ご依頼いただけます / 対応できます"
+      can_you_check: "こちらで確認します / 対応できます"
+      can_you_explain: "こちらで短く整理します / 補足説明をお送りします"
+      can_i_consult: "ご相談いただけます"
+      after_payment_send: "お支払い完了後にトークルームで共有してください"
+    blanket_ng:
+      - "相談できます"
+      - "確認できます"
+      - "大丈夫です"
+    blanket_ng_policy: "上記は blanket NG ではない。主体ズレがある時だけ直す。"
+    preferred_return_targets:
+      - japanese_chat_natural_skill
+      - reviewer_prompt
+      - gold_reply
+
+  promise_consistency:
+    description: "前段の留保・不可・条件付き回答を、後段の成果物・納期・次アクションが上書きして見えないか"
+    hard_fail: false
+    escalates_to_hard_when:
+      - success_guarantee_shadow
+      - free_refund_guarantee_shadow
+      - closed_after_work_promise
+      - prepurchase_work_start
+    preferred_return_targets:
+      - reviewer_prompt
+      - gold_reply
+
+  conversation_flow_naturalness:
+    description: "主質問への直答、条件、理由、次アクションが会話として自然につながっているか"
+    hard_fail: false
+    subtypes:
+      - block_rhythm_flow
+      - safe_connection
+      - topic_label_distance
+    preferred_return_targets:
+      - japanese_chat_natural_skill
+      - gold_reply
+
+  commitment_strength_calibration:
+    description: "時刻、納期、修正完了、返金/無料、成果物返却の約束が情報量と phase に合っているか"
+    hard_fail: false
+    preferred_return_targets:
+      - reviewer_prompt
+      - batch
+
+  negative_frame_non_echo:
+    description: "責めたいわけではない、文句ではない、返金してほしい等をそのまま復唱せず、実務目的へ要約する"
+    hard_fail: false
+    preferred_return_targets:
+      - japanese_chat_natural_skill
+      - gold_reply
+
+naturalizer_gates:
+  safe_connection:
+    description: "自然につなげてよい文は、同じ役割・同じ約束レベルの文だけ"
+    do_connect:
+      - "届いている内容で確認に入ります。いま追加で準備いただくものはありません。"
+    do_not_connect_without_condition:
+      - "必ず直るとはお約束できません。ただ、ご購入後に修正済みファイルをお返しします。"
+      - "closed 後の関係確認と修正作業開始"
+      - "返金未定と無料対応"
+    action: "unsafe_to_smooth の場合は約束レベルごとに文を分ける"
+
+observe_only:
+  - voice_ownership
+  - issue_proximity
+  - topic_label_distance
+  - buyer_burden_alignment
+  - answer_order_calibration
+  - certainty_calibration
+
+preference_only:
+  - punctuation_count
+  - paragraph_count_only
+  - hai_presence_only
+  - mazuwa_presence_only
+  - daijobu_presence_only
+  - dekimasu_presence_only
+  - no_ken_presence_only
+  - mild_stiffness_in_high_risk_context
+
+review_output_labels:
+  - hard_by_underlying_guard
+  - fix_recommended
+  - acceptable_as_is
+  - observe_only
+  - overfire_risk
+  - preference
+

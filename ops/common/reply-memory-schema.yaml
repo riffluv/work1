@@ -1,0 +1,95 @@
+version: 1
+updated: "2026-05-01"
+purpose: >
+  将来のアプリ化・汎用コア化に向けて、返信生成時に保持すべき
+  取引記憶を定義する。本文生成の自由度を潰さず、事実だけを packet 化する。
+
+required_fields:
+  - platform
+  - service_id
+  - phase
+  - visible_public_services
+  - current_thread_summary
+  - buyer_latest_message
+  - known_commitments
+  - received_materials
+  - pending_actions
+  - forbidden_assumptions
+
+fields:
+  platform:
+    allowed:
+      - coconala
+      - generic_business_chat
+      - email_future
+
+  service_id:
+    description: "現在案内してよいサービス。live では public:true のみ。"
+
+  phase:
+    allowed:
+      - prequote
+      - quote_sent
+      - purchased
+      - predelivery
+      - delivered
+      - closed
+
+  visible_public_services:
+    description: "外向けに名前・価格・導線を出してよいサービスID一覧"
+
+  current_thread_summary:
+    description: "相手文と過去やり取りから確定している事実だけ。推測を入れない。"
+    item_fields:
+      - fact
+      - source
+      - timestamp_optional
+
+  buyer_latest_message:
+    description: "直近の相手文。主質問抽出の唯一の入口。"
+
+  known_commitments:
+    description: "すでにこちらが約束した納期・返答時刻・対応範囲・成果物"
+    item_fields:
+      - commitment
+      - source_message
+      - status
+    status_allowed:
+      - active
+      - completed
+      - superseded
+      - unknown
+
+  received_materials:
+    description: "受領済み資料。受領していないものを入れない。"
+    item_fields:
+      - material_type
+      - description
+      - contains_secret_unknown
+      - source_message
+
+  pending_actions:
+    description: "こちらが次に行うこと、buyer に依頼していること"
+    item_fields:
+      - actor
+      - action
+      - due_optional
+    actor_allowed:
+      - seller
+      - buyer
+      - platform
+
+  forbidden_assumptions:
+    description: "返信で足してはいけない推測"
+    examples:
+      - "未受領の Event ID を受け取った前提にしない"
+      - "Webhook 原因と断定しない"
+      - "closed 後に旧トークルームで実作業できる前提にしない"
+      - "public:false のサービスを案内しない"
+
+writer_rules:
+  - "memory packet は事実制約であり、返信テンプレートではない。"
+  - "相手文の主質問へ先に答える。"
+  - "known_commitments にない時刻・納期・返金/無料 promise を足さない。"
+  - "received_materials にない資料名を、受領済みとして書かない。"
+

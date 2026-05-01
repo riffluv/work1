@@ -33,6 +33,9 @@
 ## source of truth
 - 公開文面:
   - `/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt`
+- service-pack facts:
+  - `/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack/facts.yaml`
+  - 2026-05-01 時点では、このファイルを service-pack 側の公開事実正本として扱う。ルート直下の `service.yaml` は既存互換の facts 参照として残す。
 - 公開ページ由来の回帰源:
   - FAQ とトークルーム回答例は `/home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml` で contract 回帰源として扱う
 - 既存 facts:

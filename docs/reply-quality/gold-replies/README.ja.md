@@ -7,6 +7,7 @@
 
 ## 使い方
 - 新しく返信を作る前に、近い 1 本だけ見る。
+- family / phase / lens から探す時は、上位 map の `docs/reply-quality/gold-reply-map.yaml` を先に見る。
 - `status: current` 相当として扱えるものだけを few-shot に使う。古い比較用・監査用の例は `eval_only`、現行ルールと矛盾する例は `superseded` として扱い、送信用の基準にしない。
 - 内容をそのまま流用するのではなく、
   - 書き出しの温度感

@@ -184,9 +184,34 @@ def detect_scenario(source: dict) -> str:
             return "closed_secret_send_question"
     if any(marker in combined for marker in ["ZIPでコード", "コード一式", "直して返して", "修正して返"]):
         return "closed_zip_fix_return"
-    if any(marker in combined for marker in ["無料で直", "無料で対応", "15,000円かかる", "15000円かかる", "納得できません"]):
+    if "返金" in combined:
+        return "refund_request"
+    if any(
+        marker in combined
+        for marker in [
+            "無料で直",
+            "無料で対応",
+            "無料対応",
+            "無料か",
+            "無料の対象",
+            "15,000円かかる",
+            "15000円かかる",
+            "納得できません",
+        ]
+    ):
         return "closed_free_followup_price"
-    if any(marker in combined for marker in ["ログとスクショ", "ログやスクショ", "関係あるかだけ", "関係があるかだけ"]):
+    if any(
+        marker in combined
+        for marker in [
+            "ログとスクショ",
+            "ログやスクショ",
+            "関係あるかだけ",
+            "関係があるかだけ",
+            "関係あるか見",
+            "関係があるか見",
+            "関係だけ見",
+        ]
+    ):
         return "closed_materials_check"
     if any(marker in combined for marker in ["おひねり", "同じトークルーム", "前の続き", "前回の続き"]) and any(
         marker in combined for marker in ["クローズ後", "クローズ済み", "閉じ"]
@@ -252,8 +277,6 @@ def detect_scenario(source: dict) -> str:
 
     if "時々決済が通らない" in combined or "少し不安でもう一度見てほしい" in combined:
         return "recur_uncertainty"
-    if "返金" in combined:
-        return "refund_request"
     if "お気に入り" in combined or "★5" in combined:
         return "favorite_and_discount"
     if "検証手順" in combined or "社内で" in combined:

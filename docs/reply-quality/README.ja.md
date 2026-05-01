@@ -6,6 +6,12 @@
 - 納品物本文ではなく、トークルーム返信の品質改善にだけ使う。
 
 ## 現行入口
+- `core-completion-checklist.ja.md`
+  - 返信OSコアの完成条件、#RE停止条件、次の優先順位。
+- `completion-shelf-20260501.ja.md`
+  - #RE88〜94 と Pro 分析後の v1 完成棚卸し。高飽和 family、停止判断、次に作るべき contract packet をまとめる。
+- `rehearsal-operating-policy.ja.md`
+  - #RE / #BR / xhigh / Pro をいつ使い、いつ止めるかの運用ポリシー。
 - `self-check-core-always-on.ja.md`
   - Reviewer が常時見る最小チェック。
 - `writer-brief.ja.md`
@@ -14,6 +20,10 @@
   - 送る / 差し戻す / system に戻す通過条件。
 - `failure-taxonomy.ja.md`
   - 失敗分類。
+- `failure-taxonomy.yaml`
+  - hard / soft / preference / overfire risk を機械的に分類するための taxonomy。
+- `lens-taxonomy.yaml`
+  - business chat 系 soft lens の階層化と、blanket NG 防止の taxonomy。
 - `guidance-scoping.ja.md`
   - 改善を効かせる route / state / service を切る表。
 - `adoption-policy.ja.md`
@@ -44,6 +54,12 @@
   - 古い skill / docs / template が live へノイズを混ぜないかの棚卸し。
 
 ## State / Layering
+- `/home/hr-hm/Project/work/ops/common/reply-memory-schema.yaml`
+  - 将来のアプリ化・汎用コア化に向けて、返信生成時に保持すべき取引記憶の schema。
+- `/home/hr-hm/Project/work/ops/common/phase-contract-schema.yaml`
+  - phase ごとの allowed / forbidden / next action の machine-readable schema。
+- `/home/hr-hm/Project/work/ops/tests/contract-packets/bugfix-15000-v1-samples.yaml`
+  - `reply-memory-schema` / `phase-contract-schema` / `output-schema` を横断した、`bugfix-15000` v1 の contract packet サンプル。
 - `state-schema-minimal-contract.ja.md`
   - multi-turn で最低限持つ state 項目。
 - `self-check-l1-minimal-universal.ja.md`
@@ -72,6 +88,7 @@
   - `phase-contract-batch-plan-20260425.ja.md`
   - `external-research-observation-plan-20260425.ja.md`
 - 現在の `#RE` は、固定 fixture を残しつつ、文章品質の監査対象を `#R` 相当の `writer_candidate` へ寄せる移行中。詳細は `re-alignment-checklist-20260429.ja.md` を見る。
+- 今後の `#RE` は、`ops/tests/fixture-coverage-map.yaml` で `saturation: low / medium` の family を埋めるために使う。同型 family が `saturation: high` の場合は、実案件 stock、#R での再現、contract 変更がない限り routine で回さない。
 
 ## #BR
 - `#BR` は `bugfix-15000 / handoff-25000` の境界ルーティングを鍛える shadow rehearsal。
@@ -99,6 +116,8 @@
 ## Gold
 - `gold-replies/`
   - 温度感、情報量、質問数、次アクションの基準になる良い返信例。
+- `gold-reply-map.yaml`
+  - Gold を family / phase / lens / use_when / do_not_use_when で引くための map。Writer へ大量投入せず、近い1本だけ anchor として使う。
 - 古い gold が現行ルールと矛盾した場合は、良い例として残さない。
 
 ## Lens Notes

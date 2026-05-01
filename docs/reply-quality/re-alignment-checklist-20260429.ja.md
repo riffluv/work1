@@ -92,6 +92,26 @@
 - `preference`
   - 好み差。単発修正または gold 候補に留める。
 
+## 2026-05-01 同期チェック
+
+- HRC94-003 で、`#RE` の `writer_candidate_manual` は自然だったが、`--writer-brief` が `generic_quote_sent` に落ち、支払い後 ZIP 共有の主質問を拾えていなかった。
+- `after_payment_zip_share_timing` を追加し、`支払い後に関係ファイルをZIPでまとめて送ればよいか` と `不要なものが混ざる不安` を意味契約へ分けた。
+- この種のズレは自然化 skill ではなく、`#R / #RE` の contract 接続不良として扱う。
+- 確認済み:
+  - `--writer-brief` が `after_payment_zip_share_timing` を返す
+  - candidate batch lint OK
+  - full role suites OK
+- 追加確認:
+  - HRC94-002 は `progress_anxiety` に接続し、購入後の「今どこを見ているか」を汎用 follow-up に落とさない。
+  - HRC94-004 は `prepayment_zip_sufficiency_check` に接続し、購入前 ZIP 足りているか確認を `quote_sent` の支払い前作業境界として扱う。
+  - HRC94-007 は `closed_materials_check` に接続し、closed 後の「前回修正との関係確認」を通常の関係確認として扱う。
+  - ただし `返金` を含む closed 後の関係確認は `refund_request` を優先し、通常の `closed_materials_check` に吸収しない。
+- #RE91〜93 の追加同期確認:
+  - 購入後の `今の見立て`、`何から見ているか`、`優先して見ているところ` は `progress_anxiety` へ接続し、`generic_followup` に落とさない。
+  - 見積り提案後の `支払い後にまとめて送れば進められるか` は `after_payment_zip_share_timing` へ接続し、軽い手順確認を `generic_quote_sent` に落とさない。
+  - 見積り提案後の `支払い前にエラー画面/zip/スクショだけ見て直せそうか判断してほしい` は `prepayment_materials_before_payment` へ接続し、支払い前作業境界を維持する。
+  - closed 後の `前回修正との関係だけ見てもらえるか` は `closed_materials_check` へ接続する。ただし返金/無料圧が含まれる場合は高リスク経路を優先する。
+
 ## やらないこと
 
 - renderer に職人風の固定文を大量登録しない。

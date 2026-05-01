@@ -2010,3 +2010,78 @@
 - 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=819 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
 - メモ: local lint 前に、HRC94-001 は `追加で準備するものがあるか` への直答を補強した。HRC94-005 / HRC94-006 は delivered の既存 validator が読めるよう、`どこを見れば修正できているか` へ接続した。HRC94-008 は `前回の続き` が old-talkroom / ohineri validator を不要に発火させたため、同じ原因かどうかの関係確認へ絞った。いずれも新規 rule ではなく、#RE 検査対象を既存 validator に正しく接続するための batch 整形
 - 非変更: 新しい hard rule / lint / renderer 変更は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-232
+- 分類: `reply-only`
+- レイヤ: completion meta / rehearsal operating policy / taxonomy
+- 変更: Pro 分析 `chatgptPro/ココナラ返信OS設計レビュー5-01.txt` を受け、`core-completion-checklist.ja.md`、`failure-taxonomy.yaml`、`lens-taxonomy.yaml`、`rehearsal-operating-policy.ja.md`、`ops/tests/fixture-coverage-map.yaml`、`ops/common/reply-memory-schema.yaml`、`ops/common/phase-contract-schema.yaml` を追加した。`positive_flow_before_refusal` は candidate ではなく正式 soft lens として `lens-inventory-20260430.ja.md` に反映した
+- きっかけ: #RE88〜94 が同型 stability smoke に寄り、routine xhigh 監査の費用対効果が落ちてきたため。Pro は「さらに同型 #RE を回すより、完成条件 checklist、fixture coverage map、failure/lens taxonomy、memory/phase schema を作るべき」と指摘した
+- 想定効果: #RE を「違和感探し」ではなく coverage map 上の未確認領域を埋める実験へ切り替える。同型 batch は `saturation: high` として停止し、xhigh / Pro は未知 failure、lens 昇格、公開前判定、アプリ化設計などの節目に限定する
+- 非変更: renderer / validator / lint / skill の挙動は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。soft lens を hard rule 化せず、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-233
+- 分類: `reply-only`
+- レイヤ: gold map / documentation routing
+- 変更: `gold-reply-map.yaml` を追加し、Gold 26〜42 を family / phase / lens / use_when / do_not_use_when で参照できるようにした。`README.ja.md`、`gold-replies/README.ja.md`、`service-pack/README.ja.md` に新しい完成条件・運用ポリシー・coverage map・gold map・service-pack facts の導線を追加した
+- きっかけ: Pro 分析で「Gold は増やすより map 化」「service-pack facts の実在と正本位置づけを明確にする」と指摘されたため
+- 想定効果: Gold をテンプレートとして大量投入せず、近い family の1本だけを anchor として使える。`facts.yaml` は `ops/services/next-stripe-bugfix/service-pack/facts.yaml` が service-pack 側の正本であることを明示し、完成条件チェックから参照しやすくする
+- 非変更: Gold 本文、renderer、validator、lint、skill の挙動は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-234
+- 分類: `reply-only`
+- レイヤ: service truth alignment
+- 変更: `service-registry.yaml` に `service_pack_facts_file` を追加し、`bugfix-15000` / `handoff-25000` の service-pack facts 参照を明示した。`bugfix-15000` の `service-pack/facts.yaml` に、`endpoint` は内部判定補助であり外向けには同一原因・処理フロー中心に説明する注記を追加した。`boundaries.yaml` では `external_share` が外部作業面を指し、ココナラ上のZIP/添付は秘密値なしで許容されることを明記した
+- きっかけ: service truth 整合チェックで、大枠の矛盾はないが、完成条件から見ると service-pack facts の所在、内部判定語と外向け表現、external_share とココナラ添付の区別が読み手に曖昧になりうると分かったため
+- 想定効果: service page / registry / service-pack / reply の接続が明確になり、将来の #R / #RE / app 化で「endpoint を外向けに出しすぎる」「ZIP添付まで外部共有扱いする」などの過剰発火を防ぐ
+- 非変更: 公開サービス文面、価格、scope、handoff public:false、renderer、validator、lint の挙動は変更しない
+
+### 2026-05-01 / CHG-235
+- 分類: `reply-only`
+- レイヤ: #R / #RE sync / quote_sent writer brief
+- 変更: `render-quote-sent-followup.py` に `after_payment_zip_share_timing` を追加し、見積り提案後に buyer が「支払い後に関係ファイルを ZIP でまとめて送ればよいか」「不要なものが混ざるかもしれない」と聞いた場合、`generic_quote_sent` ではなく専用の writer brief / reply contract に落ちるようにした。`re-alignment-checklist-20260429.ja.md` に 2026-05-01 同期チェックとして記録した
+- きっかけ: HRC94-003 で、`#RE` の手動 writer candidate は採用圏だったが、`--writer-brief` が `generic_quote_sent` に落ち、#R 側の意味契約が「支払い後 ZIP 共有タイミング」を拾えていないことが分かったため
+- 想定効果: #RE で安定している支払い後共有の通常フローが #R writer brief にも接続され、軽い手順確認を汎用返信へ吸収しにくくなる。不要ファイル混入への不安と secret 除外も、支払い後トークルーム共有の範囲内で自然に扱える
+- 確認: HRC94-003 `--writer-brief` が `after_payment_zip_share_timing` を返すことを確認。candidate batch lint OK `8 case(s)`、full role suites OK、service-pack fidelity `pass=19 fail=0`
+- 非変更: `zip_share_question` の GitHub ではなく ZIP でよいかの既存分岐は維持する。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route を弱めない
+
+### 2026-05-01 / CHG-236
+- 分類: `reply-only`
+- レイヤ: #R / #RE sync / purchased・quote_sent・closed scenario routing
+- 変更: HRC94 の writer brief 同期確認で見つかった追加ズレを修正した。`render-post-purchase-quick.py` は「今どこを見て」を `progress_anxiety` に接続する。`render-quote-sent-followup.py` は `prepayment_zip_sufficiency_check` を追加し、支払い前に ZIP を送って必要ファイルが足りているかだけ見てもらいたい圧を `quote_sent` の支払い前作業境界として扱う。`render-closed-followup.py` は「関係あるか見」を `closed_materials_check` に接続しつつ、`返金` を含む場合は `refund_request` を優先するよう検出順を調整した
+- きっかけ: HRC94-002 / HRC94-004 / HRC94-007 の `--writer-brief` が汎用 scenario に落ち、#RE の writer candidate と #R の意味契約がまだ完全には同期していなかったため。最初の修正で closed の関係確認を広げた結果、HRC63 / HRC72 / HRC77 の返金圧ケースが通常の関係確認へ吸収されかけたため、返金/無料の高リスク経路を優先する必要があった
+- 想定効果: purchased の短い進捗確認、quote_sent の支払い前 ZIP 確認圧、closed 後の関係確認が、汎用返信へ落ちずに適切な意味契約へ接続される。同時に、closed 後の返金・無料対応圧は通常の関係確認へ薄まらず、返金/費用未断定の高リスク境界を維持できる
+- 確認: HRC94-002 `progress_anxiety`、HRC94-004 `prepayment_zip_sufficiency_check`、HRC94-007 `closed_materials_check`、HRC63-008 `refund_request` への writer brief 接続を確認。full role suites OK `pass=819 fail=0 skip=65`、service grounding sentries OK_WITH_EXISTING_WARNINGS、timestamp policy OK_WITH_EXISTING_WARNINGS
+- 非変更: 新しい hard rule / lint は追加しない。`返金` を含まない通常の closed 関係確認は `closed_materials_check` のまま扱う。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-237
+- 分類: `reply-only`
+- レイヤ: #R / #RE sync / recent rehearsal writer brief coverage
+- 変更: #RE91〜93 の writer brief を追加確認し、汎用 scenario に落ちていた購入後・見積り後・closed 後の表現を既存の意味契約へ接続した。`render-post-purchase-quick.py` は `今の見立て`、`何から見ているか`、`優先して見ているところ`、`追加で何を出すべきか` を `progress_anxiety` として扱う。`render-quote-sent-followup.py` は、支払い後の「まとめて送れば進められるか」を `after_payment_zip_share_timing` へ、支払い前の `エラー画面` / `スクショ` / `zip` の先見依頼を `prepayment_materials_before_payment` へ寄せる。`render-closed-followup.py` は `関係だけ見` を `closed_materials_check` に接続する
+- きっかけ: 「同型 #RE を回すだけでは費用対効果が低い」という運用判断を受け、#RE91〜94 の `--writer-brief` を棚卸ししたところ、外部監査上は採用圏でも #R 側の scenario が一部 `generic_followup` / `generic_quote_sent` に落ちていたため
+- 想定効果: 最近の #RE で鍛えた semantic grounding / business chat viability が、手動 writer candidate だけでなく #R の意味契約にも反映される。購入後の現在地説明、見積り後の支払い後共有、支払い前診断不可、closed 後の関係確認を、汎用文へ薄めず扱える
+- 確認: #RE91〜93 の対象ケースで `progress_anxiety` / `after_payment_zip_share_timing` / `prepayment_materials_before_payment` / `closed_materials_check` への writer brief 接続を確認。full role suites OK `pass=819 fail=0 skip=65`
+- 非変更: 新しい hard rule / lint は追加しない。`generic_*` を blanket NG にしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-238
+- 分類: `reply-only`
+- レイヤ: completion shelf / v1 readiness
+- 変更: `completion-shelf-20260501.ja.md` を追加し、Pro 分析 `chatgptPro/返信SYSTEM設計図への道5-01.txt` と `core-completion-checklist.ja.md` / `rehearsal-operating-policy.ja.md` / `fixture-coverage-map.yaml` をもとに、現時点の v1 完成候補、停止すべき高飽和 family、まだ薄い coverage、次に作るべき contract packet を整理した。`README.ja.md` に導線を追加した
+- きっかけ: #RE88〜94 が同型 stability smoke に寄り、routine で外部 xhigh を回す費用対効果が下がってきたため。ユーザーから「コア完成には何が足りないか」「モグラたたきに見える」と相談があり、同型 #RE より完成判定と次の設計物を正本化する必要が出た
+- 想定効果: `purchased_current_status` / `quote_sent_payment_after_share` / `delivered_light_supplement` / `closed_relation_check` を高飽和 family として routine #RE から外し、実案件 stock、#R 再現違和感、contract 変更、Pro/human audit の未検証指定がある場合だけ再開できる。次の Pro は batch 採点ではなく v1 completion review として使いやすくなる
+- 非変更: renderer / validator / lint / skill の挙動は変更しない。新しい hard rule は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-239
+- 分類: `reply-only`
+- レイヤ: contract packet samples / v1 readiness
+- 変更: `ops/tests/contract-packets/README.ja.md` と `bugfix-15000-v1-samples.yaml` を追加した。`prequote / quote_sent / purchased / delivered / closed` の5件について、`memory_packet`、`phase_contract`、`reply_contract`、`response_decision_plan`、`writer_notes` を1つの packet として並べ、返信文を書く前に固定すべき事実制約を見える化した。`ops/tests/README.ja.md` と `docs/reply-quality/README.ja.md` に導線を追加した
+- きっかけ: v1 completion shelf で、次に同型 #RE を回すのではなく、`reply-memory-schema.yaml` と `phase-contract-schema.yaml` に沿った contract packet の実例を作るべきと整理したため
+- 想定効果: #R / #RE / 将来アプリ化で、返信文そのものではなく「何を知っていて、何を言ってよく、何を言ってはいけないか」を先に固定できる。特に quote_sent の支払い後共有、purchased の未提示技術語追加防止、delivered の可否宣言回避、closed の関係確認と実作業分離を、テンプレートではなく判断 packet として確認しやすくなる
+- 非変更: renderer / validator / lint / skill の挙動は変更しない。contract packet samples は Gold reply ではなく返信テンプレートでもない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-240
+- 分類: `reply-only`
+- レイヤ: contract packet validation / service facts pointer
+- 変更: `scripts/check-contract-packets.py` を追加し、contract packet sample が `reply-memory-schema.yaml` と `phase-contract-schema.yaml` の最小条件に合っているか確認できるようにした。`ops/services/next-stripe-bugfix/facts.yaml` を互換 pointer として追加し、canonical facts が `service-pack/facts.yaml` であることを明示した。`ops/tests/README.ja.md` と `completion-shelf-20260501.ja.md` に検査導線を追加した
+- きっかけ: Pro 分析で、完成には「memory / phase / reply_contract を実例化するだけでなく、完成を測れる形にすること」と、「facts 正本の所在ズレを残さないこと」が指摘されていたため
+- 想定効果: contract packet が手書きメモで終わらず、最低限の schema 整合をローカルで確認できる。将来 Pro や app 化レビューに見せる時も、返信文ではなく前段の判断 packet と canonical facts の接続を説明しやすくなる
+- 非変更: `facts.yaml` pointer には公開 facts を複製しない。canonical facts は `service-pack/facts.yaml` のまま。renderer / validator / lint / skill の挙動は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない

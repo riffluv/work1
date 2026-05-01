@@ -8,6 +8,7 @@ services:
     facts_service_id: next-stripe-bugfix
     facts_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml
     service_pack_root: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack
+    service_pack_facts_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack/facts.yaml
     source_of_truth: /home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt
 
   - service_id: handoff-25000
@@ -17,6 +18,7 @@ services:
     facts_service_id: handoff-25000
     facts_file: /home/hr-hm/Project/work/ops/services/handoff-25000/service.yaml
     service_pack_root: /home/hr-hm/Project/work/ops/services/handoff-25000/service-pack
+    service_pack_facts_file: /home/hr-hm/Project/work/ops/services/handoff-25000/service-pack/facts.yaml
     source_of_truth: /home/hr-hm/Project/work/サービスページ/handoff-25000.ready.txt
 
 rules:

@@ -1,0 +1,95 @@
+version: 1
+updated: "2026-05-01"
+purpose: >
+  phase ごとの allowed / forbidden / next action を、将来のアプリ化や
+  #R/#RE 同期確認で使える形に固定する。
+
+phases:
+  prequote:
+    meaning: "見積り相談前またはサービス購入前の相談"
+    allowed:
+      - answer_service_fit
+      - explain_price_if_asked
+      - explain_purchase_flow
+      - ask_minimum_non_secret_context
+      - prepare_estimate_when_ready
+    forbidden:
+      - start_code_or_log_diagnosis
+      - request_full_zip_by_default
+      - promise_fix_success
+      - request_raw_secret_value
+      - direct_push_or_prod_deploy
+    preferred_next_actions:
+      - "この内容で進める場合は、そのままご購入ください。"
+      - "見積り提案が必要な場合は、こちらから提案します。"
+
+  quote_sent:
+    meaning: "出品者が見積り提案を出し、buyer がまだ購入/支払い前の状態"
+    allowed:
+      - answer_questions_about_estimate
+      - explain_after_payment_material_share
+      - clarify_scope_before_purchase
+    forbidden:
+      - start_code_or_log_diagnosis
+      - accept_github_invite_as_work_surface
+      - receive_raw_secret_value
+      - imply_talkroom_started
+    preferred_next_actions:
+      - "見積り提案の内容で問題なければ、ご購入手続きへ進んでください。"
+      - "お支払い完了後に、トークルームで関係ファイルやログを共有してください。"
+
+  purchased:
+    meaning: "購入/支払い完了後、トークルームで作業中"
+    allowed:
+      - confirm_received_materials
+      - progress_update
+      - ask_additional_safe_materials
+      - explain_current_known_status_without_overclaiming
+      - scope_recheck
+    forbidden:
+      - ask_raw_secret_value
+      - claim_unreceived_materials_as_received
+      - assert_unconfirmed_cause
+      - add_new_scope_without_consultation
+    preferred_next_actions:
+      - "追加で必要なものが出た場合は、必要なものだけこちらからお伝えします。"
+      - "現時点で分かっている範囲を、次回の返信でお伝えします。"
+
+  delivered:
+    meaning: "正式納品後、buyer 承諾前"
+    allowed:
+      - light_explanation
+      - clarify_changed_files
+      - clarify_verification_points
+      - receive_remand_if_within_scope
+    forbidden:
+      - treat_as_closed
+      - start_new_unagreed_work
+      - produce_full_manual_unless_in_scope
+      - promise_prod_deploy
+    preferred_next_actions:
+      - "反映箇所だけ短く整理します。"
+      - "必要な範囲で確認しやすい形にしてお返しします。"
+
+  closed:
+    meaning: "取引完了・トークルーム終了後の連絡"
+    allowed:
+      - receive_summary_in_message
+      - relation_check_to_previous_fix
+      - explain_new_estimate_or_new_request_if_work_needed
+    forbidden:
+      - reopen_old_talkroom_work
+      - promise_free_repair
+      - promise_refund
+      - request_raw_secret_value
+      - return_fixed_files_in_closed_message
+      - ohineri_as_old_room_continuation
+    preferred_next_actions:
+      - "このメッセージ上では、届いた内容をもとに前回修正との関係を確認するところまで対応します。"
+      - "実作業が必要そうな場合は、対応方法と費用を先にご相談します。"
+
+global_rules:
+  - "phase が不明なら、購入前作業・closed 後実作業・secret 値受領へ進めない。"
+  - "public:false のサービスは live 返信に出さない。"
+  - "自然化のために forbidden を弱めない。"
+

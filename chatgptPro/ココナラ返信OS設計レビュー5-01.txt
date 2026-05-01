@@ -1,0 +1,1079 @@
+1. 結論
+りふさんの返信OSは、「返信品質を上げる段階」から、「完成条件・評価設計・運用停止条件を定義する段階」へ移っています。
+いまのコアは弱くありません。むしろ、骨格はかなり強いです。
+特に次の軸は、すでにコアとして成立しています。
+
+
+service-registry.yaml で公開状態・正本・service pack を解決する設計
+
+
+platform-contract.yaml で prequote / quote_sent / purchased / delivered / closed を分ける設計
+
+
+bugfix-15000 の価格・scope・成果物・secret・外部導線禁止を正本化している設計
+
+
+Classifier -> Writer -> Reviewer -> Naturalizer の分離
+
+
+Writer に長い監査ルールを背負わせず、11行程度の Writer Brief に絞る思想
+
+
+#RE / gold / lint / regression / external audit / human audit の学習ループ
+
+
+bugfix-15000 は、15,000円で「不具合1件＝同一原因」について原因確認、修正内容作成、確認手順整理、修正済みファイル返却までを扱うサービスとして明文化されています。原因不明・修正方針なし・修正済みファイル返却不可のまま正式納品へ押し切らない方針も、サービスページと service yaml の両方に入っています。 
+また、handoff-25000 は public:false の内部準備サービスで、外向け返信にサービス名・価格・購入導線を出さないという境界も registry とサービス案に明記されています。 
+なので、結論はこうです。
+
+返信OSコアは「機能コア完成圏」に入っています。
+ただし「完成と言える条件」「評価カバレッジ」「#RE停止条件」「soft lens の採用基準」がまだ完成していません。
+
+いま足りないのは、さらに #RE を増やすことではなく、完成判定のためのメタ層です。
+特に #RE88〜94 は、purchased の現在地説明、quote_sent の支払い後共有、delivered の軽い補足、closed 後の関係確認を同型変奏で繰り返しています。#RE88〜93 の棚卸しでも「採用圏」「新しい hard rule / lint / renderer 追加は不要」と整理されています。
+#RE94 も local validation、full regression、service pack fidelity が通っており、もはや新規発見というより安定性確認です。
+
+2. 完成条件
+返信OSコアの完成条件は、単に「いい文が出る」ではなく、次のチェックリストで定義するのがよいです。
+A. Service truth / 正本解決
+
+
+ service_id から service-registry.yaml を通じて、公開状態、facts file、service pack、外向け service page を一意に解決できる。
+
+
+ public:false のサービス名・価格・購入導線が外向け返信に出ない。
+
+
+ 価格、追加料金、scope、成果物、標準範囲外、secret 方針が service facts / service page と一致している。
+
+
+ サービスページと service yaml に矛盾が出た場合、優先順位が明文化されている。
+
+
+ source_traceability として、返信内の価格・scope・成果物・禁止事項がどの正本由来か追える。
+
+
+現状、registry はこの役割をかなり果たしています。bugfix-15000 は public:true、handoff-25000 は public:false として分けられ、公開返信では public:true のみ参照するルールが入っています。
+ただし、ユーザー指定の ops/services/next-stripe-bugfix/facts.yaml は main では見つかりませんでした。現状は service.yaml が facts 的役割を持っています。ここは正本名のズレとして直した方がよいです。
+
+B. Phase contract / 取引状態理解
+
+
+ prequote / quote_sent / purchased / delivered / closed が機械的に分かれる。
+
+
+ 各 phase で「できること」「できないこと」「言ってよい導線」「言ってはいけない導線」が定義されている。
+
+
+ quote_sent を購入後作業中のように書かない。
+
+
+ purchased を購入前受付のように戻さない。
+
+
+ delivered を closed と誤認しない。
+
+
+ closed 後は、メッセージ上の関係確認と実作業・費用相談を分ける。
+
+
+ 返金・キャンセル・無料対応・追加支払いを、phase と支払い経路を無視して断定しない。
+
+
+platform-contract.yaml はこの層の正本としてかなりよくできています。特に、見積り提案後はまだ作業開始ではないこと、納品後とクローズ後を分けること、closed 後に旧トークルーム継続作業を前提にしないことが整理されています。
+
+C. Reply decision contract / 何を答えるか
+
+
+ 相手の明示質問を explicit_questions として抽出できる。
+
+
+ primary_question_id を1つ決められる。
+
+
+ 各質問に answer_now / answer_after_check / ask_client / decline を割り当てられる。
+
+
+ answer_map と ask_map を Writer が再解釈しない。
+
+
+ 主質問への直答が最初の answer-bearing section に出る。
+
+
+ 聞かれていない価格・別原因・scope 説明を先頭に足さない。
+
+
+ ask_map にない質問を善意で増やさない。
+
+
+ blocking_missing_facts が空なら原則追加質問しない。
+
+
+この層は coconala-intake-router-ja がかなり強いです。reply_contract を「ヒント」ではなく下流の実行契約として扱い、answer_map / ask_map / forbidden_moves を固定する設計になっています。
+
+D. Evidence / grounding / secret safety
+
+
+ 相手文にない技術語、原因候補、作業状況、ログ種別を足さない。
+
+
+ 既出情報を聞き直さない。
+
+
+ phase ごとの evidence minimum を超えて、過剰な資料要求をしない。
+
+
+ .env はキー名のみ、値は扱わない。
+
+
+ APIキー、Webhook Secret、secret 値が混ざった場合は、伏せた形で送り直してもらう。
+
+
+ GitHub 招待、Issue / PR、Drive、外部共有、直接 push、本番反映へ流れない。
+
+
+evidence-minimum.yaml は prequote と purchased で必要情報と質問上限を分けており、ask_only_missing_items と do_not_repeat_known_facts も入っています。
+また、bugfix skill 側にも secret 値・GitHub招待・外部作業面を通常共有先として受けないルールが入っています。
+
+E. Writer preservation / AIの思考を殺さない
+
+
+ Classifier は厳密にする。
+
+
+ Writer は分類しない。
+
+
+ Writer に渡すのは短い facts packet と Writer Brief に限定する。
+
+
+ 長い self-check、ban list、監査履歴、platform contract 全文を Writer に背負わせない。
+
+
+ renderer はテンプレ生成器ではなく、section order / answer coverage / ask gating / forbidden moves の guardrail として使う。
+
+
+ naturalizer は意味変更権限を持たない。
+
+
+ Reviewer は本文を書き直すのではなく、事故とズレを検出する。
+
+
+この思想はすでに明文化されています。coconala-reply-bugfix-ja では、本文生成は Codex の freeform draft を優先し、renderer / reviewer は guardrail として使うと書かれています。
+writer-brief.ja.md でも、Writer に渡す既定は11行だけにする方針で、self-check 全文や ban list 全文を渡さないとされています。
+
+F. Naturalization / 日本語ビジネスチャット化
+
+
+ 主質問への直答、条件、次アクションが自然につながる。
+
+
+ 正しいが FAQ・規約説明・受付票っぽい文を検出できる。
+
+
+ 大丈夫です / できます / 確認します / 相談できます を blanket NG にしない。
+
+
+ ただし、行為主体・許可の向き・約束の強さがズレる場合は直す。
+
+
+ 低リスク場面では軽く、高リスク場面では多少硬くても安全を優先できる。
+
+
+ 自然化で価格・scope・phase・secret・payment route・closed 境界を弱めない。
+
+
+ safe_connection、つまり同じ役割・同じ promise level の文だけ自然につなげる。
+
+
+japanese-chat-natural-ja はこの条件をかなり満たしています。特に「自然化で絶対にしてはいけないこと」として、金額・scope・phase・secret・public/private・payment route・未約束作業・主質問への直答を変えないと定義されています。
+
+G. Evaluation / 監査 / 学習
+
+
+ deterministic hard fail と soft lens を分ける。
+
+
+ soft lens は hard_by_underlying_guard / fix_recommended / acceptable_as_is / observe_only / overfire_risk / preference に分類する。
+
+
+ rule 化する条件、gold 化する条件、lint 化する条件、放置する条件が明文化されている。
+
+
+ #RE は新規発見、変更後 smoke、安定性確認を区別する。
+
+
+ #R と #RE の生成経路差が管理されている。
+
+
+ external audit は毎回ではなく、条件付きで使う。
+
+
+ real stock / synthetic fixture / holdout が区別されている。
+
+
+ coverage map で「どの状態・リスク・質問タイプを見たか」が追える。
+
+
+ここが、いま一番足りないです。
+lens inventory には4層見取り図や soft lens の停止条件があり、かなり良い土台があります。
+ただし、それがまだ完成条件 checklist / coverage map / #RE operating policy へ落ちきっていません。
+
+3. 現状評価
+強い点
+1. Contract spine が強い
+service-registry.yaml -> platform-contract.yaml -> service.yaml -> service page -> scope/evidence の骨格は強いです。
+特に、bugfix-15000 と handoff-25000 の公開境界、15,000円・25,000円の混線防止、secret 値、外部導線、closed 後作業境界は、かなり明確です。  
+2. AIの思考保全が設計に入っている
+これはかなり重要です。
+多くの返信システムは、テンプレ・禁止語・few-shot を積みすぎて Writer が死にます。今の設計は、Classifier と Reviewer は厳密、Writer は短い brief で freeform、という方針が明文化されています。 
+3. phase / service / scope / secret の事故はかなり潰れている
+#RE88〜94 の流れを見ると、最近は deterministic な大事故より、自然さ・処理文っぽさ・不要な拒否先行の調整に寄っています。#RE94 の batch でも full regression は pass=819 fail=0 skip=65、service pack fidelity も OK です。
+4. gold replies が「テンプレ」ではなく「anchor」として定義されている
+Gold replies は、そのまま流用するテンプレではなく、温度感・依頼数・既出情報の受け方・次アクションの置き方を合わせる anchor として扱う、と明記されています。これはよいです。
+5. role suite / sentry / fidelity の自動監視がある
+check-coconala-reply-role-suites.py は seed / renderer_seed / edge / eval / holdout を回し、service grounding sentries と timestamp policy も併せて確認します。
+check-service-grounding-sentries.py は public/private leak、15,000円、同一原因、修正済みファイル返却、secret 値不要、diagnosis-only 圧力、追加作業事前相談を見ています。
+check-service-pack-fidelity.py は service-pack の facts / boundaries / decision-contract / evidence-contract / routing-playbooks / state-schema 参照の実在性を確認しています。
+
+危ない点
+1. soft lens が増えすぎて、監査プロンプトが過密
+Codex xhigh 監査プロンプトは、現時点ではかなり重いです。
+phase_answer_gap / transaction_model_gap / completion_gate_gap / response_weight_mismatch / block_rhythm_flow / safe_connection / commitment_strength_calibration / semantic_grounding_drift / agency_alignment / permission_benefit_alignment / positive_flow_before_refusal / negative_frame_non_echo... と、多数の soft lens が同時に入っています。
+これは、routine batch では過剰です。
+監査者が「何か指摘しないといけない」状態になりやすく、軽微な好み差を lens 化する圧力が出ます。
+2. ng-expressions が ban list を超えて、soft rule 集になっている
+ng-expressions.ja.md は有用ですが、すでに単純な NG 表現集ではなく、かなり広い自然化判断・agency・promise・closed・返金・圧力語の例まで含んでいます。
+このまま Writer や naturalizer の前面に出すと、AIの思考を狭めます。
+現状どおり、Reviewer / 最終 lint 寄りに置くのがよいです。
+3. 直近 #RE が同型変奏に寄りすぎている
+#RE88〜94 は、ほぼ次の4パターンを回しています。
+パターン内容purchased受領済み材料をもとに、今どこを見ているかquote_sent支払い後に zip / ログ / スクショを共有してよいか、支払い前確認は不可delivered承諾前に軽い補足・確認ポイントを短く返すclosed前回修正との関係確認と実作業境界を分ける
+これは安定性確認としては意味があります。
+しかし、ここからさらに同型 batch を増やしても、コア完成にはあまり近づきません。
+4. #R と #RE の同期がまだ完成条件になっていない
+coconala-reply-bugfix-ja には、#RE の自然さ違和感が #R でも再現するかを見る、renderer_baseline は本丸の自然文候補ではない、という整理が入っています。
+これは重要ですが、完成条件としてはまだ足りません。
+必要なのは、
+
+#RE で採用した改善が、実際の #R 経路で再現されること
+
+をテスト条件にすることです。
+5. facts.yaml の指定と実体がズレている
+指定ファイル ops/services/next-stripe-bugfix/facts.yaml は main では見つかりませんでした。
+現状は ops/services/next-stripe-bugfix/service.yaml が facts の役割を持っています。
+これは軽微ですが、コア完成前には直した方がよいです。
+理由は、将来サービスが増えた時に「facts 正本はどれか」が揺れるからです。
+
+過剰になっている点
+1. 外部監査プロンプトの常時全部盛り
+xhigh 監査に毎回全 lens を渡すのは、もう費用対効果が落ちています。
+routine batch では、対象 lens を3〜5個に絞るべきです。
+2. gold replies の数
+Gold は現在42本まで増えています。
+これは悪いことではありませんが、「近い1本だけ見る」という運用には、もう map が必要です。
+Gold を増やすより、gold reply map を作る段階です。
+3. soft lens の命名数
+business_chat_viability、jp_business_native_naturalness、conversation_flow_naturalness、response_weight_mismatch、block_rhythm_flow は近接しています。
+全部を独立採点軸にすると、監査が重くなります。
+umbrella / subtype / observation に分けるべきです。
+
+足りない点
+一番足りないのは、次の5つです。
+
+
+完成条件 checklist
+
+
+fixture coverage map
+
+
+failure taxonomy
+
+
+lens taxonomy
+
+
+#RE operating policy
+
+
+これがないため、いま「返信はよくなっているが、完成に近づいているのか分からない」状態になっています。
+
+4. モグラ叩き脱却案
+判断
+現在の #RE は、完全なモグラ叩きではありません。
+ただし、#RE88〜94 の同型継続は、もう学習 batch ではなく安定性 smoke です。
+なので、運用を切り替えるべきです。
+
+#RE の役割を3種類に分ける
+種類目的外部監査頻度Discovery #RE新しい failure class を探すあり得る低頻度Regression #RE既存修正が壊れていないか見る原則不要変更後Stability smoke同型で安定しているか見る不要軽く
+#RE88〜94 は、ほぼ Stability smoke です。
+ここに Codex xhigh を毎回出す価値は下がっています。
+
+外部 Codex xhigh に出すべき時
+xhigh は、次の時だけでよいです。
+
+
+新しいサービスを public 化する時
+
+
+handoff-25000 を live にする前
+
+
+phase contract を変える時
+
+
+renderer / naturalizer / Writer Brief の責務を変える時
+
+
+real stock で未知の failure class が出た時
+
+
+human audit と local lint の判断が割れた時
+
+
+soft lens を hard guard / lint 化するか迷う時
+
+
+3〜5 batch 分の観察を統合して、lens taxonomy を整理したい時
+
+
+アプリ化前の go / no-go 監査
+
+
+逆に、次の時は xhigh に出さなくてよいです。
+
+
+同型 purchased 進捗説明の言い回し違い
+
+
+quote_sent の支払い後 zip 共有の別表現
+
+
+delivered の軽い補足の表現差
+
+
+closed 後関係確認の同型変奏
+
+
+local full regression と service sentry が通っている軽微変更
+
+
+human audit が preference と判断した自然さ差分
+
+
+
+Local #RE / human audit / Pro / external Codex の役割分担
+層主な役割採用判断local #REhard guard、phase、public/private、secret、scope、payment route の回帰deterministic fail なら即修正human audit日本語の違和感、受付票感、FAQ感、商売上の距離感soft lens / preference を分けるPro analysis複数 batch の傾向統合、lens 階層化、完成条件設計rule 化・gold 化・停止条件を決めるexternal Codex xhigh別視点の安全監査、新規 failure class、サービス公開前レビューhard / soft / preference に再分類して採用
+いまは、external Codex が routine human audit の拡張として使われすぎています。
+今後は、Pro と external Codex は「体系化・大きな節目」用に戻すべきです。
+
+#RE の停止条件
+同じ family で次を満たしたら、その family の #RE は止めてよいです。
+
+
+3 batch 連続で deterministic fail がない。
+
+
+指摘が preference または acceptable_as_is だけ。
+
+
+local lint / role suite / service grounding sentry が green。
+
+
+#R 経路でも再現する問題がない。
+
+
+新しい hard rule / lint / renderer 修正が出ていない。
+
+
+human audit でも「違和感はあるが好み差」になっている。
+
+
+#RE88〜94 の family は、この停止条件にかなり近いです。
+
+5. 足りない層
+追加すべきものを、優先度順に並べます。
+1. docs/reply-quality/core-completion-checklist.ja.md
+最優先です。
+内容は、上で出した完成条件をそのまま正本化します。
+構成案:
+layers:  service_truth:    required:      - registry_resolution      - public_private_gate      - source_traceability  phase_contract:    required:      - phase_detected      - allowed_actions      - forbidden_actions  reply_decision:    required:      - primary_question      - answer_map      - ask_map      - forbidden_moves  naturalization:    required:      - direct_answer_preserved      - safe_connection      - no_fact_change  evaluation:    required:      - deterministic_hard_guard_green      - soft_lens_classified      - coverage_map_updated
+これを作ると、「今どこまで完成したか」が見えるようになります。
+
+2. docs/reply-quality/failure-taxonomy.yaml
+いまは lens は多いですが、failure の採用判断がまだ人間の頭に寄っています。
+必要な分類:
+区分意味戻し先hard_contract_failurepublic/private、phase、secret、価格、scope、payment route 事故contract / lint / sentryhard_grounding_failure相手文にない技術語・原因・作業状況を足すrenderer / lint / reviewerdecision_failure主質問 nonanswer、ask 過多、phase answer gaprouter / reply_contractpromise_failure成功保証、無料、返金、closed 作業 promisephase contract / reviewersurface_soft_failureFAQ感、処理文っぽさ、距離感naturalizer / goldpreference好み差no changeoverfire_risk直すと境界が弱まるno change / gold note
+lens inventory にある hard_by_underlying_guard / fix_recommended / acceptable_as_is / observe_only / overfire_risk は、この taxonomy に昇格できます。
+
+3. docs/reply-quality/lens-taxonomy.yaml
+いまの lens は良いですが、階層化が必要です。
+推奨構造:
+umbrella:  contract_grounding:    hard:      - public_private_leak      - phase_drift      - secret_value_request      - payment_route_drift      - scope_price_drift  reply_decision:    soft_or_hard:      - direct_answer_gap      - answer_order_calibration      - evidence_minimality      - commitment_strength_calibration  business_chat_naturalness:    soft:      - business_chat_viability      - response_weight_mismatch      - block_rhythm_flow      - agency_alignment      - negative_frame_non_echo      - positive_flow_before_refusal
+重要なのは、business chat 系を hard lint にしないことです。
+
+4. ops/tests/fixture-coverage-map.yaml
+#RE 脱却の中心です。
+各 fixture を次の軸で map 化します。
+case_id: HRC94-001source_type: syntheticservice: bugfix-15000phase: purchasedquestion_type: purchased_progress_brief_updaterisk:  - semantic_grounding  - evidence_minimalityemotion: cautiousexpected_lenses:  - semantic_grounding  - commitment_strength_calibrationlast_result: passfamily: purchased_current_statussaturation: high
+これを作ると、#RE88〜94 のような family が「もう saturated」と見えます。
+
+5. docs/reply-quality/gold-reply-map.yaml
+Gold reply の数はもう十分です。
+次は map が必要です。
+gold_id: 40family: block_rhythm_flowphase:  - purchased  - closeduse_when:  - correct_but_contract_explanation_likedo_not_use_when:  - refund  - secret  - closed_work_boundarycopy_policy: anchor_onlystatus: current
+Gold README はすでに family index を持っていますが、実行時に使うには YAML map の方がよいです。
+
+6. ops/common/reply-memory-schema.yaml
+アプリ化に向けて必要です。
+返信OSは単発返信だけではなく、前回の約束・未回収 thread・送信済み時刻・buyer の温度を持つべきです。
+最低限:
+reply_memory:  previous_assistant_commitment:    type: enum    values:      - none      - share_status      - share_summary      - share_eta      - send_supplement  previous_deadline_promised: datetime|null  commitment_fulfilled: boolean  received_materials:    - logs    - screenshots    - zip    - code_files  open_secondary_threads:    - id    - topic    - promised_return_timing  buyer_state:    emotion_signal    pressure_signal    trust_level
+reply_quality_lint_common.py にはすでに reply_memory 的な処理の痕跡があります。これを schema として正本化すると、アプリ入力設計へ進めます。
+
+7. ops/common/phase-contract-schema.yaml
+platform-contract.yaml は人間が読む正本として良いです。
+アプリ化・multi-service 化には、機械入力用 schema が必要です。
+phase: quote_sentallowed:  - explain_payment_after_material_share  - answer_proposal_questionforbidden:  - start_diagnosis_before_payment  - accept_external_work_surface  - request_raw_secretsnext_action_options:  - buyer_completes_payment  - buyer_declines  - seller_answers_question
+これを作ると、ココナラ以外のサービスにも adapter として移植しやすくなります。
+
+6. 日本語ビジネスチャット品質
+今まだ足りない観点
+いま足りないのは、単純な「柔らかさ」ではありません。
+足りないのは、
+
+正しい条件説明を、担当者の会話として読ませる力
+
+です。
+具体的には次です。
+1. business_chat_viability
+内容は正しいが、buyer から見ると次のように見えるか。
+
+
+受付票
+
+
+FAQ
+
+
+規約説明
+
+
+契約説明
+
+
+自動応答
+
+
+安全条件チェックリスト
+
+
+これは formal soft lens にしてよいです。
+ただし、hard fail ではありません。
+修正して価格・scope・phase・secret が揺れるなら acceptable_as_is です。
+
+2. response_weight_mismatch
+buyer の質問が軽いのに、返信が重すぎる問題です。
+例:
+
+
+「支払い後に zip で送ればいいですか？」に、支払い前診断不可・外部共有不可・secret・scope を全部並べる。
+
+
+「どこを見ればいいですか？」に、納品・承諾・本番反映・追加修正境界を全部説明する。
+
+
+「ログ送って関係だけ見てもらえますか？」に、返金・無料・新規依頼・旧トークルームまで並べすぎる。
+
+
+これは lens として正式化してよいです。
+ただし、closed・返金・secret・支払い前作業では硬さを許容します。
+
+3. positive_flow_before_refusal
+これは candidate から正式 soft lens に上げてよいです。
+ただし、適用条件を厳密にするべきです。
+発火する場面:
+
+
+buyer が単に共有タイミングを確認している。
+
+
+buyer が「支払い後に送ればよいか」を聞いている。
+
+
+buyer が軽い手順確認をしている。
+
+
+発火しない場面:
+
+
+支払い前診断を求めている。
+
+
+GitHub / Drive / 外部作業面へ誘導している。
+
+
+secret 値を送ろうとしている。
+
+
+直接 push / 本番反映を求めている。
+
+
+closed 後の無料修正・返金・実作業を要求している。
+
+
+つまり、これは「拒否を弱める lens」ではなく、軽い手順確認では通常フローを先に出す lensです。
+
+4. agency_alignment
+これはすでに正式 soft lens でよいです。
+問題は できます や 大丈夫です という単語ではなく、行為主体です。
+buyer の問い弱い返しよい返し依頼できますか相談できますご依頼いただけます / 対応できます見てもらえますか確認できますこちらで確認します教えてもらえますか補足できますこちらで短く整理します支払い後に送ればいいですか大丈夫ですお支払い完了後にトークルームで共有してください
+japanese-chat-natural-ja にこの観点はすでに入っています。
+
+5. safe_connection
+これは lens というより、naturalizer の gate にすべきです。
+自然につなげてよいのは、同じ役割・同じ約束レベルの文だけです。
+つなげてよい:
+
+届いている内容で確認に入ります。いま追加で準備いただくものはありません。
+
+危険:
+
+必ず直るとはお約束できません。ただ、ご購入後に修正済みファイルをお返しします。
+
+後者は、条件なしでつなげると promise が強く見えます。
+この gate は、自然化の暴走を止めるために重要です。
+
+正式 lens 候補
+正式化してよいもの:
+
+
+business_chat_viability
+
+
+response_weight_mismatch
+
+
+agency_alignment
+
+
+positive_flow_before_refusal
+
+
+commitment_strength_calibration
+
+
+negative_frame_non_echo
+
+
+safe_connection ※ lens ではなく naturalizer gate 推奨
+
+
+観察に留めるもの:
+
+
+voice_ownership
+
+
+issue_proximity
+
+
+topic_label_distance
+
+
+buyer_burden_alignment
+
+
+answer_order_calibration
+
+
+certainty_calibration
+
+
+好み差として放置すべきもの:
+
+
+句点の数
+
+
+段落数
+
+
+はい、 の有無だけ
+
+
+まずは の有無だけ
+
+
+大丈夫です の有無だけ
+
+
+できます の有無だけ
+
+
+〜の件 の有無だけ
+
+
+高リスク場面での少し硬い文
+
+
+closed / refund / secret / payment route での安全説明の硬さ
+
+
+
+7. 汎用コア化
+将来、ココナラ以外に展開するなら、分離はこうです。
+ココナラ固有
+これは adapter に閉じます。
+
+
+見積り相談
+
+
+見積り提案後
+
+
+トークルーム
+
+
+正式な納品
+
+
+承諾
+
+
+クローズ後
+
+
+おひねり / 追加支払い
+
+
+ココナラ内メッセージとトークルームの違い
+
+
+外部連絡・外部決済禁止
+
+
+closed 後に旧トークルームで作業しない
+
+
+サービス公開状態 public:true / false
+
+
+platform-contract.yaml と registry がこの層です。 
+
+サービス業務固有
+これは service pack に閉じます。
+bugfix-15000 なら:
+
+
+15,000円
+
+
+不具合1件
+
+
+同一原因 / 1フロー / 1エンドポイント
+
+
+Next.js / Stripe / API連携
+
+
+修正済みファイル返却
+
+
+evidence minimum
+
+
+direct push 不可
+
+
+本番反映不可
+
+
+secret 値不要
+
+
+scope matrix
+
+
+service.yaml、evidence-minimum.yaml、scope-matrix.md がこの層です。  
+
+日本語ビジネスチャット汎用
+これはココナラ外でも使えます。
+
+
+主質問に先に答える
+
+
+相手文の具体事実を1点拾う
+
+
+既出情報を聞き直さない
+
+
+次アクションを1つに絞る
+
+
+受け止めは1文まで
+
+
+処理文・条件文の塊感を減らす
+
+
+行為主体を合わせる
+
+
+ネガティブ意図をオウム返ししない
+
+
+圧力語を実務判断へ要約する
+
+
+高リスクでは硬さを許容する
+
+
+japanese-chat-natural-ja と writer-brief.ja.md がこの層です。 
+
+AI返信システム汎用
+これは最上位コアです。
+
+
+Source precedence
+
+
+Classifier / Writer / Reviewer 分離
+
+
+Contract packet
+
+
+answer_map / ask_map
+
+
+required_moves / forbidden_moves
+
+
+Source traceability
+
+
+Deterministic hard guard
+
+
+Soft lens taxonomy
+
+
+Gold reply retrieval
+
+
+Regression / holdout / real stock
+
+
+Change log
+
+
+Human audit adoption policy
+
+
+この層を作れば、ココナラ以外のメール返信、業務チャット、問い合わせ対応にも展開できます。
+
+8. 次のロードマップ
+今すぐやるべき 5ステップ
+Step 1. #RE88〜94 family を一旦 freeze する
+同型 batch をさらに回すより、まず棚卸しを確定します。
+やること:
+
+
+purchased_current_status
+
+
+quote_sent_payment_after_share
+
+
+delivered_light_supplement
+
+
+closed_relation_check
+
+
+この4 family を saturation: high にする。
+
+Step 2. core-completion-checklist.ja.md を作る
+今の議論を正本化します。
+最低限の章:
+
+
+Service truth
+
+
+Phase contract
+
+
+Reply decision
+
+
+Evidence / grounding
+
+
+Writer preservation
+
+
+Naturalizer safety
+
+
+Reviewer / lint
+
+
+Evaluation coverage
+
+
+Learning loop
+
+
+Multi-service readiness
+
+
+これができると、「完成に近いか」を毎回判断できます。
+
+Step 3. fixture-coverage-map.yaml を作る
+eval-sources.yaml は大量の source を持っていますが、coverage の見える化がまだ弱いです。
+必要な軸:
+
+
+phase
+
+
+service
+
+
+route
+
+
+question_type
+
+
+risk class
+
+
+soft lens
+
+
+source type: real / synthetic / external / regression
+
+
+family
+
+
+last pass
+
+
+saturation
+
+
+これで、次の #RE は「まだ薄い family」だけにできます。
+
+Step 4. failure-taxonomy.yaml と lens-taxonomy.yaml を作る
+人間が違和感を見つけてから lens 化する流れは、有効でした。
+ただし今後は、違和感をすぐ rule 化しないために taxonomy が必要です。
+特に、
+
+
+hard deterministic
+
+
+soft fix recommended
+
+
+acceptable as-is
+
+
+observe only
+
+
+preference
+
+
+overfire risk
+
+
+を正式分類にしてください。
+
+Step 5. reply-memory-schema.yaml と phase-contract-schema.yaml を作る
+アプリ化に進むなら、この2つが必要です。
+入力設計へ進むのは賛成です。
+ただし、自然文 UI から始めるのではなく、内部 contract packet から作るべきです。
+
+後でよいこと
+
+
+新しい gold reply 追加
+
+
+新しい soft lens 名の追加
+
+
+xhigh 監査の routine 継続
+
+
+renderer の全面改修
+
+
+handoff-25000 の public 化前でない詳細 tuning
+
+
+メール返信用への本格展開
+
+
+
+やらない方がよいこと
+
+
+#RE95〜100 を同型で大量に回す
+
+
+xhigh に routine batch を毎回出す
+
+
+soft lens をどんどん regex lint 化する
+
+
+できます / 大丈夫です / まずは / はい / 〜の件 を blanket NG にする
+
+
+Gold を全採用 batch 分だけ増やす
+
+
+Writer に self-check 全文や監査プロンプト全文を渡す
+
+
+自然化のために価格・scope・phase・secret・payment route を弱める
+
+
+「説明書っぽさ」を消すために、closed / refund / secret / payment route の硬さまで削る
+
+
+
+個別判断
+判断対象結論#RE をまだ回すべきか回す。ただし同型大量ではなく、coverage map で薄い family だけCodex xhigh 監査を続けるべきか続ける。ただし節目・未知 failure・公開前レビュー限定Pro 分析の頻度3〜5 accepted batch 後、または lens taxonomy 更新時実案件 stockすぐ集めるべき。synthetic だけでは business chat viability の限界がある採用済み batch の gold 化全部は不要。RE88〜94 からは archetype 4本程度で十分business chat rubric作るべき。hard ではなく soft rubric としてアプリ化入力設計進んでよい。ただし先に phase / memory / contract packet schemaコア訓練同型訓練は一旦縮小。体系化へ移る
+
+9. 追加で見るべきファイル
+次に実装作業へ進むなら、追加確認すべきファイルは以下です。
+まず見るべき
+
+
+ops/common/output-schema.yaml
+
+
+ops/common/interaction-states.yaml
+
+
+ops/common/risk-gates.yaml
+
+
+ops/common/routing-table.yaml
+
+
+ops/common/coconala-rule-guard.md
+
+
+docs/reply-quality/forbidden-moves-matrix.ja.md
+
+
+docs/reply-quality/skill-thought-preservation-minimal.ja.md
+
+
+docs/coconala-reply-self-check.ja.md
+
+
+理由は、reply_contract / forbidden_moves / state / risk の schema を完成条件に接続するためです。
+renderer / validator 同期で見るべき
+
+
+scripts/render-prequote-estimate-initial.py
+
+
+scripts/render-quote-sent-followup.py
+
+
+scripts/render-post-purchase-quick.py
+
+
+scripts/render-delivered-followup.py
+
+
+scripts/render-closed-followup.py
+
+
+scripts/check-rendered-prequote-estimate.py
+
+
+scripts/check-rendered-quote-sent-followup.py
+
+
+scripts/check-rendered-post-purchase-quick.py
+
+
+scripts/check-rendered-delivered-followup.py
+
+
+scripts/check-rendered-closed-followup.py
+
+
+理由は、#R / #RE / deterministic renderer / writer candidate のズレを最終的にここで潰す必要があるからです。
+service-pack 側で見るべき
+
+
+ops/services/next-stripe-bugfix/service-pack/facts.yaml
+
+
+ops/services/next-stripe-bugfix/service-pack/boundaries.yaml
+
+
+ops/services/next-stripe-bugfix/service-pack/decision-contract.yaml
+
+
+ops/services/next-stripe-bugfix/service-pack/evidence-contract.yaml
+
+
+ops/services/next-stripe-bugfix/service-pack/routing-playbooks.yaml
+
+
+ops/services/next-stripe-bugfix/service-pack/state-schema.yaml
+
+
+check-service-pack-fidelity.py はこの service-pack の参照実在性を見ています。
+完成条件にするなら、実在性だけでなく「意味が service page と一致しているか」まで見たいです。
+
+最終判断
+この返信OSは、返信生成コアとしてはかなり完成に近いです。
+ただし、完成前にやるべきことは「もっと返信を直す」ではありません。
+次に作るべきなのは、
+
+
+完成条件 checklist
+
+
+fixture coverage map
+
+
+failure taxonomy
+
+
+lens taxonomy
+
+
+gold reply map
+
+
+reply memory schema
+
+
+phase contract schema
+
+
+です。
+#RE はまだ使えます。
+ただし、今後の #RE は「違和感探し」ではなく、coverage map 上の未確認領域を埋めるための実験に変えるべきです。
+いまのまま同型 batch を回し続けると、返信は少しずつ整いますが、コア完成には近づきにくいです。
+逆に、上のメタ層を作れば、いま積み上がっている #RE / gold / lint / human audit / Pro 分析が、かなり強い返信OSの完成判定基盤になります。

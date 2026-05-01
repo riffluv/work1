@@ -32,6 +32,7 @@ boundary_principles:
   - "別原因が見つかっても追加料金は自動発生させない"
   - "同一原因の範囲は今回の中で扱う"
   - "別機能・別原因は新しい依頼として切る"
+  - "external_share は GitHub 招待、Google Drive、Dropbox、外部URLなどの外部作業面を指す。ココナラ上のトークルーム添付やZIP添付は、秘密値を含めない範囲で許容される"
 
 source_refs:
   scope_matrix: "/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/scope-matrix.md"

@@ -1,0 +1,163 @@
+version: 1
+updated: "2026-05-01"
+purpose: >
+  #RE / #BR / stock / regression の coverage を見える化し、
+  同型 batch の回しすぎを避けるための初期 map。
+
+families:
+  purchased_current_status:
+    service: bugfix-15000
+    phases:
+      - purchased
+    risk_classes:
+      - semantic_grounding
+      - source_traceability
+      - commitment_strength_calibration
+    expected_lenses:
+      - business_chat_viability
+      - conversation_flow_naturalness
+      - response_weight_mismatch
+    source_type: synthetic_rehearsal
+    saturation: high
+    last_results:
+      - batch: RE-2026-05-01-bugfix-89
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-90
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-91
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-92
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-93
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-94
+        result: adopted_with_minor_case_fix
+    active_files:
+      - ops/tests/quality-cases/active/semantic-grounding-progress-bugfix89.yaml
+      - ops/tests/quality-cases/active/semantic-grounding-practical-bugfix90.yaml
+      - ops/tests/quality-cases/active/business-chat-semantic-grounding-bugfix91.yaml
+      - ops/tests/quality-cases/active/business-chat-grounding-followup-bugfix92.yaml
+      - ops/tests/quality-cases/active/practical-chat-grounding-bugfix93.yaml
+      - ops/tests/quality-cases/active/practical-chat-grounding-bugfix94.yaml
+    next_action: freeze_until_real_stock_or_contract_change
+
+  quote_sent_payment_after_share:
+    service: bugfix-15000
+    phases:
+      - quote_sent
+    risk_classes:
+      - prepurchase_work_start
+      - external_work_surface
+      - positive_flow_before_refusal
+    expected_lenses:
+      - positive_flow_before_refusal
+      - response_weight_mismatch
+      - agency_alignment
+    source_type: synthetic_rehearsal
+    saturation: high
+    last_results:
+      - batch: RE-2026-05-01-bugfix-85
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-86
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-88
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-93
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-94
+        result: adopted_with_minor_case_fix
+    active_files:
+      - ops/tests/quality-cases/active/positive-flow-before-refusal-bugfix85.yaml
+      - ops/tests/quality-cases/active/positive-flow-practical-mixed-bugfix86.yaml
+      - ops/tests/quality-cases/active/business-chat-viability-followup-bugfix88.yaml
+      - ops/tests/quality-cases/active/practical-chat-grounding-bugfix93.yaml
+      - ops/tests/quality-cases/active/practical-chat-grounding-bugfix94.yaml
+    next_action: freeze_until_new_boundary_or_real_stock
+
+  delivered_light_supplement:
+    service: bugfix-15000
+    phases:
+      - delivered
+    risk_classes:
+      - delivered_closed_confusion
+      - overdelivery
+      - agency_alignment
+    expected_lenses:
+      - business_chat_viability
+      - agency_alignment
+      - response_weight_mismatch
+    source_type: synthetic_rehearsal
+    saturation: high
+    last_results:
+      - batch: RE-2026-05-01-bugfix-87
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-88
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-92
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-93
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-94
+        result: adopted_with_minor_case_fix
+    active_files:
+      - ops/tests/quality-cases/active/business-chat-viability-agency-bugfix87.yaml
+      - ops/tests/quality-cases/active/business-chat-viability-followup-bugfix88.yaml
+      - ops/tests/quality-cases/active/business-chat-grounding-followup-bugfix92.yaml
+      - ops/tests/quality-cases/active/practical-chat-grounding-bugfix93.yaml
+      - ops/tests/quality-cases/active/practical-chat-grounding-bugfix94.yaml
+    next_action: freeze_until_real_delivered_stock
+
+  closed_relation_check:
+    service: bugfix-15000
+    phases:
+      - closed
+    risk_classes:
+      - closed_after_work_boundary
+      - free_refund_pressure
+      - responsibility_admission_guard
+    expected_lenses:
+      - negative_frame_non_echo
+      - pressure_word_summarization
+      - business_chat_viability
+      - response_weight_mismatch
+    source_type: synthetic_rehearsal
+    saturation: high
+    last_results:
+      - batch: RE-2026-05-01-bugfix-88
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-89
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-90
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-91
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-92
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-93
+        result: adopted
+      - batch: RE-2026-05-01-bugfix-94
+        result: adopted_with_minor_case_fix
+    active_files:
+      - ops/tests/quality-cases/active/business-chat-viability-followup-bugfix88.yaml
+      - ops/tests/quality-cases/active/semantic-grounding-progress-bugfix89.yaml
+      - ops/tests/quality-cases/active/semantic-grounding-practical-bugfix90.yaml
+      - ops/tests/quality-cases/active/business-chat-semantic-grounding-bugfix91.yaml
+      - ops/tests/quality-cases/active/business-chat-grounding-followup-bugfix92.yaml
+      - ops/tests/quality-cases/active/practical-chat-grounding-bugfix93.yaml
+      - ops/tests/quality-cases/active/practical-chat-grounding-bugfix94.yaml
+    next_action: freeze_until_real_closed_stock_or_new_refund_failure
+
+coverage_gaps:
+  real_stock:
+    status: low
+    note: "synthetic rehearsal は十分。実案件 stock で business chat viability を確認する必要がある。"
+  multi_service:
+    status: low
+    note: "handoff-25000 public:false のため future-dual は #BR 限定。通常 live へ戻さない。"
+  app_memory:
+    status: low
+    note: "アプリ化前に previous commitments / materials / deadlines / phase を schema 化する。"
+  email_channel:
+    status: not_started
+    note: "今はココナラチャット優先。メール展開は core schema 後。"
+

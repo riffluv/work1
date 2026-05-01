@@ -203,11 +203,13 @@ def build_temperature_plan_for_case(source: dict, scenario: str) -> dict:
         "payment_method",
         "dashboard_scope_question",
         "prepayment_materials_before_payment",
+        "prepayment_zip_sufficiency_check",
         "extra_fee_fear",
         "self_apply_support",
         "secret_share_reassurance",
         "no_meeting_request",
         "private_repo_share_question",
+        "after_payment_zip_share_timing",
         "zip_share_question",
         "multi_symptom_same_cause_scope_question",
         "scope_constraints_question",
@@ -249,6 +251,8 @@ def purchase_closing(scenario: str, raw: str) -> str:
         return ""
     if scenario == "prequote_extra_signal":
         return "この前提でよければ、そのままご購入へ進めてください。"
+    if scenario == "prepayment_zip_sufficiency_check":
+        return "見積り提案の内容で問題なければ、そのままご購入手続きへ進んでください。"
     if scenario == "service_comparison_refund_question":
         return "内容に違和感がなければ、そのままご購入へ進めてください。"
     if scenario == "service_comparison_strength_question":
@@ -283,6 +287,8 @@ def purchase_closing(scenario: str, raw: str) -> str:
         return "問題なければ、そのままご購入へ進めてください。"
     if scenario == "zip_share_question":
         return "問題なければ、そのままご購入後にZIPで共有いただければ大丈夫です。"
+    if scenario == "after_payment_zip_share_timing":
+        return "見積り提案の内容で問題なければ、そのままご購入手続きへ進んでください。"
     if scenario == "price_trust_question":
         return "内容に違和感がなければ、そのままご購入ください。"
     if scenario == "response_speed_anxiety":
@@ -657,6 +663,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         return "Zoomなしでも進められる代替手段を確認したい"
     if scenario == "private_repo_share_question":
         return "プライベートリポジトリをどの形で共有すればよいかと、どこまで見せればよいか不安"
+    if scenario == "after_payment_zip_share_timing":
+        return "支払い後に関係ファイルをまとめてZIPで共有すればよいか確認したい"
     if scenario == "zip_share_question":
         return "GitHubではなくZIP共有でも進められるか知りたい"
     if scenario == "multi_symptom_same_cause_scope_question":
@@ -699,6 +707,8 @@ def build_primary_concern(source: dict, scenario: str, facts_known: list[str]) -
         if "same_day_check_requested" in facts_known:
             return "購入後に今日中に見てもらえるかと、売上影響が大きいので早めに動いてもらえるか確認したい"
         return "調査から修正までの目安と、難しい場合に調査結果だけ先に受け取れるか確認したい"
+    if scenario == "prepayment_zip_sufficiency_check":
+        return "購入前にZIPを送って、必要ファイルが足りているかだけ先に見てもらえるか確認したい"
     if "sendgrid_present" in facts_known and "additional_file_offer_present" in facts_known:
         return "Stripe以外に見えているSendGrid処理まで今回の提案で見られるかと、追加ファイルをどう渡せばよいか確認したい"
     if raw:
@@ -722,6 +732,7 @@ def detect_scenario(source: dict) -> str:
     raw = source.get("raw_message", "")
     note = source.get("note", "")
     combined = f"{raw}\n{note}"
+    combined_lower = combined.lower()
     fit_level, fit_id = classify_capability_fit(combined)
     has_bugfix_stack_context = any(
         marker in combined
@@ -756,11 +767,17 @@ def detect_scenario(source: dict) -> str:
         ]
     )
     if (
-        any(marker in combined for marker in ["支払い", "入金", "購入前"])
+        any(marker in combined for marker in ["支払い", "入金", "購入前", "購入する前", "買う前"])
         and any(marker in combined for marker in ["先に", "支払い前", "入金前"])
-        and any(marker in combined for marker in ["コード", "ログ", "原因"])
+        and any(marker in combined for marker in ["コード", "ログ", "原因", "エラー画面", "スクショ", "画像", "zip", "ZIP", "直せそう", "判断"])
     ):
         return "prepayment_materials_before_payment"
+    if (
+        any(marker in combined for marker in ["支払い前", "購入前", "購入する前", "買う前", "入金前"])
+        and any(marker in combined_lower for marker in ["zip", "ファイル"])
+        and any(marker in combined for marker in ["足りて", "必要なファイル", "必要ファイル", "先に見"])
+    ):
+        return "prepayment_zip_sufficiency_check"
     has_bugfix_surface = any(
         marker in combined
         for marker in [
@@ -837,7 +854,14 @@ def detect_scenario(source: dict) -> str:
         and any(marker in combined for marker in ["招待", "共有方法", "どの範囲まで共有", "どこまで共有"])
     ):
         return "private_repo_share_question"
-    if ("githubじゃなくてzip" in combined.lower() or "zipで送ってもいい" in combined.lower() or "zipで送ってもいい？" in combined.lower()):
+    if (
+        any(marker in combined for marker in ["支払い後", "お支払い完了後", "購入後"])
+        and any(marker in combined_lower for marker in ["zip", "ファイル", "ログ", "スクショ"])
+        and any(marker in combined for marker in ["送る形", "送れば", "送って", "共有", "まとめて"])
+        and any(marker in combined for marker in ["大丈夫", "不要なもの", "混ざ", "いいですか", "進められ", "進めれば"])
+    ):
+        return "after_payment_zip_share_timing"
+    if ("githubじゃなくてzip" in combined_lower or "zipで送ってもいい" in combined_lower or "zipで送ってもいい？" in combined_lower):
         return "zip_share_question"
     if (
         any(marker in combined for marker in ["1回の購入", "1つのバグだけ", "3箇所", "まとめて見てもら", "別々に購入"])
@@ -1096,6 +1120,10 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         blocking_missing_facts = ["payment_completion"]
         direct_answer_line = "支払い前にコードやログを受け取って原因確認を進めることはしていません。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "prepayment_zip_sufficiency_check":
+        blocking_missing_facts = ["payment_completion"]
+        direct_answer_line = "支払い前にZIPを受け取って、必要ファイルが足りているかだけ先に確認する形では進めていません。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "extra_fee_fear":
         direct_answer_line = "今回の見積もりは15,000円の範囲で進める前提です。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
@@ -1107,6 +1135,9 @@ def build_response_decision_plan(source: dict, scenario: str, contract: dict) ->
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "private_repo_share_question":
         direct_answer_line = "必ずリポジトリ全体を共有いただく必要はなく、不具合に関係する範囲からで大丈夫です。"
+        response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
+    elif scenario == "after_payment_zip_share_timing":
+        direct_answer_line = "お支払い完了後に、関係しそうなファイルをZIPでトークルームへ共有してください。"
         response_order = ["reaction", "direct_answer", "answer_detail", "next_action"]
     elif scenario == "zip_share_question":
         direct_answer_line = "GitHubではなくZIPで送っていただいて大丈夫です。"
@@ -1483,6 +1514,25 @@ def build_case_from_source(source: dict) -> dict:
         case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
         return case
 
+    if scenario == "prepayment_zip_sufficiency_check":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "購入前にZIPを送れば、必要ファイルが足りているかだけ先に見てもらえるか", "priority": "primary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "支払い前にZIPを受け取って、必要ファイルが足りているかだけ先に確認する形では進めていません。",
+                }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
     if scenario == "extra_fee_fear":
         case["reply_contract"] = {
             "primary_question_id": "q1",
@@ -1555,6 +1605,31 @@ def build_case_from_source(source: dict) -> dict:
                     "disposition": "answer_now",
                     "answer_brief": "必ずリポジトリ全体を共有いただく必要はなく、不具合に関係する範囲からで大丈夫です。",
                 }
+            ],
+            "ask_map": [],
+            "required_moves": ["react_briefly_first", "answer_directly_now"],
+        }
+        case["response_decision_plan"] = build_response_decision_plan(source, scenario, case["reply_contract"])
+        return case
+
+    if scenario == "after_payment_zip_share_timing":
+        case["reply_contract"] = {
+            "primary_question_id": "q1",
+            "explicit_questions": [
+                {"id": "q1", "text": "支払い後に関係ファイルをZIPでまとめて送ればよいか", "priority": "primary"},
+                {"id": "q2", "text": "不要なものが混ざるかもしれないが問題ないか", "priority": "secondary"},
+            ],
+            "answer_map": [
+                {
+                    "question_id": "q1",
+                    "disposition": "answer_now",
+                    "answer_brief": "お支払い完了後に、関係しそうなファイルをZIPでトークルームへ共有してください。",
+                },
+                {
+                    "question_id": "q2",
+                    "disposition": "answer_now",
+                    "answer_brief": "不要なものが混ざっていても、こちらで必要な範囲を見ながら確認します。",
+                },
             ],
             "ask_map": [],
             "required_moves": ["react_briefly_first", "answer_directly_now"],
@@ -2171,6 +2246,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "Webhook受信口に加えて、Stripeダッシュボード設定の件ですね。"
     if scenario == "prepayment_materials_before_payment":
         return ""
+    if scenario == "prepayment_zip_sufficiency_check":
+        return "支払い前のZIP確認についてですね。"
     if scenario == "extra_fee_fear":
         return "金額が増えるのが不安という点を先に整理します。"
     if scenario == "self_edit_fee_anxiety":
@@ -2179,6 +2256,8 @@ def draft_opening_anchor(case: dict) -> str:
         return "ご自身で反映する場合のサポート範囲ですね。"
     if scenario == "private_repo_share_question":
         return "コード共有の方法がご不安とのことですね。"
+    if scenario == "after_payment_zip_share_timing":
+        return "支払い後のファイル共有についてですね。"
     if scenario == "zip_share_question":
         return "ZIPでの共有方法が気になっている件ですね。"
     if scenario == "multi_symptom_same_cause_scope_question":
@@ -2417,6 +2496,13 @@ def draft_body_paragraphs(case: dict) -> list[str]:
             "この内容で問題なければ、お支払い完了後にトークルームでVercelログやStripeのEvent IDなど、必要情報を送ってください。",
         ]
 
+    if scenario == "prepayment_zip_sufficiency_check":
+        return [
+            direct_answer,
+            "必要なファイルの確認や原因確認は、お支払い完了後にトークルームで共有いただいた内容をもとに進めます。",
+            purchase_closing(scenario, raw),
+        ]
+
     if scenario == "extra_fee_fear":
         return [
             f"{direct_answer}\n確認の結果、別原因が複数あり、この金額内では修正完了まで進められないと分かった場合は、そこで止めてご説明します。".strip(),
@@ -2441,6 +2527,13 @@ def draft_body_paragraphs(case: dict) -> list[str]:
         return [
             f"{direct_answer}\n招待が必要な場合でも、確認に必要な部分だけ共有いただければ進められます。".strip(),
             "最初から全部そろっていなくても大丈夫です。",
+            purchase_closing(scenario, raw),
+        ]
+
+    if scenario == "after_payment_zip_share_timing":
+        return [
+            direct_answer,
+            "不要なものが混ざっていても、こちらで必要な範囲を見ながら確認します。APIキーや .env の値などの秘密情報は含めない形でお願いします。",
             purchase_closing(scenario, raw),
         ]
 

@@ -1,0 +1,14 @@
+# Compatibility pointer for tools or reviews that expect this path.
+#
+# Canonical service-pack facts live at:
+#   /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack/facts.yaml
+#
+# Do not duplicate public facts here. Keep this file as a pointer so future
+# services do not split service truth across two competing facts files.
+
+version: 1
+kind: facts_pointer
+service_id: bugfix-15000
+canonical_facts_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service-pack/facts.yaml
+legacy_compatibility_file: /home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml
+do_not_duplicate_facts_here: true
