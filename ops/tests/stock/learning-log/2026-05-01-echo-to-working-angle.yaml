@@ -1,0 +1,29 @@
+date: 2026-05-01
+case_ref: "#R user sample 2 / 本番だけWebhook失敗"
+
+# --- 文脈 ---
+consultation_type: "Next.js + Stripe / Vercel 本番Webhook 500"
+buyer_decision_stage: "prequote"
+service: "bugfix-15000"
+state: "prequote"
+
+# --- 診断 ---
+symptom: "対応可否の直後に、buyer の症状をきれいに言い直して `症状として確認します` と返すと、正しいが少し受付票・bot 的に見える"
+failure_label: "echo_to_working_angle"
+failure_layer: "business_chat_naturalness / semantic_grounding"
+
+# --- 投資判断 ---
+generalizability: "medium"
+reason: "症状復唱は有効な場面もあるが、対応可否の直後に毎回 `症状として確認します` へ流すと、相手文の復唱で止まり、こちらの確認観点に変換されていない印象が出る"
+return_target: "observe"
+decision: "observe"
+decision_reason: "現時点では単発。禁止語や hard rule にはせず、同型が複数出たら gold / reviewer prompt / soft lens 候補として検討する"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "なし"
+existing_rule_hit: "あり"
+not_returned_reason: "症状の短い復唱が必要な場面もあるため、blanket rule 化はまだ危険"
+next_sentinel: "対応可否の直後に、相手の症状をラベル化して `確認します` と閉じるケースが再発するかを見る"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "相手文の復唱で止めず、確認上重要な差分をこちらの作業観点へ変換する"
+upstream_fix: "例: `ローカルでは動いていて、Vercelへデプロイ後だけ失敗する症状として確認します` -> `ローカルでは動いているとのことなので、本番環境でだけ失敗している原因を見ていきます`。`その点も含めて` のような抽象接続を標準化しない"

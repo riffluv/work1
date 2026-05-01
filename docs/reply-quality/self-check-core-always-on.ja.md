@@ -14,7 +14,7 @@
 6. `routing-playbooks.yaml` と `state-schema.yaml` に反する行き先や timing を置いていないか。delivered を closed と誤認していないか。closed 後に旧トークルームでの継続作業・ファイル送付・追加購入を前提にしていないか
 7. `見られるか` `形ではありません` `もっともです` など既知 NG が戻っていないか
 8. buyer の不安やお礼を、必要な場面で1文だけ受けているか
-9. next action が buyer に見えており、1つに絞れているか
+9. next action が buyer に見えており、1つに絞れているか。buyer が判断できないから相談している領域を、材料選別・優先順位づけ・関係箇所判断として buyer に戻しすぎていないか
 10. multi-turn なら、secondary thread の行き先 / return timing / required input が見えているか
 
 ## ケース別リファレンスへ降りる条件

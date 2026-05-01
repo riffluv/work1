@@ -1,0 +1,29 @@
+date: 2026-05-01
+case_ref: "#R user sample 3 / 有料プラン反映漏れ"
+
+# --- 文脈 ---
+consultation_type: "Stripe決済後の有料プラン反映漏れ"
+buyer_decision_stage: "prequote"
+service: "bugfix-15000"
+state: "prequote"
+
+# --- 診断 ---
+symptom: "buyer が `AIで作ったコード` `コードを見ても分からない` `購入後はどのファイルを送ればいいか` と聞いているのに、関係ファイルの選別を buyer 側へ戻すと不親切に見える。さらに `選び切る必要はありません` のような言い方は説明者目線で、教材・AI解説っぽく見える"
+failure_label: "material_selection_burden"
+failure_layer: "business_chat_naturalness / buyer_burden_alignment / material_request"
+
+# --- 投資判断 ---
+generalizability: "high"
+reason: "bugfix-15000 では、非エンジニア・AIコード・Stripe/Webhook/DBの関係が分からない buyer が多く、材料選別を buyer に返すと相談した理由そのものを戻す形になりやすい"
+return_target: "writer_brief / bugfix_skill / pro_queue"
+decision: "adopt_light"
+decision_reason: "条件付きで有効。非エンジニア・AIコード・ファイル不明が明示されている時に限り、コード一式ZIP + secret除外へ寄せる。毎回ZIP一式を要求する hard rule にはしない"
+fix_unit: "pattern_candidate"
+recurrence_evidence: "なし"
+existing_rule_hit: "あり"
+not_returned_reason: ""
+next_sentinel: "非エンジニア/AIコード/ファイル不明で、`関係しそうなファイル` `分かる範囲` へ逃げていないか、また `選び切る` のような説明者目線の語で負担軽減を説明していないかを見る"
+
+# --- 抽象化（adopt の場合のみ） ---
+pattern: "buyer が材料を選べないと明示している場合は、ファイル選別を buyer に返さず、可能ならコード一式ZIP + エラーログ/スクショ + secret除外へ寄せる。文面は `選び切る必要はありません` より `無理に絞らなくて大丈夫です` を優先する"
+upstream_fix: "writer-brief / japanese-chat-natural-ja / coconala-reply-bugfix-ja に条件付き rule として反映。lens-taxonomy では observe_only の subtype として保持"

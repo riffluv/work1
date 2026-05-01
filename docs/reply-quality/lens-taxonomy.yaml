@@ -37,6 +37,7 @@ formal_soft_lenses:
       - unnecessary_refusal_frame
       - answer_order_calibration
       - buyer_burden_alignment
+      - material_selection_burden
     preferred_return_targets:
       - gold_reply
       - reviewer_prompt
@@ -137,6 +138,7 @@ observe_only:
   - issue_proximity
   - topic_label_distance
   - buyer_burden_alignment
+  - material_selection_burden
   - answer_order_calibration
   - certainty_calibration # use commitment_strength_calibration when the issue is promise strength
 

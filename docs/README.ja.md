@@ -47,7 +47,7 @@
 - `docs/writing-guideline.ja.md`
   - トークルーム文面の文体ルール。
 - `docs/coconala-japanese-banlist.ja.md`
-  - 使わない表現。
+  - 単語狩りではなく、hard accident / 条件付き注意 / soft lens の戻し先を分ける表現ガード。
 - `docs/coconala-japanese-must-rules.ja.md`
   - 必ず守る日本語ルール。
 

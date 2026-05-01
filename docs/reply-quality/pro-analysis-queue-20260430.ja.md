@@ -190,6 +190,45 @@ Pro に聞きたいこと:
 - lint 化できる表面パターンがあるか、それとも gold / reviewer prompt / human audit に留めるべきか。
 - 日本語ビジネスチャットで、行為主体ズレが信頼感に与える影響。
 
+### 7. `material_selection_burden`
+
+buyer が「コードが分からない」「AIで作った」「どのファイルを送ればいいか分からない」と言っているのに、関係ファイルの選別や原因候補判断を buyer 側へ戻していないか。
+
+代表例:
+
+```text
+どのファイルが関係するか迷う場合は、分かる範囲で送っていただければ、こちらで必要な範囲を見ながら不足分をお伝えします。
+```
+
+違和感:
+
+- ガチ素人の buyer は `分かる範囲` 自体が分からない。
+- `関係しそうなファイル` の選別を依頼すると、相談した理由そのものを buyer に返しているように読める。
+- このサービスでは、コードが分からない / AIコード / StripeやWebhookやDBの関係が分からない buyer が多いため、材料選別負担の戻し方は実務品質に直結する。
+
+修正例:
+
+```text
+ご購入後は、エラーログや画面スクショに加えて、可能であればコード一式をZIPでトークルームに送ってください。
+どのファイルが関係するか分からなくても、こちらで必要な範囲を見ながら確認します。
+
+APIキーやWebhook Secret、.envの値そのものは送らなくて大丈夫です。
+コード一式に含まれそうな場合は、該当部分を伏せるか、.envファイルを外した状態で送ってください。
+```
+
+現状の方針:
+
+- `buyer_burden_alignment` の subtype として観察する。
+- 非エンジニア / AIコード / ファイル不明が明示されている時は、ファイル選別を buyer に返さず、コード一式 ZIP + secret 除外へ寄せる。
+- エンジニア寄り buyer や、関係ファイルが明確な場面では、毎回コード一式 ZIP を要求しない。
+- ZIP一式に寄せる時は、secret 値除外を必ず近くに置く。
+
+Pro に聞きたいこと:
+
+- `buyer_burden_alignment` の subtype で十分か、独立 lens 化すべきか。
+- 「コード一式 ZIP」を出す条件と、関係ファイル指定に留める条件。
+- secret safety と材料選別負担軽減を、どの順序・文量で出すのが自然か。
+
 ## Pro に投げるタイミング
 
 そろそろ一度投げてよい段階。
@@ -197,7 +236,7 @@ Pro に聞きたいこと:
 目安:
 
 - `promise_consistency` 導入後の `#RE` は複数 batch 回っており、採用圏の実例が出ている。
-- `permission_benefit_alignment` / `unnecessary_refusal_frame` / `agency_alignment` は、人間監査で実務上の違和感が複数見つかっている。
+- `permission_benefit_alignment` / `unnecessary_refusal_frame` / `agency_alignment` / `material_selection_burden` は、人間監査で実務上の違和感が複数見つかっている。
 - 外部 Codex xhigh 監査では必須崩れなしになりやすい一方、人間監査では日本語ネイティブの立場・温度・主体ズレが見えている。
 - 次の Pro 相談では、これらを `jp_business_native_naturalness` の subtype として束ねるべきか、正式 lens として分けるべきかを聞く。
 

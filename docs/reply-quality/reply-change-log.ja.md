@@ -2229,3 +2229,39 @@
 - 想定効果: 将来アプリ化で、buyer が伏せ直し済みファイルを送った後に、前のZIPを確認対象にしてしまう、秘密値を再要求する、送り直し分を未受領扱いする、未提示技術語を足す、といった memory / secret failure を早めに検出できる
 - 確認: `python3 -m py_compile scripts/render-post-purchase-quick.py scripts/build-contract-packets.py scripts/check-contract-packet-writer-brief-sync.py` は OK。`./scripts/check-contract-packet-fixtures.py` は `OK contract packet fixture trace: 9 fixture(s)`。`./scripts/check-contract-packets.py` は `OK 9 contract packet(s)`（既存 warning のみ）。`./scripts/build-contract-packets.py --check-against-samples --save-report` は `OK generated contract packet comparison: 9 packet(s)`。`python3 scripts/check-contract-packet-writer-brief-sync.py` は `OK contract packet writer brief sync: 9 fixture(s), 0 warning(s)`。`./scripts/check-v1-completion-gates.py --save-report` は `v1_completion_candidate`。`./scripts/check-coconala-reply-role-suites.py --role renderer_seed --save-report` は OK
 - 非変更: 新しい自然文テンプレートは追加しない。`purchased_redacted_resend_received` は memory / phase / reply_contract の secret redaction seed。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-257
+- 分類: `reply-only`
+- レイヤ: expression guard / naturalization governance
+- 変更: `docs/coconala-japanese-banlist.ja.md` を、単語を一律に禁じる Ban リストから、`hard accident` / 強い組み合わせ / 条件付き注意 / 再発しやすい型 / 戻し先 lens を分ける表現ガードへ整理した。`docs/README.ja.md` の説明も `使わない表現` から表現ガードへ更新した
+- きっかけ: `進めて` / `進め` のような局所 polish や、`相談できます` / `確認できます` / `大丈夫です` のような条件付き表現を、禁止語として扱うと Codex の思考を狭め、将来コアでノイズ化する懸念があったため
+- 想定効果: 日本語自然化の指摘を、その場の単語修正で終わらせず、事故なら hard guard、行為主体なら `agency_alignment`、軽い手順確認なら `positive_flow_before_refusal`、文体だけなら gold / case polish へ戻しやすくなる。blanket NG による過剰矯正を減らす
+- 確認: `git diff --check` は OK。`./scripts/os-check.sh` は `mode=coconala` で OK
+- 非変更: 返信本文・renderer 分岐・service facts は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-258
+- 分類: `reply-only`
+- レイヤ: buyer burden / material request
+- 変更: `material_selection_burden` を `buyer_burden_alignment` の観察 subtype として `lens-taxonomy.yaml` に追加した。`writer-brief.ja.md` と `coconala-reply-bugfix-ja` には、buyer が `コードが分からない` `AIで作った` `どのファイルを送ればいいか分からない` と明示している場合、関係ファイル選別を buyer に返しすぎず、購入後の材料共有をコード一式 ZIP + エラーログ / スクショ + secret 除外へ寄せる方針を追加した。学習ログと Pro queue にも候補として記録した
+- きっかけ: #R の有料プラン反映漏れ相談で、`分かる範囲で関係ファイルを送ってください` は一見親切でも、ガチ素人 buyer には `分かる範囲` 自体が分からず、判断負担を戻していると human audit で分かったため
+- 想定効果: 非エンジニア / AIコード / ファイル不明の buyer に対して、相談した理由そのものを buyer に返す崩れを減らす。必要な材料は集めつつ、secret 値混入リスクも同時に抑えやすくする
+- 確認: `git diff --check` は OK。`./scripts/os-check.sh` は `mode=coconala` で OK
+- 非変更: 毎回コード一式 ZIP を要求する hard rule にはしない。エンジニア寄り buyer や関係ファイルが明確な場面では、関係ファイル指定に留めてよい。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-259
+- 分類: `reply-only`
+- レイヤ: core naturalization / service onboarding
+- 変更: `material_selection_burden` の考え方をココナラ bugfix 固有の ZIP 案内だけで終わらせず、`相手が判断できないから相談している領域を、相手へ戻しすぎない` という汎用原則として `japanese-chat-natural-ja`、`self-check-core-always-on.ja.md`、`service-facts-onboarding-template.ja.md` へ反映した。新サービス導入時に `buyer_burden_hotspots`、`safe_default_inputs`、`must_not_push_back_to_buyer` を記入できるようにした
+- きっかけ: user audit で、今回のファイル選別負担はココナラ固有ではなく、将来の返信OSコアでも「資料選別・素材選択・対象画面選択・必要情報判断」へ広く出る構造だと整理されたため
+- 想定効果: 将来サービス展開時に、毎回ゼロから自然化修行をせず、サービス別 profile として「buyer が判断できない領域」と「安全な既定入力」を入れられる。汎用コアは判断負担の戻しすぎを検出し、サービス側が代替入力を提供する分担になる
+- 確認: `git diff --check` は OK。`./scripts/os-check.sh` は `mode=coconala` で OK
+- 非変更: `コード一式ZIP` は汎用コアへ入れない。これは bugfix-15000 側の safe default input として扱う。返信本文・renderer 分岐・service facts は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-260
+- 分類: `reply-only`
+- レイヤ: business chat naturalization / buyer burden wording
+- 変更: `material_selection_burden` の文面側 subpoint として、`選び切る必要はありません` `判断し切る必要はありません` のような説明者・教材寄りの言い方を避け、`無理に絞らなくて大丈夫です` `分からない部分はこちらで確認します` のように buyer の負担が下がる言い方へ寄せる方針を `japanese-chat-natural-ja` と `writer-brief.ja.md`、学習ログへ追加した
+- きっかけ: #R の非エンジニア相談で、`最初から関係ファイルを選び切る必要はありません` が意味としては正しいものの、売り手と買い手の実務チャットではなく AI の学習教材の説明のように見えると human audit で分かったため
+- 想定効果: buyer の負担を下げる場面で、概念説明や工程説明に寄らず、相手がそのまま安心して次アクションへ進める文面になりやすくする
+- 確認: `git diff --check` は OK。`./scripts/os-check.sh` は `mode=coconala` で OK
+- 非変更: `選び切る` を全面禁止語にはしない。材料選別負担・初心者向け説明で不自然な時だけ避ける。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない

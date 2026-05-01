@@ -69,6 +69,18 @@ buyer_intents:
     - 
   common_misunderstandings:
     - 
+  buyer_burden_hotspots:
+    # buyer が判断できないから相談している領域。
+    # 例: どのファイルが関係するか、どの素材を選ぶか、どの画面を送るか。
+    -
+  safe_default_inputs:
+    # buyer が選べない時に案内する安全な既定入力。
+    # 例: コード一式ZIP + secret除外、対象画面のスクショ、現状文面全文など。
+    -
+  must_not_push_back_to_buyer:
+    # buyer に戻しすぎると不親切になる判断。
+    # 例: 関係ファイルを選んでください、必要な箇所だけ送ってください。
+    -
 
 routing:
   primary_entry_cases:
@@ -113,6 +125,7 @@ language_notes:
 - 価格や納品物のような `事実`
 - `この phase では何を言ってよくて、何を言ってはいけないか`
 - buyer がよく迷う点
+- buyer が判断できないから依頼している領域と、その代わりに送ってもらう安全な既定入力
 - scope の境界
 - 断る時でも示せる代替行動
 
