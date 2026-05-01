@@ -47,6 +47,27 @@ formal_soft_lenses:
       - contract_packet
       - reviewer_prompt
 
+  phase_evidence_alignment:
+    description: "phase 固有の closing / 支払い導線 / トークルーム導線が、state metadata または buyer 文の証拠と合っているか"
+    hard_fail: false
+    role: "phase_contract_reviewer_subtype"
+    parent_guard: phase_contract
+    apply_when:
+      - phase_specific_closing
+      - quote_sent_purchase_cta
+      - prequote_estimate_cta
+    standard_examples:
+      quote_sent_only_closing: "`見積り提案の内容で` は `quote_sent` または buyer 文の見積り提案証拠がある時だけ使う"
+      prequote_closing: "`prequote` では `この内容で問題なければ、15,000円で見積り提案します` に留める"
+    escalates_to_hard_when:
+      - prepurchase_work_start
+      - payment_route_misstatement
+      - quote_sent_only_cta_in_prequote
+    preferred_return_targets:
+      - reviewer_prompt
+      - lint
+      - phase_contract
+
   response_weight_mismatch:
     description: "buyer の質問量・温度・risk に対して返信が重すぎる/軽すぎる/拒否先行すぎないか"
     hard_fail: false
@@ -138,6 +159,10 @@ formal_soft_lenses:
   commitment_strength_calibration:
     description: "時刻、納期、修正完了、返金/無料、成果物返却の約束が情報量と phase に合っているか"
     hard_fail: false
+    subtypes:
+      - deadline_autoinsertion_calibration
+    subtype_notes:
+      deadline_autoinsertion_calibration: "buyer が時刻を聞いていない軽い補足・確認案内で、具体時刻を自動挿入して約束を強めていないか"
     preferred_return_targets:
       - reviewer_prompt
       - batch

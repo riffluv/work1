@@ -2319,3 +2319,12 @@
 - 想定効果: 購入前・見積り後の closing が押し込みに見えにくくなり、`purchase_cta_strength_calibration` の精度が上がる。購入導線自体は弱めず、phase / scope / price を維持したまま自然化できる。
 - 確認: docs / skill / gold の自然化方針のみ。構造・service facts・renderer・lint は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
 - 非変更: `この内容で進める場合は` を禁止しない。buyer の購入意思が強い、または文脈上自然な場面では使用してよい。
+
+### 2026-05-02 / CHG-267
+- 分類: `reply-only`
+- レイヤ: phase evidence / deadline commitment / material guidance weight
+- 変更: Pro の実返信候補監査を受け、`見積り提案の内容で` を `quote_sent` または buyer 文の明確な見積り提案証拠がある時だけ使う方針を `coconala-reply-bugfix-ja`、`writer-brief.ja.md`、`Gold Reply 44`、`lens-taxonomy.yaml`、`reply_quality_lint_common.py` へ反映した。あわせて、delivered の承諾前軽い補足で具体時刻を自動挿入しない `deadline_autoinsertion_calibration` と、prequote の材料案内を厚くしすぎない方針を追加した。
+- きっかけ: 20件の #R 実返信候補監査で、prequote と quote_sent の closing が混ざると buyer に「既に見積り提案済み」と誤読される可能性があること、承諾前の軽い補足に固定時刻を自動で入れると約束が強くなりすぎること、非エンジニア向け safe default input が prequote で購入後手順説明に寄りすぎることが整理されたため。
+- 想定効果: ココナラ phase の証拠に合った closing を選びやすくし、購入前/見積り提案後/納品後の返答で余計な約束や買う前提の材料案内を減らす。単語禁止ではなく、phase evidence と commitment strength の構造で監査できる。
+- 確認: `lens-taxonomy.yaml` の YAML load、`reply_quality_lint_common.py` の compile、state/evidence 付き quote_sent closing lint の簡易確認、`git diff --check`、`./scripts/os-check.sh` は OK。
+- 非変更: `見積り提案の内容で`、具体時刻、購入後材料案内を blanket NG にはしない。state / buyer 文 / 実運用時刻の証拠がある場合は使ってよい。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。

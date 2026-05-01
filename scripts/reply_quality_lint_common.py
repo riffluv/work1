@@ -209,6 +209,17 @@ BURDEN_SHIFT_RULES: list[tuple[re.Pattern[str], str]] = [
 
 NEGATIVE_LEAD_RULE = re.compile(r"^(?:ただ|ですが)?[^。\n]*(?:しません|ありません|できません)")
 SYMPTOM_REQUEST_RULE = re.compile(r"(症状|箇所|画面|エラー文|操作手順).*(送って|教えて|ください)")
+QUOTE_SENT_CLOSING_MARKERS = [
+    "見積り提案の内容で",
+    "見積もり提案の内容で",
+]
+QUOTE_SENT_SOURCE_EVIDENCE_MARKERS = [
+    "見積り提案ありがとうございます",
+    "見積もり提案ありがとうございます",
+    "見積りありがとうございます",
+    "見積もりありがとうございます",
+    "提案ありがとうございます",
+]
 MONEY_CONCERN_RULE = re.compile(r"(返金|追加料金|料金|金額|高い|高かった|15000|15,?000|5000|5,?000|払)")
 EMOTION_MARKER_MAP: dict[str, list[str]] = {
     "urgency": ["急ぎ", "お急ぎ", "売上影響", "売上への影響", "機会損失", "契約に影響", "今日中"],
@@ -723,6 +734,11 @@ def collect_service_binding_errors(
     service_grounding = service_grounding or {}
     base_price = service_grounding.get("base_price")
     hard_no = service_grounding.get("hard_no") or []
+
+    if any(marker in rendered for marker in QUOTE_SENT_CLOSING_MARKERS):
+        has_quote_sent_evidence = state == "quote_sent" or any(marker in source_text for marker in QUOTE_SENT_SOURCE_EVIDENCE_MARKERS)
+        if not has_quote_sent_evidence:
+            errors.append("quote_sent-only closing used without quote_sent state/evidence")
 
     if isinstance(base_price, int):
         rendered_yen_amounts = set(YEN_AMOUNT_RE.findall(rendered))
