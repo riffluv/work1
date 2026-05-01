@@ -2310,3 +2310,12 @@
 - 想定効果: 追加料金・別原因・別対応への不安に対して、buyer の圧力語をそのまま返して防御的に見える崩れを減らす。`勝手に` を禁止語にせず、`pressure_word_summarization` の一部として扱うことで、直答性と自然さを両立する。
 - 確認: 反映は docs / skill の自然化方針のみ。構造・service facts・renderer・lint は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
 - 非変更: `勝手に` を blanket NG にしない。buyer が明示しており、直答として必要な場面では使ってよい。hard rule / lint にはしない。
+
+### 2026-05-02 / CHG-266
+- 分類: `reply-only`
+- レイヤ: purchase CTA strength / business chat naturalization
+- 変更: prequote / quote_sent の標準 CTA として、buyer に判断余地が残る `この内容で問題なければ、そのままご購入ください` を優先する方針を `Gold Reply 44`、`japanese-chat-natural-ja`、`coconala-reply-bugfix-ja` へ最小反映した。`この内容で進める場合は` は、進行前提が少し強く見えるため、購入意思が明確な場面に留める。
+- きっかけ: #R の「支払い前・スクショだけ見てほしい」ケースで、`この内容で進める場合は` より `この内容で問題なければ` の方が、営業感を抑えつつ buyer 側の判断余地を残せると確認したため。
+- 想定効果: 購入前・見積り後の closing が押し込みに見えにくくなり、`purchase_cta_strength_calibration` の精度が上がる。購入導線自体は弱めず、phase / scope / price を維持したまま自然化できる。
+- 確認: docs / skill / gold の自然化方針のみ。構造・service facts・renderer・lint は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+- 非変更: `この内容で進める場合は` を禁止しない。buyer の購入意思が強い、または文脈上自然な場面では使用してよい。
