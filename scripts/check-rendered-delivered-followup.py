@@ -30,6 +30,10 @@ def has_any(text: str, needles: list[str]) -> bool:
     return any(needle in text for needle in needles)
 
 
+def has_concrete_deadline(text: str) -> bool:
+    return "までに" in text and ("本日" in text or "明日" in text)
+
+
 def normalized(text: str) -> str:
     return re.sub(r"[\s。、，,.！？?「」『』（）()・:：/／\\-]+", "", text)
 
@@ -132,7 +136,7 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("answer_after_check exists but defer language is weak")
         if contract.get("ask_map") and decision_plan.get("blocking_missing_facts") and not has_any(rendered, ["送ってください", "教えてください", "ください"]):
             errors.append("answer_after_check case has ask_map but no ask request")
-        if "本日" not in rendered or "までに" not in rendered:
+        if not has_concrete_deadline(rendered):
             errors.append("answer_after_check delivered case is missing time commitment")
 
     if primary["disposition"] == "answer_now":
@@ -213,7 +217,7 @@ def lint_case(module, source: dict) -> list[str]:
             errors.append("soft side-effect probe still says `今の文面だけでは`")
         if "切り分け" in rendered:
             errors.append("soft side-effect probe still uses heavy `切り分け` language")
-        if "本日" in rendered and "までに" in rendered:
+        if has_concrete_deadline(rendered):
             errors.append("soft side-effect probe still carries a time commitment")
         if "承諾" not in rendered:
             errors.append("soft side-effect probe does not answer approval directly")

@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 ROOT_DIR = Path(__file__).resolve().parents[1]
 REPORT_DIR = ROOT_DIR / "runtime/regression/timestamp-policy"
 JST = ZoneInfo("Asia/Tokyo")
-TIME_COMMIT_RE = re.compile(r"本日(?P<hour>\d{1,2}):(?P<minute>\d{2})までに")
+TIME_COMMIT_RE = re.compile(r"(?P<label>本日|明日)(?P<hour>\d{1,2}):(?P<minute>\d{2})までに")
 RUNTIME_FIXTURES = [
     ROOT_DIR / "ops/tests/quality-cases/active/delivery-completion-bugfix40.yaml",
     ROOT_DIR / "ops/tests/quality-cases/active/live-core-human-review-bugfix43.yaml",
@@ -34,8 +34,11 @@ RENDERER_FILES = [
 ]
 
 
-def minutes_until_today_deadline(now: datetime, hour: int, minute: int) -> int:
-    deadline = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+def minutes_until_deadline(now: datetime, label: str, hour: int, minute: int) -> int:
+    base = now
+    if label == "明日":
+        base = now + timedelta(days=1)
+    deadline = base.replace(hour=hour, minute=minute, second=0, microsecond=0)
     return int((deadline - now).total_seconds() // 60)
 
 
@@ -49,12 +52,13 @@ def run_renderer(fixture: Path) -> tuple[int, str]:
     return proc.returncode, ((proc.stdout or "") + (proc.stderr or "")).strip()
 
 
-def extract_time_commits(text: str) -> list[tuple[int, int, str]]:
-    commits: list[tuple[int, int, str]] = []
+def extract_time_commits(text: str) -> list[tuple[str, int, int, str]]:
+    commits: list[tuple[str, int, int, str]] = []
     for match in TIME_COMMIT_RE.finditer(text):
+        label = match.group("label")
         hour = int(match.group("hour"))
         minute = int(match.group("minute"))
-        commits.append((hour, minute, match.group(0)))
+        commits.append((label, hour, minute, match.group(0)))
     return commits
 
 
@@ -73,15 +77,17 @@ def check_runtime_outputs(now: datetime) -> tuple[list[str], list[str], list[str
         if not commits:
             passes.append(f"[OK] runtime_timestamp:{label}: no concrete time commitments")
             continue
-        for hour, minute, text in commits:
+        for label, hour, minute, text in commits:
             if hour > 23 or minute > 59:
                 failures.append(f"[NG] runtime_timestamp:{label}: invalid time {text}")
                 continue
-            delta = minutes_until_today_deadline(now, hour, minute)
+            delta = minutes_until_deadline(now, label, hour, minute)
             if delta <= 0:
                 failures.append(f"[NG] runtime_timestamp:{label}: stale or past commitment {text}")
-            elif delta > 8 * 60:
+            elif label == "本日" and delta > 8 * 60:
                 warnings.append(f"[WARN] runtime_timestamp:{label}: far future same-day commitment {text} ({delta} min)")
+            elif label == "明日" and delta > 24 * 60:
+                warnings.append(f"[WARN] runtime_timestamp:{label}: far future next-day commitment {text} ({delta} min)")
             else:
                 passes.append(f"[OK] runtime_timestamp:{label}: runtime commitment {text} ({delta} min)")
     return passes, warnings, failures
@@ -93,7 +99,7 @@ def check_renderer_sources() -> tuple[list[str], list[str]]:
     for path in RENDERER_FILES:
         label = str(path.relative_to(ROOT_DIR))
         text = path.read_text(encoding="utf-8")
-        hardcoded = re.findall(r"本日\d{1,2}:\d{2}までに", text)
+        hardcoded = re.findall(r"(?:本日|明日)\d{1,2}:\d{2}までに", text)
         if hardcoded:
             failures.append(f"[NG] renderer_timestamp_source:{label}: hard-coded timestamp literal(s): {', '.join(sorted(set(hardcoded)))}")
             continue
@@ -117,7 +123,7 @@ def check_static_rehearsal_files() -> tuple[list[str], list[str]]:
         if not commits:
             passes.append(f"[OK] static_timestamp:{label}: no fixed concrete timestamps")
             continue
-        samples = ", ".join(commit for _, _, commit in commits[:5])
+        samples = ", ".join(commit for _, _, _, commit in commits[:5])
         warnings.append(
             f"[WARN] static_timestamp:{label}: fixed timestamp sample(s) remain: {samples}; "
             "regenerate before external review if freshness matters"

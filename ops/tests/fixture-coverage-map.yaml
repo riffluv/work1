@@ -90,6 +90,36 @@ families:
       - ops/tests/quality-cases/active/practical-chat-grounding-bugfix94.yaml
     next_action: freeze_until_new_boundary_or_real_stock
 
+  prequote_multi_symptom_price_scope:
+    service: bugfix-15000
+    phases:
+      - prequote
+    risk_classes:
+      - answer_focus_alignment
+      - conditional_scope_clarity
+      - price_scope_phase
+    expected_lenses:
+      - answer_focus_alignment
+      - conditional_scope_clarity
+      - promise_consistency
+    source_type: synthetic_rehearsal
+    saturation:
+      synthetic_rehearsal: seeded
+      real_stock: low
+    routine_re_status: targeted_only
+    resume_triggers:
+      - real_stock_unknown_failure
+      - contract_change
+      - r_re_divergence
+      - multi_symptom_primary_question_gap
+    last_results:
+      - batch: R-2026-05-01-manual-05
+        result: human_audit_answer_focus_gap
+    active_files:
+      - ops/tests/contract-packets/bugfix-15000-v1-fixtures.yaml
+      - ops/tests/contract-packets/bugfix-15000-v1-samples.yaml
+    next_action: validate_with_contract_packet_before_more_re
+
   delivered_light_supplement:
     service: bugfix-15000
     phases:

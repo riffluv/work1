@@ -68,12 +68,21 @@ SERVICE_GROUNDING = load_service_grounding()
 
 
 def time_commit(hours: int = 2) -> str:
-    target = datetime.now(JST) + timedelta(hours=hours)
+    now = datetime.now(JST)
+    target = now + timedelta(hours=hours)
     remainder = target.minute % 15
     if remainder:
         target = target + timedelta(minutes=15 - remainder)
     target = target.replace(second=0, microsecond=0)
-    return f"本日{target:%H:%M}までに、見立てをお返しします。"
+    return f"{deadline_label(now, target)}{target:%H:%M}までに、見立てをお返しします。"
+
+
+def deadline_label(now: datetime, target: datetime) -> str:
+    if target.date() == now.date():
+        return "本日"
+    if target.date() == (now + timedelta(days=1)).date():
+        return "明日"
+    return f"{target.month}月{target.day}日"
 
 
 def asks_to_send_symptoms_in_message(raw: str) -> bool:

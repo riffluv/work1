@@ -70,15 +70,26 @@ SERVICE_GROUNDING = load_service_grounding()
 
 
 def time_commit(hours: int = 2) -> str:
-    target = datetime.now(JST) + timedelta(hours=hours)
-    return f"本日{target:%H:%M}までに、確認結果をお返しします。"
+    now = datetime.now(JST)
+    target = now + timedelta(hours=hours)
+    return f"{deadline_label(now, target)}{target:%H:%M}までに、確認結果をお返しします。"
+
+
+def deadline_label(now: datetime, target: datetime) -> str:
+    if target.date() == now.date():
+        return "本日"
+    if target.date() == (now + timedelta(days=1)).date():
+        return "明日"
+    return f"{target.month}月{target.day}日"
 
 
 def time_commit_for_scenario(scenario: str, hours: int = 2) -> str:
-    target = datetime.now(JST) + timedelta(hours=hours)
+    now = datetime.now(JST)
+    target = now + timedelta(hours=hours)
+    label = deadline_label(now, target)
     if scenario == "doc_explanation_request":
-        return f"本日{target:%H:%M}までに、補足説明をお送りします。"
-    return f"本日{target:%H:%M}までに、確認結果をお返しします。"
+        return f"{label}{target:%H:%M}までに、補足説明をお送りします。"
+    return f"{label}{target:%H:%M}までに、確認結果をお返しします。"
 
 
 def is_complaint_like(source: dict, scenario: str | None = None) -> bool:

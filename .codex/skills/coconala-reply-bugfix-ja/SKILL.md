@@ -98,6 +98,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
    - `#R 受領返信` などのショート指示があるか
 3. `#R` の後ろや次行に自由文の補足がある場合は、`user_override` として読む。
 4. `reply_contract.primary_question_id`、`explicit_questions`、`answer_map`、`ask_map` を先に読む。
+   - 複数症状・複数質問では、`primary_question_id` だけでなく、buyer が次に決めたいこと、明示した優先症状、価格/範囲の問いを合わせて `response_decision_plan.answer_focus` を読む。内部の対象判定をそのまま本文へ出さず、buyer の意思決定に返る文へ変換する。
 5. `temperature_plan` があれば、`reply_contract` の sibling として扱う。`reply_contract` は「何を答えるか」、`temperature_plan` は「どう受け止めるか」の正本にする。
 6. `user_override` があれば、hard constraints を崩さない範囲で `temperature_plan`、`reply_contract`、`response_decision_plan` を狭める方向へ反映する。
 7. `reply_contract.issue_plan` は互換要約として扱い、実行契約の正本は `answer_map` と `ask_map` に置く。
@@ -159,6 +160,7 @@ description: "ココナラのNext.js/Stripe/API不具合修正サービス専用
 - prequote で buyer が `15,000円で依頼できますか` と聞いている場合は、`15,000円でご依頼いただけます` を優先する。buyer が `相談して大丈夫ですか` `相談できますか` と聞いている場合も、標準は `ご相談いただけます` に寄せる。短い直答として自然な場合だけ `相談できます` を使ってよい。
 - 支払い後の材料共有は、`お支払い完了後で大丈夫です` より、`お支払い完了後にトークルームで共有してください` `共有いただければ確認に入ります` を優先する。secret 値不要など buyer の負担を下げる場面では `送らなくて大丈夫です` を使ってよい。
 - delivered で buyer が `どこを反映すればいいか教えてもらえますか` `もう少し分かりやすく説明してもらえますか` と聞いている場面では、`補足できます` で対応可否を宣言して止めない。`反映するファイルだけ、こちらで短く整理します` `補足説明をお送りします` のように、承諾前の軽い補足としてこちらの返す内容を明示する。
+- 複数症状で buyer が優先症状と価格/範囲を聞いている場面では、`まず一番困っている不具合を対象にして` のような内部整理を本文へ出さない。`この場合は、「注文が作られない」不具合を1件として、15,000円でご依頼いただけます` のように、buyer が知りたい依頼可否へ戻す。
 
 ## skeleton ごとの固定骨格
 - `estimate_initial`: 受け止め -> 結論 -> 根拠 -> 価格/購入導線 or 最小質問 -> 次アクション

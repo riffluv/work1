@@ -187,3 +187,21 @@ fixtures:
       - bugfix-15000
     expected_hidden_services_not_visible:
       - handoff-25000
+
+  - fixture_id: CPFX-BUGFIX15000-V1-010
+    expected_packet_id: CP-BUGFIX15000-V1-010
+    phase: prequote
+    family: prequote_multi_symptom_price_scope
+    channel: coconala_message
+    source_type: synthetic_rehearsal
+    sendability: draft_candidate
+    raw_message: "Stripe決済まわりで2つ気になる不具合があります。1つは決済後に注文が作られないこと、もう1つは一部ユーザーだけ有料プランに切り替わらないことです。同じ原因か別原因かは分かりません。まず一番困っているのは、決済後に注文が作られない方です。この場合、15,000円の範囲で見てもらえるか相談したいです。"
+    primary_question_id: q1
+    primary_question: "この場合、15,000円の範囲で見てもらえるか相談したいです。"
+    explicit_questions:
+      - id: q1
+        text: "この場合、15,000円の範囲で見てもらえるか相談したいです。"
+    expected_visible_public_services:
+      - bugfix-15000
+    expected_hidden_services_not_visible:
+      - handoff-25000

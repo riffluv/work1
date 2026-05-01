@@ -16,6 +16,10 @@
 - 自然さ・ぶつ切り感・bot 感の指摘は、`#RE only / #R reproduced / candidate / preference` のどれに近いかを可能なら学習判定に添えてください。
 
 特に重く見る点:
+- まず deterministic hard guards を見てください。次に、その batch の焦点に合う soft lens だけを強めに見ます。soft lens を全件に均等適用して粗探ししないでください。
+  - `hard_guards`: `public_private_boundary` / `price_and_service_scope` / `phase_contract` / `raw_secret_value` / `external_contact_share_payment` / `direct_push_or_prod_deploy` / `closed_after_work_boundary` / `success_refund_free_guarantee`
+  - `active_soft_lenses`: batch 指定がなければ `answer_focus_alignment` / `buyer_burden_alignment` / `agency_alignment` / `conversation_flow_naturalness` を優先してください
+  - `observe_only`: `echo_to_working_angle` / `instructional_tone_leak` / `unnamed_discomfort` は、明確な実務リスクがある場合だけ観察メモに留めてください
 - 主質問への直答が速いか
 - 直答を速くするために可否だけを独立文にしすぎていないか。可否・価格・対応方針が同じ答えの一部なら、一息でまとめた方が自然かを見る
 - `15,000円固定 / 不具合1件（同一原因） / 追加料金自動発生なし / 原因不明や修正済みファイル返却不可なら正式納品へ進めない / 外部共有なし / handoff-25000 は未公開` を崩していないか

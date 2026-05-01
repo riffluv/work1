@@ -235,6 +235,25 @@ families:
     do_not_use_when:
       - "依頼可否、固定価格、必要な次アクションまで弱める"
 
+  buyer_burden_material_selection:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/43_buyer-burden-material-selection.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+    lens:
+      - buyer_burden_alignment
+      - material_selection_burden
+      - instructional_tone_leak
+    use_when:
+      - "コードに詳しくない、AI生成コード、どのファイルを送ればよいか分からない buyer に、材料選別負担を戻しすぎない"
+    do_not_use_when:
+      - "毎回コード一式ZIPを hard rule にする"
+      - "購入前のコード確認・原因確認へ滑る"
+      - "secret 値を含めた材料共有を許す"
+
 private_or_shadow_families:
   handoff_private:
     status: shadow_only

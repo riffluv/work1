@@ -1002,3 +1002,145 @@ packets:
         - "APIキーの値を送ってください"
         - "原因は分かりました"
         - "Webhookを見ます"
+
+  - packet_id: CP-BUGFIX15000-V1-010
+    title: "prequote: 複数症状があるが優先症状1件として15,000円で依頼できるか"
+    phase: prequote
+    family: prequote_multi_symptom_price_scope
+    channel: coconala_message
+    packet_source: sample
+    source_type: synthetic_rehearsal
+    service_truth_version: bugfix-15000-public-facts-2026-05-01
+    transaction_state_evidence:
+      state: prequote
+      source: buyer_latest_message
+      confidence: high
+    sendability: draft_candidate
+    gold_anchor_id: null
+    style_constraints:
+      - writer_must_not_copy_notes_verbatim
+      - answer_focus_alignment
+      - conditional_scope_clarity
+    redaction_policy:
+      raw_secret_values: do_not_request
+    memory_packet:
+      platform: coconala
+      service_id: bugfix-15000
+      phase: prequote
+      visible_public_services:
+        - bugfix-15000
+      current_thread_summary:
+        - fact: "buyer は Stripe決済まわりで2つの症状を挙げている"
+          source: buyer_latest_message
+        - fact: "buyer は決済後に注文が作られない症状を一番困っている症状として明示している"
+          source: buyer_latest_message
+        - fact: "buyer は2症状が同じ原因か別原因か分からない"
+          source: buyer_latest_message
+        - fact: "buyer はこの場合に15,000円の範囲で見てもらえるかを聞いている"
+          source: buyer_latest_message
+      buyer_latest_message: "Stripe決済まわりで2つ気になる不具合があります。1つは決済後に注文が作られないこと、もう1つは一部ユーザーだけ有料プランに切り替わらないことです。同じ原因か別原因かは分かりません。まず一番困っているのは、決済後に注文が作られない方です。この場合、15,000円の範囲で見てもらえるか相談したいです。"
+      known_commitments: []
+      received_materials: []
+      pending_actions:
+        - actor: buyer
+          action: "15,000円の範囲で依頼するか判断する"
+      forbidden_assumptions:
+        - "2つの症状を無条件に15,000円内でまとめると約束しない"
+        - "有料プランに切り替わらない件を別原因と断定しない"
+        - "購入前にコードやログを確認済みの前提にしない"
+        - "必ず直せると約束しない"
+    phase_contract:
+      allowed:
+        - answer_service_fit
+        - explain_price_if_asked
+        - explain_purchase_flow
+      forbidden:
+        - start_code_or_log_diagnosis
+        - promise_fix_success
+        - request_raw_secret_value
+    reply_contract:
+      primary_question_id: q1
+      final_question_id: q1
+      issues:
+        - id: i1
+          text: "決済後に注文が作られない"
+          buyer_priority: primary
+        - id: i2
+          text: "一部ユーザーだけ有料プランに切り替わらない"
+          buyer_priority: secondary
+      explicit_questions:
+        - id: q1
+          text: "この場合、15,000円の範囲で見てもらえるか相談したいです。"
+          priority: primary
+          source_span: final_sentence
+      implicit_concerns:
+        - id: c1
+          text: "2つの症状が同じ原因なら同じ範囲で見られるか、別原因ならどうなるか"
+          target_issue_ids:
+            - i1
+            - i2
+      primary_decision_need:
+        type: can_order_priority_issue_as_one_bug_for_15000
+        target_issue_ids:
+          - i1
+        price: 15000
+        unit: one_bug_or_same_cause
+      primary_selection_evidence:
+        - buyer_says_primary_issue
+        - final_action_question
+        - price_scope_asked
+      answer_map:
+        - question_id: q1
+          disposition: answer_now
+          answer_brief: "優先症状である決済後に注文が作られない不具合を1件として、15,000円で依頼できる。もう1つの症状は同じ原因につながっていればあわせて確認でき、別原因なら先に相談する。"
+      ask_map: []
+      issue_plan:
+        - issue: "優先症状1件としての価格・範囲"
+          disposition: answer_now
+          reason: "buyer は一番困っている症状と価格範囲を明示している。"
+        - issue: "2つ目の症状の扱い"
+          disposition: answer_now
+          reason: "同じ原因か別原因か未確定の不安を短く回収する。"
+      required_moves:
+        - answer_directly_now
+        - explain_scope_boundary
+        - give_purchase_path
+      forbidden_moves:
+        - internal_term_exposure
+        - vague_hold_without_reason
+        - overexplain_branching
+    response_decision_plan:
+      primary_concern: "優先症状1件として15,000円で依頼できるか"
+      facts_known:
+        - "症状は2つある"
+        - "buyer は決済後に注文が作られない症状を一番困っていると明示している"
+        - "同じ原因か別原因かは未確認"
+      blocking_missing_facts: []
+      direct_answer_line: "この場合は、「決済後に注文が作られない」不具合を1件として、15,000円でご依頼いただけます。"
+      direct_answer_intent: "優先症状である注文作成不具合を1件として15,000円で依頼できる。"
+      suggested_answer_line: "この場合は、「決済後に注文が作られない」不具合を1件として、15,000円でご依頼いただけます。"
+      preserve_policy: intent_not_exact_wording
+      answer_focus:
+        primary_decision_need: "2つ症状がある状態で、優先症状の注文作成不具合を1件として15,000円で依頼できるか"
+        target_issue_ids:
+          - i1
+        answer_frame: "対象症状 + 1件扱い + 15,000円可否 + 2つ目の症状の同一原因条件"
+        selection_evidence:
+          - buyer_says_primary_issue
+          - final_action_question
+          - price_scope_asked
+        non_primary_but_covered:
+          - "有料プランに切り替わらない件は、同じ原因につながっていればあわせて確認できる"
+      response_order:
+        - direct_answer_to_price_scope
+        - secondary_symptom_boundary
+        - no_success_guarantee
+        - purchase_path
+    writer_notes:
+      use:
+        - "この場合は、「決済後に注文が作られない」不具合を1件として、15,000円でご依頼いただけます"
+        - "有料プランに切り替わらない件も、同じ原因につながっていればあわせて確認できます"
+      avoid:
+        - "まず一番困っている不具合を対象にして" # 内部判定が透ける
+        - "2つとも15,000円で対応できます"
+        - "別原因です"

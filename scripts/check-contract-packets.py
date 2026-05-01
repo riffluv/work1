@@ -161,6 +161,11 @@ def validate_packet(
     primary_id = reply_contract.get("primary_question_id")
     if primary_id not in explicit_ids:
         add_error(errors, packet_id, "primary_question_id is not in explicit_questions")
+    final_id = reply_contract.get("final_question_id")
+    if final_id and final_id not in explicit_ids:
+        add_error(errors, packet_id, "final_question_id is not in explicit_questions")
+    if final_id and final_id != primary_id and not as_list(reply_contract.get("primary_selection_evidence")):
+        add_error(errors, packet_id, "final_question_id differs from primary_question_id but primary_selection_evidence is empty")
 
     answer_ids = {a.get("question_id") for a in as_list(reply_contract.get("answer_map"))}
     unknown_answer_ids = sorted(x for x in answer_ids - explicit_ids if x)
@@ -194,6 +199,27 @@ def validate_packet(
         add_error(errors, packet_id, "response_decision_plan.response_order is required")
     if as_list(reply_contract.get("ask_map")) and not as_list(decision.get("blocking_missing_facts")):
         add_error(errors, packet_id, "ask_map exists but response_decision_plan.blocking_missing_facts is empty")
+    answer_focus = decision.get("answer_focus") or {}
+    if answer_focus:
+        if not answer_focus.get("primary_decision_need"):
+            add_error(errors, packet_id, "response_decision_plan.answer_focus.primary_decision_need is required when answer_focus exists")
+        if not answer_focus.get("answer_frame"):
+            add_error(errors, packet_id, "response_decision_plan.answer_focus.answer_frame is required when answer_focus exists")
+        if not as_list(answer_focus.get("selection_evidence")):
+            add_error(errors, packet_id, "response_decision_plan.answer_focus.selection_evidence is required when answer_focus exists")
+        issue_ids = {issue.get("id") for issue in as_list(reply_contract.get("issues")) if isinstance(issue, dict)}
+        unknown_focus_issues = sorted(
+            issue_id
+            for issue_id in as_list(answer_focus.get("target_issue_ids"))
+            if issue_id and issue_ids and issue_id not in issue_ids
+        )
+        if unknown_focus_issues:
+            add_error(errors, packet_id, f"answer_focus.target_issue_ids references unknown issue ids: {', '.join(unknown_focus_issues)}")
+    if decision.get("suggested_answer_line"):
+        if not decision.get("direct_answer_intent"):
+            add_error(errors, packet_id, "suggested_answer_line requires direct_answer_intent")
+        if decision.get("preserve_policy") != "intent_not_exact_wording":
+            add_error(errors, packet_id, "suggested_answer_line requires preserve_policy=intent_not_exact_wording")
 
     reply_schema = (output_schema.get("nested_field_rules") or {}).get("reply_contract") or {}
     required_moves_allowed = set(as_list((reply_schema.get("required_moves") or {}).get("allowed")))

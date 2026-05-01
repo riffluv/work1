@@ -1,0 +1,400 @@
+まず指定ファイル群を実装面まで確認し、lens / writer brief / service facts / contract packet の接続と、今回の違和感を汎用コア化すべきかを厳しめに見ます。公開制御と truth resolver はかなり堅く、bugfix-15000 のみ公開・秘密値除外なども正本化されています。一方、課題は新規骨格追加より、既存 answer_map 等の精度と反映同期に寄っています。ツールが呼び出されましたThought for 7m 29s1. 結論
+今の返信OSは「v1 completion candidate」にかなり近いです。release sealed ではありません。
+「まだ構造不足」とまでは言いません。むしろ、前回Pro分析後の方向はかなり正しく、モグラ叩きから脱出するための骨格に寄っています。
+ただし、今回の #R 実文テストで出た違和感は重要です。特に answer_focus_alignment は、単なる日本語自然化ではなく、返信前の 質問理解・主質問選定・回答射程 の問題です。ここを「言い回しの好み」や「禁止語」で処理すると、またモグラ叩きに戻ります。
+私の判断はこうです。
+
+今の返信OSは、汎用返信コアへ近づいている。
+ただし release sealed にするには、#R 実文で見つかった focus / burden / business-chat 感のズレを、writer の表現ルールではなく contract packet / response plan / service facts 側へ正しく戻す必要がある。
+
+根拠として、completion shelf 自体も bugfix-15000 を「v1 完成候補 / 機能コア完成圏」としつつ、real_stock、app_memory、multi_service、email_channel を未検証として残しています。また v1 gate script も v1_release_sealed = False と明示しており、現状を sealed ではなく candidate と見る実装になっています。
+
+2. 現状評価
+前回Pro分析後の実装方向は正しいです
+特に良いのは、返信文をさらに磨く方向ではなく、以下に寄せたことです。
+
+
+service truth canonical resolver
+
+
+contract packet の runtime 化
+
+
+v1 completion candidate と release sealed の分離
+
+
+#RE の routine 停止条件
+
+
+Writer / Reviewer 分離
+
+
+soft lens を hard rule 化しすぎない方針
+
+
+service-registry.yaml では、外向け live は bugfix-15000 のみ、handoff-25000 は public:false で、private service の名前・価格・購入導線を外向けに出さない rule が明示されています。
+また、check-service-truth-resolver.py は public_facts_file を service-pack の facts.yaml に解決し、旧 facts_file を runtime capability / compatibility alias として扱う方向になっていて、前回Pro分析の最大論点にかなり対応しています。
+特に強い点
+A. public / private 境界がかなり強い
+bugfix-15000 は公開中、handoff-25000 は非公開という境界が registry / docs / batch で一貫しています。監査 batch でも、handoff-25000、25,000円、主要1フロー整理、handoff購入導線の live 漏れを明示的に監査対象にしています。
+B. bugfix-15000 の商品事実が安定している
+サービスページでは、15,000円、不具合1件、原因確認、修正内容作成、確認手順、修正済みファイル返却、外部連絡・外部決済・直接push・本番デプロイ不可、secret 値を扱わないことが明確です。
+C. Writer を潰さない方針が入っている
+writer-brief.ja.md は runtime 用の短縮版を持ち、Writer に渡す内容を「主質問に先に答える」「内部語や判定ラベルを書かない」「next action は1つ」などに圧縮しています。これは非常に良いです。
+D. contract packet の考え方はかなり良い
+output-schema.yaml では、primary_question_id、explicit_questions、answer_map、ask_map、required_moves、forbidden_moves が実行契約として定義されています。特に「answer_map / ask_map が renderer と lint の source of truth」という方針は、汎用返信コア化に効きます。
+E. #RE を止める判断が明文化されている
+completion shelf は、purchased_current_status、quote_sent_payment_after_share、delivered_light_supplement、closed_relation_check を synthetic rehearsal high / real_stock low と分けています。これはかなり健全です。
+まだ危ない点
+A. answer_focus_alignment がまだ schema 化されていない
+現状にも primary_question_id や direct_answer_line はありますが、「最後の主質問が何を決めようとしているか」「その質問がどの症状・価格・scope に結びついているか」を表す構造がまだ弱いです。
+今回の Stripe 2症状例では、AIが「決済後に注文が作られない」を拾えていても、返答が
+
+まず一番困っている「決済後に注文が作られない」不具合を対象にして、15,000円の範囲でご相談いただけます。
+
+のように、内部判定の言い換えになっています。
+本当の主質問は、
+
+2症状あるが、優先症状1件として15,000円で見てもらえるか
+
+です。ここは自然化ではなく、answer focus の内部表現不足です。
+B. material_selection_burden は実装済みだが、実例ではまだ漏れている
+writer-brief、japanese-chat-natural-ja、bugfix skill には「コードが分からない buyer に関係ファイル選別を戻しすぎない」方針が既に入っています。
+一方で、直近 batch の B02 にはまだ
+
+最初から必要なファイルをすべて選び切る必要はありません。
+ご購入後は、まずエラー内容や画面、分かる範囲の関係ファイルを…
+
+が残っています。これは、方針は入ったが、実際の writer candidate / #RE 候補にまだ戻り切っていないことを示しています。
+C. reviewer prompt がかなり肥大化している
+監査プロンプトは強いですが、レンズが非常に多いです。外部監査用としては許容できますが、これを Writer 側や常時生成側に近づけると、自然文生成が萎縮します。Writer に self-check 全文を背負わせない という方針と衝突しやすいので注意が必要です。
+D. contract packet runtime 化は進んだが、まだ完全 runtime ではない
+build-contract-packets.py は fixture から generated packet を作っていますが、現状は family ごとの answer_brief や direct_answer_line がかなり hardcoded です。これは v1 candidate の gate としては有効ですが、汎用返信コアの runtime parser としてはまだ弱いです。
+
+3. 新レンズ候補の採否
+論点分類理由副作用実装先answer_focus_alignmentformal lens candidate / contract packet・response plan 側で扱うべき主質問直答の中核。既存の primary_question_id だけでは、複数症状・複数質問で「最後に buyer が何を決めたいか」まで保持しきれていない。「最後の文だけ優先」ルールにすると誤爆する。自然化側に置くと、表面だけ整って意味ズレが残る。output-schema.yaml、contract packet、response_decision_plan、checker、reviewer prompt。Writer brief には短く反映。material_selection_burdensubtype of existing lens / service facts 側でも扱うべき既に response_weight_mismatch の subtype / observe_only にあり、buyer が判断できない領域を buyer に戻しすぎない という common 原則として有効。毎回コード一式 ZIP を求めると prequote で重い。secret 混入リスクも増える。エンジニア buyer には過剰。common: buyer_burden_alignment。bugfix 固有: service facts / onboarding / bugfix skill。lint は warning 程度。instructional_tone_leaksubtype of existing lens / writer brief + naturalizer + gold reply選び切る必要はありません は意味ではなく会話の立場がズレる問題。教材・チュートリアル調になる。禁止語ではなく「説明者目線 → 実務チャット目線」変換として扱う。禁止語化すると言い換えゲームになる。価格・scope・secret の明確さまで柔らかくなる危険。japanese-chat-natural-ja、writer brief、gold reply。lint は exact phrase の WARN まで。echo_to_working_anglesubtype of existing lens / gold reply only寄り / observe継続learning log でも generalizability medium、decision observe になっている。 「復唱で止めず作業観点へ変換」は有効だが、まだ正式 lens 化には証拠不足。復唱を避けすぎると、読んで返している感が消える。prequote で作業開始を匂わせる危険もある。reviewer prompt の observation、gold reply、必要なら writer brief 1行。hard lint にはしない。
+
+4. answer_focus_alignment の設計案
+これは今回いちばん重要です。
+私なら、新しい文体レンズではなく、contract packet の意味構造として実装します。
+まず分けるべき概念
+概念役割explicit_questionsbuyer が実際に聞いた問い。複数可。final_question_id文面上、最後に出た明示質問。primary とは限らない。primary_question_idその返信で最初に答えるべき意思決定上の問い。primary_decision_needbuyer が次に決めたいこと。例: 依頼できるか、料金内か、何を送ればよいか。focus_issue_idsその答えが対象にする症状・論点。answer_frame返答に必要な構成。例: 対象 + 単位 + 価格 + 可否。answer_map各質問を answer_now / after_check / ask / decline に割り当てる。coverage_status明示質問・暗黙不安が回答に回収されているか。
+例の内部表現
+相手文:
+
+Stripe決済まわりで2つ気になる不具合があります。
+1つは決済後に注文が作られないこと、もう1つは一部ユーザーだけ有料プランに切り替わらないことです。
+同じ原因か別原因かは分かりません。
+まず一番困っているのは、決済後に注文が作られない方です。
+この場合、15,000円の範囲で見てもらえるか相談したいです。
+
+この場合、packet はこう持つのがよいです。
+issues:  - id: i1    text: 決済後に注文が作られない    buyer_priority: primary  - id: i2    text: 一部ユーザーだけ有料プランに切り替わらない    buyer_priority: secondaryexplicit_questions:  - id: q1    text: この場合、15,000円の範囲で見てもらえるか    source_span: final_sentence    speech_act: service_fit_price_scope    target_issue_ids: [i1]    priority_cues:      - final_action_question      - buyer_says_primary_issue      - price_scope_askedimplicit_concerns:  - id: c1    text: 2症状が同じ原因か別原因か分からない    target_issue_ids: [i1, i2]    disposition: mention_if_needed_after_direct_answerprimary_question_id: q1final_question_id: q1primary_decision_need:  type: can_order_within_price_for_priority_issue  target_issue_ids: [i1]  price: 15000  unit: one_bug_or_same_causeanswer_map:  - question_id: q1    disposition: answer_now    answer_intent: >      決済後に注文が作られない不具合を1件として、      15,000円で依頼できる。response_decision_plan:  primary_concern: 優先症状1件として15,000円で依頼できるか  direct_answer_intent: >    「決済後に注文が作られない」不具合を1件として15,000円で依頼可能。  suggested_answer_line: >    この場合は、「決済後に注文が作られない」不具合を1件として、    15,000円でご依頼いただけます。  response_order:    - direct_answer_to_price_scope    - secondary_symptom_boundary_if_needed    - next_action
+「最後の文だけを機械的に優先する」副作用を避ける設計
+final_question_id は持ってよいですが、primary とは別にします。
+primary selection は、以下の evidence を合算します。
+cue重みbuyer が「一番困っている」「まず」「今回は」と明示した高依頼可否・価格・納期・支払い・材料共有など、buyer の次アクションを決める問い高文末の明示質問中phase と強く結びつく問い中途中の目立つ技術症状低〜中単なる挨拶・補足・「よろしくお願いします」primary にはしない
+つまり、最後の文は 候補の1つ であって、優先順位の絶対条件ではありません。
+direct_answer_line は少し分解した方がいい
+現状の contract packet は direct_answer_line が完成文に近く、Writer がそれを少し言い換えるだけになりやすいです。check-contract-packets.py も presence や coverage は見ていますが、主質問と direct answer の semantic alignment までは十分見ていません。
+おすすめはこうです。
+response_decision_plan:  direct_answer_intent: >    優先症状である注文作成不具合を1件として15,000円で依頼できる。  suggested_answer_line: >    この場合は、「決済後に注文が作られない」不具合を1件として、    15,000円でご依頼いただけます。  preserve_policy: intent_not_exact_wording
+これで、Writer の自然な表現力を残しつつ、主質問のズレを防げます。
+
+5. material_selection_burden の設計案
+汎用コアへ持ち込める原則
+これは bugfix-15000 固有ではありません。
+汎用返信コアでは、次の common lens として扱うべきです。
+
+相手が判断できないから相談している領域を、相手に判断させすぎない。
+
+ただし、名前は material_selection_burden より、上位概念としては buyer_burden_alignment の方がよいです。
+例:
+業種buyer が判断できない領域safe default input不具合修正どのファイルが関係するかコード一式ZIP + secret除外 + ログ/スクショデザインどの素材が必要か現在の画面/資料一式 + 参考イメージ文章添削どの箇所を直すべきか原文全文 + 目的 + 読者法務/契約系どの条文が問題か契約書全文 + 気になる点 + 相手との状況経理/申告系どの書類が必要か期間・取引種別・手元資料一覧
+bugfix-15000 固有の実装
+bugfix-15000 では、service facts に次を明示した方がよいです。
+buyer_burden_hotspots:  - 関係ファイルの選定  - Stripe / Webhook / DB / API の原因候補選定  - ローカル・本番・Vercel など環境差分の説明  - AI生成コードや引き継ぎコードの構造把握safe_default_inputs_by_phase:  prequote:    - 症状    - 本来の動き    - 今起きている現象    - エラーログまたはスクショ    - Stripe Event ID があれば evt_...    - .env はキー名のみ  quote_sent:    - お支払い完了後にトークルームで共有する流れを案内    - 支払い前にコード確認・原因確認を始めない  purchased:    - コード一式ZIP    - エラーログ    - スクショ    - 操作手順    - Stripe Event ID があれば evt_...    - .env / APIキー / Webhook Secret / DB接続文字列の値は除外must_not_push_back_to_buyer:  - コードに詳しくない buyer に「関係ファイルを選んでください」と返す  - AI生成コードで構造が分からない buyer に「分かる範囲の関係ファイルだけ」と返す  - 原因候補や優先順位の判断を buyer に戻す
+service-facts-onboarding-template.ja.md には、既に buyer_burden_hotspots、safe_default_inputs、must_not_push_back_to_buyer の欄が入っています。これは正しい方向です。
+ただ、実際の bugfix facts には buyer anxieties はありますが、safe default input / must_not_push_back の粒度がまだ薄いです。
+返信例
+悪い寄り:
+
+関係しそうなファイルを分かる範囲で送ってください。
+
+改善:
+
+どのファイルが関係するか分からない場合は、無理に絞らなくて大丈夫です。
+ご購入後は、コード一式をZIPにして、エラーログやスクショと一緒にトークルームで共有してください。
+.env、APIキー、Webhook Secret、DB接続文字列などの値は含めないでください。こちらで必要な範囲を確認します。
+
+ポイントは、buyer に選ばせない代わりに、安全な既定入力を示すことです。
+
+6. 日本語ビジネス自然化の次段階
+今の自然化はかなり良いですが、次の段階は「言い換え辞書」ではなく、内部構造を外向けの会話行為に変換する層です。
+問題1: 内部判定が文に透ける
+例:
+
+まず一番困っている不具合を対象にして、15,000円の範囲でご相談いただけます。
+
+これは内部の target_issue = primary が文に出ています。
+変換方針:
+内部判定:primary issue = 決済後に注文が作られないprice = 15000unit = one_bug外向け:この場合は、「決済後に注文が作られない」不具合を1件として、15,000円でご依頼いただけます。
+つまり、内部分類語ではなく、buyer の意思決定文に戻す。
+問題2: 教材っぽい
+例:
+
+選び切る必要はありません。
+
+これは意味は正しいですが、相手に判断課題を解説している感じが出ます。
+変換方針:
+説明者目線:選び切る必要はありません。実務チャット:無理に絞らなくて大丈夫です。こちらで必要な範囲を確認します。
+japanese-chat-natural-ja には既にこの方向の記述があります。
+ただし batch B02 に戻っているので、gold / reviewer / candidate validation 側でも拾う必要があります。
+問題3: 症状ラベル化している
+例:
+
+ローカルでは動いていて、Vercelへデプロイ後だけ失敗する症状として確認します。
+
+改善:
+
+ローカルでは動いているとのことなので、本番環境でだけ失敗している原因を見ていきます。
+
+これは echo_to_working_angle です。
+復唱を禁止するのではなく、相手の事実 → こちらの確認観点へ変換します。
+問題4: 主質問への返しが少しズレる
+これは naturalizer では直しきれません。
+answer_focus_alignment を response plan 側へ入れます。
+実装方針
+レイヤやることcontract packetprimary / final / focus issue / answer frame を持つresponse plandirect_answer_intent と suggested_answer_line を分けるwriter brief「主質問にそのまま返る言葉を優先する」を1行強化naturalizer教材語・ラベル語を、会話行為に変換するrevieweranswer_focus / burden / instructional / working_angle を soft に見るlintexact phrase の WARN まで。hard fail にしない
+
+7. #RE / #R / Pro の運用設計
+#RE の役割
+今後の #RE は、自然さを磨く場ではなく、変更後の regression / coverage gap を見る場に限定した方がよいです。
+回すべきタイミング:
+
+
+service facts / registry / phase contract を変更した
+
+
+contract packet / output schema を変更した
+
+
+writer brief / naturalizer を変更した
+
+
+#R 実例で未知 failure が出た
+
+
+public/private leak や secret boundary の疑いが出た
+
+
+coverage map の real_stock gap を埋める必要がある
+
+
+回さない方がよいタイミング:
+
+
+同じ family の採用確認だけ
+
+
+「少し自然にしたい」だけ
+
+
+既に synthetic high の family をまた見るだけ
+
+
+xhigh が毎回 minor fix しか返さない状態
+
+
+completion docs でも、同型 #RE は routine で止め、実案件 stock や contract gap を次の入口にする方針が明記されています。
+#R 実例を見るタイミング
+#R 実例は、今後の主軸にしてよいです。
+理由は、今回の4論点がすべて #RE より #R 実文で見えた違和感だからです。
+特に #R で見るべきもの:
+
+
+複数症状・複数質問
+
+
+buyer がコードや素材を選べない相談
+
+
+最後の質問が価格・可否・材料共有に寄る文
+
+
+短い実文、雑な実文、遠慮や不安が混ざる文
+
+
+AI生成コード、引き継ぎコード、他者修正失敗
+
+
+Pro に聞くタイミング
+Pro は batch 採点ではなく、設計判断に使うのがよいです。
+Pro に聞くべきタイミング:
+
+
+新 lens を formal に上げるか迷う
+
+
+contract packet schema を増やすか迷う
+
+
+common core と service facts の分離が難しい
+
+
+release sealed 判定をしたい
+
+
+#R 実例で同型の違和感が5〜8件たまった
+
+
+「これは好みか、構造か」が人間だけでは判断しづらい
+
+
+棚卸し件数の目安
+たまったもの棚卸しタイミングhard failure1件で即修正public/private / secret / phase 事故1件で即修正 + regressionsoft 違和感3件で lens / gold 候補#R 実文の同型違和感5件前後で Pro / Codex 設計相談gold reply 候補3〜5件で selector 整理#RE minor fix だけ3 batch 連続で停止
+
+8. 次に実装すべき 7ステップ
+Step 1: answer_focus_alignment を contract packet に入れる
+output-schema.yaml に、まず optional で追加します。
+reply_contract:  optional_fields:    - final_question_id    - primary_selection_evidence    - focus_issue_mapresponse_decision_plan:  optional_fields:    - answer_focus    - direct_answer_intent    - suggested_answer_line
+最小形:
+answer_focus:  primary_decision_need:  target_issue_ids:  answer_frame:  selection_evidence:    - buyer_priority_phrase    - final_action_question    - price_scope_asked  non_primary_but_covered:    - secondary symptom relation
+Step 2: check-contract-packets に semantic smoke を追加する
+最低限、次を見ます。
+
+
+primary_question_id に primary_selection_evidence がある
+
+
+final_question_id が primary でない場合、その理由がある
+
+
+answer_focus.target_issue_ids が answer_map と矛盾しない
+
+
+direct_answer_intent が空でない
+
+
+suggested_answer_line がある場合、preserve_policy: intent_not_exact_wording
+
+
+全 explicit question が answer / ask / defer / decline で coverage 済み
+
+
+今の checker は explicit question coverage は見ていますが、focus alignment までは見ていません。
+Step 3: Stripe 2症状例を contract fixture に追加する
+追加する family は、新 renderer ではなく、まず fixture でよいです。
+family: prequote_multi_symptom_price_scopephase: prequotesource_type: real_like_stockprimary_decision_need: can_order_priority_issue_as_one_bug_for_15000
+期待 direct answer:
+この場合は、「決済後に注文が作られない」不具合を1件として、15,000円でご依頼いただけます。
+Step 4: bugfix service facts に material selection safe default を追加する
+ops/services/next-stripe-bugfix/service-pack/facts.yaml に、
+
+
+buyer_burden_hotspots
+
+
+safe_default_inputs_by_phase
+
+
+must_not_push_back_to_buyer
+
+
+を追加します。
+service-facts-onboarding-template.ja.md には既に枠があるので、ここを bugfix facts に実体化します。
+Step 5: B02 を修正し、gold reply へ1本だけ置く
+現行 B02 は今の learning log と矛盾しています。
+修正版はこうです。
+コードの内容に詳しくなくてもご依頼いただけます。ご購入後は、エラーログや画面スクショに加えて、可能であればコード一式をZIPでトークルームに送ってください。どのファイルが関係するか分からない場合は、無理に絞らなくて大丈夫です。こちらで必要な範囲を確認します。APIキー、Webhook Secret、.env の値などの秘密情報は含めないでください。この内容で問題なければ、そのままご購入ください。
+これは material_selection_burden と instructional_tone_leak の両方に効きます。
+Step 6: reviewer prompt を少し棚卸しする
+今の監査プロンプトは強いですが、soft lens が多すぎます。
+外部監査用には残してよいですが、batch ごとに見る lens を絞るべきです。
+おすすめ:
+review_lens_set:  hard_guards:    - public_private_boundary    - price_scope_phase    - secret_safety  active_soft_lenses:    - answer_focus_alignment    - buyer_burden_alignment    - agency_alignment    - conversation_flow_naturalness  observe_only:    - echo_to_working_angle    - instructional_tone_leak
+Step 7: #R real-ish 5件で targeted audit を回す
+#RE ではなく、今回の4論点に絞った #R テストを5件作るのがよいです。
+対象:
+
+
+複数症状 + 最後に価格可否
+
+
+複数質問 + 最後に材料共有
+
+
+コード分からない + AI生成コード
+
+
+ローカルOK / 本番NG
+
+
+支払い前 / 購入後の材料共有境界
+
+
+これで answer_focus / burden / working angle が実際に効くかを見る。
+
+9. やらない方がいいこと
+1. 「最後の文を優先する」ルール
+これは危険です。
+最後の文が主質問とは限りません。
+悪い設計:
+final sentence = primary question
+良い設計:
+final sentence is one cue.primary question is selected by decision need + buyer priority + phase + explicit question.
+2. 選び切る必要はありません の禁止語化
+これは禁止語ではなく、構造の問題です。
+禁止すると、判断し切らなくて大丈夫です のような別の教材語が出ます。
+3. 毎回コード一式 ZIP を要求する
+bugfix-15000 では有効ですが、prequote で前のめりに出すと重いです。
+また、secret 混入リスクもあります。
+4. echo_to_working_angle を hard lens 化する
+まだ observe で十分です。
+復唱が必要な場面もあります。禁止すると、逆に「読んでいない」返信になります。
+5. reviewer prompt を Writer に渡す
+これは Writer preservation を壊します。
+Writer には短い brief、Reviewer には監査観点、lint には deterministic guard という分離を維持すべきです。
+6. Gold reply を増やし続ける
+Gold は selector がないとテンプレ化します。
+今後は「増やす」より「近い1本だけ選ぶ」運用が重要です。
+7. 同型 #RE の無駄回し
+今回の発見を見る限り、自然化・コア化に効く発見は #RE より #R 実例から出ています。
+同型 #RE を回すより、real_stock / #R / human audit を主軸にした方が費用対効果が高いです。
+8. release sealed と呼ぶ
+今は candidate です。
+completion docs も scope seal も、sealed ではなく candidate として扱っています。
+
+10. 追加で見るべきファイル
+今回の指定ファイルに加えて、次は確認価値が高いです。
+ファイル見る理由ops/tests/contract-packets/bugfix-15000-v1-fixtures.yamlanswer_focus_alignment の fixture 追加先ops/tests/contract-packets/bugfix-15000-v1-samples.yaml現在の contract packet の実体。direct_answer_line / writer_notes の圧を確認するscripts/check-contract-packets.pyanswer_focus の semantic gate 追加先scripts/check-contract-packet-writer-brief-sync.py#R writer brief と generated packet の同期確認scripts/render-coconala-reply.py#R / #RE が本当に同じ packet 経路を通っているか確認ops/tests/fixture-coverage-map.yamlsynthetic high / real_stock low の棚卸しdocs/reply-quality/failure-taxonomy.yamlanswer_focus を hard / decision / soft のどこに置くかdocs/reply-quality/adoption-policy.ja.mdobserve → adopt_light → formal の基準確認docs/reply-quality/gold-replies/README.ja.mdmaterial_selection / instructional_tone の gold 追加判断docs/reply-quality/ng-expressions.ja.md禁止語化しすぎていないか確認ops/common/reply-memory-schema.yamlapp memory 接続の本丸ops/common/phase-contract-schema.yamlphase_act / allowed / forbidden の同期確認ops/services/next-stripe-bugfix/service-pack/boundaries.yamlZIP / secret / GitHub / 本番反映境界ops/services/next-stripe-bugfix/service-pack/evidence-contract.yamlprequote / purchased で何を要求してよいか.codex/skills/coconala-prequote-ops-ja/SKILL.md今回の answer_focus は prequote で出やすい.codex/skills/coconala-intake-router-ja/SKILL.mdprimary question 選定が router 側に出ていないか確認
+
+最終判断
+このまま進めれば、汎用返信コアへ近づきます。
+ただし条件があります。
+
+
+answer_focus_alignment は レンズ名だけ増やさず、contract packet / response plan に入れる
+
+
+material_selection_burden は common 原則 + service facts に分ける
+
+
+instructional_tone_leak は 禁止語ではなく、説明者目線から実務チャット目線への変換として扱う
+
+
+echo_to_working_angle は observe / gold に留め、再発証拠が増えるまで hard 化しない
+
+
+#RE は routine ではなく、変更後 regression / coverage gap 検証に限定する
+
+
+#R 実例 → human audit → learning log → Codex/Pro設計判断 → schema / facts / brief へ戻す流れを主軸にする
+
+
+今の返信OSは、かなり良いところまで来ています。
+壊すとしたら、次の原因です。
+
+良い違和感を全部 lens / lint / 禁止語にしてしまうこと。
+
+逆に、今回の違和感を 質問理解・buyer負担・会話行為への変換として扱えば、これはモグラ叩きではなく、汎用返信コアへのかなり有効な前進です。

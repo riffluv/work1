@@ -29,6 +29,24 @@ formal_soft_lenses:
       - japanese_chat_natural_skill
       - gold_reply
 
+  answer_focus_alignment:
+    description: "複数症状・複数質問の中で、buyer が次に決めたい主質問と、その対象症状・価格・scope の単位が返信の初手に合っているか"
+    hard_fail: false
+    role: "decision_contract_lens"
+    parent_layer: reply_contract
+    apply_when:
+      - multiple_symptoms
+      - multiple_explicit_questions
+      - final_action_question
+      - buyer_priority_phrase
+      - price_scope_asked
+    overfire_note: "最後の文を機械的に primary にしない。final_question_id は cue であり、primary_question_id は buyer の意思決定・phase・明示優先度から選ぶ。"
+    preferred_return_targets:
+      - reply_contract
+      - response_decision_plan
+      - contract_packet
+      - reviewer_prompt
+
   response_weight_mismatch:
     description: "buyer の質問量・温度・risk に対して返信が重すぎる/軽すぎる/拒否先行すぎないか"
     hard_fail: false
@@ -139,6 +157,8 @@ observe_only:
   - topic_label_distance
   - buyer_burden_alignment
   - material_selection_burden
+  - instructional_tone_leak
+  - echo_to_working_angle
   - answer_order_calibration
   - certainty_calibration # use commitment_strength_calibration when the issue is promise strength
 

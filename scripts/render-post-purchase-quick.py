@@ -99,8 +99,17 @@ def has_technical_cancel_context(text: str) -> bool:
 
 
 def time_commit(hours: int = 2) -> str:
-    target = datetime.now(JST) + timedelta(hours=hours)
-    return f"本日{target:%H:%M}までに、現時点の確認結果をお返しします。"
+    now = datetime.now(JST)
+    target = now + timedelta(hours=hours)
+    return f"{deadline_label(now, target)}{target:%H:%M}までに、現時点の確認結果をお返しします。"
+
+
+def deadline_label(now: datetime, target: datetime) -> str:
+    if target.date() == now.date():
+        return "本日"
+    if target.date() == (now + timedelta(days=1)).date():
+        return "明日"
+    return f"{target.month}月{target.day}日"
 
 
 def reply_memory_for(source_or_case: dict | None) -> dict:
@@ -259,29 +268,31 @@ def extra_scope_request_target(raw: str) -> str:
 
 
 def next_action_line(case: dict, hours: int = 2) -> str:
-    target = datetime.now(JST) + timedelta(hours=hours)
+    now = datetime.now(JST)
+    target = now + timedelta(hours=hours)
+    label = deadline_label(now, target)
     if is_complaint_like(case):
-        return f"本日{target:%H:%M}までに、確認結果をお送りします。"
+        return f"{label}{target:%H:%M}までに、確認結果をお送りします。"
     if case.get("scenario") == "late_info_share":
-        tomorrow = datetime.now(JST) + timedelta(days=1)
+        tomorrow = now + timedelta(days=1)
         return f"明日{tomorrow:%H:%M}までに、確認結果をお返しします。"
     if case.get("scenario") == "timeline_anxiety" and any(marker in case.get("raw_message", "") for marker in ["あとどれくらい", "目安だけでも", "いつまでこう言い続ければ"]):
-        return f"本日{target:%H:%M}までに、原因の方向性と次の見通しをお送りします。"
+        return f"{label}{target:%H:%M}までに、原因の方向性と次の見通しをお送りします。"
     if case.get("scenario") == "progress_anxiety":
         if any(marker in case.get("raw_message", "") for marker in ["diff", "差分", "変更予定ファイル"]):
-            return f"本日{target:%H:%M}までに、分かっている点と次に見る箇所をお送りします。"
+            return f"{label}{target:%H:%M}までに、分かっている点と次に見る箇所をお送りします。"
         if any(marker in case.get("raw_message", "") for marker in ["長い説明はいりません", "長い説明はいい", "分かっているかだけ", "わかっているかだけ"]):
-            return f"本日{target:%H:%M}までに、確認できている点だけ短くお返しします。"
-        return f"本日{target:%H:%M}までに、状況を整理してお送りします。"
+            return f"{label}{target:%H:%M}までに、確認できている点だけ短くお返しします。"
+        return f"{label}{target:%H:%M}までに、状況を整理してお送りします。"
     if case.get("scenario") == "feature_addon_scope":
-        return f"本日{target:%H:%M}までに、注文反映の件の現時点の確認結果をお返しします。"
+        return f"{label}{target:%H:%M}までに、注文反映の件の現時点の確認結果をお返しします。"
     if case.get("scenario") == "progress_summary_request":
-        return f"本日{target:%H:%M}までに、現時点で見えている点を箇条書きでお送りします。"
+        return f"{label}{target:%H:%M}までに、現時点で見えている点を箇条書きでお送りします。"
     if case.get("scenario") == "requested_materials_received":
-        return f"本日{target:%H:%M}までに、追加分を含めた確認結果をお返しします。"
+        return f"{label}{target:%H:%M}までに、追加分を含めた確認結果をお返しします。"
     if case.get("scenario") == "redacted_resend_received":
-        return f"本日{target:%H:%M}までに、伏せ直し分を含めた確認結果をお返しします。"
-    return f"本日{target:%H:%M}までに、現時点の確認結果をお返しします。"
+        return f"{label}{target:%H:%M}までに、伏せ直し分を含めた確認結果をお返しします。"
+    return f"{label}{target:%H:%M}までに、現時点の確認結果をお返しします。"
 
 
 def opener_for(source: dict) -> str:

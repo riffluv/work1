@@ -107,6 +107,38 @@ buyer_anxieties:
     - "本番だけ起きるので説明しづらい"
     - "コードの中身が分からない"
 
+buyer_burden_hotspots:
+  - "関係ファイルの選定"
+  - "Stripe / Webhook / DB / API の原因候補選定"
+  - "ローカル・本番・Vercel など環境差分の説明"
+  - "AI生成コードや引き継ぎコードの構造把握"
+
+safe_default_inputs_by_phase:
+  prequote:
+    - "症状"
+    - "本来の動き"
+    - "今起きている現象"
+    - "エラーログまたはスクショ"
+    - "Stripe Event ID が分かる場合は evt_... のID"
+    - ".env は値ではなくキー名のみ"
+  quote_sent:
+    - "お支払い完了後にトークルームで共有する流れを案内する"
+    - "支払い前にコード確認・原因確認を始めない"
+    - "軽い手順確認では、通常フローを先に案内する"
+  purchased:
+    - "コード一式ZIP"
+    - "エラーログ"
+    - "スクショ"
+    - "再現手順"
+    - "Stripe Event ID が分かる場合は evt_... のID"
+    - ".env / APIキー / Webhook Secret / DB接続文字列の値は除外"
+
+must_not_push_back_to_buyer:
+  - "コードに詳しくない buyer に、関係ファイルの選定を戻しすぎない"
+  - "AI生成コードや引き継ぎコードで構造が分からない buyer に、原因候補や優先順位の判断を戻しすぎない"
+  - "どのファイルが関係するか分からない buyer へ、分かる範囲の関係ファイルだけを標準案内にしない"
+  - "安全な既定入力を出せる場面では、コード一式ZIP + secret除外 + ログ/スクショへ寄せる"
+
 source_refs:
   service_page: "/home/hr-hm/Project/work/サービスページ/bugfix-15000.live.txt"
   service_yaml: "/home/hr-hm/Project/work/ops/services/next-stripe-bugfix/service.yaml"

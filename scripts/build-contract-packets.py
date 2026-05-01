@@ -75,6 +75,9 @@ def answer_brief_for_question(*, family: str, question_id: str) -> str:
         "prequote_service_fit": {
             "q1": "原因不明の状態でも、Stripe決済後に注文が作られない不具合として15,000円で依頼できる。ただし成功保証はしない。",
         },
+        "prequote_multi_symptom_price_scope": {
+            "q1": "優先症状である決済後に注文が作られない不具合を1件として、15,000円で依頼できる。もう1つの症状は同じ原因につながっていればあわせて確認でき、別原因なら先に相談する。",
+        },
         "quote_sent_payment_after_share": {
             "q1": "支払い前に送らなくてよい。",
             "q2": "お支払い完了後にトークルームでまとめて共有する流れでよい。",
@@ -147,6 +150,7 @@ def blocking_missing_facts_for_family(family: str) -> list[str]:
 def direct_answer_line_for_family(family: str) -> str:
     lines = {
         "prequote_service_fit": "原因が分からない状態でも、15,000円の不具合修正としてご依頼いただけます。",
+        "prequote_multi_symptom_price_scope": "この場合は、「決済後に注文が作られない」不具合を1件として、15,000円でご依頼いただけます。",
         "quote_sent_payment_after_share": "スクショやログは、お支払い完了後にトークルームでまとめて共有してください。",
         "purchased_current_status": "今は、いただいたログとスクショをもとに、今回の不具合に関係する流れを確認しています。",
         "purchased_commitment_followup": "前にお伝えしていた見通し共有として、今はいただいたログとスクショをもとに、現時点で見えている範囲と次に見る箇所を整理しています。",
@@ -167,6 +171,18 @@ def issue_plan_for_family(family: str) -> list[dict[str, str]]:
                 "disposition": "answer_now",
                 "reason": "service scope に合う bugfix 相談。購入前診断は不要。",
             }
+        ],
+        "prequote_multi_symptom_price_scope": [
+            {
+                "issue": "優先症状1件としての価格・範囲",
+                "disposition": "answer_now",
+                "reason": "buyer は一番困っている症状と価格範囲を明示している。",
+            },
+            {
+                "issue": "2つ目の症状の扱い",
+                "disposition": "answer_now",
+                "reason": "同じ原因か別原因か未確定の不安を短く回収する。",
+            },
         ],
         "quote_sent_payment_after_share": [
             {
@@ -240,6 +256,7 @@ def issue_plan_for_family(family: str) -> list[dict[str, str]]:
 def required_moves_for_family(family: str) -> list[str]:
     moves = {
         "prequote_service_fit": ["answer_directly_now", "give_purchase_path"],
+        "prequote_multi_symptom_price_scope": ["answer_directly_now", "explain_scope_boundary", "give_purchase_path"],
         "quote_sent_payment_after_share": ["answer_directly_now", "give_purchase_path"],
         "purchased_current_status": ["answer_directly_now", "confirm_receipt"],
         "purchased_commitment_followup": ["answer_directly_now", "confirm_receipt"],
@@ -258,6 +275,11 @@ def forbidden_moves_for_family(family: str) -> list[str]:
             "internal_term_exposure",
             "vague_hold_without_reason",
             "frontload_branching_risk_when_not_asked",
+        ],
+        "prequote_multi_symptom_price_scope": [
+            "internal_term_exposure",
+            "vague_hold_without_reason",
+            "overexplain_branching",
         ],
         "quote_sent_payment_after_share": [
             "internal_term_exposure",
@@ -306,6 +328,7 @@ def forbidden_moves_for_family(family: str) -> list[str]:
 def primary_concern_for_family(family: str) -> str:
     concerns = {
         "prequote_service_fit": "依頼可否と価格",
+        "prequote_multi_symptom_price_scope": "優先症状1件として15,000円で依頼できるか",
         "quote_sent_payment_after_share": "材料共有のタイミング",
         "purchased_current_status": "現在地の短い共有",
         "purchased_commitment_followup": "既存コミットメントを踏まえた現在地共有",
@@ -323,6 +346,11 @@ def facts_known_for_family(family: str) -> list[str]:
         "prequote_service_fit": [
             "Stripe決済後に注文が作られない",
             "原因は未特定",
+        ],
+        "prequote_multi_symptom_price_scope": [
+            "症状は2つある",
+            "buyer は決済後に注文が作られない症状を一番困っていると明示している",
+            "同じ原因か別原因かは未確認",
         ],
         "quote_sent_payment_after_share": [
             "見積り提案済み",
@@ -373,6 +401,12 @@ def response_order_for_family(family: str) -> list[str]:
             "after_purchase_flow",
             "purchase_path",
         ],
+        "prequote_multi_symptom_price_scope": [
+            "direct_answer_to_price_scope",
+            "secondary_symptom_boundary",
+            "no_success_guarantee",
+            "purchase_path",
+        ],
         "quote_sent_payment_after_share": [
             "normal_flow_first",
             "after_payment_material_share",
@@ -419,6 +453,67 @@ def response_order_for_family(family: str) -> list[str]:
         ],
     }
     return list(orders.get(family, ["direct_answer"]))
+
+
+def reply_contract_extra_for_family(family: str) -> dict[str, Any]:
+    if family != "prequote_multi_symptom_price_scope":
+        return {}
+    return {
+        "final_question_id": "q1",
+        "issues": [
+            {
+                "id": "i1",
+                "text": "決済後に注文が作られない",
+                "buyer_priority": "primary",
+            },
+            {
+                "id": "i2",
+                "text": "一部ユーザーだけ有料プランに切り替わらない",
+                "buyer_priority": "secondary",
+            },
+        ],
+        "implicit_concerns": [
+            {
+                "id": "c1",
+                "text": "2つの症状が同じ原因なら同じ範囲で見られるか、別原因ならどうなるか",
+                "target_issue_ids": ["i1", "i2"],
+            }
+        ],
+        "primary_decision_need": {
+            "type": "can_order_priority_issue_as_one_bug_for_15000",
+            "target_issue_ids": ["i1"],
+            "price": 15000,
+            "unit": "one_bug_or_same_cause",
+        },
+        "primary_selection_evidence": [
+            "buyer_says_primary_issue",
+            "final_action_question",
+            "price_scope_asked",
+        ],
+    }
+
+
+def response_decision_extra_for_family(family: str) -> dict[str, Any]:
+    if family != "prequote_multi_symptom_price_scope":
+        return {}
+    return {
+        "direct_answer_intent": "優先症状である注文作成不具合を1件として15,000円で依頼できる。",
+        "suggested_answer_line": "この場合は、「決済後に注文が作られない」不具合を1件として、15,000円でご依頼いただけます。",
+        "preserve_policy": "intent_not_exact_wording",
+        "answer_focus": {
+            "primary_decision_need": "2つ症状がある状態で、優先症状の注文作成不具合を1件として15,000円で依頼できるか",
+            "target_issue_ids": ["i1"],
+            "answer_frame": "対象症状 + 1件扱い + 15,000円可否 + 2つ目の症状の同一原因条件",
+            "selection_evidence": [
+                "buyer_says_primary_issue",
+                "final_action_question",
+                "price_scope_asked",
+            ],
+            "non_primary_but_covered": [
+                "有料プランに切り替わらない件は、同じ原因につながっていればあわせて確認できる"
+            ],
+        },
+    }
 
 
 def build_packet(
@@ -473,6 +568,7 @@ def build_packet(
         },
         "reply_contract": {
             "primary_question_id": fixture.get("primary_question_id"),
+            **reply_contract_extra_for_family(family),
             "explicit_questions": explicit_questions,
             "answer_map": build_answer_map(explicit_questions, family=family),
             "ask_map": ask_map,
@@ -485,6 +581,7 @@ def build_packet(
             "facts_known": facts_known_for_family(family),
             "blocking_missing_facts": blocking_missing_facts_for_family(family),
             "direct_answer_line": direct_answer_line_for_family(family),
+            **response_decision_extra_for_family(family),
             "response_order": response_order_for_family(family),
         },
     }

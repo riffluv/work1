@@ -30,6 +30,10 @@ def has_any(text: str, needles: list[str]) -> bool:
     return any(needle in text for needle in needles)
 
 
+def has_concrete_deadline(text: str) -> bool:
+    return "までに" in text and ("本日" in text or "明日" in text)
+
+
 def normalized(text: str) -> str:
     return re.sub(r"[\s。、，,.！？?「」『』（）()・:：/／\\-]+", "", text)
 
@@ -142,7 +146,7 @@ def lint_case(module, source: dict) -> list[str]:
     )
     if (
         primary["disposition"] == "answer_after_check" or (contract.get("ask_map") and decision_plan.get("blocking_missing_facts"))
-    ) and not symptom_send_first and not conditional_materials_followup and ("本日" not in rendered or "までに" not in rendered):
+    ) and not symptom_send_first and not conditional_materials_followup and not has_concrete_deadline(rendered):
         errors.append("missing time commitment")
     if scenario not in {"price_complaint", "price_discount_request", "repeat_bugfix_price_check", "refund_request", "closed_free_followup_price"} and has_any(rendered, ["15,000円", "25000円", "25,000円"]):
         errors.append("closed follow-up should not front-load price")

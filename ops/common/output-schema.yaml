@@ -125,6 +125,12 @@ nested_field_rules:
       - forbidden_moves
     primary_question_id:
       description: the question_id that must be answered in the earliest answer-bearing section
+    optional_fields:
+      - issues
+      - implicit_concerns
+      - final_question_id
+      - primary_decision_need
+      - primary_selection_evidence
     explicit_questions:
       required_item_fields:
         - id
@@ -205,6 +211,9 @@ nested_field_rules:
       - the first answer-bearing section must answer primary_question_id before introducing secondary topics
       - topics not represented in explicit_questions must not lead the first answer-bearing section unless needed for safety, policy, or to avoid a misleading answer
       - price, branching risk, and broad scope explanation must not be front-loaded when they are not part of the primary question and not required by policy
+      - final_question_id is only a selection cue; it must not mechanically override primary_question_id
+      - primary_decision_need should describe what the buyer is trying to decide next, not a sentence to copy into the reply
+      - primary_selection_evidence should explain why primary_question_id was chosen when the message has multiple symptoms or multiple questions
   temperature_plan:
     required:
       - user_signal
@@ -333,6 +342,10 @@ nested_field_rules:
       - ask_policy
       - known_facts_used
       - risk_flags
+      - answer_focus
+      - direct_answer_intent
+      - suggested_answer_line
+      - preserve_policy
     phase_act:
       allowed:
         - estimate_answer
@@ -349,5 +362,8 @@ nested_field_rules:
       - estimate_* phase_act must not imply that code, logs, ZIP, or permissions were already received and reviewed
       - purchase_* phase_act may refer to ongoing confirmation work, current inspection focus, or scope recheck inside the talkroom
       - direct_answer_line must be renderable as an early answer-bearing line when the primary question is answerable
+      - direct_answer_intent is preferred for semantic preservation when exact wording would over-constrain the writer
+      - suggested_answer_line is an anchor, not a template; use preserve_policy=intent_not_exact_wording when present
+      - answer_focus should connect primary_decision_need, target issues, and answer_frame for multi-question or multi-symptom inputs
       - blocking_missing_facts must gate ask generation; when empty, the renderer should not re-ask known context
       - validator should check that rendered text preserves direct_answer_line intent and does not duplicate its meaning across nearby sections

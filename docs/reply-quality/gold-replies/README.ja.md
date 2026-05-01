@@ -67,6 +67,7 @@
 - `40_block-rhythm-flow.ja.md`
 - `41_topic-label-distance.ja.md`
 - `42_commitment-strength-calibration.ja.md`
+- `43_buyer-burden-material-selection.ja.md`
 
 ## Gold 26-33 family index
 
@@ -88,6 +89,7 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 | block_rhythm_flow | 40 | 処理文・安全説明・条件文が同じリズムで並び、契約説明の塊に見える時。`fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` を分けたい時 | 句点数・段落数を機械判定したり、高リスク境界を短文化のために削る時 |
 | topic_label_distance | 41 | `〜の件ですね` が buyer の困りごとを遠い案件ラベルにしている時。自然な topic organizer と距離が出る表現を分けたい時 | `〜の件` を blanket NG にする理由にする時 |
 | commitment_strength | 42 | phase・受領証拠・原因特定度に対して、約束の強さを合わせたい時。購入前/購入後/closed 後で promise level を分けたい時 | 依頼可否・固定価格・必要な次アクションまで弱める理由にする時 |
+| buyer_burden_material_selection | 43 | コードに詳しくない、AI生成コード、どのファイルを送ればよいか分からない buyer に、材料選別負担を戻しすぎない時 | 毎回コード一式ZIPを hard rule にしたり、購入前コード確認へ滑る理由にする時 |
 
 ### 抽出して validator / renderer へ戻す候補
 
@@ -104,3 +106,4 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 - Gold 40: `block_rhythm_flow` は hard validator 化せず、段落の塊感を `fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` に分ける anchor として使う。自然化してよいのは同じ役割・同じ約束レベルの文だけ。
 - Gold 41: `topic_label_distance` は hard validator 化せず、buyer の困りごとを受付票のような案件ラベルにしていないかを見る anchor として使う。`〜の件` の blanket NG にはしない。
 - Gold 42: `commitment_strength_calibration` は hard validator 化せず、phase・証拠量・原因特定度に合わせて promise level を調整する anchor として使う。依頼可否や固定価格まで弱めない。
+- Gold 43: `material_selection_burden` は hard validator 化せず、buyer が判断できない領域を buyer に戻しすぎていないかを見る anchor として使う。safe default input と secret 除外をセットにし、prequote でコード確認へ滑らない。

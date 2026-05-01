@@ -2265,3 +2265,30 @@
 - 想定効果: buyer の負担を下げる場面で、概念説明や工程説明に寄らず、相手がそのまま安心して次アクションへ進める文面になりやすくする
 - 確認: `git diff --check` は OK。`./scripts/os-check.sh` は `mode=coconala` で OK
 - 非変更: `選び切る` を全面禁止語にはしない。材料選別負担・初心者向け説明で不自然な時だけ避ける。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-261
+- 分類: `reply-only`
+- レイヤ: contract packet / answer focus alignment
+- 変更: `reply_contract` と `response_decision_plan` に、複数症状・複数質問で buyer が次に決めたいことを固定する `primary_decision_need` / `answer_focus` / `direct_answer_intent` / `suggested_answer_line` を追加した。`prequote_multi_symptom_price_scope` の contract packet と coverage map を追加し、bugfix skill / 汎用自然化 skill には、内部の対象判定を本文に出さず buyer の依頼可否・価格範囲の問いへ戻す方針を最小反映した。
+- きっかけ: #R の複数症状相談で、buyer は「優先症状1件として15,000円内で見てもらえるか」を聞いているのに、本文が内部判定の `まず一番困っている症状を対象にして...` へ寄り、主質問への返答が少しズレたため。
+- 想定効果: 最後の文・目立つ症状・内部 primary issue だけに引っ張られず、buyer の最終的な意思決定へ答えやすくなる。単発の言い換えではなく、contract packet 段階で主質問の焦点を検査できる。
+- 確認: `./scripts/check-contract-packet-fixtures.py` は `OK contract packet fixture trace: 10 fixture(s)`。`./scripts/check-contract-packets.py` は `OK 10 contract packet(s)`（既存 warning のみ）。`./scripts/build-contract-packets.py --check-against-samples --save-report` は `OK generated contract packet comparison: 10 packet(s)`。`python3 scripts/check-contract-packet-writer-brief-sync.py` は `OK contract packet writer brief sync: 10 fixture(s), 0 warning(s)`。`./scripts/check-v1-completion-gates.py --deep --save-report` は `v1_completion_candidate`。
+- 非変更: 文面テンプレートは追加しない。`suggested_answer_line` は anchor であり固定文ではない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+
+### 2026-05-01 / CHG-262
+- 分類: `reply-only`
+- レイヤ: timestamp policy / renderer validation
+- 変更: 購入後・納品後・クローズ後 renderer の次回返答時刻が日付をまたぐ場合、`本日HH:MM` ではなく `明日HH:MM` または日付付き表現へ切り替わるようにした。検査側も `本日` / `明日` の concrete deadline を同じ時刻コミットとして扱うよう更新した。
+- きっかけ: `check-v1-completion-gates.py --deep` を 23時台に回した際、2時間後の締切が翌日になるにもかかわらず `本日01:27までに` と出る stale commitment を timestamp policy が検出したため。
+- 想定効果: 夜間の #R / #RE / live 返信で、すでに過去扱いになる「本日深夜」表現を出す事故を防ぎ、buyer が待つべき時刻を誤読しにくくする。
+- 確認: `python3 scripts/check-timestamp-policy.py` は `OK timestamp policy passed with warnings`（active rehearsal md の固定時刻 warning のみ）。`./scripts/check-v1-completion-gates.py --deep --save-report` は `role_suites: OK_WITH_WARNINGS` を含めて `v1_completion_candidate`。
+- 非変更: 次回返答時刻そのものの算出方針は変更しない。active rehearsal md に残る固定時刻サンプルは、外部監査前に再生成すればよい warning として扱う。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+
+### 2026-05-01 / CHG-263
+- 分類: `reply-only`
+- レイヤ: gold reply / reviewer lens selection
+- 変更: `Gold Reply 43 — buyer burden / material selection` を追加し、コードに詳しくない buyer / AI生成コード / ファイル不明の相談で、材料選別負担を buyer に戻しすぎない基準を gold 化した。`gold-reply-map.yaml` と gold README に `buyer_burden_material_selection` family を追加し、bugfix #RE 監査プロンプトには hard guards と active soft lenses / observe only を分ける lens selection を追記した。
+- きっかけ: Pro 分析で、`material_selection_burden` は既に方向性が入っていても、実例では `分かる範囲の関係ファイル` や教材調の言い回しへ戻りやすく、gold anchor と reviewer の過剰発火防止が必要と整理されたため。
+- 想定効果: buyer が判断できない領域を buyer に戻しすぎず、safe default input と secret 除外をセットで出しやすくする。同時に、監査側がすべての soft lens を毎回強く当ててモグラ叩き化するのを防ぐ。
+- 確認: `git diff --check` は OK。`./scripts/os-check.sh` は `mode=coconala` で OK。`./scripts/check-v1-completion-gates.py --save-report` は `v1_completion_candidate`。
+- 非変更: 毎回コード一式 ZIP を要求する hard rule にはしない。`instructional_tone_leak` は observe/gold 寄りで、禁止語 lint にはしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
