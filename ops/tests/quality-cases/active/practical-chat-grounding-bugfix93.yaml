@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC93-001
+    stock_id: HRC93-001
+    category: semantic_grounding_practical
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: purchased_logs_screen_current_read
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、ログと画面を送った状態で、今の見立てと追加準備の要否を短く知りたい。
+    raw_message: "購入後です。昨日ログと画面を送りました。今の見立てはどのくらいまで出ていますか？追加で準備した方がいいものがあれば教えてください。"
+    note: 通常 live / #RE。購入後の現在地説明。未提示の Event ID / Webhook / DB / Stripe記録などを足さず、原因断定も避ける。
+
+  - id: HRC93-002
+    stock_id: HRC93-002
+    category: semantic_grounding_practical
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: purchased_priority_focus_short
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、送った材料のうち何を優先して見ているかを短く知りたい。
+    raw_message: "購入後です。画面とログと関係ファイルを送っています。いま優先して見ているところだけ短く教えてください。"
+    note: 通常 live / #RE。相手文にない作業状況や原因候補を足さず、材料ベースで優先確認中の範囲を出す。
+
+  - id: HRC93-003
+    stock_id: HRC93-003
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_screenshot_zip_after_payment
+    question_type: quote_sent_file_share_timing
+    primary_question: 見積り提案後、支払い後にスクショとzipをまとめて送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後にスクショとzipをまとめて送る形で進めればいいですか？"
+    note: 通常 live / #RE。軽い手順確認。通常フローを先に出し、支払い前作業不可を不要に前面化しない。
+
+  - id: HRC93-004
+    stock_id: HRC93-004
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_screenshot_preview_before_payment
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 支払い前にスクショだけ見て、原因の方向性だけ確認してもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。購入前にスクショだけ送るので、原因の方向性だけ先に見てもらえますか？それで購入するか決めたいです。"
+    note: 通常 live / #RE。境界突破要求。支払い前診断へ入らず、購入後の原因確認へ戻す。
+
+  - id: HRC93-005
+    stock_id: HRC93-005
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: delivered_file_order_brief_explanation
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、どのファイルから反映すればよいか、順番だけ短く知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どのファイルから反映すればいいか順番だけ短く教えてもらえますか？"
+    note: 通常 live / #RE。対応可否宣言で止まらず、返す内容へ進める。本格資料へ広げない。
+
+  - id: HRC93-006
+    stock_id: HRC93-006
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: non_engineer_buyer
+    emotional_tone: confused
+    scenario: delivered_acceptance_check_points
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、どこを見れば修正できているかだけ短く説明してほしい。
+    raw_message: "納品ありがとうございます。確認手順は受け取りましたが少し難しいです。承諾前に、どこを見れば修正できているかだけ短く説明してもらえますか？"
+    note: 通常 live / #RE。承諾前の軽い補足。専門用語を増やさず、本格資料や本番反映代行へ広げない。
+
+  - id: HRC93-007
+    stock_id: HRC93-007
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite
+    scenario: closed_similar_payment_error_relation
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、似た決済エラーが出たため、前回修正との関係だけ確認してもらえるか知りたい。
+    raw_message: "前回はありがとうございました。似た決済エラーがまた出ています。ログを送れば、前回の修正と関係があるかだけ見てもらえますか？"
+    note: 通常 live / #RE。closed 後の穏やかな関係確認。責任認定や無料修正にせず、関係確認と実作業前相談を分ける。
+
+  - id: HRC93-008
+    stock_id: HRC93-008
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cautious
+    scenario: closed_same_cause_free_question
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、同じ原因なら無料なのか気にしているが、まず関係確認だけしてもらえるか知りたい。
+    raw_message: "クローズ後ですみません。同じ原因なら無料になるのかも気になっていますが、まずは前回の修正と関係があるかだけ見てもらえますか？"
+    note: 通常 live / #RE。無料含みの closed 後相談。無料/返金を断定せず、関係確認と実作業前相談に分ける。

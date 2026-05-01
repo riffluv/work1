@@ -1,0 +1,151 @@
+1. 結論：positive_flow_before_refusal は妥当。ただし「独立トップレベル lens」ではなく、まずは soft lens 候補 / unnecessary_refusal_frame の subtype が安全です ✅
+今回の違和感はかなり重要です。B03 の返信は phase / payment boundary としては正しい ですが、buyer が「支払い前に原因だけ見てほしい」と要求しているのではなく、「スクショを送るタイミング」を確認しているだけなので、拒否文が前に出ると 正しいのに人間の実務チャットでは少し冷たい というズレが出ています。#RE84 の B03 は local lint OK かつ外部監査 10/10 でしたが、これは hard boundary の安定確認としては妥当で、人間監査が拾ったのはその一段後ろの surface / intent ordering 問題です。
+ただ、既存の unnecessary_refusal_frame がすでにかなり近い観点を持っています。監査プロンプトにも「協力的な buyer に対して拒否・否定から入りすぎない」「単なる共有タイミング確認では手順案内を先に置く」という記述があります。 そのため、positive_flow_before_refusal を完全独立 lens にすると、unnecessary_refusal_frame、response_weight_mismatch、conversation_flow_naturalness と重なり、lens 増殖のリスクがあります。
+推奨はこれです。
+positive_flow_before_refusal:  status: candidate_soft_subtype  parent:    - unnecessary_refusal_frame    - conversation_flow_naturalness  role: >    buyer が軽い手順確認をしているだけなら、禁止・否定を先に置かず、    まず正しい通常フローを案内する。  not:    - hard rule    - blanket NG    - validator hard fail
+実装上は lens 名として残してよいですが、将来コア化を考えるなら runtime 側の概念名は positive よりも normal_flow_first_for_procedural_check や boundary_posture: normal_flow_first の方が誤用されにくいです。positive という語は、将来「断りを弱める」「前向きに言えばよい」と誤解される余地があります。
+
+2. 現状評価：骨格はかなり良い。危ないのは「soft lens の増殖」と「意図分類の薄さ」
+強い点
+現在の構成は、将来コア化にかなり耐えます。理由は、サービス事実 / platform phase / hard boundary / 自然化 / 学習ログ が同じ場所に混ざっていないからです。
+特に強いのはこの4点です。
+1つ目は、service-registry.yaml で bugfix-15000 は public: true、handoff-25000 は public: false と分かれており、private service のサービス名・価格・購入導線を外向けに出さない rule も registry に置かれていることです。これは live 事故を防ぐ土台として非常に良いです。
+2つ目は、platform contract が service contract と分離されていることです。ココナラ上の見積り相談は「購入前相談 → 出品者の提案 → buyer の購入」という流れで、見積り提案後も入金完了まではメッセージ上のやり取り、入金完了後にトークルームが開いて取引開始となります。これは公式ヘルプとも整合しています。 また、メッセージ機能は購入前相談やクローズ後連絡に使える一方、正式な依頼はサービス購入後のトークルームで行う、という分離も公式仕様に沿っています。
+3つ目は、acceptance gate の順番が良いです。現状は 事実 gate → phase gate → 会話 gate → 日本語 gate → soft lens gate になっており、soft lens が hard boundary を上書きしない構造になっています。これは維持すべきです。
+4つ目は、japanese-chat-natural-ja と coconala-reply-bugfix-ja の責務分離です。前者は汎用の日本語自然化、後者は bugfix 固有の service / phase / secret / 外部共有 guardrail になっており、さらに bugfix skill 側では renderer を全文テンプレではなく guardrail として扱う方針が明記されています。 
+まだ危ない点
+一番危ないのは、lens が増えてきた結果、同じ違和感に複数 lens 名が立つことです。response_weight_mismatch、unnecessary_refusal_frame、block_rhythm_flow、conversation_flow_naturalness、今回の positive_flow_before_refusal は、かなり近い場所を見ています。lens inventory でも「primary lens は原則1つ」「hard fail は deterministic な事故に限定」と整理されていますが、ここを守らないとレビューが採点ゲーム化します。
+次に危ないのは、buyer intent の分類が surface lens 側に寄りすぎることです。今回の本質は「言い換え」ではなく、buyer がどの intent なのかです。
+buyer_intent_kind:  - procedural_timing_check      # 送るタイミングを確認  - prepayment_work_request      # 支払い前に見てほしい  - conditional_purchase_request # 直りそうなら買う  - secret_value_question        # 値を送るべきか  - external_surface_request     # GitHub / Drive など  - closed_relation_check        # クローズ後に関係だけ見たい
+positive_flow_before_refusal を自然化 layer だけに置くと、「拒否を柔らかくする lens」と誤解されます。将来コア化を考えるなら、Reply Decision 層に boundary_posture を持たせるのが良いです。
+boundary_posture:  value: normal_flow_first | explicit_refusal_first | positive_permission_with_boundary  reason: buyer is only asking timing / buyer is requesting prepayment diagnosis / secret risk etc.
+これは全面改修ではなく、response_decision_plan や reviewer prompt に小さく足せる粒度です。
+もう1つの注意点は、外部共有の扱いです。公式ヘルプ上はメッセージ機能・トークルームの双方でファイル添付が可能で、容量上限や一部外部サービスに関する記載もあります。 ただし、あなたの返信OSでは安全運用として GitHub / Drive / 外部リポジトリ等を通常の作業面にしない方針を取っています。これは妥当ですが、外向け本文では「ココナラ仕様で外部共有は全部不可」と断定せず、**「この取引では、ココナラ内のトークルーム添付でお願いします」**に寄せるのが安全です。platform-contract もこの区別を既に持っています。
+
+3. lens 棚卸し表
+lens役割推奨扱い重複・統合候補副作用リスクpromise_consistency前段の留保・不可・条件付き回答を、後段が無条件 promise に見せていないかを見るformal soft / gold / 一部 advisory lintcommitment_strength_calibration と近いが、前後接続を見る点で維持成功保証回避のために、15,000円で依頼可能な入口まで弱める危険agency_alignment誰が何をするか、誰への許可か、依頼先・作業主体がズレていないかを見るformal soft / skill rule / goldpermission_benefit_alignment と近いが、主体ズレを見るので分ける相談できます 大丈夫です の blanket ban 化permission_benefit_alignment大丈夫です が buyer の負担軽減ではなく seller の許可調に見えないかを見るnamed soft / bugfix skill 補助agency_alignment の subtype としても扱えるbuyer に優しい 送らなくて大丈夫です まで消す危険negative_frame_non_echobuyer が否定したネガティブ語を復唱せず、目的・作業可否・費用扱いへ要約するformal soft / gold / exact echo の advisory lint 可pressure_word_summarization を配下に置くネガ語を避けすぎて返金・無料・今日中対応の論点自体を落とす危険pressure_word_summarization今日中に無料で 返金してほしい を作業可否・費用/返金扱いへ要約するsub-lens / observation → softnegative_frame_non_echo 配下で十分圧力語を消すだけになり、主質問未回答になる危険case_label_distance / topic_label_distance〜の件ですね が受付票・チケット感を出していないかを見るobservation / gold anchorjp_business_native_naturalness 配下ログの件 など自然な topic organizer まで禁止する危険block_rhythm_flow処理文・安全説明・条件文が同じリズムで並び、契約説明っぽくないかを見るformal subtype / gold / no lintconversation_flow_naturalness 配下で維持高リスク境界を短文化しすぎる危険。safe_connection 必須safe_connection文をつなげても promise level が変わらないかを見る gategate / naturalizer 前チェックlens というより safety gate逆に使わないと、保証・返金・closed 後作業が強く読まれるplatform_phase_contractprequote / quote_sent / purchased / delivered / closed を誤認していないかhard guard / regression / validatorsoft lens と混ぜない自然さを理由に phase をぼかすと事故るpositive_flow_before_refusal軽い手順確認では、拒否より先に正しい通常フローを案内するcandidate soft subtype / #RE85 検証 / gold 候補unnecessary_refusal_frame 配下。response_weight_mismatch と cross-ref高リスク場面でも拒否を後ろへ回し、支払い前作業・secret・外部共有を許したように見える危険
+結論として、新しく top-level に増やすべき lens は多くありません。むしろ現在は、conversation_flow_naturalness を上位 umbrella にして、その配下に次を置くのがよいです。
+conversation_flow_naturalness:  subtypes:    - response_weight_mismatch    - block_rhythm_flow    - unnecessary_refusal_frame    - positive_flow_before_refusal   # candidate    - topic_label_distance  gate:    - safe_connection
+
+4. positive_flow_before_refusal の具体設計
+定義
+
+buyer が単に手順・タイミング・共有方法を確認しているだけの場合は、禁止事項や拒否を先に出さず、まず正しい通常フローを案内する。必要な境界は、その後に「先に送る必要はありません」「作業開始はお支払い完了後です」のように最小限で添える。
+
+発火条件
+発火させてよいのは、以下がそろう時です。
+条件例buyer が協力的・中立的「スクショだけ先に送った方がいいですか？」主質問が手順確認「支払い後にまとめて送ればよいですか？」抜け道要求ではない「原因だけ先に見て」と言っていないsafe normal flow がある「お支払い完了後にトークルームで共有してください」禁止事項を明示しなくても誤解が少ない「先に送っていただく必要はありません」で足りる
+今回の B03 はこの典型です。
+現行候補：
+支払い前に材料を受け取って原因確認を進める形ではありません。
+これは意味は正しいですが、buyer の問いに対して防御が強いです。
+推奨：
+スクショやログは、お支払い完了後にトークルームでまとめて共有してください。先に送っていただく必要はありません。お支払い完了後に共有いただいた内容をもとに、原因確認から進めます。見積り提案の内容で問題なければ、そのままご購入手続きへ進んでください。
+ここでは 支払い前に〜ではありません を消したのではなく、buyer の善意の手順確認に対して「不要です / 通常フローはこちらです」と返しているのがポイントです。
+非発火条件
+以下では発火させない方がよいです。
+非発火条件理由「支払い前に原因だけ見て」明確な prepayment work request「直りそうなら購入します」条件付き購入で、購入前作業に引っ張る圧力「今日中に直るなら支払う」納期保証 + 支払い前作業の複合リスク「GitHub に招待するので見て」外部作業面 + 支払い前コード確認「APIキーの値も送ります」secret 値リスク「クローズ後だけど直して返して」closed 後実作業 promise リスク「返金か無料対応で」返金・無料対応の断定リスク
+この場合は、明確に断る必要があります。
+支払い前にコードやログを見て、原因確認や修正作業を始める形では進めていません。お支払い完了後にトークルームが開いたら、関係ファイルやログを共有してください。そこから原因確認と修正作業に入ります。
+これは冷たいのではなく、必要な境界です。
+監査文面案
+監査プロンプト_codex-xhigh.md には、追加ラベルとしてこの程度がよいです。
+- `positive_flow_before_refusal`: buyer が単に手順・タイミング・共有方法を確認しているだけの場合に、拒否・禁止・否定を先に出しすぎていないかを見る soft subtype。  - 例: `支払い前にスクショだけ送った方がいいですか？` には、まず `スクショやログはお支払い完了後にトークルームでまとめて共有してください` と通常フローを案内する。  - `支払い前に材料を受け取って原因確認を進める形ではありません` のような否定は、buyer が抜け道や購入前作業を求めている場合に使う。  - ただし、支払い前作業開始、secret 値、外部共有、直接 push、本番反映、closed 後作業、返金・無料対応などの境界は弱めない。  - hard fail ではなく、`unnecessary_refusal_frame` / `response_weight_mismatch` の subtype として扱う。
+良い例 / 悪い例
+状況悪い例良い例quote_sent / 軽い手順確認支払い前に材料を受け取って原因確認を進める形ではありません。先に送っていただく必要はありません。お支払い完了後にトークルームでまとめて共有してください。quote_sent / 抜け道要求お支払い後で大丈夫です。支払い前に原因だけ確認する形では進めていません。お支払い完了後にトークルームで共有いただいた内容をもとに確認します。secretAPIキーは送れません。APIキーや Webhook secret の値そのものは不要です。キー名や設定箇所、エラー内容が分かる情報だけで大丈夫です。closedクローズ後は作業できません。ログはこのメッセージ上で送ってください。届いた範囲で前回修正との関係を確認します。実作業が必要な場合は、対応方法と費用を先にご相談します。GitHubGitHubでは見ません。GitHub 招待での確認は通常の作業面にしていません。お支払い完了後に、必要な関係ファイルをトークルーム添付で共有してください。
+
+5. 実装先の提案
+今すぐ入れるべき場所
+サービスページ/rehearsal/bugfix-15000-返信学習/監査プロンプト_codex-xhigh.md
+ここに 追加ラベルとして入れるのが最優先です。理由は、現時点では生成 rule ではなく監査観点として育てるべきだからです。既存プロンプトは candidate_source や hard / soft の分離がかなり丁寧なので、ここに「hard fail ではない」「unnecessary_refusal_frame subtype」と明記すれば過発火を抑えられます。
+docs/reply-quality/lens-inventory-20260430.ja.md
+unnecessary_refusal_frame の下に candidate subtype として追記するのがよいです。lens inventory はすでに「新 lens 追加より分類」「primary lens は原則1つ」「soft lens の停止条件」を持っているので、ここに置くと設計が壊れにくいです。
+推奨追記イメージ：
+#### `positive_flow_before_refusal` candidate`unnecessary_refusal_frame` の subtype。buyer が軽い手順確認をしているだけなら、拒否や禁止を先に出さず、まず通常フローを案内する。ただし、支払い前作業、secret、外部共有、直接 push、本番反映、closed 後作業、返金・無料対応では、必要な不可表明を残す。
+ops/tests/quality-cases/active/practical-phase-mixed-bugfix85.yaml
+#RE85 として検証するのが必須です。B03 の単発修正だけで skill に入れると、過剰一般化しやすいです。
+docs/reply-quality/reply-change-log.ja.md
+追加する場合は、分類を reply-only、レイヤを review / surface naturalness にしてください。
+### 2026-xx-xx / CHG-XXX- 分類: reply-only- レイヤ: review / surface naturalness- 変更: 軽い手順確認では、拒否先行ではなく通常フローを先に案内する `positive_flow_before_refusal` を #RE85 監査観点として追加- きっかけ: quote_sent のスクショ送付タイミング確認で、内容は正しいが否定フレームが強く見える違和感が出た- 確認: #RE85 で検証予定- メモ: hard rule / lint にはしない。支払い前作業・secret・外部共有・closed 後作業の不可表明は残す
+条件付きで入れる場所
+.codex/skills/coconala-reply-bugfix-ja/SKILL.md
+ここには、#RE85 の前後で 1〜2文だけ入れてよいです。bugfix 固有の quote_sent / payment boundary と強く関係するため、汎用 skill より先に bugfix skill の方が安全です。
+推奨粒度：
+- quote_sent で buyer が材料共有のタイミングだけを確認している場合は、拒否から入らず、まず `お支払い完了後にトークルームで共有してください` と通常フローを案内する。- ただし、buyer が `支払い前に原因だけ見て` `直りそうなら購入` `GitHubに招待` のように購入前作業や外部作業面を求めている場合は、明確に断る。
+.codex/skills/japanese-chat-natural-ja/SKILL.md
+ここは 今すぐ入れない方がよいです。汎用自然化に入れると、Coconala 固有の支払い前作業や closed 境界まで「柔らかくする」方向に誤解されるリスクがあります。
+#RE85 で複数 phase・複数リスクの判定が安定した後、汎用文として入れるならこの程度です。
+- 相手が単に手順やタイミングを確認しているだけの場合は、否定や禁止から入らず、まず通常の進め方を案内する。ただし、断るべき行為や安全境界がある場合は曖昧にしない。
+まだ入れない方がよい場所
+docs/reply-quality/ng-expressions.ja.md
+現時点では入れない方がいいです。ng-expressions はすでに強力で、ここに「軽い手順確認への否定文先行」を入れると、将来 〜ではありません の blanket NG になりやすいです。既存 NG 集にも、否定先行や 形ではありません への注意はありますが、B03 が lint OK だったことからも、現状は hard ban ではなく観察・gold 向きです。
+validator / hard lint
+入れない方がよいです。lint 化するなら #RE85 後に advisory warning までです。
+soft_warning:  id: positive_flow_order_possible  when:    state: quote_sent    buyer_intent_kind: procedural_timing_check    reply_has_refusal_before_normal_flow: true  severity: observe
+
+6. 次の #RE85 案：8件程度
+#RE85 は、positive_flow_before_refusal を単独で見るのではなく、neutral procedure check vs boundary bypass request の対比 batch にするのがよいです。
+casestate目的相手文例期待1quote_sent軽いスクショ送付タイミング見積り提案ありがとうございます。支払い前にスクショだけ送っておいた方がいいですか？支払い後にまとめて送る形でも大丈夫ですか？positive flow first2quote_sentZIP を善意で用意済みZIPを用意しています。支払い前にこのメッセージで送った方がいいですか？それとも支払い後にトークルームで送る方がいいですか？positive flow first。支払い前作業にしない3quote_sent条件付き購入支払い前にコードだけ見てもらえますか？直りそうならそのまま購入します。explicit refusal first4quote_sent緊急 + 今日中圧本番が止まっています。今日中に直せそうならすぐ支払うので、先にログだけ見てもらえませんか？explicit refusal。今日中保証なし5prequote見積り前の軽い材料確認まだ見積り提案前です。先にログやスクショを送った方が判断しやすいですか？概要なら可、重いコード確認は購入後。拒否先行にしない6purchased購入前に送った材料の扱い購入後です。購入前メッセージで送ったログもありますが、作業用にはこのトークルームにもまとめて送った方がいいですか？現在地を purchased に合わせる。前の材料を否定しない7purchasedsecret 値の善意確認購入後です。.env も送った方がいいですか？APIキーの値がないと見られませんか？値は不要、キー名・設定箇所だけ。buyer 負担軽減8closedメッセージ送付 + 実作業境界クローズ後です。似たエラーが出ています。ログはこのメッセージで送れますか？同じ原因なら直してもらえますか？送ってよい → 関係確認 → 実作業は相談
+追加で余裕があれば、secret / GitHub / closed を分けた high-risk ペアを入れるとよいです。
+evaluation_axes:  - positive_flow_before_refusal  - unnecessary_refusal_frame  - platform_phase_contract  - safe_connection  - promise_consistency  - agency_alignment
+重要なのは、#RE85 の評価で positive_flow_before_refusal を 単独 primary にしすぎないことです。各 case で primary lens を1つに絞り、次のように分類してください。
+primary_lens:  - positive_flow_before_refusalsecondary_lens:  - platform_phase_contract  - safe_connectionresult:  - fix_recommended  - acceptable_as_is  - unsafe_to_smooth
+
+7. やらない方がいいこと
+1. 〜ではありません 〜できません を blanket NG にする
+これは危険です。支払い前作業、secret 値、外部共有、直接 push、本番反映、closed 後作業では、明確な不可表明が必要です。問題は否定文そのものではなく、buyer が軽く手順確認しているだけなのに拒否フレームが先に出ることです。
+2. positive_flow_before_refusal を hard validator にする
+B03 のような違和感は人間監査向きです。hard validator にすると、高リスクケースで必要な拒否まで削る圧力になります。
+3. 汎用 japanese-chat-natural-ja に先に入れる
+先に汎用自然化へ入れると、Coconala 固有の payment / phase / closed 境界が薄まる可能性があります。まず bugfix / quote_sent / prequote / purchased / closed の #RE85 で検証してからで十分です。
+4. gold reply をテンプレとして丸ごと使う
+Gold Replies の README でも、gold は完全テンプレではなく、近いケースの anchor とされています。 positive_flow_before_refusal も、文面を固定するのではなく、順序判断の anchor として残すべきです。
+5. 外部共有禁止を「ココナラ仕様で常に不可」と書く
+内部運用として外部共有・GitHub 作業面を禁止するのは妥当です。ただし、公式ヘルプ上のファイル添付仕様には容量・外部サービスに関する細かい記述があります。外向けでは、規約断定より **「この取引ではココナラ内の添付でお願いします」**に寄せる方が事故りにくいです。
+6. メール展開を急いで抽象化する
+今メール向け抽象化を入れると、チャット返信に お世話になっております、長い前置き、件名、署名、説明過多が混ざるリスクがあります。今はチャット標準を固める方がよいです。
+7. handoff-25000 を代替案として出す
+通常 live / #RE では絶対に出さない方針を維持してください。service registry 上も handoff-25000 は public: false で、外向けにサービス名・価格・購入導線を出さない rule が置かれています。
+
+8. 将来コア化への見解
+この方向は、ココナラ専用 OS に閉じず、将来の返信コアとして育つ可能性があります。むしろ今の骨格はかなり良いです。
+将来コアとして残せる抽象能力は、次です。
+reply_core:  contract:    - service_facts    - public_private_status    - price_scope_deliverable  transaction_state:    - phase    - allowed_actions    - forbidden_actions  intent:    - primary_question    - buyer_intent_kind    - pressure_level    - procedural_vs_bypass  commitment:    - commitment_budget    - promise_level    - evidence_available  surface:    - channel_style    - naturalness_lens    - boundary_posture
+一方、ココナラ固有として adapter 側に閉じるべきものは、次です。
+coconala_adapter:  - prequote / quote_sent / purchased / delivered / closed  - 見積り提案  - トークルーム  - 正式な納品  - クローズ後メッセージ  - おひねり / 追加購入  - ココナラ内添付
+メール展開は、今すぐではなく チャット側で以下が安定した後がよいです。
+
+
+platform phase contract が regression で安定
+
+
+positive_flow_before_refusal の過発火条件が #RE85 で見えた
+
+
+soft lens の primary / secondary 分類が運用できる
+
+
+gold replies が 40本台後半まで増えても、current / eval_only / superseded の管理が崩れない
+
+
+boundary_posture のような intent-ordering slot が Reply Decision 層に入っている
+
+
+メール展開時に危険な抽象化はこれです。
+危険な抽象化なぜ危険かbusiness_reply として chat / email を一体化チャットがメール調になり、AI感・窓口感が増えるpolite_surface を共通化ココナラの短い実務返信に過剰敬語が混ざるattachment_allowed を共通化platform ごとの添付・外部共有・secret 境界が崩れるclient_relationship を共通化メールでは関係性説明が自然でも、ココナラでは契約説明っぽくなるpositive_flow を全 channel 共通で適用メールでは前置きが長くなり、チャットでは拒否が弱くなる
+
+実装ロードマップ
+今すぐやる
+作業推奨positive_flow_before_refusal を監査プロンプトへ追加やる。ただし soft subtype と明記#RE85 fixture 設計やる。neutral vs bypass の対比 batchlens inventory へ candidate 追記やる。unnecessary_refusal_frame 配下change log に観察として記録やるB03 の gold candidate メモ候補だけ残す。current gold 化は #RE85 後
+#RE85 後でよい
+作業推奨Gold 43 追加#RE85 で再発性が見えたらcoconala-reply-bugfix-ja へ短い rule 追加#RE85 の結果を見て 1〜2文advisory lintfalse positive が少ない条件が見えたらresponse_decision_plan.boundary_posture#RE85 で使えると分かったら小さく導入
+Pro 再相談まで保留
+作業理由japanese-chat-natural-ja への正式追加汎用化の副作用が大きいhard lint / validator 化soft lens を hard 化する危険メール展開用 core adapterまだチャット surface が学習中lens の大規模再編現状骨格が安定しているため不要
+やらない方がいい
+作業理由ではありません の全面禁止高リスク境界で必要positive_flow を全拒否に適用支払い前作業・secret・closed 後作業が弱まるhandoff-25000 を live 代替に出すpublic/private boundary 事故gold 文面を renderer template 化freeform writer / guardrail 方針を壊すメール文体をチャットに混ぜる受付窓口感・AI感が増える
+
+最終判断
+positive_flow_before_refusal は 正式 lens 候補として妥当です。
+ただし、採用形はこうです。
+adopt_now:  - reviewer_prompt_label  - lens_inventory_candidate  - RE85_test_theme  - change_log_observationdo_not_adopt_yet:  - hard_validator  - blanket_ng  - generic_japanese_skill_rule  - current_gold_replyafter_RE85:  - gold_43_candidate  - bugfix_skill_minimal_rule  - boundary_posture_slot  - advisory_lint_if_low_false_positive
+今回の違和感は、単なる言い換えではなく、「buyer の intent が軽い手順確認なのか、境界突破要求なのか」を見分けたうえで、返答順序を変える設計課題です。ここを positive_flow_before_refusal として育てるのは正しいですが、将来コア化まで考えるなら、最終的には lens 名よりも buyer_intent_kind と boundary_posture に落とすのが一番強いです。

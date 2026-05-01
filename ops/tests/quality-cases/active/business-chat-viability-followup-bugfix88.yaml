@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC88-001
+    stock_id: HRC88-001
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: delivered_file_order_brief_explanation
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、反映する修正ファイルの順番だけ短く教えてほしい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どのファイルから反映すればいいか順番だけ短く教えてもらえますか？"
+    note: 通常 live / #RE。`教えてもらえますか` に `説明できます` `補足できます` で止まらず、こちらが短く整理して返す形にできるかを見る。delivered の軽い補足に留める。
+
+  - id: HRC88-002
+    stock_id: HRC88-002
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: non_engineer_buyer
+    emotional_tone: confused
+    scenario: delivered_acceptance_check_points
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、承諾判断のために見る箇所だけ簡単に教えてほしい。
+    raw_message: "納品ありがとうございます。動作確認はこれからですが、承諾前にどこを見れば修正できているかだけ簡単に教えてもらえますか？専門用語は少なめだと助かります。"
+    note: 通常 live / #RE。承諾前の確認ポイントとして自然に返し、本格資料・操作マニュアル・本番反映代行へ広げない。
+
+  - id: HRC88-003
+    stock_id: HRC88-003
+    category: business_chat_viability_followup
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_log_screenshot_timing
+    question_type: quote_sent_screenshot_timing_neutral
+    primary_question: 見積り提案後、支払い前にログやスクショを送るべきか、支払い後でよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。ログとスクショを用意しています。支払い前に送っておいた方がいいですか？支払い後にトークルームでまとめて送ればいいですか？"
+    note: 通常 live / #RE。軽い手順確認。拒否先行ではなく通常フローを先に案内し、支払い前作業には入らない。
+
+  - id: HRC88-004
+    stock_id: HRC88-004
+    category: business_chat_viability_followup
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_github_before_payment
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 支払い前にGitHub招待でコードを見てもらい、直りそうなら購入できるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にGitHubへ招待するので、先にコードを見て直りそうかだけ判断してもらえますか？直りそうなら購入します。"
+    note: 通常 live / #RE。境界突破要求。支払い前診断と GitHub 作業面化を断り、購入後のトークルーム内ZIP/添付へ戻す。
+
+  - id: HRC88-005
+    stock_id: HRC88-005
+    category: business_chat_viability_followup
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: purchased_many_files_possible_env
+    question_type: evidence_offer_question
+    primary_question: 購入後、多めに送ったファイルに.envが混ざっているかもしれない時、どうすればよいか知りたい。
+    raw_message: "購入後です。関係ありそうなファイルをまとめて送りましたが、もしかすると .env の値が入ったファイルも混ざっているかもしれません。送り直した方がいいですか？"
+    note: 通常 live / #RE。secret 混入疑いでは、確認対象外だけで終えず、該当部分を伏せた形での送り直しへ案内できるかを見る。
+
+  - id: HRC88-006
+    stock_id: HRC88-006
+    category: business_chat_viability_followup
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: purchased_material_burden
+    question_type: evidence_offer_question
+    primary_question: 購入後、今どこを見ているか、送った材料で足りているか、追加で何か必要か短く知りたい。
+    raw_message: "購入後です。ログとスクショと関係ファイルは送っています。今何を見ていますか？足りないものがあれば教えてください。今の時点で追加で何か準備した方がいいですか？"
+    note: 通常 live / #RE。buyer burden を増やさず、現在地と追加準備の要否を短く返す。secret 値を求めない。
+
+  - id: HRC88-007
+    stock_id: HRC88-007
+    category: business_chat_viability_followup
+    route: estimate
+    state: prequote
+    user_type: non_engineer_buyer
+    emotional_tone: anxious
+    scenario: prequote_non_engineer_can_request
+    question_type: prequote_unknown_cause_can_consult
+    primary_question: 原因も必要ファイルも分からない非エンジニアでも15,000円で依頼できるか知りたい。
+    raw_message: "Stripe決済後に注文が作られない状態です。自分はエンジニアではなく、どのファイルが必要かも分かりません。この状態でも15,000円で依頼できますか？"
+    note: 通常 live / #RE。`依頼できますか` に `相談できます` だけで返さず、15,000円で依頼可と成功保証不可、購入後の材料共有を自然に返す。
+
+  - id: HRC88-008
+    stock_id: HRC88-008
+    category: business_chat_viability_followup
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite
+    scenario: closed_polite_relation_check
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、似たエラーのログをこのメッセージで送り、前回修正との関係だけ見てもらえるか知りたい。
+    raw_message: "前回はありがとうございました。その後しばらく問題なく動いていましたが、似たStripeエラーが出ました。このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？必要なら新規で相談します。"
+    note: 通常 live / #RE。closed 後の穏やかな再相談。`そこはよかったです` や `〜の件ですね` で距離を出さず、関係確認と実作業前相談を分ける。

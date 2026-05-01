@@ -1859,3 +1859,154 @@
 - 外部監査: 採用。必須修正なし、軽微修正なし、採点 `10 / 10`。`bugfix-15000` の 15,000円、不具合1件、原因確認、修正可能時の修正済みファイル返却、秘密値不要が崩れていない。`prequote / quote_sent / purchased / delivered / closed` の phase 境界、closed 後の関係確認と実作業境界、handoff-25000 / 25,000円 / 主要1フロー整理の live 漏れなし。B07 は「一言くらい」に対して3段落だが、軽い補足に留まり本格資料化や追加作業に広がっていないため許容
 - メモ: local lint 前に、B06 の費用不安は `追加料金` と `別の原因` を明示する形へ、B07 の delivered 補足は既存 validator が読める `secondary_question_before_acceptance` / 分かりやすい説明系へ fixture 表現を寄せた。どちらも新しい hard rule ではなく、既存の費用不安・delivered補足検査へ正しく接続するための batch 整形
 - 非変更: 新しい hard rule は追加しない。quote_sent で支払い前作業開始は許可しない。今日中修正完了を保証しない。secret 値要求、closed 後のおひねり / 旧トークルーム再開 / 継続作業 / 修正済みファイル返却 promise、`handoff-25000` live 導線は許可しない
+
+### 2026-05-01 / CHG-217
+- 分類: `reply-only`
+- レイヤ: review / surface naturalness / #RE bugfix85 setup
+- 変更: `positive_flow_before_refusal` を `unnecessary_refusal_frame` / `conversation_flow_naturalness` 配下の candidate soft subtype として、`監査プロンプト_codex-xhigh.md` と `lens-inventory-20260430.ja.md` に追加した。あわせて `positive-flow-before-refusal-bugfix85.yaml` を追加し、`eval-sources.yaml` に接続した
+- きっかけ: #RE84 の quote_sent で、buyer が支払い前のスクショ送付タイミングを軽く確認しているだけなのに、`支払い前に材料を受け取って原因確認を進める形ではありません` と拒否フレームが前に出て、内容は正しいが冷たく見える違和感が出たため
+- 想定効果: 軽い手順確認では通常フローを先に案内し、支払い前作業・secret・外部共有・closed後作業などの境界突破要求では必要な不可表明を残す、という buyer intent に応じた返答順序を検証できる
+- 確認: #RE85 local validation OK。writer candidate batch lint OK `8 case(s)`、full regression `pass=747 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `10 / 10`。軽い手順確認では通常フロー先行、支払い前コード確認・緊急圧・today保証圧などの境界突破要求では不可表明維持ができている。`quote_sent` の支払い前作業、`purchased` のトークルーム集約、`closed` の関係確認/実作業分離、secret 値不要、`handoff-25000` live 漏れなし
+- 非変更: hard rule / blanket NG / hard lint / `japanese-chat-natural-ja` 汎用 rule にはまだ入れない。`〜ではありません` や `できません` は禁止しない。支払い前作業開始、secret 値要求、GitHub/Drive 作業面、直接 push、本番反映、closed 後作業、返金・無料対応の境界は弱めない
+
+### 2026-05-01 / CHG-218
+- 分類: `reply-only`
+- レイヤ: #RE bugfix86 / positive flow practical mixed
+- 変更: `positive-flow-practical-mixed-bugfix86.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-86-positive-flow-practical-mixed-r0` へ更新し、`positive_flow_before_refusal` を通常実務ケースへ混ぜた2本目として、prequote の症状優先、quote_sent のZIP共有/支払い前GitHub/支払い前Event ID、purchased の追加スクショと secret 値、delivered の軽い補足、closed 後の関係確認を8件で検査する
+- きっかけ: #RE85 外部監査で `positive_flow_before_refusal` が採用候補として有効だったため、単独観点ではなく通常実務の混合ケースでも、軽い手順確認では通常フロー先行、境界突破要求では不可表明維持の切り替えが崩れないかを確認する必要があるため
+- 想定効果: `〜ではありません` 型の不要な拒否先行を減らしつつ、支払い前作業、GitHub/PR作業面、secret 値、closed 後実作業、修正完了保証を弱めない返答順序を育てる
+- 確認: #RE86 local validation OK。writer candidate batch lint OK `8 case(s)`、full regression `pass=755 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `10 / 10`。`positive_flow_before_refusal` の2本目として、軽い手順確認では通常フロー先行、GitHub確認・支払い前診断・secret値共有・closed後修正では必要な境界を維持。`bugfix-15000` の15,000円/不具合1件/原因確認/修正可能時の修正済みファイル返却/secret値不要、phase/scope/payment route/closed/public-private 境界崩れなし。現時点で rule 戻し不要、あと数 batch 観察後に gold / reviewer prompt 昇格候補
+- 人間監査: B07 の `修正ファイルのうち、どれを反映すればよいか短く補足できます` が、buyer の `教えてもらえますか？` に対して対応可否宣言で止まる AI / FAQ 感があるため、`反映する修正ファイルだけ、こちらで短く整理します` へ case_fix した。`できます` は blanket NG にせず、すでに軽い補足を依頼されている delivered 文脈では `こちらで何を返すか` を優先する方針として `japanese-chat-natural-ja` / bugfix skill / lens inventory に最小反映した
+- メモ: local lint 前に、B05 は既存 purchased validator が読める `evidence_offer_question` へ寄せ、B07 は既存 delivered validator が読める `delivered_light_explanation` / `doc_explanation_request` 系へ寄せた。どちらも新しい rule ではなく、#RE の検査対象を既存 validator に正しく接続するための batch 整形
+- 非変更: `positive_flow_before_refusal` はまだ hard rule 化しない。`〜ではありません` / `できません` を禁止しない。`japanese-chat-natural-ja` 汎用 rule や lint にはまだ追加しない。支払い前作業開始、secret 値要求、GitHub/Drive 作業面、直接 push、本番反映、closed 後作業、返金・無料対応の境界は弱めない
+
+### 2026-05-01 / CHG-219
+- 分類: `reply-only`
+- レイヤ: #RE bugfix87 / business chat viability and agency alignment
+- 変更: `business-chat-viability-agency-bugfix87.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-87-business-chat-viability-agency-r0` へ更新し、delivered の `教えてもらえますか` に `補足できます` で止まる AI / FAQ 感、quote_sent の軽い手順確認、支払い前診断境界、purchased の進捗/材料負担、prequote の依頼可否、closed 後の関係確認を8件で検査する
+- きっかけ: 人間監査で #RE86 B07 の `補足できます` が対応可否宣言に見え、ビジネスチャットとして `こちらが何を返すか` へ進める必要があると分かったため
+- 想定効果: `agency_alignment` を、依頼可否だけでなく delivered の軽い補足にも広げる。内容は正しいが窓口回答・FAQ 感が出る文を外部監査で拾いやすくし、`#R` 相当の自然な送信用候補へ寄せる
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=763 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: r0 は採用圏。必須修正なし、軽微修正は B06 / B08 の2点。B06 は secret 値が混ざっている可能性がある時に、`確認対象にしません` だけでなく、該当部分を伏せた形で送り直す導線を明示する方針へ修正した。B08 は closed 後の再相談で `そこはよかったです` が少し浮くため、安定稼働への反応を中立的な状況共有受領へ修正した。あわせて、secret 混入疑い時の伏せ直し導線を bugfix skill と lens inventory に最小反映した
+- 非変更: `できます` / `補足できます` の blanket NG はしない。`business chat viability` は hard rule 化しない。自然化のために price / scope / phase / secret / public-private / payment route / closed後実作業境界を弱めない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-220
+- 分類: `reply-only`
+- レイヤ: #RE85-87 short shelf
+- 変更: `rehearsal-shelf-20260501-re85-87.ja.md` を追加し、#RE85〜87 の短い棚卸しを作成した。採用済みの学びとして `positive_flow_before_refusal`、delivered 補足まで広げた `agency_alignment`、secret 混入時の伏せ直し導線、closed 後 ack の中立化を整理した。継続観察として `business chat viability` と `block_rhythm_flow` を残し、次の #RE88 で見るべき delivered 補足、quote_sent 手順確認、purchased 材料過多/secret 混入疑い、closed 後穏やか再相談を整理した
+- きっかけ: #RE85〜87 が連続採用され、次の batch を漫然と回すより、採用済み・観察継続・hard rule 化しないものを一度短く固める必要が出たため
+- 想定効果: 次の #RE88 で、低リスク自然化と高リスク境界維持のどちらを見ているかが明確になる。Pro へ投げる時も、直近の学習論点をまとめて渡しやすくなる
+- 確認: docs-only の棚卸し。git diff check OK、os-check OK `mode=coconala`
+- 非変更: 新しい hard rule、lint、renderer 変更は追加しない。`positive_flow_before_refusal`、`business chat viability`、`block_rhythm_flow` は soft / observation を維持する。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-221
+- 分類: `reply-only`
+- レイヤ: #RE bugfix88 / business chat viability follow-up
+- 変更: `business-chat-viability-followup-bugfix88.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-88-business-chat-viability-followup-r0` へ更新し、#RE85〜87 棚卸し後の follow-up として、delivered の軽い補足、quote_sent の手順確認と支払い前診断境界、purchased の secret 混入疑い・材料負担、prequote の非エンジニア依頼可否、closed 後の穏やかな関係確認を8件で検査する
+- きっかけ: `rehearsal-shelf-20260501-re85-87.ja.md` で、次は delivered 補足 / quote_sent 手順確認 / purchased 材料過多・secret混入疑い / closed 後穏やか再相談を回すのがよいと整理したため
+- 想定効果: `positive_flow_before_refusal`、delivered 補足まで広げた `agency_alignment`、secret 混入時の伏せ直し導線、closed 後 ack の中立化が、別表現でも過剰発火せず機能するかを検査できる
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=771 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: r0 は B06 のみ必須修正。購入後の現在地説明で、相手文にない `Stripe側の記録` / `注文作成処理` を足していたため、`いただいたログ・スクショ・関係ファイルをもとに、今回の不具合に関係する処理の流れを確認しています` へ修正し、r1 とした。新規 rule 化は不要で、既存の「相手文にない技術語・事実を足さない」の case_fix として扱う
+- メモ: local lint 前に HRC88-006 は、購入後の具体 follow-up が `generic_followup` として落ちないよう、buyer 文を `今何を見ていますか？` へ寄せ、既存 validator に正しく接続した。これは新しい rule ではなく #RE 検査対象を既存 validator に接続するための batch 整形
+- 非変更: 新しい hard rule / lint / renderer 変更は追加しない。`positive_flow_before_refusal`、`business chat viability`、`block_rhythm_flow` は soft / observation を維持する。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-222
+- 分類: `reply-only`
+- レイヤ: #RE85-88 short shelf
+- 変更: `rehearsal-shelf-20260501-re85-88.ja.md` を追加し、#RE85〜88 の短い棚卸しを作成した。採用済みの学びとして `positive_flow_before_refusal`、delivered 補足まで広げた `agency_alignment`、secret 混入時の伏せ直し導線、closed 後 ack の中立化を整理し、#RE88 B06 で出た purchased 現在地説明の `semantic grounding` を継続観察に追加した
+- きっかけ: #RE88 r1 が採用され、B06 の `相手文にない具体技術語を足す` 問題を新規 rule ではなく既存 grounding rule の case_fix として整理する必要が出たため
+- 想定効果: 次の #RE89 で、purchased の現在地説明、delivered の軽い補足、quote_sent の手順確認、closed 後の穏やかな関係確認を、自然さと grounding の両面から検査しやすくなる
+- 確認: docs-only の棚卸し。git diff check / os-check を後続確認する
+- 非変更: 新しい hard rule、lint、renderer 変更は追加しない。`できます`、`ではありません`、`大丈夫です`、`〜の件` は blanket NG にしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-223
+- 分類: `reply-only`
+- レイヤ: #RE bugfix89 / semantic grounding progress follow-up
+- 変更: `semantic-grounding-progress-bugfix89.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-89-semantic-grounding-progress-r0` へ更新し、#RE85〜88 棚卸し後の follow-up として、purchased の現在地説明、delivered の軽い補足、quote_sent の手順確認/支払い前診断境界、closed 後の穏やかな関係確認を8件で検査する
+- きっかけ: #RE88 B06 で、purchased の現在地説明に相手文にない `Stripe側の記録` / `注文作成処理` を足す grounding drift が出たため。次 batch では、未提示の技術語・ログ種別・原因候補を足さずに材料ベースで現在地を返せるかを重点確認する
+- 想定効果: `semantic_grounding` と `business chat viability` を同時に見ながら、購入後の進捗説明を具体化しすぎず、かつ窓口回答にも寄せない調整ができる
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=779 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- メモ: local lint 前に、HRC89-001 は `negation_only_answer` を避けるため現在地説明へ `まず` を添え、HRC89-002 は既存 generic follow-up validator に不要に落ちないよう `スクショ` を `画面の画像` へ寄せ、HRC89-004 は delivered validator が読める `delivered_light_explanation_without_manual` へ接続した。いずれも新規 rule ではなく、#RE 検査対象を既存 validator に正しく接続するための batch 整形
+- 非変更: 新しい hard rule / lint / renderer 変更は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-224
+- 分類: `reply-only`
+- レイヤ: #RE85-89 short shelf
+- 変更: `rehearsal-shelf-20260501-re85-89.ja.md` を追加し、#RE85〜89 の短い棚卸しを作成した。採用済みの学びに、#RE89 で安定した purchased 現在地説明の `semantic_grounding` を加えた
+- きっかけ: #RE89 が採用され、#RE88 で見えた grounding drift が一旦安定したため。#RE90 と Pro 分析に向けて、見るべき論点を `positive_flow_before_refusal` / `business chat viability` / `semantic_grounding` に絞る必要が出た
+- 想定効果: #RE90 で、purchased 現在地説明、quote_sent の通常フロー先行と支払い前診断不可、delivered 補足、closed 後関係確認を狙って回せる
+- 確認: docs-only の棚卸し。git diff check / os-check を後続確認する
+- 非変更: 新しい hard rule、lint、renderer 変更は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-225
+- 分類: `reply-only`
+- レイヤ: #RE bugfix90 / semantic grounding practical follow-up
+- 変更: `semantic-grounding-practical-bugfix90.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-90-semantic-grounding-practical-r0` へ更新し、#RE89 後の practical follow-up として、purchased の現在地説明、quote_sent の軽い手順確認/支払い前診断境界、delivered の軽い補足、closed 後の穏やかな関係確認を8件で検査する
+- きっかけ: #RE88 B06 で出た `相手文にない具体技術語を足す` drift が #RE89 で安定したため、次は購入後の進捗説明を少し実務寄りにしながら、未提示の技術語・ログ種別・原因候補を足さないかを確認する必要が出たため
+- 想定効果: purchased で `今何を見ているか` へ材料ベースで答えつつ、抽象的な窓口回答にも、未確認の原因候補にも寄せない調整ができる
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=787 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.8 / 10`。purchased の現在地説明で、相手文にない Event ID / Webhook / DB / Stripe記録などを足していない。材料ベースで「何を見ているか」「まだ断定していないか」「追加材料は必要になったら絞って伝える」が自然に出ている。`handoff-25000` / 25,000円 / 主要1フロー整理の live 漏れなし。追加の case_fix / rule_return_candidate なし
+- メモ: local lint 前に、HRC90-003 は deterministic renderer が `generic_followup` に落ちないよう、raw を `今どこまで見ていますか？原因が分かっているかだけ短く教えてください` に寄せて `progress_anxiety` へ接続した。HRC90-006 は `長い説明にはしません` が negation-only に見えたため、`説明は短めにして...` へ自然化した。どちらも新規 rule ではなく、#RE 検査対象を既存 validator に正しく接続するための batch 整形
+- 非変更: 新しい hard rule / lint / renderer 変更は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-226
+- 分類: `reply-only`
+- レイヤ: #RE bugfix91 / business chat and semantic grounding mixed follow-up
+- 変更: `business-chat-semantic-grounding-bugfix91.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-91-business-chat-semantic-grounding-r0` へ更新し、#RE90 後の follow-up として、購入後の材料ベース現在地説明、quote_sent の通常フロー先行と支払い前診断不可、delivered の軽い補足、closed 後の関係確認を別表現で8件検査する
+- きっかけ: #RE90 外部監査で purchased の semantic grounding が安定したため、次は `business chat viability` / `positive_flow_before_refusal` / `agency_alignment` と混ぜた状態でも、未提示の技術語・ログ種別・原因候補を足さずに自然な返信が維持できるか確認する必要が出たため
+- 想定効果: purchased の材料ベース進捗説明を保ちつつ、delivered の `教えてもらえますか` に対応可否宣言で止まらないこと、quote_sent の軽い手順確認では通常フロー先行、境界突破要求では不可表明維持、closed 後は関係確認と実作業前相談の分離を検査できる
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=795 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.8 / 10`。purchased の現在地説明で、相手文にない Event ID / Webhook / DB / Stripe記録などを足していない。quote_sent は支払い前作業に入らず、delivered は承諾前の軽い補足に留まり、closed は関係確認と実作業前相談を分けられている。`handoff-25000` / 25,000円 / 主要1フロー整理の live 漏れなし。B04 の zip 共有は secret 除外の一文があってもよいが必須ではなく、追加の case_fix / rule_return_candidate はなし
+- メモ: local lint 前に、HRC91-005 / HRC91-006 は既存 delivered validator が読めるよう、相手文を `どの修正ファイルをどの順番で反映すればいいか` / `どこを見ればいいか、確認画面を1つだけ` へ接続した。HRC91-005 の候補文は `長い説明にはしません` を避け、`承諾前に必要な範囲だけに絞って、短くお送りします` へ自然化した。`eval-sources.yaml` の purpose 行にバッククォートから始まる YAML parse error が出たため、通常文へ修正した
+- 非変更: 新しい hard rule / lint / renderer 変更は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-227
+- 分類: `reply-only`
+- レイヤ: #RE88-91 short shelf
+- 変更: `rehearsal-shelf-20260501-re88-91.ja.md` を追加し、#RE88〜91 の短い棚卸しを作成した。#RE88 で出た purchased 現在地説明の grounding drift が #RE89〜91 で安定したこと、`business chat viability` / `positive_flow_before_refusal` / `agency_alignment` は継続観察でよいこと、次の #RE92 で見るべき purchased / delivered / quote_sent / closed の論点を整理した
+- きっかけ: #RE91 外部監査が採用となり、追加の case_fix / rule_return_candidate がなかったため。次の batch に進む前に、採用済み・観察継続・非変更を短く固める必要が出た
+- 想定効果: #RE92 で、購入後の材料ベース現在地説明、delivered の軽い補足、quote_sent の手順確認、closed 後の穏やかな再相談を、semantic grounding と business chat の両面から狙って回せる
+- 確認: docs-only の棚卸し。git diff check OK、os-check OK `mode=coconala`
+- 非変更: 新しい hard rule、lint、renderer 変更は追加しない。`できます`、`ではありません`、`大丈夫です`、`〜の件` は blanket NG にしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-228
+- 分類: `reply-only`
+- レイヤ: #RE bugfix92 / business chat grounding follow-up
+- 変更: `business-chat-grounding-followup-bugfix92.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-92-business-chat-grounding-followup-r0` へ更新し、#RE88〜91 棚卸し後の follow-up として、購入後の材料ベース現在地説明、delivered の軽い補足、quote_sent の手順確認、closed 後の穏やかな関係確認を別表現で8件検査する
+- きっかけ: #RE91 外部監査で追加 case_fix / rule_return_candidate がなく、semantic grounding と business chat viability が安定してきたため。#RE92 では同じ論点を別表現で当て、未提示の技術語・原因候補・作業状況を足さないか、受付票/FAQ/規約説明っぽさが出ないかを継続確認する
+- 想定効果: purchased の現在地説明で、材料受領、何を見ているか、まだ断定していないこと、追加材料は必要時のみ、を自然に出す。delivered では `教えてください` に対応可否宣言で止まらず、quote_sent では通常フロー先行と支払い前診断不可を切り替え、closed 後は関係確認と実作業前相談を分ける
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=803 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- 外部監査: 採用。必須修正なし、軽微修正なし、採点 `9.8 / 10`。購入後ケースで未提示の技術語・原因候補・作業状況を足していない。見積り後ケースでは支払い前診断と購入後作業の境界が明確。納品後ケースは追加作業ではなく補足説明に留まり、クローズ後ケースは関係確認と実作業前相談を分けている。`handoff-25000` / 25,000円 / 主要1フロー整理の live 漏れなし。B08 は無料保証・無償対応・返金系の表現に引っ張られておらず安全。case_fix / rule_return_candidate なし
+- メモ: local lint 前に、HRC92-005 / HRC92-006 は既存 delivered validator が読めるよう、相手文を `どのファイルから反映すればいいか順番だけ...` / `どこを見れば修正できているかだけ、確認画面を1つ...` へ接続した。これは新規 rule ではなく、#RE 検査対象を既存 validator に正しく接続するための batch 整形
+- 非変更: 新しい hard rule / lint / renderer 変更は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-229
+- 分類: `reply-only`
+- レイヤ: #RE bugfix93 / practical chat grounding follow-up
+- 変更: `practical-chat-grounding-bugfix93.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-93-practical-chat-grounding-r0` へ更新し、#RE92 後の follow-up として、購入後の見立て・優先確認、quote_sent の支払い後共有と支払い前診断不可、delivered の軽い補足、closed 後の関係確認を8件で検査する
+- きっかけ: #RE92 外部監査で必須修正・軽微修正がなく、semantic grounding と business chat viability が安定してきたため。#RE93 では同じ論点をさらに実務チャット寄りの別表現で当て、未提示の技術語・原因候補・作業状況を足さないか、軽い手順確認で拒否先行へ戻らないかを確認する
+- 想定効果: purchased では材料ベースで現在地や優先確認を短く返し、quote_sent では通常フロー先行と支払い前診断不可を切り分ける。delivered では `教えてもらえますか` に対応可否宣言で止まらず、closed では関係確認と実作業前相談を分け、無料/返金/新規依頼を確認前に断定しない
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=811 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- メモ: timestamp policy は既存どおり、監査用 batch 内の `本日18:00までに` 固定時刻サンプルに warning が出る。#RE 監査では送信時刻依存の観察メモとして扱い、実運用では送信時刻に合わせて再生成する。新規 rule ではない
+- 非変更: 新しい hard rule / lint / renderer 変更は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない
+
+### 2026-05-01 / CHG-230
+- 分類: `reply-only`
+- レイヤ: #RE88-93 short shelf
+- 変更: `rehearsal-shelf-20260501-re88-93.ja.md` を追加し、#RE88〜93 の短い棚卸しを作成した。#RE88 で出た purchased 現在地説明の grounding drift が #RE89〜93 で安定していること、quote_sent の通常フロー先行と支払い前診断不可の切り替え、delivered の軽い補足、closed 後の関係確認が採用圏で続いていることを整理した
+- きっかけ: #RE93 外部監査が採用となり、必須修正・軽微修正・case_fix がなかったため。次の #RE94 または Pro 分析に進む前に、採用済み・観察継続・非変更を短く固める必要が出た
+- 想定効果: #RE94 で、purchased 現在地説明、quote_sent の手順確認、delivered の軽い補足、closed 後の関係確認を継続しつつ、Pro へ聞く場合は `business chat viability` / `block_rhythm_flow` / `positive_flow_before_refusal` の扱いに論点を絞りやすくなる
+- 確認: docs-only の棚卸し。git diff check / os-check を後続確認する
+- 非変更: 新しい hard rule、lint、renderer 変更は追加しない。`できます`、`ではありません`、`大丈夫です`、`〜の件` は blanket NG にしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない
+
+### 2026-05-01 / CHG-231
+- 分類: `reply-only`
+- レイヤ: #RE bugfix94 / practical chat grounding continuation
+- 変更: `practical-chat-grounding-bugfix94.yaml` を追加し、`eval-sources.yaml` に接続した。`返信監査_batch-01.md` を `RE-2026-05-01-bugfix-94-practical-chat-grounding-r0` へ更新し、#RE88〜93 棚卸し後の follow-up として、購入後の見立て・原因未断定、quote_sent の zip 共有タイミングと支払い前確認不可、delivered の確認画面補足、closed 後の関係確認を8件で検査する
+- きっかけ: #RE88〜93 の短い棚卸しで、semantic grounding は安定しつつあるが、business chat viability / positive_flow_before_refusal / delivered の対応可否宣言回避 / closed 後関係確認をもう少し別表現で確認する価値があると整理したため
+- 想定効果: purchased で未提示の技術語・原因候補を足さず、quote_sent では軽い通常フローと支払い前確認不可を切り分け、delivered では実際に何を補足するかへ進め、closed では同じ原因・前回修正との関係を確認前に断定しない
+- 確認: writer candidate batch lint OK `8 case(s)`、full regression `pass=819 fail=0 skip=65`、service-pack fidelity `pass=19 fail=0`、service grounding sentries OK_WITH_EXISTING_WARNINGS `pass=19 warn=26 fail=0`、git diff check OK、os-check OK `mode=coconala`
+- メモ: local lint 前に、HRC94-001 は `追加で準備するものがあるか` への直答を補強した。HRC94-005 / HRC94-006 は delivered の既存 validator が読めるよう、`どこを見れば修正できているか` へ接続した。HRC94-008 は `前回の続き` が old-talkroom / ohineri validator を不要に発火させたため、同じ原因かどうかの関係確認へ絞った。いずれも新規 rule ではなく、#RE 検査対象を既存 validator に正しく接続するための batch 整形
+- 非変更: 新しい hard rule / lint / renderer 変更は追加しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。自然化のために、価格、scope、phase、secret、payment route、closed 後実作業境界を弱めない

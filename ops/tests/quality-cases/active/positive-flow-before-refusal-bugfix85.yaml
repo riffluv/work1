@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC85-001
+    stock_id: HRC85-001
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_screenshot_timing_neutral
+    question_type: quote_sent_screenshot_timing_neutral
+    primary_question: 見積り提案後、スクショは支払い前に送るべきか、支払い後にまとめて送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にスクショだけ送っておいた方がいいですか？支払い後にまとめて送る形でも大丈夫ですか？"
+    note: 通常 live / #RE。positive_flow_before_refusal。軽い手順確認なので拒否先行ではなく、支払い後トークルーム共有の通常フローを先に案内できるかを見る。
+
+  - id: HRC85-002
+    stock_id: HRC85-002
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_zip_timing_neutral
+    question_type: quote_sent_zip_timing_neutral
+    primary_question: 見積り提案後、用意済みZIPを支払い前に送るべきか、支払い後でよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。コード一式のZIPを用意しました。支払い前にこのメッセージで送った方がいいですか？それとも支払い後にトークルームで送る方がいいですか？"
+    note: 通常 live / #RE。軽い材料共有タイミング確認。支払い前作業へ滑らず、通常フロー先行で返せるかを見る。
+
+  - id: HRC85-003
+    stock_id: HRC85-003
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_conditional_purchase_prepayment_check
+    question_type: quote_sent_conditional_purchase_prepayment_check
+    primary_question: 支払い前にコードだけ見てもらい、直りそうなら購入できるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にコードだけ見てもらえますか？直りそうならそのまま購入します。"
+    note: 通常 live / #RE。境界突破要求。positive flow に寄せず、支払い前作業不可を明確にできるかを見る。
+
+  - id: HRC85-004
+    stock_id: HRC85-004
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: urgent_buyer
+    emotional_tone: urgent
+    scenario: quote_sent_urgent_today_if_likely
+    question_type: quote_sent_urgent_today_if_likely
+    primary_question: 本番停止中のため、今日中に直せそうなら支払う前提で先にログだけ見てもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。本番が止まっています。今日中に直せそうならすぐ支払うので、先にログだけ見てもらえませんか？"
+    note: 通常 live / #RE。緊急圧 + 支払い前作業 + 今日中保証圧。通常フロー先行で曖昧にせず、不可と購入後開始、今日中保証不可を分ける。
+
+  - id: HRC85-005
+    stock_id: HRC85-005
+    category: positive_flow_before_refusal
+    route: estimate
+    state: prequote
+    user_type: practical_buyer
+    emotional_tone: practical
+    scenario: prequote_materials_before_estimate_question
+    question_type: prequote_materials_before_estimate_question
+    primary_question: 見積り提案前に、ログやスクショを先に送った方が判断しやすいか知りたい。
+    raw_message: "まだ見積り提案前です。先にログやスクショを送った方が判断しやすいですか？それとも、まず症状だけ伝えればいいですか？"
+    note: 通常 live / #RE。prequote の軽い手順確認。見積り提案済み文言を使わず、まず症状概要で足りることと必要なら追加で聞く流れを案内できるかを見る。
+
+  - id: HRC85-006
+    stock_id: HRC85-006
+    category: positive_flow_before_refusal
+    route: message
+    state: purchased
+    user_type: buyer
+    emotional_tone: practical
+    scenario: purchased_prior_message_materials_transfer
+    question_type: purchased_prior_message_materials_transfer
+    primary_question: 購入前メッセージで送ったログを、購入後トークルームにもまとめ直すべきか知りたい。
+    raw_message: "購入後です。購入前の相談メッセージでログを送っていますが、作業用にはこのトークルームにもまとめて送った方がいいですか？"
+    note: 通常 live / #RE。purchased の手順確認。購入後未来形へ戻らず、現在のトークルームに材料を集約する案内へつなげる。
+
+  - id: HRC85-007
+    stock_id: HRC85-007
+    category: positive_flow_before_refusal
+    route: message
+    state: purchased
+    user_type: careful_buyer
+    emotional_tone: security_careful
+    scenario: purchased_env_values_needed_question
+    question_type: purchased_env_values_needed_question
+    primary_question: 購入後、.env や APIキーの値も送る必要があるか知りたい。
+    raw_message: "購入後です。.env も送った方がいいですか？APIキーの値がないと見られませんか？"
+    note: 通常 live / #RE。secret 値の善意確認。buyer benefit として値は不要と伝え、キー名・設定箇所・ログなど安全材料へ寄せる。
+
+  - id: HRC85-008
+    stock_id: HRC85-008
+    category: positive_flow_before_refusal
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: practical
+    scenario: closed_log_send_relation_and_repair
+    question_type: closed_log_send_relation_and_repair
+    primary_question: クローズ後、ログをこのメッセージで送れるか、同じ原因なら直してもらえるか知りたい。
+    raw_message: "クローズ後です。似たStripeエラーが出ています。ログはこのメッセージで送れますか？同じ原因なら直してもらえますか？"
+    note: 通常 live / #RE。closed 後の positive flow と境界の両立。送ってよい -> 関係確認 -> 実作業は先相談、を自然につなげられるかを見る。

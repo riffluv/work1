@@ -408,6 +408,76 @@ primary_sources:
       - 公式仕様理解が通常返信でも崩れず、低リスクでは重くなりすぎず、高リスクでは支払い前作業・今日中保証・secret・closed後実作業の境界を保てるかを検査
     status: active
 
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/positive-flow-before-refusal-bugfix85.yaml
+    role: eval
+    purpose:
+      - positive_flow_before_refusal の検証。軽い手順確認では拒否先行ではなく通常フローを先に案内し、境界突破要求では必要な不可表明を残せるかを確認する通常 live #RE
+      - quote_sent の材料共有タイミング、条件付き購入、緊急圧、prequote の見積り前材料確認、purchased の材料集約と secret 値、closed 後のログ送付/実作業境界を対比で検査する
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/positive-flow-practical-mixed-bugfix86.yaml
+    role: eval
+    purpose:
+      - positive_flow_before_refusal の2本目。軽い手順確認を通常実務ケースへ混ぜ、通常フロー先行と不可表明維持の切り替えが過剰発火しないかを見る通常 live #RE
+      - prequote の症状優先、quote_sent のZIP共有/支払い前GitHub/支払い前Event ID、purchased の追加スクショと secret 値、delivered の軽い補足、closed 後の関係確認を検査する
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/business-chat-viability-agency-bugfix87.yaml
+    role: eval
+    purpose:
+      - business chat viability / agency_alignment の確認。内容は正しいが `補足できます` など対応可否宣言で止まる AI / FAQ 感が出ないかを見る通常 live #RE
+      - delivered の軽い補足、quote_sent の手順確認、支払い前診断境界、purchased の進捗/材料負担、prequote の依頼可否、closed 後の関係確認を混合で検査する
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/business-chat-viability-followup-bugfix88.yaml
+    role: eval
+    purpose:
+      - #RE85-87 棚卸し後の business chat viability follow-up。delivered の `教えてもらえますか`、quote_sent の軽い手順確認、purchased の材料過多/secret混入疑い、closed 後の穏やかな再相談を混ぜる通常 live #RE
+      - positive_flow_before_refusal / agency_alignment / secret 混入時の伏せ直し導線 / closed 後 ack の中立化が、別表現でも過剰発火せず機能するかを検査する
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/semantic-grounding-progress-bugfix89.yaml
+    role: eval
+    purpose:
+      - #RE85-88 棚卸し後の semantic grounding follow-up。purchased の現在地説明で、相手文にない技術語・ログ種別・原因候補を足さず、受領材料ベースで説明できるかを見る通常 live #RE
+      - delivered の軽い補足、quote_sent の手順確認/支払い前診断境界、closed 後の穏やかな関係確認も混ぜ、business chat viability と positive_flow_before_refusal が過剰発火しないかを検査する
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/semantic-grounding-practical-bugfix90.yaml
+    role: eval
+    purpose:
+      - #RE89 後の semantic grounding practical follow-up。purchased の現在地説明を実務寄りにしつつ、相手文にない技術語・ログ種別・原因候補を足さず、材料ベースで説明できるかを見る通常 live #RE
+      - quote_sent の軽い手順確認と支払い前診断要求、delivered の軽い補足、closed 後の穏やかな関係確認を混ぜ、business chat viability と positive_flow_before_refusal が過剰発火しないかを検査する
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/business-chat-semantic-grounding-bugfix91.yaml
+    role: eval
+    purpose:
+      - #RE90 後の business chat / semantic grounding 混合確認。購入後の材料ベース現在地説明、quote_sent の通常フロー先行と支払い前診断不可、delivered の軽い補足、closed 後の関係確認を別表現で検査する通常 live #RE
+      - semantic_grounding / business chat viability / positive_flow_before_refusal / agency_alignment が過剰発火せず、価格・scope・phase・secret・closed後境界を保てるかを見る
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/business-chat-grounding-followup-bugfix92.yaml
+    role: eval
+    purpose:
+      - #RE88-91 棚卸し後の business chat / semantic grounding follow-up。購入後の材料ベース現在地説明、delivered の軽い補足、quote_sent の手順確認、closed 後の穏やかな関係確認を別表現で検査する通常 live #RE
+      - 未提示の技術語・原因候補・作業状況を足さず、受付票/FAQ/規約説明っぽさを避けながら、phase・scope・secret・closed後境界を保てるかを見る
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/practical-chat-grounding-bugfix93.yaml
+    role: eval
+    purpose:
+      - #RE92 後の practical chat / semantic grounding 確認。購入後の見立て・優先確認、quote_sent の支払い後共有と支払い前診断不可、delivered の軽い補足、closed 後の関係確認を別表現で検査する通常 live #RE
+      - business chat と安全境界のバランスを保ちつつ、未提示の技術語・原因候補・作業状況・無料/返金断定を足さないかを見る
+    status: active
+
+  - path: /home/hr-hm/Project/work/ops/tests/quality-cases/active/practical-chat-grounding-bugfix94.yaml
+    role: eval
+    purpose:
+      - #RE88-93 棚卸し後の practical chat / semantic grounding 継続確認。購入後の見立て・原因未断定、quote_sent の zip 共有タイミングと支払い前確認不可、delivered の確認画面補足、closed 後の関係確認を別表現で検査する通常 live #RE
+      - semantic_grounding / business chat viability / positive_flow_before_refusal / agency_alignment が過剰発火せず、価格・scope・phase・secret・closed後境界を保てるかを見る
+    status: active
+
   - path: /home/hr-hm/Project/work/ops/tests/regression/service_pack_fidelity_bugfix/cases.yaml
     role: regression_seed
     purpose:

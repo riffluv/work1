@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC87-001
+    stock_id: HRC87-001
+    category: business_chat_viability_agency
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: delivered_file_reflection_brief_explanation
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、反映する修正ファイルだけ短く教えてほしい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どの修正ファイルを反映すればいいかだけもう一度短く教えてもらえますか？画面スクショも送った方がいいですか？"
+    note: 通常 live / #RE。`教えてもらえますか` に `補足できます` で可否宣言して止まらず、こちらが何を返すかへ進めるかを見る。delivered の軽い補足に留め、本格資料・本番反映代行へ広げない。
+
+  - id: HRC87-002
+    stock_id: HRC87-002
+    category: business_chat_viability_agency
+    route: message
+    state: delivered
+    user_type: non_engineer_buyer
+    emotional_tone: confused
+    scenario: delivered_non_engineer_confirmation_points
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、専門用語を減らして確認箇所だけ短く説明してほしい。
+    raw_message: "納品ありがとうございます。修正ファイルと確認手順は見ましたが、専門用語が少し難しいです。承諾前に、どこを確認すればいいかだけ短く説明してもらえますか？"
+    note: 通常 live / #RE。`説明できます` 宣言に止まらず、承諾前の確認ポイントを短く整理する姿勢にできるかを見る。運用マニュアル化しない。
+
+  - id: HRC87-003
+    stock_id: HRC87-003
+    category: business_chat_viability_agency
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_screenshot_timing_neutral
+    question_type: quote_sent_screenshot_timing_neutral
+    primary_question: 見積り提案後、支払い前にスクショを先に送るべきか、支払い後でよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にスクショだけ送っておいた方がいいですか？支払い後にまとめて送る形でも大丈夫ですか？"
+    note: 通常 live / #RE。軽い手順確認。positive_flow_before_refusal として、拒否先行ではなく通常フローを先に案内する。
+
+  - id: HRC87-004
+    stock_id: HRC87-004
+    category: business_chat_viability_agency
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_cause_only_before_payment
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 支払い前にコードとログを見て、原因だけ先に確認できるか知りたい。
+    raw_message: "見積り提案ありがとうございます。購入するか少し迷っているので、支払い前にコードとログを送って、原因だけ先に見てもらうことはできますか？直りそうなら購入したいです。"
+    note: 通常 live / #RE。境界突破要求。支払い前診断を断りつつ、冷たい拒否だけで終わらず購入後の流れへつなげる。
+
+  - id: HRC87-005
+    stock_id: HRC87-005
+    category: business_chat_viability_agency
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: purchased_progress_without_pressure_echo
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、急かす意図ではなく現時点の進捗だけ短く知りたい。
+    raw_message: "購入後です。急かすつもりではないのですが、今どこまで分かっていますか？長い説明はいらないので、現時点の状況だけ短く教えてください。"
+    note: 通常 live / #RE。`急かすつもりではない` を復唱せず、現在地と次回見通しへ変換できるかを見る。
+
+  - id: HRC87-006
+    stock_id: HRC87-006
+    category: business_chat_viability_agency
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: purchased_too_many_files_burden
+    question_type: evidence_offer_question
+    primary_question: 購入後、送ったファイルが多すぎないか、不要なものがあればどうすればよいか知りたい。
+    raw_message: "購入後です。関係ありそうなファイルを多めに送っています。多すぎたらすみません。不要なものがあれば消した方がいいですか？"
+    note: 通常 live / #RE。buyer burden を受けつつ、追加作業や過剰整理を頼まず、必要なものはこちらで絞る流れにできるかを見る。secret 値が混ざる場合だけ安全に扱う。
+
+  - id: HRC87-007
+    stock_id: HRC87-007
+    category: business_chat_viability_agency
+    route: estimate
+    state: prequote
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: prequote_refused_elsewhere_can_request
+    question_type: prequote_refused_elsewhere_can_request
+    primary_question: 他の方に原因不明と言われた Stripe 注文作成不具合でも、15,000円で依頼できるか知りたい。
+    raw_message: "別の方に見てもらったのですが、Stripe決済後に注文が作られない原因が分からないと言われました。この状態でも15,000円で依頼できますか？"
+    note: 通常 live / #RE。`依頼できますか` に `相談できます` ではなく `ご依頼いただけます` で返せるかを見る。成功保証はしない。
+
+  - id: HRC87-008
+    stock_id: HRC87-008
+    category: business_chat_viability_agency
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cautious
+    scenario: closed_thanks_relation_check
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、ログをこのメッセージで送って前回修正との関係だけ見てもらえるか知りたい。
+    raw_message: "前回はありがとうございました。しばらく問題なかったのですが、似たStripeエラーが出ています。このメッセージでログを送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    note: 通常 live / #RE。closed 後の関係確認。`〜の件ですね` で距離を出さず、ログ送付可、関係確認、実作業は事前相談へ自然につなげる。

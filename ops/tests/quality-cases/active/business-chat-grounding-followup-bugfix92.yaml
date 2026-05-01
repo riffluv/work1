@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC92-001
+    stock_id: HRC92-001
+    category: semantic_grounding_practical
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: purchased_image_zip_current_status
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、エラー画面とzipを送った状態で、今どこを見ているか、追加で何を出すべきかを知りたい。
+    raw_message: "購入後です。エラー画面と関係ファイルのzipを送りました。今はどこを見ていますか？追加で何か出した方がいいものはありますか？"
+    note: 通常 live / #RE。購入後の現在地説明。相手文にない Event ID / Webhook / DB / Stripe記録などを足さず、受領材料ベースで返す。
+
+  - id: HRC92-002
+    stock_id: HRC92-002
+    category: semantic_grounding_practical
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: purchased_logs_many_need_all
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、複数ログを送った状態で、全部同じように見る必要があるか、次に何を見るかを短く知りたい。
+    raw_message: "購入後です。ログをいくつか送りました。全部同じように見た方がよさそうですか？次にどこを見ているかだけ短く教えてください。"
+    note: 通常 live / #RE。ログ種別や原因候補を足さず、関係が強そうな箇所から確認する方針を自然に出せるかを見る。
+
+  - id: HRC92-003
+    stock_id: HRC92-003
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_related_files_after_payment
+    question_type: quote_sent_file_share_timing
+    primary_question: 見積り提案後、支払い後に関係ファイルだけ送ればよいか、全部一式が必要か知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後は、関係ありそうなファイルだけ送ればいいですか？それともコード一式を全部まとめた方がいいですか？"
+    note: 通常 live / #RE。軽い手順確認。通常フローを先に出し、buyer の材料選別負担を下げつつ secret 値を含めない。
+
+  - id: HRC92-004
+    stock_id: HRC92-004
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_error_screen_preview_before_payment
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 支払い前にエラー画面だけ見て、直せそうか判断してもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にエラー画面だけ送るので、直せそうかだけ先に判断してもらえますか？大丈夫そうなら購入します。"
+    note: 通常 live / #RE。境界突破要求。支払い前診断へ入らず、購入後の原因確認へ戻す。
+
+  - id: HRC92-005
+    stock_id: HRC92-005
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: delivered_file_order_brief_explanation
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、どのファイルから反映すればよいか、順番だけ一言ずつ教えてほしい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どのファイルから反映すればいいか順番だけ一言ずつ教えてもらえますか？"
+    note: 通常 live / #RE。対応可否宣言で止まらず、返す内容へ進める。本格資料へ広げない。
+
+  - id: HRC92-006
+    stock_id: HRC92-006
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: non_engineer_buyer
+    emotional_tone: confused
+    scenario: delivered_acceptance_check_points
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、どこを見れば修正できているか、確認画面を1つに絞ってほしい。こちらのスクショが必要かも知りたい。
+    raw_message: "納品ありがとうございます。確認手順は受け取りました。動作確認はこれからですが、承諾前にどこを見れば修正できているかだけ、確認画面を1つに絞って教えてもらえますか？こちらのスクショも送った方がいいですか？"
+    note: 通常 live / #RE。軽い補足とスクショ要否。追加質問前提にせず、必要になった時だけこちらから依頼する。
+
+  - id: HRC92-007
+    stock_id: HRC92-007
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite
+    scenario: closed_other_screen_similar_error
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、別画面で似たエラーが出たため、前回修正との関係だけ確認してもらえるか知りたい。
+    raw_message: "前回はありがとうございました。別の画面で似たエラーが出ています。ログをこのメッセージで送れば、前回の修正と関係があるかだけ見てもらえますか？"
+    note: 通常 live / #RE。closed 後の穏やかな関係確認。責任認定や無料修正にせず、メッセージ上の関係確認と実作業前相談を分ける。
+
+  - id: HRC92-008
+    stock_id: HRC92-008
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cautious
+    scenario: closed_previous_fix_maybe_related_no_free_assumption
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、前回修正に関係しているかもしれないため、まず関係だけ確認してもらえるか知りたい。
+    raw_message: "クローズ後ですみません。前回直してもらったところと関係しているかもしれないエラーが出ています。無料かどうかは後で大丈夫なので、まず関係だけ見てもらえますか？"
+    note: 通常 live / #RE。前回修正との関係疑いと無料含み。無料/返金を断定せず、関係確認と実作業前相談に分ける。

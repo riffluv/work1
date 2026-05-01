@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC89-001
+    stock_id: HRC89-001
+    category: semantic_grounding_progress
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: purchased_progress_with_vague_materials
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、ログと画面を送った状態で、今何を見ているか、追加準備が必要か知りたい。
+    raw_message: "購入後です。ログと画面は送っています。今何を見ていますか？追加でこちらが準備した方がいいものはありますか？"
+    note: 通常 live / #RE。購入後の現在地説明。相手文にない Webhook / Event ID / Stripe記録 / 注文作成処理などを足さず、受け取った材料ベースで説明できるかを見る。
+
+  - id: HRC89-002
+    stock_id: HRC89-002
+    category: semantic_grounding_progress
+    route: message
+    state: purchased
+    user_type: non_engineer_buyer
+    emotional_tone: anxious
+    scenario: purchased_only_screenshots_enough
+    question_type: evidence_offer_question
+    primary_question: 購入後、スクショだけ先に送った状態で足りるか、他に必要なら教えてほしい。
+    raw_message: "購入後です。まず画面の画像だけ送りました。コードやログはまだ準備できていません。この状態でも確認できますか？足りないものがあれば教えてください。"
+    note: 通常 live / #RE。buyer burden を増やさず、まず受け取ったスクショから状況を見る。必要なら追加材料をこちらから伝える。secret 値を求めない。
+
+  - id: HRC89-003
+    stock_id: HRC89-003
+    category: semantic_grounding_progress
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: purchased_many_logs_what_focus
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、多めに送ったログのうち何を中心に見ているか短く知りたい。
+    raw_message: "購入後です。関係ありそうなログを多めに送りました。今何を見ていますか？全部確認が必要そうですか？短く教えてください。"
+    note: 通常 live / #RE。ログ過多への不安。未提示の原因候補を足さず、送られたログの中で今回の不具合に関係しそうな流れを見ていると返す。
+
+  - id: HRC89-004
+    stock_id: HRC89-004
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: delivered_light_explanation_without_manual
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、反映するファイルと確認箇所だけ短く教えてほしい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どの修正ファイルを反映すればいいかと、確認する画面だけ短く教えてもらえますか？長い説明は不要です。"
+    note: 通常 live / #RE。`教えてもらえますか` に対応可否宣言で止まらず、短く整理して返す。FAQや本格資料へ広げない。
+
+  - id: HRC89-005
+    stock_id: HRC89-005
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: non_engineer_buyer
+    emotional_tone: confused
+    scenario: delivered_simple_confirmation_points
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、専門用語を少なくして確認ポイントを教えてほしい。
+    raw_message: "納品ありがとうございます。確認手順の専門用語が少し難しいです。承諾前に、どこを見ればいいかだけ簡単な言葉で教えてもらえますか？"
+    note: 通常 live / #RE。軽い補足。専門用語を増やさず、承諾前の確認ポイントだけに留める。
+
+  - id: HRC89-006
+    stock_id: HRC89-006
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_zip_after_payment_question
+    question_type: quote_sent_file_share_timing
+    primary_question: 見積り提案後、支払い前にZIPを送るべきか、支払い後でよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。コード一式のzipを用意しています。支払い前に送るより、支払い後にトークルームで送る形でいいですか？"
+    note: 通常 live / #RE。軽い手順確認。通常フローを先に案内し、支払い前作業に入らない。
+
+  - id: HRC89-007
+    stock_id: HRC89-007
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_event_id_cause_only_before_payment
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 支払い前にEvent IDだけ送れば原因だけ先に見てもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にStripeのEvent IDだけ送れば、原因だけ先に見てもらえますか？それで直りそうなら購入します。"
+    note: 通常 live / #RE。境界突破要求。支払い前診断へ入らず、購入後の原因確認へ戻す。
+
+  - id: HRC89-008
+    stock_id: HRC89-008
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite
+    scenario: closed_stable_then_similar_error
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、しばらく安定後に似たエラーが出たため、前回修正との関係だけ見てもらえるか知りたい。
+    raw_message: "前回はありがとうございました。しばらく問題なく使えていましたが、また似たStripeエラーが出ています。ログをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    note: 通常 live / #RE。closed 後の穏やかな再相談。責任認定や無料修正を避け、メッセージ上の関係確認と実作業前相談を分ける。

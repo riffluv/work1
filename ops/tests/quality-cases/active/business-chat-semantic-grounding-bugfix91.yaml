@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC91-001
+    stock_id: HRC91-001
+    category: semantic_grounding_practical
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: purchased_many_materials_focus_order
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、追加で送った材料のうち何から見ているか、全部同じ深さで確認が必要かを短く知りたい。
+    raw_message: "購入後です。ログと画面、関係ファイルを追加で送りました。今は何から見ていますか？全部同じように確認が必要ですか？短く知りたいです。"
+    note: 通常 live / #RE。材料が多い場面。未提示の技術語や原因候補を足さず、関係がありそうな箇所から見ていると返せるかを見る。
+
+  - id: HRC91-002
+    stock_id: HRC91-002
+    category: semantic_grounding_practical
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: purchased_payment_success_screen_status
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、決済成功画面がある状態で、原因が見えてきているか、まだ追加材料が必要か知りたい。
+    raw_message: "購入後です。決済成功の画面とログを送りました。注文が作られない原因は見えてきていますか？まだ追加で送った方がいいものはありますか？"
+    note: 通常 live / #RE。相手文にある `決済成功の画面` と `ログ` だけを使い、Webhook / DB / Event ID などを勝手に足さない。
+
+  - id: HRC91-003
+    stock_id: HRC91-003
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_image_zip_after_payment
+    question_type: quote_sent_file_share_timing
+    primary_question: 見積り提案後、支払い前ではなく支払い後に画像とzipを送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。画面の画像とzipを用意しました。支払い後にまとめて送れば進められますか？"
+    note: 通常 live / #RE。軽い手順確認。通常フローを先に案内し、支払い前作業不可を不要に前面化しない。
+
+  - id: HRC91-004
+    stock_id: HRC91-004
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_zip_preview_before_payment
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 支払い前にzipだけ見て、直せそうか先に判断してもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。購入する前にzipだけ先に見て、直せそうかだけ判断してもらえますか？直りそうなら支払います。"
+    note: 通常 live / #RE。境界突破要求。支払い前診断へ入らず、購入後の原因確認へ戻す。
+
+  - id: HRC91-005
+    stock_id: HRC91-005
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: delivered_light_explanation_without_manual
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、どの修正ファイルをどの順番で反映すればよいか、1行ずつ短く教えてほしい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どの修正ファイルをどの順番で反映すればいいか、1行ずつ短く教えてもらえますか？"
+    note: 通常 live / #RE。対応可否宣言で止まらず、実際に返す軽い補足の方向へ進める。本格資料へ広げない。
+
+  - id: HRC91-006
+    stock_id: HRC91-006
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: non_engineer_buyer
+    emotional_tone: confused
+    scenario: delivered_simple_confirmation_points
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、どこを見ればよいか、確認画面を1つだけ教えてほしい。
+    raw_message: "納品ありがとうございます。確認手順は受け取りました。承諾前に、まずどこを見ればいいか、確認画面を1つだけ教えてください。"
+    note: 通常 live / #RE。buyer が短く1点を求めている場面。追加質問や本格説明へ広げず、補足の対象を絞る。
+
+  - id: HRC91-007
+    stock_id: HRC91-007
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite
+    scenario: closed_stable_then_similar_error
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、似たエラーのスクショを送り、前回修正との関係だけ確認してもらえるか知りたい。
+    raw_message: "前回はありがとうございました。しばらく問題なかったのですが、似たエラー画面が出ています。スクショをこのメッセージで送れば、前回の修正と関係あるかだけ見てもらえますか？"
+    note: 通常 live / #RE。closed 後の穏やかな関係確認。責任認定や無料修正にせず、メッセージ上の関係確認と実作業前相談を分ける。
+
+  - id: HRC91-008
+    stock_id: HRC91-008
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cautious
+    scenario: closed_previous_fix_question
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、前回修正の影響かもしれないと感じているが、まず関係だけ見てもらえるか知りたい。
+    raw_message: "クローズ後ですみません。前回の修正後しばらくは大丈夫でしたが、また注文が作られない状態です。前回修正の影響かもしれないので、まず関係だけ見てもらえますか？必要なら新規で相談します。"
+    note: 通常 live / #RE。前回修正の影響疑い。責任認定・無料対応・返金断定を避け、関係確認と実作業前相談に分ける。

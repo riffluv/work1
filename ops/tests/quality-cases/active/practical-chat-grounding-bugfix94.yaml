@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC94-001
+    stock_id: HRC94-001
+    category: semantic_grounding_practical
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: cautious
+    scenario: purchased_multiple_logs_current_focus
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、送った複数ログのうち何を見ているか、追加準備の要否を短く知りたい。
+    raw_message: "購入後です。ログを3つと画面の画像を送っています。いまどれを見ているかと、追加で用意した方がいいものがあるかだけ短く教えてください。"
+    note: 通常 live / #RE。相手文にない Event ID / Webhook / DB / Stripe記録などを足さず、受領材料ベースで現在地と追加材料の要否を返す。
+
+  - id: HRC94-002
+    stock_id: HRC94-002
+    category: semantic_grounding_practical
+    route: message
+    state: purchased
+    user_type: anxious_buyer
+    emotional_tone: worried
+    scenario: purchased_cause_like_hint
+    question_type: purchased_progress_brief_update
+    primary_question: 購入後、現時点で原因らしきものが見えているかを短く知りたい。
+    raw_message: "購入後です。画面とログは送っています。現時点で原因っぽいものは見えていますか？まだなら、今どこを見ているかだけ教えてください。"
+    note: 通常 live / #RE。原因候補を未確認で足さず、未断定なら未断定と言い、材料ベースの現在地へ戻す。
+
+  - id: HRC94-003
+    stock_id: HRC94-003
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_zip_all_after_payment
+    question_type: quote_sent_file_share_timing
+    primary_question: 見積り提案後、支払い後に関係しそうなファイルをまとめて zip で送ればよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い後に、関係しそうなファイルをまとめてzipで送る形で大丈夫ですか？不要なものが混ざるかもしれません。"
+    note: 通常 live / #RE。軽い手順確認。通常フローを先に案内し、secret 値除外と必要時の絞り込みを自然に伝える。
+
+  - id: HRC94-004
+    stock_id: HRC94-004
+    category: positive_flow_before_refusal
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_zip_precheck_before_payment
+    question_type: quote_sent_cause_only_before_payment
+    primary_question: 支払い前に zip を見て、必要ファイルが足りているかだけ確認してもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。購入前にzipだけ送るので、必要なファイルが足りているかだけ先に見てもらえますか？足りていそうなら購入します。"
+    note: 通常 live / #RE。境界突破要求。支払い前の zip 確認へ入らず、購入後のトークルーム共有へ戻す。
+
+  - id: HRC94-005
+    stock_id: HRC94-005
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: non_engineer_buyer
+    emotional_tone: practical
+    scenario: delivered_acceptance_screen_brief
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、どこを見れば修正できているかだけ短く知りたい。スクショ送付の要否も知りたい。
+    raw_message: "納品ありがとうございます。確認手順は見ました。承諾前に、どこを見れば修正できているかだけ短く教えてください。こちらの画面スクショも送った方がいいですか？"
+    note: 通常 live / #RE。対応可否宣言で止まらず、返す内容へ進める。スクショは必要時だけ依頼する。
+
+  - id: HRC94-006
+    stock_id: HRC94-006
+    category: business_chat_viability_followup
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: confused
+    scenario: delivered_reflection_unclear_light_check
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、反映後どこを見れば修正できているかだけ知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルを反映したつもりです。承諾前に、どこを見れば修正できているかだけ短く教えてください。"
+    note: 通常 live / #RE。承諾前の軽い補足に留め、本番反映代行や追加修正へ広げない。
+
+  - id: HRC94-007
+    stock_id: HRC94-007
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: polite
+    scenario: closed_similar_symptom_log_only
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、似た症状のログだけ送れば前回修正との関係を見てもらえるか知りたい。
+    raw_message: "クローズ後ですみません。似た症状が出ています。ログだけこのメッセージで送れば、前回の修正と関係があるか見てもらえますか？"
+    note: 通常 live / #RE。closed 後の関係確認。旧トークルーム再開や修正済みファイル返却にしない。
+
+  - id: HRC94-008
+    stock_id: HRC94-008
+    category: closed_relation_check
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cautious
+    scenario: closed_same_cause_relation_question
+    question_type: closed_relation_check_before_new_request
+    primary_question: クローズ後、同じ原因かどうか気にしているが、まず前回修正との関係確認をしたい。
+    raw_message: "クローズ後ですみません。同じ原因かどうか気になっています。まずはログを送って、前回の修正と関係があるかだけ確認してもらえますか？"
+    note: 通常 live / #RE。同じ原因かどうかを確認前に断定せず、関係確認と実作業前相談を分ける。

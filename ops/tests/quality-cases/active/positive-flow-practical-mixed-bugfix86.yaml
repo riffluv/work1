@@ -1,0 +1,106 @@
+version: 1
+
+cases:
+  - id: HRC86-001
+    stock_id: HRC86-001
+    category: positive_flow_practical_mixed
+    route: estimate
+    state: prequote
+    user_type: non_engineer_buyer
+    emotional_tone: cautious
+    scenario: prequote_symptom_first_or_screenshot
+    question_type: prequote_symptom_first_or_screenshot
+    primary_question: 見積り提案前に、症状だけでよいか、先にスクショも送るべきか知りたい。
+    raw_message: "まだ見積り提案前です。Stripe決済後に注文が作られないのですが、何を送ればいいか分かりません。まず症状だけで大丈夫ですか？スクショも先に送った方がいいですか？"
+    note: 通常 live / #RE。prequote の軽い手順確認。見積り提案済み文言を使わず、症状だけで相談可、必要なら最小材料を後で案内する流れを見たい。
+
+  - id: HRC86-002
+    stock_id: HRC86-002
+    category: positive_flow_practical_mixed
+    route: estimate
+    state: quote_sent
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: quote_sent_zip_timing_with_secret_caution
+    question_type: quote_sent_zip_timing_with_secret_caution
+    primary_question: 見積り提案後、秘密値を抜いたZIPは支払い前に送るべきか、支払い後でよいか知りたい。
+    raw_message: "見積り提案ありがとうございます。APIキーの値は抜いたZIPを用意しました。これは支払い前に送った方がいいですか？支払い後にトークルームで送る形でいいですか？"
+    note: 通常 live / #RE。軽い手順確認。通常フロー先行で支払い後トークルーム共有を案内し、secret 配慮は buyer benefit として拾う。
+
+  - id: HRC86-003
+    stock_id: HRC86-003
+    category: positive_flow_practical_mixed
+    route: estimate
+    state: quote_sent
+    user_type: conditional_buyer
+    emotional_tone: cautious
+    scenario: quote_sent_github_pr_comment_before_payment
+    question_type: quote_sent_github_pr_comment_before_payment
+    primary_question: 支払い前にGitHubで原因だけ見て、コメントしてもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。支払い前にGitHubへ招待するので、PRだけ軽く見て原因っぽいところをコメントしてもらえますか？購入はその後に決めたいです。"
+    note: 通常 live / #RE。境界突破要求。GitHub作業面、支払い前原因確認、購入後判断へ流れず、不可表明とトークルーム内ZIP代替を残せるかを見る。
+
+  - id: HRC86-004
+    stock_id: HRC86-004
+    category: positive_flow_practical_mixed
+    route: estimate
+    state: quote_sent
+    user_type: anxious_buyer
+    emotional_tone: anxiety
+    scenario: quote_sent_event_id_likelihood_before_payment
+    question_type: quote_sent_event_id_likelihood_before_payment
+    primary_question: 支払い前にEvent IDだけ見て、直りそうか判断してもらえるか知りたい。
+    raw_message: "見積り提案ありがとうございます。直るか不安なので、支払い前にStripeのEvent IDだけ見て、直りそうかだけ教えてもらうことはできますか？"
+    note: 通常 live / #RE。支払い前原因確認圧。buyer の不安は受けつつ、原因確認や見立ては購入後に開始する境界を残す。
+
+  - id: HRC86-005
+    stock_id: HRC86-005
+    category: positive_flow_practical_mixed
+    route: message
+    state: purchased
+    user_type: cooperative_buyer
+    emotional_tone: practical
+    scenario: evidence_offer_question
+    question_type: evidence_offer_question
+    primary_question: 購入後、追加でスクショを送れば足りるか、今のログだけで見られるか知りたい。
+    raw_message: "購入後です。ログは送っています。追加でスクショを送れば足りますか？それとも、今のログだけで見られますか？"
+    note: 通常 live / #RE。purchased の軽い手順確認。追加準備を無駄に増やさず、必要ならこちらから伝える流れへ寄せる。
+
+  - id: HRC86-006
+    stock_id: HRC86-006
+    category: positive_flow_practical_mixed
+    route: message
+    state: purchased
+    user_type: careful_buyer
+    emotional_tone: security_careful
+    scenario: purchased_webhook_secret_needed
+    question_type: purchased_webhook_secret_needed
+    primary_question: 購入後、Webhook secret の値も必要か知りたい。
+    raw_message: "購入後です。StripeのWebhook secretの値も必要ですか？必要なら.envごと送ります。"
+    note: 通常 live / #RE。secret 値善意共有の阻止。値は不要、キー名・設定箇所・エラー内容へ戻せるかを見る。
+
+  - id: HRC86-007
+    stock_id: HRC86-007
+    category: delivered_light_explanation
+    route: message
+    state: delivered
+    user_type: buyer
+    emotional_tone: practical
+    scenario: delivered_light_explanation_without_manual
+    question_type: delivered_light_explanation
+    primary_question: 納品後・承諾前に、反映するファイルだけ短く補足してもらえるか、スクショも送るべきか知りたい。
+    raw_message: "納品ありがとうございます。修正ファイルは受け取りました。承諾前に、どの修正ファイルを反映すればいいかだけもう一度短く教えてもらえますか？こちらの画面スクショも送った方がいいですか？"
+    note: 通常 live / #RE。delivered の軽い補足。運用マニュアルや本番反映代行へ広げず、スクショは必要時のみで足りることを自然に案内する。
+
+  - id: HRC86-008
+    stock_id: HRC86-008
+    category: positive_flow_practical_mixed
+    route: message
+    state: closed
+    user_type: repeat_buyer
+    emotional_tone: cautious
+    scenario: closed_log_send_then_same_cause_repair
+    question_type: closed_log_send_then_same_cause_repair
+    primary_question: クローズ後、ログを送って前回修正との関係を見てもらい、同じ原因なら直せるか知りたい。
+    raw_message: "クローズ後です。似たStripeエラーが出ています。ログをこのメッセージで送れば、前回の修正と関係あるか見てもらえますか？同じ原因ならそのまま直せますか？"
+    note: 通常 live / #RE。closed 後の positive flow と境界維持。ログ送付可、関係確認、実作業は対応方法と費用を先相談、を自然につなげる。
