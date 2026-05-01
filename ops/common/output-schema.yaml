@@ -346,12 +346,65 @@ nested_field_rules:
       - direct_answer_intent
       - suggested_answer_line
       - preserve_policy
+      - commercial_temperature
+      - buyer_material_literacy
+      - fee_outcome_anxiety
+      - post_completion_check_scope
     phase_act:
       allowed:
         - estimate_answer
         - estimate_hold
         - purchase_check_started
         - purchase_scope_recheck
+    commercial_temperature:
+      optional_fields:
+        - purchase_intent
+        - cta_strength
+      purchase_intent:
+        allowed:
+          - ready
+          - conditional
+          - hesitant
+          - not_ready
+          - unknown
+      cta_strength:
+        allowed:
+          - direct
+          - conditional
+          - available
+          - none
+    buyer_material_literacy:
+      optional_fields:
+        - level
+        - safe_default_input
+      level:
+        allowed:
+          - engineer_or_specific
+          - unknown
+          - non_engineer
+          - ai_generated
+          - file_unknown
+      safe_default_input:
+        allowed:
+          - relation_files
+          - code_zip_plus_logs_screens
+          - screenshots_and_logs
+          - none
+    fee_outcome_anxiety:
+      optional_fields:
+        - level
+      level:
+        allowed:
+          - none
+          - light
+          - unresolved_explicit
+          - refund_cancel_explicit
+    post_completion_check_scope:
+      optional_fields:
+        - input_basis
+        - check_output
+        - work_boundary
+        - escalation_path
     derived_rules:
       - response_decision_plan is a pre-render decision object and must not replace reply_contract
       - reply_contract remains the source of truth for what may be said
@@ -365,5 +418,9 @@ nested_field_rules:
       - direct_answer_intent is preferred for semantic preservation when exact wording would over-constrain the writer
       - suggested_answer_line is an anchor, not a template; use preserve_policy=intent_not_exact_wording when present
       - answer_focus should connect primary_decision_need, target issues, and answer_frame for multi-question or multi-symptom inputs
+      - commercial_temperature should calibrate CTA strength only; it must not change price, scope, or phase
+      - buyer_material_literacy should guide material request burden only; it must not make prequote code review permissible
+      - fee_outcome_anxiety should calibrate explanation amount only; it must not guarantee refund, cancellation, free work, or successful repair
+      - post_completion_check_scope should distinguish visible-range relation check from code repair, file return, and fee handling after delivery or close
       - blocking_missing_facts must gate ask generation; when empty, the renderer should not re-ask known context
       - validator should check that rendered text preserves direct_answer_line intent and does not duplicate its meaning across nearby sections

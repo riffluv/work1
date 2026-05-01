@@ -68,6 +68,8 @@
 - `41_topic-label-distance.ja.md`
 - `42_commitment-strength-calibration.ja.md`
 - `43_buyer-burden-material-selection.ja.md`
+- `44_quote-sent-purchase-cta-material-order.ja.md`
+- `45_closed-relation-check-scope-clarity.ja.md`
 
 ## Gold 26-33 family index
 
@@ -90,6 +92,8 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 | topic_label_distance | 41 | `〜の件ですね` が buyer の困りごとを遠い案件ラベルにしている時。自然な topic organizer と距離が出る表現を分けたい時 | `〜の件` を blanket NG にする理由にする時 |
 | commitment_strength | 42 | phase・受領証拠・原因特定度に対して、約束の強さを合わせたい時。購入前/購入後/closed 後で promise level を分けたい時 | 依頼可否・固定価格・必要な次アクションまで弱める理由にする時 |
 | buyer_burden_material_selection | 43 | コードに詳しくない、AI生成コード、どのファイルを送ればよいか分からない buyer に、材料選別負担を戻しすぎない時 | 毎回コード一式ZIPを hard rule にしたり、購入前コード確認へ滑る理由にする時 |
+| quote_sent_purchase_cta_material_order | 44 | 見積り提案後や購入前に、buyer が `直りそうなら購入` `支払い前に少し見てほしい` と迷っている時。購入前境界、対応範囲、CTA、購入後材料案内の順序を合わせる時 | `ご購入ください` の blanket NG や、支払い前作業不可を消す理由にする時 |
+| post_completion_followup_scope_clarity | 45 | closed 後に前回修正との関係確認を受ける時。ログ/スクショで何を確認するのか、実作業・成果物返却・費用相談とどう分けるかを明確にしたい時 | closed 後の実作業、無料対応、返金、旧トークルーム継続を約束する理由にする時 |
 
 ### 抽出して validator / renderer へ戻す候補
 
@@ -107,3 +111,5 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 - Gold 41: `topic_label_distance` は hard validator 化せず、buyer の困りごとを受付票のような案件ラベルにしていないかを見る anchor として使う。`〜の件` の blanket NG にはしない。
 - Gold 42: `commitment_strength_calibration` は hard validator 化せず、phase・証拠量・原因特定度に合わせて promise level を調整する anchor として使う。依頼可否や固定価格まで弱めない。
 - Gold 43: `material_selection_burden` は hard validator 化せず、buyer が判断できない領域を buyer に戻しすぎていないかを見る anchor として使う。safe default input と secret 除外をセットにし、prequote でコード確認へ滑らない。
+- Gold 44: `purchase_cta_strength_calibration` / `purchase_before_materials_order` は hard validator 化せず、buyer がまだ購入判断中の時に、購入後材料案内が買う前提として先行していないかを見る anchor として使う。
+- Gold 45: `post_completion_followup_scope_clarity` は hard validator 化せず、closed 後の関係確認が「何を見てくれるのか」と「どこから実作業なのか」を buyer に見せる anchor として使う。closed 後作業 promise が出た場合は既存 hard guard で扱う。

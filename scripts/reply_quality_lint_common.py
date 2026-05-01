@@ -127,6 +127,13 @@ FLOW_WARNING_EMAIL_PHRASES: list[tuple[re.Pattern[str], str]] = [
     ),
 ]
 
+FLOW_DEICTIC_AGENCY_WARNINGS: list[tuple[re.Pattern[str], str]] = [
+    (
+        re.compile(r"(?:無理に)?こちらで(?:選び切|絞)"),
+        "agency_alignment warning: `こちらで選ぶ/絞る` may reverse buyer material work and seller checking work",
+    ),
+]
+
 FLOW_ASSERTIVE_ENDING_RE = re.compile(
     r"(?:です|ます|ません|できます|しました|しています|なります|ありません|ください)[。！？!?]?$"
 )
@@ -815,6 +822,22 @@ def collect_conversation_flow_warnings(rendered: str) -> list[str]:
     for pattern, message in FLOW_WARNING_EMAIL_PHRASES:
         if pattern.search(rendered):
             warnings.append(message)
+
+    for pattern, message in FLOW_DEICTIC_AGENCY_WARNINGS:
+        if pattern.search(rendered):
+            warnings.append(message)
+
+    if "前回の修正と関係" in rendered and "確認" in rendered:
+        if not any(marker in rendered for marker in ["見える範囲", "ここでできるのは", "実作業", "修正作業", "修正済みファイル"]):
+            warnings.append(
+                "post_completion_followup_scope_clarity warning: relation check is mentioned without clarifying visible-range check and work boundary"
+            )
+
+    if "関係ファイル" in rendered and "分かる範囲" in rendered:
+        if not any(marker in rendered for marker in ["コード一式", "ZIP", "zip", "スクショ", "ログ"]):
+            warnings.append(
+                "material_selection_burden warning: file-unknown buyer may still be asked to choose relation files without safe default input"
+            )
 
     if all(
         marker in rendered

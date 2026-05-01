@@ -1,5 +1,5 @@
 version: 1
-updated: "2026-05-01"
+updated: "2026-05-02"
 purpose: >
   Gold replies をテンプレートではなく、近い判断順序・温度感・境界の anchor として
   参照するための map。Writer に大量投入せず、必要な family から近い 1 本だけ見る。
@@ -158,6 +158,7 @@ families:
     lens:
       - agency_alignment
       - permission_benefit_alignment
+      - deictic_agency_alignment
     use_when:
       - "依頼できますか、見てもらえますか、支払い後に送ればいいですか等で行為主体がズレる"
     do_not_use_when:
@@ -253,6 +254,43 @@ families:
       - "毎回コード一式ZIPを hard rule にする"
       - "購入前のコード確認・原因確認へ滑る"
       - "secret 値を含めた材料共有を許す"
+
+  quote_sent_purchase_cta_material_order:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/44_quote-sent-purchase-cta-material-order.ja.md
+    phases:
+      - prequote
+      - quote_sent
+    lens:
+      - response_weight_mismatch
+      - purchase_cta_strength_calibration
+      - purchase_before_materials_order
+      - positive_flow_before_refusal
+    use_when:
+      - "buyer が購入前診断・GitHub先見・直りそうなら購入など、条件付き購入や迷いを出している"
+      - "購入後の材料案内が CTA より先に出て、買う前提に見える"
+    do_not_use_when:
+      - "buyer がすでに購入意思を明確に出しており、通常の購入導線で足りる"
+      - "支払い前作業不可を消してよい理由にする"
+
+  post_completion_followup_scope_clarity:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/45_closed-relation-check-scope-clarity.ja.md
+    phases:
+      - delivered
+      - closed
+    lens:
+      - post_completion_followup_scope_clarity
+      - closed_relation_check_scope_clarity
+      - closed_after_work_boundary
+    use_when:
+      - "closed 後に前回修正との関係確認、似た症状、無料/返金/新規相談の不安がある"
+      - "確認すると言っているが、何を確認してくれるのか buyer に見えにくい"
+    do_not_use_when:
+      - "closed 後の実作業・修正済みファイル返却・無料対応を約束する理由にする"
+      - "一般的な確認方法だけで足りる closed 後相談"
 
 private_or_shadow_families:
   handoff_private:

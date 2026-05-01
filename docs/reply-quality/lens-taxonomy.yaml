@@ -1,5 +1,5 @@
 version: 1
-updated: "2026-05-01"
+updated: "2026-05-02"
 purpose: >
   日本語自然化・ビジネスチャット品質・取引判断の監査レンズを階層化し、
   blanket NG や過剰 lint 化を防ぐ。
@@ -54,8 +54,13 @@ formal_soft_lenses:
       - surface_overexposure
       - unnecessary_refusal_frame
       - answer_order_calibration
+      - purchase_cta_strength_calibration
+      - purchase_before_materials_order
       - buyer_burden_alignment
       - material_selection_burden
+    subtype_notes:
+      purchase_cta_strength_calibration: "迷い・条件付き購入・直りそうなら購入などの buyer 温度に対して、購入導線が押し込みに見えないか"
+      purchase_before_materials_order: "prequote / quote_sent で buyer がまだ購入判断中の時、購入後の材料案内が CTA より先に出て買う前提に見えないか"
     preferred_return_targets:
       - gold_reply
       - reviewer_prompt
@@ -86,12 +91,16 @@ formal_soft_lenses:
       - permission_benefit_alignment
       - actor_direction_alignment
       - request_target_alignment
+      - deictic_agency_alignment
+    subtype_notes:
+      deictic_agency_alignment: "こちら / そちら / 主語省略により、buyer がする作業と seller がする確認が1文内で混線していないか"
     standard_examples:
       request_can_i_order: "ご依頼いただけます / 対応できます"
       can_you_check: "こちらで確認します / 対応できます"
       can_you_explain: "こちらで短く整理します / 補足説明をお送りします"
       can_i_consult: "ご相談いただけます"
       after_payment_send: "お支払い完了後にトークルームで共有してください"
+      file_unknown_buyer: "無理に絞らなくて大丈夫です。必要な範囲はこちらで確認します。"
     blanket_ng:
       - "相談できます"
       - "確認できます"
@@ -140,6 +149,31 @@ formal_soft_lenses:
       - japanese_chat_natural_skill
       - gold_reply
 
+  post_completion_followup_scope_clarity:
+    description: "完了後・納品後・クローズ後の再相談で、見立てとしての確認、実作業、成果物返却、費用相談の違いが buyer に分かるか"
+    hard_fail: false
+    role: "post_completion_scope_lens"
+    platform_subtypes:
+      - coconala_closed_relation_check_scope_clarity
+    apply_when:
+      - delivered_followup_check
+      - closed_relation_check
+      - repeat_error_after_close
+      - refund_or_free_after_close
+    standard_order:
+      - "確認材料を送れるかに答える"
+      - "見える範囲で何を判断するかを短く言う"
+      - "ここでできる範囲を明示する"
+      - "コード修正・修正済みファイル返却・費用判断は実作業前に相談する"
+    escalates_to_hard_when:
+      - closed_after_work_promise
+      - free_refund_guarantee_shadow
+      - refund_cancel_assertion
+    preferred_return_targets:
+      - reviewer_prompt
+      - gold_reply
+      - validator
+
 naturalizer_gates:
   safe_connection:
     description: "自然につなげてよい文は、同じ役割・同じ約束レベルの文だけ"
@@ -156,11 +190,11 @@ observe_only:
   - issue_proximity
   - topic_label_distance
   - buyer_burden_alignment
-  - material_selection_burden
   - instructional_tone_leak
   - echo_to_working_angle
   - answer_order_calibration
   - certainty_calibration # use commitment_strength_calibration when the issue is promise strength
+  - overhelpful_interpretation
 
 preference_only:
   - punctuation_count

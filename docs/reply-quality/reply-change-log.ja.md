@@ -2292,3 +2292,21 @@
 - 想定効果: buyer が判断できない領域を buyer に戻しすぎず、safe default input と secret 除外をセットで出しやすくする。同時に、監査側がすべての soft lens を毎回強く当ててモグラ叩き化するのを防ぐ。
 - 確認: `git diff --check` は OK。`./scripts/os-check.sh` は `mode=coconala` で OK。`./scripts/check-v1-completion-gates.py --save-report` は `v1_completion_candidate`。
 - 非変更: 毎回コード一式 ZIP を要求する hard rule にはしない。`instructional_tone_leak` は observe/gold 寄りで、禁止語 lint にはしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+
+### 2026-05-02 / CHG-264
+- 分類: `reply-only`
+- レイヤ: soft lens taxonomy / gold reply / reviewer prompt
+- 変更: Pro 5-02 分析を受け、候補8件を新規 lens 乱立ではなく、既存 subtype と gold anchor に整理した。`purchase_cta_strength_calibration` / `purchase_before_materials_order` を `response_weight_mismatch` 配下へ追加し、`deictic_agency_alignment` を `agency_alignment` 配下へ追加した。`post_completion_followup_scope_clarity` は正式 soft lens として追加し、Gold 44（quote_sent の購入導線・材料案内順序）と Gold 45（closed 後の関係確認範囲）を追加した。監査プロンプトにも同観点を薄く反映し、`overhelpful_interpretation` は observe / gold 候補に留めた。
+- きっかけ: #R 10件の human audit で、購入前診断要求に対して購入後材料案内が先に出る、`こちら/そちら` の行為主体がズレる、closed 後の「確認します」が何をしてくれるのか曖昧になる、というコア展開にも効く違和感が見つかったため。
+- 想定効果: `ご購入ください` / `大丈夫です` / `専門用語を減らして` などを禁止語化せず、購入温度・材料案内順序・行為主体・closed 後確認範囲という構造で監査できる。#R の違和感を単発 polish で終わらせず、将来の返信OSコアへ戻しやすくする。
+- 確認: `python3 - <<'PY' ... yaml.safe_load ... PY` で `lens-taxonomy.yaml`、`gold-reply-map.yaml`、`output-schema.yaml` は OK。`PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile scripts/reply_quality_lint_common.py` は OK。`git diff --check` は OK。`./scripts/os-check.sh` は `mode=coconala` で OK。`./scripts/check-v1-completion-gates.py --deep --save-report` は `classification: v1_completion_candidate` / `functional_core_complete: yes` / `v1_release_sealed: no` / `role_suites: OK_WITH_WARNINGS`。`python3 scripts/check-reply-projection-warnings.py` は既存 warning を出しつつ OK。
+- 非変更: `overhelpful_interpretation` / `fee_anxiety_intensity` は独立 formal lens 化しない。`ご購入ください`、`大丈夫です`、`相談できます`、`専門用語を減らして` は blanket NG にしない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+
+### 2026-05-02 / CHG-265
+- 分類: `reply-only`
+- レイヤ: business chat naturalization / pressure word summarization
+- 変更: buyer が `勝手に進むのか` `無断で追加料金になるのか` のような不安語を出した場合、返信側でその語を必要以上に反復せず、`進める前に対応方法と費用を先にご相談します` のように seller の実務行動へ変換する方針を `japanese-chat-natural-ja`、`coconala-reply-bugfix-ja`、`writer-brief.ja.md` へ最小反映した。
+- きっかけ: #R の複数症状 + 追加料金不安ケースで、`勝手に追加作業へ進めず` は意味として正しい一方、防御的に見えるため、同じ意味を `進める前に対応方法と費用を先に相談` へ変換した方が実務チャットとして自然だと確認したため。
+- 想定効果: 追加料金・別原因・別対応への不安に対して、buyer の圧力語をそのまま返して防御的に見える崩れを減らす。`勝手に` を禁止語にせず、`pressure_word_summarization` の一部として扱うことで、直答性と自然さを両立する。
+- 確認: 反映は docs / skill の自然化方針のみ。構造・service facts・renderer・lint は変更しない。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+- 非変更: `勝手に` を blanket NG にしない。buyer が明示しており、直答として必要な場面では使ってよい。hard rule / lint にはしない。

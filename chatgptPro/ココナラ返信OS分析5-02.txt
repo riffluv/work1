@@ -1,0 +1,249 @@
+まず指定ファイルと現行設計を確認し、既存 lens / skill / service contract と重複・衝突しない形で候補を分類します。特に正式化すべき軸、subtype や gold に留める軸、lint 化できる軸、LLM の自然判断を縛りすぎる軸を辛めに分けます。既存 taxonomy は hard guards と formal soft lenses / observe_only を分けており、今回は新 lens 乱立より subtype・標準順序・Gold anchor の補強が中心になりそうです。bugfix-15000 だけを公開前提に、purchase CTA、材料案内、closed 後確認を調整します。ツールが呼び出されましたThought for 6m 26s1. 結論
+かなり批判的に見ると、今回の候補8個をそのまま8個の正式 lens にするのは危険です。
+理由は、現行リポジトリがすでに「hard guard / soft lens / gold / reviewer / Writer brief」を分離し、Writer の思考を縛りすぎない設計に寄せているからです。writer-brief でも、Writer には短い原則だけ渡し、policy / self-check / lint を背負わせない方針が明文化されています。
+今回すぐやるべきことは、次の3つです。
+
+
+購入導線・材料案内・closed後確認の “順序” を Reviewer / response_decision_plan に戻す
+
+
+agency_alignment に deictic subtype を足す
+
+
+closed後の「見立て確認」と「実作業」の分離を、正式 soft lens か強い subtype として固定する
+
+
+逆に、overhelpful_interpretation や fee_anxiety_intensity は重要ですが、いきなり hard rule / lint 化すると、自然な親切や軽い安心説明まで殺します。ここは reviewer cue + gold anchor + #R観察 がよいです。
+現行 taxonomy では、hard guard は public/private、価格・scope、phase、secret、closed後作業境界などに限定され、soft lens は answer_focus_alignment、response_weight_mismatch、agency_alignment、promise_consistency などに分かれています。
+この設計はかなり良いので、今回も 新 lens 乱立ではなく、既存 lens の subtype / reviewer cue / gold へ戻す のが最短です。✨
+
+2. 今回候補の分類表
+#候補主分類副分類lint 化判断1purchase_cta_strength_calibration既存 lens の subtype で十分response_weight_mismatch / answer_order_calibration / phase_contract原則しない正式 lens にはしない。購入導線の強さは「商談温度」と「phase」の組み合わせなので、単独 lens にすると過剰検知しやすい。2purchase_before_materials_order既存 lens の subtype で十分answer_order_calibration / phase_contract / gold 化構造 lint 候補かなり重要。独立 lens ではなく、quote_sent / prequote の response order として固定する。3deictic_agency_alignment既存 lens の subtype 化agency_alignment に明示 subtype 追加狭い lint 候補こちらで選び切らなくて のような高精度パターンだけ lint 候補。一般の「こちら / そちら」は reviewer/gold。4overhelpful_interpretationgold / reviewer prompt に留めるbusiness_chat_viability / jp_business_native_naturalness の cueしない重要だが、formal lens 化はまだ早い。親切表現全体を萎縮させる危険が高い。5relation_check_scope_clarity正式 soft lens 化すべきcore 名は post_completion_followup_scope_clarity、ココナラ subtype は closed_relation_check_scope_clarity構造 lint 候補closed 後の実務事故に直結する。hard guard だけでは「結局何をしてくれるの？」を拾えない。6fee_anxiety_intensity / unresolved_outcome_clarity既存 lens の subtype で十分promise_consistency / conditional_scope_clarity / response_weight_mismatchhard は既存 guard のみlens より anxiety_intensity メタデータとして扱うべき。説明量の調整は context-dependent。7material_selection_burden既存 lens の subtype で十分buyer_burden_alignment / response_weight_mismatch / Gold 43構造 lint 候補すでに service facts / skill / Gold にかなり入っている。独立 lens 乱立より status 整理が必要。8answer_focus_alignment既に正式 lensreply_contract / response_decision_plan 強化構造 lint 候補方向性は良い。final_question_id と primary_decision_need の分離をさらに明示する。
+
+3. すぐ実装 / 観察継続 / 不採用の分離
+すぐ実装すべきもの
+A. purchase_cta_strength_calibration は subtype として追加
+正式 lens ではなく、response_weight_mismatch の subtype に入れるのがよいです。
+response_weight_mismatch:  subtypes:    - purchase_cta_strength_calibration
+Reviewer には次だけ見るようにします。
+buyer が「直りそうなら」「支払い前に少し」「購入してよいか迷っている」のように条件付き購入・迷いを出している時、closing が「そのままご購入ください」だけで押し込みに見えないか。
+使い分けはこうです。
+buyer 温度推奨表現明確に購入意思ありこの内容で問題なければ、そのままご購入ください。条件付き・迷いあり購入後に原因確認から進める流れで問題なければ、ご購入ください。さらに柔らかくしたい購入後に原因確認から進める形でよければ、ご購入いただけます。購入前診断を求めている購入前に原因判断までは行っていません。購入後に確認する流れで問題なければ、ご購入ください。
+ポイントは、CTA を弱めるのではなく、購入判断の前提を先に置くことです。
+
+B. purchase_before_materials_order は response order として固定
+これはかなり優先度が高いです。
+現在の違和感は「材料案内の内容」ではなく、buyer がまだ買うか迷っている時に、購入後の指示が先に出る順序です。
+望ましい順序は、ユーザー提示の通りでよいです。
+1. 購入前に先見・原因判断はしない2. ただし症状自体は対応範囲3. この前提でよければ支払いへ4. 支払い後の共有方法を案内5. secret 値は含めない
+quote_sent では、プラットフォーム側にも「見積り提案済みだが入金完了前」という扱いがあり、現在すでに作業中のように書かない一方で、未来条件つきの購入後手順は許容されています。
+実装は lens より response_decision_plan.response_order に戻すのが安全です。
+response_order:  - answer_pre_purchase_boundary  - answer_scope_fit  - conditional_purchase_cta  - after_payment_materials  - secret_safety
+lint 化するなら、regex ではなく構造 lint がよいです。
+state in [prequote, quote_sent]AND buyer has hesitation cueAND after_payment_materials appears before purchase_cta=> soft warning: purchase_materials_order
+
+C. deictic_agency_alignment を agency_alignment subtype に追加
+これは正式 lens ではなく、既存の agency_alignment に明示 subtype を足すべきです。現行 Gold 38 でも、依頼できますか に 相談できます だけで返さない、支払い後材料共有を許可調にしない、という判断がすでに入っています。
+追加するならこうです。
+agency_alignment:  subtypes:    - permission_benefit_alignment    - actor_direction_alignment    - request_target_alignment    - deictic_agency_alignment
+標準文型はこれで固定してよいです。
+ご購入後に送るファイルは、無理に絞らなくて大丈夫です。必要な範囲はこちらで確認します。
+避けるべき形はこれです。
+ご購入後に送るファイルは、無理にこちらで選び切らなくて大丈夫です。
+この問題は、material_selection_burden の自然化と衝突します。
+「buyer の負担を下げよう」として こちらで を混ぜると、buyer 作業と seller 作業が1文内で混線します。
+実装者向けには次の rule で十分です。
+buyer がする作業と seller がする作業が1文に混ざる時は、文を分ける。buyer 作業: 無理に絞らなくて大丈夫です。seller 作業: 必要な範囲はこちらで確認します。
+
+D. relation_check_scope_clarity は formal soft lens 化
+これは今回候補の中で、一番正式化の価値が高いです。
+ただし、コア名を closed_after_relation_check のようにココナラ専用にしない方がよいです。将来の複数サービス展開を考えるなら、core ではこう置くのがよいです。
+post_completion_followup_scope_clarity:  description: >    完了後・納品後・クローズ後の再相談で、見立てとしての確認、    実作業、成果物返却、費用相談の違いが buyer に分かるか。  hard_fail: false  platform_subtypes:    - coconala_closed_relation_check_scope_clarity  escalates_to_hard_when:    - closed_after_work_promise    - free_refund_guarantee_shadow    - refund_cancel_assertion
+ココナラ側では、closed 後は旧トークルームでの投稿・ファイル投稿・追加購入ができず、実作業が必要なら見積り提案または新規依頼へ戻す、という前提があります。
+一方で、closed 後でもメッセージ上で症状・ログ・スクショなどの確認材料を受け取り、前回との関係を見ることはできます。
+そのため、返信の順序はこれで固定すべきです。
+1. ログ・スクショはこのメッセージで送ってよい2. それをもとに、前回修正との関係か新しい不具合かを短く見る3. ここでできるのは、見える範囲での関係確認まで4. コード修正・修正済みファイル返却が必要なら、進め方と費用を先に相談する
+標準文型はこれです。
+ログとスクショは、このメッセージで送っていただいて大丈夫です。届いた内容をもとに、前回の修正と関係がありそうか、新しい不具合の可能性が高そうかを短く確認します。ここでできるのは、ログとスクショから見える範囲での関係確認までです。コード修正や修正済みファイルの返却が必要になりそうな場合は、対応方法と費用を先にご相談します。
+これは単なる自然化ではありません。
+buyer にとっての価値が、
+確認してくれる = 何を判断してくれるのか確認してくれない = どこから有料作業なのか
+に関わるため、soft lens と構造 lint の中間で扱うべきです。
+
+E. material_selection_burden は status 整理をすぐ行う
+これはすでにかなり実装されています。service facts には、非エンジニア・AIコード・ファイル不明の buyer に関係ファイル選定を戻しすぎないこと、購入後はコード一式ZIP + ログ/スクショ + secret除外へ寄せることが明記されています。
+Gold 43 でも、コードに詳しくない、AIで作ったコード、どのファイルを送ればいいか分からない 場面の標準文型が整理済みです。
+ただし現行 taxonomy では、material_selection_burden が response_weight_mismatch の subtype にありつつ、observe_only にも入っています。
+これは実装者にとって曖昧です。
+おすすめはこうです。
+response_weight_mismatch:  subtypes:    - buyer_burden_alignment    - material_selection_burdenobserve_only:  # material_selection_burden は外す
+ただし、独立 formal lens にはしない。
+理由は、毎回コード一式ZIPを要求する hard rule へ暴走しやすいからです。
+条件分岐はこれで十分です。
+buyer 状態材料案内コード不明 / AI生成 / どのファイル不明購入後にコード一式ZIP + ログ/スクショ + secret除外エンジニア寄り / 関係箇所が明確関係ファイル + ログ/スクショprequote症状・本来の動き・現象・ログ/スクショまで。重いコード確認に入らないquote_sent で迷いありまず購入判断の前提。材料案内はCTA後purchasedコード一式ZIPを出してよい。secret除外を近くに置く
+
+観察継続がよいもの
+overhelpful_interpretation
+これはすごく良い観点ですが、今すぐ formal lens 化すると危ないです。
+問題の本質は、
+相手の「少し難しい」を、こちらが「専門用語が多くて理解できない」と勝手に翻訳している
+ことです。
+この違和感は日本語実務チャットでは強いですが、表面パターンで拾えません。
+専門用語を減らして が自然な場面もあります。buyer が実際に「専門用語が多い」と言っている場合はむしろ良い返答です。
+今の戻し先はこれがよいです。
+japanese-chat-natural-ja の reviewer cue+ Gold 候補として観察+ #R で再発確認
+標準文型はこれです。
+確認手順も、見る場所と順番が分かる形にして補足します。
+避ける標準例はこれです。
+確認手順も、専門用語を減らして見やすい形にします。確認手順も、かみ砕いて説明します。分かりやすく簡単にします。
+ただし、これらを blanket NG にしてはいけません。
+buyer が「専門用語が分からない」「もっと簡単に」と明示した時は使えます。
+
+fee_anxiety_intensity / unresolved_outcome_clarity
+これは lens より intensity metadata が向いています。
+service page には、追加料金は自動発生しない、修正完了まで進められないと分かったら止めて説明する、原因不明のまま一方的に正式納品へ進めない、という説明がすでにあります。
+Gold 29 でも、価格・保証・返金・キャンセル不安に対して、返金やキャンセルを一律断定せず、ココナラ手続きと作業状況に沿って相談する文型が整理されています。
+出し分けはこの3段階でよいです。
+不安強度buyer cue返信量軽い不安原因不明でも見てもらえますか短く「原因確認から進める。方針につながらない場合は状況を説明して相談」未解決時不安調べるだけで終わりませんか 直らない場合は？「一方的に正式納品へ進めない」「分かった範囲・不足情報を説明」を追加返金/キャンセル/追加料金不安返金 キャンセル 追加料金「この場で断定しない」「ココナラ上の手続きに沿って相談」を追加
+ここで危ないのは、軽い相談にも毎回こう出すことです。
+勝手に追加料金を発生させません。原因不明のまま正式納品へ進めません。ココナラ上の手続きに沿って相談します。
+安全ではありますが、軽い buyer には契約説明っぽくなります。
+実装は lens よりこちらです。
+anxiety_intensity:  fee_or_outcome:    level: light | unresolved_explicit | refund_cancel_explicit
+
+今は不採用 / ノイズ化リスクが高いもの
+以下は不採用です。
+「ご購入ください」を blanket NG「大丈夫です」を blanket NG「相談できます」を blanket NG「専門用語を減らして」を blanket NG毎回コード一式ZIPを要求毎回返金・キャンセル手続きまで説明段落数・句点数・はい有無で自然さ判定
+現行 taxonomy も、相談できます、確認できます、大丈夫です を blanket NG にしない方針です。
+ここを禁止語化すると、返信OSコアが「自然な日本語」ではなく「禁止語回避エンジン」になります。そこはかなり危険です。
+
+4. #R と #RE の運用方針
+#R 単発監査の役割
+#R は、実務チャット上の違和感の発見装置です。
+特に今回のようなものは #R が向いています。
+- 商談温度が合っているか- 購入導線が押し込みに見えないか- buyer / seller の主体がズレていないか- 親切が見下しに見えないか- 材料案内が買う前提に見えないか- closed 後に「何をしてくれるのか」が分かるか
+#R の監査では、毎回これを記録するとよいです。
+audit_record:  case_id:  phase:  buyer_temperature:  primary_decision_need:  issue:  candidate_lens:  severity:    - hard_by_underlying_guard    - fix_recommended    - acceptable_as_is    - observe_only    - preference  return_target:    - oneoff_polish    - gold    - reviewer_prompt    - soft_lens    - lint    - pro_consult  recurrence_evidence:  reason_not_rule:
+重要なのは、#R で見つかった違和感を即 rule 化しないことです。
+#R は発見に強い一方、1件単位の文脈差・好み差も拾います。
+
+#RE 回帰テストの役割
+#RE は、採用済みルールと hard guard の退行検知です。
+#RE が見るべきものはこうです。
+- public/private 漏れ- bugfix-15000 / handoff-25000 の露出事故- 価格ミス- phase 崩れ- secret 値要求- external contact / external share / direct push- success / refund / free guarantee- closed 後作業 promise- primary answer 欠落- adopted subtype の構造退行
+service-registry.yaml では、bugfix-15000 は public true、handoff-25000 は public false であり、public false はサービス名・価格・購入CTAを出してはいけないルールになっています。
+このような事故は #RE の役割です。
+一方で、#RE に「この言い方が少し押し込みに見える」「専門用語を減らすが見下しっぽい」まで背負わせると、テストが好み判定化します。
+
+今後の回し方
+おすすめの運用はこれです。
+1. #R で 10〜20件の単発実務ケースを回す2. human audit で違和感をタグ化する3. その場で rule 化せず、return_target を決める4. 再発 2〜3件、または高重大度なら gold / reviewer / subtype 化5. 採用したものだけ #RE fixture に入れる6. #RE は hard guard と採用済み構造だけを見る7. change log に「何を変えたか / なぜ / 何で確認したか / ruleにしなかった理由」を残す
+現行 change log は、変更ごとに分類・レイヤ・きっかけ・確認を残す形になっており、この運用と相性が良いです。
+
+5. 未発見リスク候補
+今回の10件から見ると、次に出そうな危険はこのあたりです。
+1. sample_deliverable_vs_pre_diagnosis
+サービスページ上は「購入前に納品物の見本を送れる」一方で、購入前に実コード診断や原因特定はしない前提です。service facts でも、サンプルは generic であり actual diagnosis ではないと整理されています。
+危険文：
+購入前に見本として、今回のコードを軽く見て原因候補をお返しします。
+安全文：
+購入前にお送りできるのは、納品物の形式イメージです。実際の原因確認は、お支払い完了後にログやコードを確認して進めます。
+
+2. external_share_refusal_trust_gap
+GitHub 招待や Drive 共有を断ったあとに、急に「ZIPで送ってください」と言うと、buyer には「なぜGitHubはだめでZIPはいいの？」が残ります。
+安全文：
+作業場所はココナラ上のやり取りに揃えています。お支払い完了後は、GitHub招待ではなく、必要なファイルをZIPまたは添付でトークルームに共有してください。
+ただし、外向けに「ココナラ仕様でGitHubが常に不可」と断定しない方がよいです。platform contract でも、外部共有を避けるのは Workspace の安全運用であり、ココナラ仕様として断定しない方針です。
+
+3. production_retry_prompt_risk
+Stripe / Webhook / 本番だけ不具合で、buyer に再決済・Webhook再送・本番操作を促す危険です。
+危険文：
+もう一度本番で決済して、ログを送ってください。
+安全文：
+本番での再決済や再送は、こちらからはお願いしません。今あるログやスクショ、Stripe の Event ID が分かれば、その範囲から確認します。
+
+4. closed_file_receive_vs_work_start
+closed 後に「ファイルを送ってよい」と返すと、buyer は「修正までやってくれる」と読みやすいです。
+安全順序：
+送ってよい→ 見える範囲で関係確認する→ 実作業は別相談
+これは relation_check_scope_clarity と同じ系列です。
+
+5. ai_code_overcollection_secret_risk
+AI生成コード・コード不明 buyer に「コード一式ZIP」を求めると、.env や APIキーをそのまま含めるリスクが上がります。
+安全文：
+コード一式をZIPで送る場合も、.env、APIキー、Webhook Secret、DB接続文字列などの値は含めないでください。.env ファイルは外すか、値を伏せた状態で共有してください。
+
+6. acknowledgement_as_blame_shift
+納品後・再発・不満相談で、
+認識のずれかもしれません
+のように言うと、buyer 側の誤解扱いに見えます。
+安全文：
+まず、こちらからお渡しした内容と、今起きている状態の差分を確認します。
+
+7. quick_fix_or_light_check_scope_creep
+buyer が「軽く見てほしい」「少しだけ確認してほしい」と言う時、seller が軽く受けると、購入前作業や無料確認に滑ります。
+安全文：
+購入前に原因確認だけを先に進める形ではありません。この症状自体は対応範囲なので、購入後に原因確認から進める流れでよければご購入ください。
+
+8. primary_decision_need_hidden_by_last_question
+最後の質問が「何を送ればいいですか？」でも、buyer の実質主質問は「購入してよいか」「15,000円で収まるか」「直らない時どうなるか」の場合があります。
+追加すべき evidence cue はこれです。
+- 直りそうなら- 15,000円で- 追加料金- 返金 / キャンセル- 支払い前- 購入後- 見積り提案- コードが分からない- AIで作った- 依頼できますか- 見てもらえますか- 前回の修正- クローズ後
+
+6. コア完成への次ステップ
+Step 1. taxonomy を整理する
+やること：
+- purchase_cta_strength_calibration を response_weight_mismatch subtype へ追加- purchase_before_materials_order を answer_order_calibration subtype として明示- deictic_agency_alignment を agency_alignment subtype へ追加- post_completion_followup_scope_clarity を formal soft lens として追加- material_selection_burden の observe_only / subtype 二重所属を整理
+やらないこと：
+- overhelpful_interpretation をいきなり formal lens 化- fee_anxiety_intensity を独立 lens 化- 「大丈夫です」「ご購入ください」等の blanket lint
+
+Step 2. response_decision_plan に4つのメタデータを足す
+追加候補：
+commercial_temperature:  purchase_intent: ready | conditional | hesitant | not_ready  cta_strength: direct | conditional | available | nonebuyer_material_literacy:  level: engineer_or_specific | unknown | non_engineer | ai_generated | file_unknownfee_outcome_anxiety:  level: none | light | unresolved_explicit | refund_cancel_explicitpost_completion_check_scope:  input_basis:  check_output:  work_boundary:  escalation_path:
+これを Writer に長文で渡さず、Reviewer と renderer guardrail に使います。
+
+Step 3. Gold は2本だけ増やす
+増やしすぎると運用が重くなります。
+現行 Gold map も「近い1本だけ見る」「テンプレではなく温度感・判断順序の anchor」と明記しています。
+追加するならこの2本です。
+44_quote-sent-purchase-cta-material-order.ja.md45_closed-relation-check-scope-clarity.ja.md
+deictic_agency_alignment は Gold 38 に追記で十分です。
+material_selection_burden は Gold 43 に追記で十分です。
+
+Step 4. reviewer prompt を薄く更新する
+Reviewer に追加するのは、この程度でよいです。
+- buyer が迷い・条件付き購入を出している時、購入導線が強すぎないか- quote_sent / prequote で、購入後の材料指示がCTAより先に出て買う前提に見えないか- こちら / そちら / 主語省略で buyer 作業と seller 作業が逆転していないか- closed 後の「確認」が、見立てなのか実作業なのか buyer に分かるか- buyer の能力や理解不足を、相手が言っていない言葉で決めつけていないか
+Writer brief には入れすぎない。
+これはとても重要です。
+
+Step 5. lint は4つだけ soft warning 化する
+おすすめ lint はこれです。
+1. quote_sent/prequote + hesitation cue + after_payment_materials before CTA2. closed + 「関係確認します」 + 確認の中身/実作業境界がない3. buyer file_unknown cue + 「関係ファイルを分かる範囲で」だけで safe default input がない4. 「こちらで選び切らなくて」など明らかな deictic actor mismatch
+やらない lint：
+- 大丈夫です検出- ご購入ください検出- 専門用語を減らして検出- 段落数検出- 句点数検出
+
+Step 6. #R / #RE をテーマ別に回す
+次回の #R 単発監査は、テーマを分けるとよいです。
+Batch A: quote_sent / 支払い前迷い / 購入導線Batch B: 非エンジニア / AIコード / ファイル不明Batch C: closed 後 / 再発 / 関係確認Batch D: 料金不安 / 未解決不安 / 返金キャンセル不安Batch E: 軽い不安・難しい・初心者表明への親切表現
+#RE には、採用済みのものだけ入れます。
+- purchase_materials_order fixture- closed_relation_check_scope fixture- material_selection_burden fixture- deictic_agency fixture
+
+Step 7. Pro 再相談するなら論点を絞る
+次に Pro へ投げるなら、全部まとめずにこの3点がよいです。
+1. overhelpful_interpretation は formal lens に値するか2. fee_anxiety_intensity の3段階説明量は妥当か3. post_completion_followup_scope_clarity を core lens にする命名・範囲は妥当か
+purchase_cta_strength と material_selection_burden は、もう Pro に聞くより実装・回帰でよい段階に見えます。
+
+7. 実装者向け判断基準
+戻し先の判定表
+戻し先使う条件例単発 polish1回限りの語感、意味や判断は変わらない、再発性が不明この文だけ少し硬いgold 化判断順序・温度感・境界の置き方が再利用できる。テンプレ化は危険だが anchor として有効quote_sent で「購入前境界 → 対応範囲 → CTA → 材料案内」soft lens複数場面で再発し、表面語ではなく判断軸として名前を付ける価値がある。ただし context-dependentagency_alignment、post_completion_followup_scope_clarityhard rulesource of truth / platform / security / price / phase / public-private に違反する。文脈に関係なく止めるhandoff-25000露出、secret値要求、closed後修正promiselint高精度に機械検出でき、修正方針が明確で、false positive が少ないclosed で関係確認と言うが、実作業境界がないPro相談再発しているが、core 化すると副作用が読みにくい。日本語実務感・商談心理・複数サービス展開に関わるoverhelpful_interpretation、fee_anxiety_intensity不採用好み差が大きい、blanket NG 化すると自然さが落ちる、LLM の思考を削る大丈夫です 禁止、ご購入ください 禁止
+
+Codex 用の短い判断ルール
+1. 価格・scope・phase・secret・public/private・closed後作業なら hard guard を優先する。2. buyer の主質問に答えていないなら answer_focus_alignment に戻す。3. 誰が何をするかズレているなら agency_alignment に戻す。4. buyer の温度に対して返信が重い・押している・順序が変なら response_weight_mismatch に戻す。5. closed 後に「確認」が曖昧なら post_completion_followup_scope_clarity に戻す。6. buyer が判断できない領域を buyer に戻しているなら material_selection_burden に戻す。7. 相手の能力や感情を勝手に言い当てているなら reviewer cue / gold に戻し、まだ rule 化しない。8. 表面語だけで検出したくなったら、まず blanket NG ではないか疑う。
+
+最終判断
+今回の候補は、返信OSコア完成にかなり近い段階の違和感です。
+大事故を拾うフェーズはかなり進んでいて、次は「自然な商談の順序」「主体」「buyer の負担」「closed 後の価値説明」を整える段階です。
+ただし、ここで rule を増やしすぎると、返信OSは一気に硬くなります。
+最短ルートはこれです。
+formal lens 追加は 1つだけ:- post_completion_followup_scope_clarity既存 subtype 追加:- purchase_cta_strength_calibration- purchase_before_materials_order- deictic_agency_alignmentgold 追加は 2本だけ:- quote_sent purchase CTA / materials order- closed relation check scope claritylint は soft warning 4本だけ:- CTA前材料案内- closed確認の中身不足- file_unknown buyer への選別戻し- 明確な deictic actor mismatch
+この方針なら、ココナラ実運用で効く改善を入れつつ、将来の「日本語ビジネス返信OSコア」へも自然に拡張できます。
