@@ -25,8 +25,9 @@
 5. [2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md](/home/hr-hm/Project/work/note用/2026-04-24_返信OSの骨格維持と5.5移行前の監査ループ固定.md)
 6. [2026-04-26_返信OS_phaseとtransaction_model_gapを掴んだ日.md](/home/hr-hm/Project/work/note用/2026-04-26_返信OS_phaseとtransaction_model_gapを掴んだ日.md)
 7. [2026-04-28_返信OS_5.5Codexセッションと境界ルーティング.md](/home/hr-hm/Project/work/note用/2026-04-28_返信OS_5.5Codexセッションと境界ルーティング.md)
-8. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
-9. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
+8. [2026-05-02_返信OS_実返信監査と汎用コア化が見えた記録.md](/home/hr-hm/Project/work/note用/2026-05-02_返信OS_実返信監査と汎用コア化が見えた記録.md)
+9. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
+10. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
 
 ## 各ファイルの位置づけ
 
@@ -128,7 +129,27 @@
 - 用途:
   - 「返信OSが単体返信品質から、複数サービスの入口ルーティングまで進んだ期間」を追う
 
-### 8. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
+### 8. [2026-05-02_返信OS_実返信監査と汎用コア化が見えた記録.md](/home/hr-hm/Project/work/note用/2026-05-02_返信OS_実返信監査と汎用コア化が見えた記録.md)
+
+- 役割: 2026-04-29〜05-02 の長期 Codex セッションで、`#BR` 継続、自然化、`#RE`/`#R` のズレ修正、実返信 human audit、汎用コア化まで進んだ流れをまとめた記録
+- 主な内容:
+  - `promise_consistency`
+  - `agency_alignment`
+  - `permission_benefit_alignment`
+  - `positive_flow_before_refusal`
+  - `negative_frame_non_echo`
+  - `semantic_grounding`
+  - `buyer_material_literacy`
+  - `capability_declaration_drift`
+  - `post_completion_followup_scope_clarity`
+  - `primary_decision_need`
+  - `#RE` 大量周回から `#R` 実返信候補 + human audit への転換
+- 時期感:
+  - 2026-04-29〜2026-05-02 の GPT-5.5 Codex セッション記録
+- 用途:
+  - 「返信OSが、ココナラ返信品質から汎用返信OSコアへ進み始めた期間」を追う
+
+### 9. [返信システムの価値と公開境界メモ.md](/home/hr-hm/Project/work/note用/返信システムの価値と公開境界メモ.md)
 
 - 役割: この返信システムの moat と、公開しすぎない方がよい部分の整理
 - 主な内容:
@@ -140,7 +161,7 @@
 - 用途:
   - 情報公開の境界確認
 
-### 9. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
+### 10. [マネタイズ案.md](/home/hr-hm/Project/work/note用/マネタイズ案.md)
 
 - 役割: この資産をどう売るかの方向性メモ
 - 主な内容:
