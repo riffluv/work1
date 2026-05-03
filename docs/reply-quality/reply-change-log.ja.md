@@ -2328,3 +2328,12 @@
 - 想定効果: ココナラ phase の証拠に合った closing を選びやすくし、購入前/見積り提案後/納品後の返答で余計な約束や買う前提の材料案内を減らす。単語禁止ではなく、phase evidence と commitment strength の構造で監査できる。
 - 確認: `lens-taxonomy.yaml` の YAML load、`reply_quality_lint_common.py` の compile、state/evidence 付き quote_sent closing lint の簡易確認、`git diff --check`、`./scripts/os-check.sh` は OK。
 - 非変更: `見積り提案の内容で`、具体時刻、購入後材料案内を blanket NG にはしない。state / buyer 文 / 実運用時刻の証拠がある場合は使ってよい。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+
+### 2026-05-03 / CHG-268
+- 分類: `reply-only`
+- レイヤ: business chat naturalization / added-work fee anxiety
+- 変更: 別原因・追加料金不安への返答で、ココナラ見積り相談では `進める前に対応方法と費用を先にご相談します` より、`その時点で追加対応にするかどうかと費用を先にご相談します` を優先する方針を `coconala-reply-bugfix-ja`、`japanese-chat-natural-ja`、`writer-brief.ja.md`、関連 gold へ反映した。
+- きっかけ: #R の複数症状 + 追加料金不安ケースで、`対応方法と費用` は安全だが、ココナラの購入前相談としては少し大げさで契約説明寄りに見えると確認したため。
+- 想定効果: `勝手に進むのか` への不安には答えつつ、buyer が知りたい `追加対応にするか / 費用はどうなるか` へ近い言葉で返せる。closed 後や高リスク実作業では広い `対応範囲と費用` を残し、温度感だけを適正化する。
+- 確認: #R 最新文を `追加対応にするかどうかと費用` へ差し替え済み。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+- 非変更: `対応方法と費用` を blanket NG にしない。closed 後の実作業境界や、対応範囲そのものを相談する必要がある場面では使ってよい。

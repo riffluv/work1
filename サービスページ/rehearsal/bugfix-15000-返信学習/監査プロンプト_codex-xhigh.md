@@ -18,7 +18,7 @@
 特に重く見る点:
 - まず deterministic hard guards を見てください。次に、その batch の焦点に合う soft lens だけを強めに見ます。soft lens を全件に均等適用して粗探ししないでください。
   - `hard_guards`: `public_private_boundary` / `price_and_service_scope` / `phase_contract` / `raw_secret_value` / `external_contact_share_payment` / `direct_push_or_prod_deploy` / `closed_after_work_boundary` / `success_refund_free_guarantee`
-  - `active_soft_lenses`: batch 指定がなければ `answer_focus_alignment` / `buyer_burden_alignment` / `agency_alignment` / `conversation_flow_naturalness` を優先してください。長い初回相談や非エンジニア buyer の材料不安が焦点なら `context_anchor_granularity` も見る。quote_sent の購入判断、closed 後の関係確認が焦点なら `purchase_cta_strength_calibration` / `purchase_before_materials_order` / `post_completion_followup_scope_clarity` も見る
+  - `active_soft_lenses`: batch 指定がなければ `answer_focus_alignment` / `buyer_burden_alignment` / `agency_alignment` / `conversation_flow_naturalness` / `semantic_grounding` を優先してください。長い初回相談や非エンジニア buyer の材料不安が焦点なら `context_anchor_granularity` / `action_closure` も見る。quote_sent の購入判断、closed 後の関係確認が焦点なら `purchase_cta_strength_calibration` / `purchase_before_materials_order` / `post_completion_followup_scope_clarity` も見る
   - `observe_only`: `echo_to_working_angle` / `instructional_tone_leak` / `unnamed_discomfort` は、明確な実務リスクがある場合だけ観察メモに留めてください
 - 主質問への直答が速いか
 - 直答を速くするために可否だけを独立文にしすぎていないか。可否・価格・対応方針が同じ答えの一部なら、一息でまとめた方が自然かを見る
@@ -48,6 +48,10 @@
 - `block_rhythm_flow`: `conversation_flow_naturalness` 配下の subtype。句点数や段落数ではなく、処理文・安全説明・条件文が同じリズムで並び、会話ではなく契約説明の塊に見える時に使う。判定は `fix_recommended` / `acceptable_as_is` / `unsafe_to_smooth` に分け、滑らかにすると誤読が増える場合は `unsafe_to_smooth` としてください
 - `safe_connection`: `block_rhythm_flow` の補助観点。同じ役割・同じ約束レベルの文だけ自然につなげてよい。価格、保証、返金、無料対応、closed 後実作業、支払い導線、secret、外部共有は、つなぐことで promise が強く読まれるなら分けたままにしてください
 - `context_anchor_granularity` / `input_summary_overfit`: `conversation_flow_naturalness` 配下の soft subtype。冒頭の受け止めや context anchor が、主質問への直答に必要な核を超えて、buyer の背景・症状・不安・作成経緯をまとめ直していないかを見る。特に、長い条件句 + `ご依頼いただけます` / `対応できます`、直答前の2軸以上の復唱、`〜症状として` による受付分類文、buyer の不安を条件ラベル化している文を確認してください。ただし hard fail ではありません。価格・scope・phase・secret・closed 後境界が守られ、buyer が自然に読めるなら `acceptable_as_is` にしてください。`fix_recommended` にするのは、主質問への直答が遅れている、冒頭が回答ではなく入力内容の分類・要約に見える、buyer の不安や背景を1文に詰めすぎて受付票のように見える、長い buyer 文ほど冒頭の要約量が増えている、かつ直答を先に出して必要な anchor だけ残しても hard guard が崩れない場合だけです。修正提案では必要な context anchor まで削らず、`主質問への直答 -> 必要な1文 anchor -> 不安の核への返答 -> 次アクション` の順を優先してください
+- `context_anchor_over_reconstruction`: `context_anchor_granularity` の subtype。冒頭だけでなく本文中でも、buyer の症状・背景・不安をきれいに再構成しすぎて、入力要約 bot のように見えないかを見る。直す場合は、主質問への答えに必要な核だけ残し、詳しい背景は材料案内や次アクションの位置へ回してください
+- `action_closure`: `conversation_flow_naturalness` / `buyer_burden_alignment` 配下の soft subtype。`大丈夫です` `不要です` `無理に絞らなくて大丈夫です` で文が止まり、buyer が結局何を送ればよいか、何を待てばよいか迷わないかを見る。修正は抽象的な安心を増やすのではなく、具体的な next action へ閉じてください
+- `boundary_phrase_maturity`: 支払い前不可、範囲外、closed後不可などの境界説明で、buyer の口語や圧力語をそのまま貼り戻して稚拙・防御的に見えていないかを見る。例: `直せそうかだけ先に判断する形では進めていません` より、`お支払い前は、ファイルやログを見て原因確認まで進めることはできません` のような成熟した業務文を優先します。ただし必要な不可表明は消さないでください
+- `boundary_layer_separation`: 支払い前不可 / 症状の対応可否 / CTA / 購入後材料案内など、役割の違う層を `ただ` や長い一文で無理につないでいないかを見る。望ましい順序は、境界突破要求では `不可表明 -> 症状ベースの対応可否 -> 条件付きCTA -> 購入後材料案内` です
 - `commitment_strength_calibration`: phase・受領証拠・原因特定度に対して、約束の強さが合っているかを見る soft lens。prequote / quote_sent で修正済みファイル返却や原因確認を開始済みにしていないか、購入後でも原因未特定なら修正完了・今日中完了を強く約束していないか、closed 後では関係確認と実作業を分けているかを見てください
 - `topic_label_distance`: `case_label_distance` の上位観点。buyer の困りごとを受付票のような案件ラベルにして距離を出していないかを見る observation。`〜の件` は blanket NG にせず、`ログの件` `反映箇所の件` のような自然な topic organizer は許容してください。問題にするのは、直接やり取り中の困りごとを `似たStripeエラーが出ている件ですね` のように遠く扱う場合です
 - `buyer_state_ack_gap`: buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満などを明示しているのに、症状・価格・手順だけを受けて状態シグナルを落としている。QA-07 温度感ズレの下位観点として見る

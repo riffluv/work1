@@ -105,6 +105,32 @@ formal_soft_lenses:
       - reviewer_prompt
       - gold_reply
 
+  warm_boundary_entry:
+    description: "進める意思がある buyer の近道依頼を断る時、いきなり不可表明から入らず、短い中立的な受けを置いてから境界と正規ルートを出せているか"
+    parent_lens: response_weight_mismatch
+    role: "soft_subtype"
+    hard_fail: false
+    apply_when:
+      - buyer_shows_purchase_intent
+      - prepurchase_shortcut_request
+      - wants_precheck_before_payment
+      - says_will_buy_if_likely_fixable
+    do_not_apply_when:
+      - buyer_only_asks_share_timing
+      - raw_secret_value_offer
+      - direct_push_or_prod_deploy
+      - hostile_or_refund_pressure
+    standard_order:
+      - short_neutral_ack
+      - boundary
+      - service_applicability
+      - conditional_cta
+      - post_payment_materials_if_needed
+    preferred_return_targets:
+      - writer_brief
+      - japanese_chat_natural_skill
+      - gold_reply
+
   agency_alignment:
     description: "buyer / seller / third party の行為主体、依頼先、確認者、許可の向きが主質問とズレていないか"
     hard_fail: false
@@ -113,15 +139,17 @@ formal_soft_lenses:
       - actor_direction_alignment
       - request_target_alignment
       - deictic_agency_alignment
+      - capability_declaration_drift
     subtype_notes:
       deictic_agency_alignment: "こちら / そちら / 主語省略により、buyer がする作業と seller がする確認が1文内で混線していないか"
+      capability_declaration_drift: "buyer が説明・確認・見立てを求めている場面で、対応可否の宣言だけに止まり、seller が何を返すかが見えない状態"
     standard_examples:
       request_can_i_order: "ご依頼いただけます / 対応できます"
       can_you_check: "こちらで確認します / 対応できます"
       can_you_explain: "こちらで短く整理します / 補足説明をお送りします"
       can_i_consult: "ご相談いただけます"
       after_payment_send: "お支払い完了後にトークルームで共有してください"
-      file_unknown_buyer: "無理に絞らなくて大丈夫です。必要な範囲はこちらで確認します。"
+      file_unknown_buyer: "ご購入後にコード一式をZIPで共有いただければ、必要な範囲はこちらで確認します。"
     blanket_ng:
       - "相談できます"
       - "確認できます"
@@ -150,11 +178,41 @@ formal_soft_lenses:
     subtypes:
       - block_rhythm_flow
       - topic_label_distance
+      - action_closure
+      - context_anchor_granularity
+      - context_anchor_over_reconstruction
+      - boundary_phrase_maturity
+      - boundary_layer_separation
+    subtype_notes:
+      action_closure: "buyer が次に何をすればよいかが閉じているか。`大丈夫です` `不要です` だけで終わり、結局どうするのかを残していないか"
+      context_anchor_granularity: "相手文を拾う量が主質問への答えに必要な核へ収まっているか。詳しい相談文でも、症状・背景・不安を同じ粒度で再構成せず、対象範囲が分かる最小の anchor を残す"
+      context_anchor_over_reconstruction: "長い相談文を、冒頭や回答前に症状・背景・不安の完全要約へ戻して入力要約 bot のように見せていないか"
+      boundary_phrase_maturity: "支払い前不可・範囲外・closed後不可などを、buyer の口語を貼り戻さず、短い業務文として成熟した言い方にできているか"
+      boundary_layer_separation: "支払い前不可 / 症状の対応可否 / CTA / 購入後材料案内など、役割の違う層を `ただ` や長文で無理につないでいないか"
     related_gates:
       - safe_connection
     preferred_return_targets:
       - japanese_chat_natural_skill
       - gold_reply
+
+  semantic_grounding:
+    description: "相手文・受領済み資料・phase上の事実にない技術原因、作業状況、受領済み事実、成果物を足していないか"
+    hard_fail: false
+    role: "grounding_lens"
+    subtypes:
+      - unsupported_technical_hypothesis
+      - invented_received_material
+      - invented_work_status
+      - overhelpful_interpretation
+    escalates_to_hard_when:
+      - prepurchase_work_start
+      - claim_unreceived_materials_as_received
+      - assert_unconfirmed_cause
+      - success_guarantee_shadow
+    preferred_return_targets:
+      - reviewer_prompt
+      - lint
+      - reply_contract
 
   commitment_strength_calibration:
     description: "時刻、納期、修正完了、返金/無料、成果物返却の約束が情報量と phase に合っているか"

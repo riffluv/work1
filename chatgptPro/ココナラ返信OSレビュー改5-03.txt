@@ -1,0 +1,394 @@
+1. 結論
+今回の候補群は、返信OSコア完成に向けてかなり重要です。特に重要なのは、単なる「文体改善」ではなく、以下の3つの汎用構造が見えている点です。
+
+
+安心表現だけで終わらせず、buyer の次行動まで閉じる
+
+
+不可・対応可・材料案内・購入導線を同じ文に詰めず、レイヤーを分ける
+
+
+相手文を読んでいる感を出しつつ、入力要約 bot に見せない
+
+
+方向性としては、りふさんの理想形である、
+
+ココナラで実戦品質を上げる → 違和感に汎用構造名を付ける → ココナラ固有語は adapter に閉じる → 汎用構造だけ core に戻す
+
+これは妥当です。むしろ、今のリポジトリはすでにその方向にかなり寄っています。Writer Brief は「主質問に先に答える」「buyer が次に何をすればよいか分かる言葉で書く」「next action は1つ」などを runtime 核に置いており、core 化の芯はあります。
+ただし批判的に見ると、今すぐ全部を正式 lens / lint / Writer rule に昇格するのは危険です。現状の最大リスクは「ルール不足」ではなく、soft lens が増えすぎて Writer が監査項目を内面化し、受付票・契約説明・AI文に寄ることです。
+おすすめは次です。
+方針判断今すぐ入れてよいaction_closure、boundary_phrase_maturity、context_anchor_over-reconstruction の最小反映慎重に入れるboundary_layer_separation は reviewer / gold 先行。正式 top-level lens 化は保留入れないdefault firmness vs warmth の lint / lens 化。これは tone profile として扱う絶対に避ける大丈夫です、ただ、相談できます、症状として などの blanket ban
+
+2. 現状評価
+強い点
+1. Contract / Writer / Reviewer の分離はかなり良い
+coconala-reply-bugfix-ja は、Classifier -> Writer -> Reviewer を前提にし、Writer は writer-brief の最小原則で本文を書き、Reviewer が self-check / ban / fact lint を見る設計になっています。これはかなり健全です。
+writer-brief も「Writer に self-check 全文を背負わせない」「分類は前段で済ませる」「本文は自由度を残す」という設計になっており、テンプレ化を避ける思想が明確です。
+2. public/private と service facts の分離は強い
+service-registry.yaml では、bugfix-15000 は public: true、handoff-25000 は public: false と明確に分かれています。さらに public_false_must_not_emit_service_name_price_or_purchase_cta が rule として置かれているので、通常 live / #R / #RE に 25,000円や handoff 導線を出さない設計はかなり堅いです。
+3. Gold reply をテンプレではなく anchor として扱っている
+gold-reply-map.yaml は、Gold を fixed_template や service_fact_source として使わず、判断順序・温度感・境界語彙の anchor として使う設計です。max_gold_per_reply: 1 も良い制約です。
+4. 汎用 core の芽がすでにある
+self-check-l1-minimal-universal.ja.md は、価格・scope・サービス固有条件を見ず、主質問、自然な順序、次アクション、断り時の代替、multi-turn promise などだけを見る設計です。これは将来の汎用返信OSコアとしてかなり良い土台です。
+また phase-contract-schema.yaml は、phase ごとの allowed / forbidden / preferred_next_actions を schema 化しており、将来 SaaS / B2B / CS に展開しやすい構造です。
+
+ノイズになっている点
+1. writer-brief の詳細 guidance が長くなりすぎている
+runtime 既定を 11 行に絞っているのは良いです。問題は、その下の詳細 guidance がすでにかなり長く、もし Writer に多めに渡ると、Writer が reviewer 化することです。
+今後は writer-brief に新しい候補を足すより、既存の近い bullet を置換・圧縮する方が安全です。
+2. japanese-chat-natural-ja にココナラ固有語が入り始めている
+japanese-chat-natural-ja は「サービス非依存」の自然化 skill として定義されていますが、本文中には 15,000円、見積り提案の内容で、トークルーム、ご購入後 など、ココナラ / bugfix 固有の語がかなり入っています。
+これは将来の汎用返信OSコア化にとって一番危険です。
+汎用 naturalizer が持つべきなのは構造です。
+
+
+悪い: お支払い完了後にトークルームで共有してください
+
+
+良い: phase 後に、adapter が定義した安全な channel へ、必要材料を共有する
+
+
+ココナラ語へのレンダリングは coconala adapter 側に閉じるべきです。
+3. soft lens の status が一部ぶれている
+lens-inventory では positive_flow_before_refusal が正式 soft lens として扱われる説明と、observe / candidate 寄りの説明が混在して見えます。これは実装者には地味に危険です。
+今後は各 lens / subtype に以下を必ず持たせるとよいです。
+status: formal | active_soft | observe_only | deprecatedprimary_use: reviewer | writer | naturalizer | gold | linthard_fail: falseoverfire_risk: ...
+
+ココナラ最適化が汎用化を邪魔している点
+邪魔しているのは、ココナラ運用そのものではありません。
+邪魔しているのは、汎用層にココナラ語が混ざり始めていることです。
+platform-contract.yaml が「場の仕様」、service-registry.yaml が「公開可否・サービス正本」、service facts が「bugfix-15000 の facts」を持つ分離は良いです。  
+一方で、japanese-chat-natural-ja は将来の汎用 naturalizer になるはずなので、ここに トークルーム 見積り提案 15,000円 が入ると、core がココナラ adapter に引っ張られます。
+
+3. 候補ごとの分類
+候補重要度置き場所正式 lens 化subtype にするなら戻し先ノイズリスク最小実装案action_closure / next_action_clarity高汎用 core + adapter renderingtop-level lens にはしないconversation_flow_naturalness / phase_answer_gap / buyer_burden_alignment の共通 invariantself-check-core、phase-contract-schema、coconala-reply-bugfix-ja、Gold 43/44中。毎回「次アクション」を厚くすると指示文になるcore では「actor / action / channel / condition」を必須 slot 化。ココナラでは お支払い完了後 + トークルーム + ZIP/ログ/スクショ + secret除外 を adapter phrase として持つboundary_summary_overfit / boundary_layer_separation高汎用 core 寄り。語彙は adaptertop-level は保留。正式 soft subtype ならありresponse_weight_mismatch.surface_overexposure + conversation_flow_naturalness.safe_connectionreviewer prompt、Gold 44 拡張、必要なら Gold 47高。やりすぎると段落が増え、契約説明化する「phase boundary」「service fit」「next action」を別レイヤーに分ける reviewer 観点を追加。lint はしないcontext_anchor_over-reconstruction高汎用 core新規 lens 不要既存 context_anchor_granularity / input_summary_overfitGold 46、japanese-chat-natural-ja、reviewer prompt中。削りすぎると読んでない返信になるGold 46 に「本文中でも症状を再構成しすぎない」例を追加。Writer brief には足さず置換だけboundary_phrase_maturity中〜高汎用 core + adapter factstop-level ではなく named soft subtype なら有益jp_business_native_naturalness / business_chat_viability / negative_frame_non_echo 近接japanese-chat-natural-ja、reviewer prompt、NG expressions は慎重中。柔らかくしすぎると phase boundary が弱まる「buyer の口語をそのまま拒否文に戻さない。業務文へ変換する」を naturalizer gate に追加default firmness vs warmth中tone profile / writer configlens 化しないtemperature_plan / business_chat_viability の設定値writer config、gold、style profile高。lint 化すると Writer が硬直するdefault は safe_business_neutral。柔らかさは後段 profile で調整。hard guard は常に優先
+
+4. 標準文型案
+4.1 action_closure / next_action_clarity
+汎用型
+次は、[条件/phase] に [必要な材料/判断材料] を [指定 channel] で送ってください。分からない部分は無理に判断しなくて大丈夫です。必要な範囲はこちらで確認します。
+bugfix-15000 / quote_sent
+お支払い完了後に、スクショ・ログとあわせて、プロジェクト一式をZIPでトークルームへ共有してください。どのファイルが関係するか分からない場合でも、その形で進められます。APIキー、Webhook Secret、.env の値そのものは含めないでください。
+軽量版
+お支払い完了後に、ログ・スクショ・コード一式ZIPをトークルームへ送ってください。関係ファイルを事前に絞り込む必要はありません。
+非エンジニア buyer 向け
+どのファイルが関係するか分からない場合は、無理に選ばなくて大丈夫です。ご購入後にコード一式をZIPで送っていただければ、必要な範囲はこちらで確認します。
+ここは Gold 43 の方向性と整合しています。Gold 43 も、非エンジニア buyer に「分かる範囲の関係ファイル」を返しすぎず、コード一式ZIP + secret 除外へ寄せる方針です。
+
+4.2 boundary_layer_separation
+支払い前 GitHub 不可 + 症状は対象
+お支払い前は、GitHub上でコードを確認したり、原因の見立てを先に出したりする対応はしていません。症状としては、このサービスで扱える内容です。本番だけで起きていてローカルでは再現しない場合も、お支払い完了後にログと関係ファイルを確認しながら原因を見ます。
+quote_sent / 条件付き購入
+購入前にコードやログを確認して、直りそうかどうかだけを先に判断することはしていません。その判断は、お支払い完了後に材料を確認してから行う内容になります。ただ、Stripe決済後にアプリ側へ反映されない不具合であれば、このサービスの対象です。この前提で問題なければ、見積り提案の内容でお支払いへ進んでください。お支払い完了後に、ログ・スクショ・関係ファイルをトークルームで共有してください。
+この順序は Gold 44 とかなり近いです。Gold 44 も「購入前診断不可 → 症状自体は対応範囲 → 条件付き CTA → 購入後材料案内 → secret 除外」の順を推奨しています。
+
+4.3 ただ / 一方で / 段落分けの使い分け
+ただ を使ってよい場面
+同じ判断線上で、「不可」だけだと強すぎるため、直後に許容範囲を返す時。
+購入前に原因確認までは進めていません。ただ、症状としては対応範囲です。
+ただし、ただ でつなぐと「拒否と救済を1文の部品として貼った感」が出やすいので、重要な境界では段落分けの方が自然です。
+一方で を使ってよい場面
+同格の対比を説明する時。
+購入前は、原因確認やコード確認までは行いません。一方で、対応範囲に入るかどうかの確認や、購入後の進め方の説明はできます。
+ただし、やや説明文・契約文に寄るので、通常チャットでは多用しない方がよいです。
+段落分けが最適な場面
+レイヤーが違う時。
+お支払い前は、GitHub上でコードを確認したり、原因の見立てを先に出したりする対応はしていません。症状としては、このサービスで扱える内容です。
+これは今回の候補2で一番大事です。接続語で解決しようとせず、レイヤーを分けるのが正解です。
+
+4.4 context_anchor_over-reconstruction
+避けたい型
+決済後に完了画面へ戻るのにDBへ注文が作られない不具合として、原因確認から進めます。
+意味は正しいですが、buyer の入力を綺麗に分析して再構成した感じが強くなります。
+標準型
+ご購入後は、まず注文データが作られない原因を確認します。修正できる箇所が特定できた場合は、修正済みファイルと確認手順をお返しします。
+もっと短い型
+ご購入後は、注文データが作られない原因を中心に確認します。
+価格回答と組み合わせる型
+15,000円でご依頼いただけます。ご購入後は、注文データが作られない原因を中心に確認します。
+Gold 46 はすでに「長い buyer 文を分類して条件句にまとめ直すと input summary bot に見える」と整理しており、今回の候補3はその拡張で十分です。
+
+4.5 boundary_phrase_maturity
+支払い前不可
+お支払い前は、ファイルやログを見て原因確認まで進めることはできません。
+少し柔らかめ。
+お支払い前に、ファイルやログを確認して原因の見立てを出す対応はしていません。
+避けたい。
+支払い前にAPIファイルやログを確認して、直せそうかだけ先に判断する形では進めていません。
+理由は、buyer の口語をそのまま拒否文に戻しており、少し幼く、防御的に見えるためです。
+closed 後不可
+前回トークルームは閉じているため、この場で修正作業や修正済みファイルの返却までは進めません。まずはメッセージ上で、前回の修正と関係がありそうかを確認します。
+範囲外
+今回の料金内で対応できるのは、既存コード上の不具合修正までです。新機能追加や大きな作り直しが必要な場合は、進める前に対応方法と費用をご相談します。
+外部共有不可
+GitHub招待や外部サービス上での作業は受けていません。コードは、ココナラ上の添付で共有してください。
+ただし外向けには、「ココナラ仕様で常に GitHub 不可」と断定しない方が安全です。platform-contract.yaml でも、外部共有を避ける方針は Workspace の安全運用であり、公式仕様として断定しないと整理されています。
+
+4.6 default firmness vs warmth
+標準 default
+ご相談ありがとうございます。15,000円でご依頼いただけます。ご購入後にコードとログを確認し、原因確認から進めます。修正できる箇所が特定できた場合は、修正済みファイルと確認手順をお返しします。この内容で問題なければ、そのままご購入ください。
+少し温かいが事故らない
+ご相談ありがとうございます。コードの中身が分からない状態でもご依頼いただけます。ご購入後にログ・スクショ・コード一式を共有いただければ、必要な範囲はこちらで確認します。APIキーや .env の値そのものは含めないでください。この内容で問題なければ、そのままご購入ください。
+高リスク時は硬くてよい
+お支払い前は、ファイルやログを見て原因確認まで進めることはできません。原因の判断は、お支払い完了後に材料を確認してから行います。症状としては対応範囲です。この前提で問題なければ、見積り提案の内容でお支払いへ進んでください。
+
+5. やってはいけないこと
+単語禁止化してはいけないもの
+以下は blanket ban しない方がよいです。
+禁止化してはいけない語理由大丈夫です値そのものは送らなくて大丈夫です のように buyer の負担を下げる用途では自然相談できますbuyer が「相談してよいか」を聞いている場面では成立する確認できます主体が明確なら自然ただ境界の後に許容範囲を返す時に使える一方で同格対比では使える。ただし多用しないまずは順序案内では自然。進行圧になる場面だけ注意症状としてlayer separation では有効。受付票化する時だけ注意状態でも長い条件句にすると bot 感が出るが、短く使えば自然句点 。高リスク境界では句点で分けた方が安全
+lens-taxonomy.yaml でも、相談できます、確認できます、大丈夫です は blanket NG ではなく、主体ズレがある時だけ直す方針になっています。
+
+hard rule 化してはいけないもの
+
+
+毎回コード一式 ZIP を要求する
+
+
+毎回 secret 除外を長く説明する
+
+
+毎回購入後材料案内まで出す
+
+
+毎回「この前提で問題なければ」を入れる
+
+
+毎回 context anchor を1文だけにする
+
+
+ただ の直後は必ず段落分けする
+
+
+大丈夫です を全削除する
+
+
+支払い前不可 を必ず先頭に置く
+
+
+soft lens が立ったら必ず修正する
+
+
+adoption-policy でも、恒久反映は再発性・戻し先・副作用を見て狭く行う方針になっています。
+
+自然化のために壊してはいけない boundary
+これは最優先です。
+
+
+15,000円 を弱めない
+
+
+handoff-25000、25,000円、主要1フロー整理を live / #R / #RE に出さない
+
+
+public:false のサービス名・価格・購入導線を出さない
+
+
+支払い前にコード確認・原因確認を始めない
+
+
+GitHub / Drive / 外部サービスを通常作業面にしない
+
+
+raw secret value を求めない
+
+
+成功保証、返金保証、無料対応保証をしない
+
+
+closed 後に旧トークルーム継続・おひねり・修正済みファイル返却を約束しない
+
+
+本番 deploy / direct push を受けない
+
+
+修正できる箇所が特定できていないのに、修正済みファイル返却を無条件 promise にしない
+
+
+platform-contract.yaml は closed 後のトークルーム投稿・ファイル投稿・追加購入不可、closed 後はメッセージ導線に戻すことを明確にしています。
+
+6. 汎用コア化の設計助言
+推奨分離
+core  ├─ reply contract  │   ├─ primary_question  │   ├─ answer_map  │   ├─ ask_map  │   ├─ next_action  │   ├─ promise_budget  │   └─ risk_flags  │  ├─ phase contract  │   ├─ allowed_actions  │   ├─ forbidden_actions  │   └─ preferred_next_action_shape  │  ├─ universal lenses  │   ├─ answer_focus_alignment  │   ├─ action_closure  │   ├─ boundary_layer_separation  │   ├─ context_anchor_granularity  │   ├─ promise_consistency  │   ├─ agency_alignment  │   └─ business_chat_viability  │  └─ naturalizer gates      ├─ meaning_preservation      ├─ safe_connection      ├─ mature_boundary_wording      └─ no_input_summary_overfitplatform adapter  ├─ coconala phase names  ├─ talkroom / message / estimate proposal / formal delivery / closed  ├─ payment route wording  ├─ public/private visibility  └─ platform-specific forbidden movesservice facts  ├─ price  ├─ scope unit  ├─ deliverables  ├─ safe default inputs  ├─ deadline / reply expectation  └─ service-specific forbidden moveswriter  ├─ buyer latest message  ├─ compact contract packet  ├─ minimal writer brief  └─ 1 gold anchor maxnaturalizer  ├─ meaning-preserving rewrite only  ├─ no fact changes  ├─ no boundary changes  └─ adapter phrase rendering only when providedreviewer  ├─ deterministic hard guards  ├─ active soft lens max 1 primary + 2 secondary  ├─ lint  └─ human escalation for high-risk
+reply-memory-schema.yaml はこの方向にかなり合っています。platform に coconala と generic_business_chat を持ち、service_id、phase、visible_public_services、known_commitments、received_materials、pending_actions などを packet 化する設計は、汎用OS化に向いています。
+
+core に入れるべき抽象構造
+汎用構造core に入れる理由phase / state に応じた allowed / forbiddenSaaS / CS / B2B でも必要主質問への直答全返信OSの基本action closurebuyer / customer / client が止まらないためpromise budget納期・成果物・返金・成功保証を制御するためboundary layer separation不可と可能を混ぜないためcontext anchor granularity読んでいる感と bot 感の境界agency alignment誰が何をするかは全業務返信で重要safe connection自然化が約束を強めないためhigh-risk human escalation法務・返金・金銭・安全・機密で必要
+
+adapter に閉じるべきもの
+ココナラ語core での抽象名トークルームtransaction_room / active_work_channelメッセージexternal_message_channel / post-transaction_message見積り提案quote / estimate_offer正式納品formal_delivery / completion_submission承諾buyer_acceptance差し戻しrevision_requestおひねりplatform_additional_paymentクローズ後post_completion_closed_stateココナラ上の手続きplatform_procedure
+core に トークルーム を入れるのではなく、core は active_work_channel を要求し、Coconala adapter が トークルーム とレンダリングするのが安全です。
+
+今から避けるべき設計負債
+
+
+汎用 naturalizer に platform 語を入れ続けること
+
+
+ここは最も危険です。
+
+
+japanese-chat-natural-ja は platform-free に戻すべきです。
+
+
+
+
+soft lens を全部 Writer に渡すこと
+
+
+Writer が文章を書くのではなく、監査項目を満たす文章を作り始めます。
+
+
+
+
+Gold を fact source として使うこと
+
+
+今の map はこれを防げているので維持でよいです。
+
+
+
+
+Coconala の phase 名を core phase にすること
+
+
+core は pre_contract / quote_pending / active_work / submitted / closed など抽象 phase にし、adapter で prequote / quote_sent / purchased / delivered / closed に map する方がよいです。
+
+
+
+
+lint を自然さに広げすぎること
+
+
+lint は deterministic guard 中心。
+
+
+soft lens は reviewer / gold / naturalizer に留める。
+
+
+
+
+
+7. 次の実装順
+Step 1: lens-taxonomy.yaml を整理する
+対象:
+docs/reply-quality/lens-taxonomy.yaml
+やること:
+
+
+action_closure を top-level lens ではなく、conversation_flow_naturalness または phase_answer_gap 近接の subtype / invariant として追加
+
+
+boundary_layer_separation を response_weight_mismatch.surface_overexposure または conversation_flow_naturalness.safe_connection の subtype として追加
+
+
+boundary_phrase_maturity を business_chat_viability / jp_business_native_naturalness 配下の named soft subtype として追加
+
+
+context_anchor_over_reconstruction は context_anchor_granularity の subtype として追加
+
+
+default_firmness_vs_warmth は lens にしない。tone_profile として明記
+
+
+このファイルはすでに hard guard / formal soft lens / observe_only / preference_only を分けているので、ここを最初に触るのが一番安全です。
+
+Step 2: writer-brief.ja.md は「追加」ではなく「置換・圧縮」
+対象:
+docs/reply-quality/writer-brief.ja.md
+やること:
+既存の関連 bullet を増やさず、次のように圧縮する。
+- 安心表現で止めず、buyer が次にする行動・送るもの・送る場所まで閉じる- 支払い前不可、対応可否、購入後材料案内は、違うレイヤーなら文や段落を分ける- buyer の症状は、主質問への答えに必要な核だけ拾う。本文中でも入力をきれいに再構成しすぎない- 断る時は buyer の口語をそのまま拒否文に戻さず、業務文として短く境界を伝える
+ただし runtime 11 行には足しすぎない方がよいです。すでに「buyer が次に何をすればよいか分かる言葉で書く」が入っています。
+
+Step 3: japanese-chat-natural-ja を platform-free に戻す
+対象:
+.codex/skills/japanese-chat-natural-ja/SKILL.md
+やること:
+
+
+15,000円
+
+
+トークルーム
+
+
+見積り提案
+
+
+お支払い完了後
+
+
+bugfix
+
+
+handoff
+
+
+これらの具体例を、汎用例または adapter 注入例に分離する。
+残すべき構造はこれです。
+- boundary は柔らかくしすぎず、業務文として成熟させる- 不可と可能が別レイヤーなら段落を分ける- 安心表現の後に具体的な次アクションを置く- 相手文を再構成しすぎず、主質問に必要な核だけ拾う- 自然化で金額・scope・phase・secret・支払い導線を変えない
+
+Step 4: coconala-reply-bugfix-ja に adapter phrasebook を置く
+対象:
+.codex/skills/coconala-reply-bugfix-ja/SKILL.md
+追加するならここです。
+adapter_phrasebook:  pre_payment_no_diagnosis:    - お支払い前は、ファイルやログを見て原因確認まで進めることはできません。    - 原因の判断は、お支払い完了後に材料を確認してから行います。  quote_sent_material_after_payment:    - お支払い完了後に、ログ・スクショ・関係ファイルをトークルームで共有してください。  non_engineer_safe_default:    - どのファイルが関係するか分からない場合は、無理に絞らなくて大丈夫です。    - ご購入後にコード一式をZIPで送っていただければ、必要な範囲はこちらで確認します。  secret_exclusion:    - APIキー、Webhook Secret、.env の値そのものは含めないでください。
+coconala-reply-bugfix-ja はすでに service registry / platform contract / public facts を読む設計なので、adapter 文型をここへ閉じるのが自然です。
+
+Step 5: Gold は 1本追加か、既存 Gold 43/44/46 の拡張に留める
+おすすめは、新規 Gold を増やしすぎないことです。
+候補:
+docs/reply-quality/gold-replies/47_boundary-layer-separation.ja.md
+ただし、Gold が増えすぎるなら既存を拡張で十分です。
+
+
+43_buyer-burden-material-selection.ja.md
+
+
+action closure 例を足す
+
+
+
+
+44_quote-sent-purchase-cta-material-order.ja.md
+
+
+boundary layer separation 例を足す
+
+
+
+
+46_context-anchor-granularity.ja.md
+
+
+本文中の over-reconstruction 例を足す
+
+
+
+
+Gold 43/44/46 は今回候補とかなり近いので、まずは既存拡張でよいです。  
+
+Step 6: reviewer prompt に soft lens として追加する
+対象:
+サービスページ/rehearsal/bugfix-15000-返信学習/監査プロンプト_codex-xhigh.md
+追加するなら、hard guard ではなく soft lens にします。
+- action_closure:  安心表現や可否回答のあと、buyer が次に何をすればよいかが閉じているか。  ただし毎回材料案内を厚くしない。- boundary_layer_separation:  支払い前不可、外部共有不可、対応範囲、購入後材料案内を1文に抱え込みすぎていないか。  違うレイヤーなら段落分けを優先する。- boundary_phrase_maturity:  buyer の口語や要求語をそのまま拒否文に戻さず、成熟した業務文で境界を伝えているか。
+この監査プロンプトはすでに hard guards と active soft lenses を分ける設計なので、ここへの soft 追加は相性が良いです。
+
+Step 7: lint 化はかなり限定する
+lint 化してよいのは、以下の高精度なものだけです。
+lint 候補判定handoff-25000 / 25,000円 / 主要1フロー が live / #R / #RE に出るhard lintraw secret value を求めるhard lint見積り提案の内容で が prequote に出るhard lint 寄りclosed 後に旧トークルームで作業継続を示すhard lint返金できます 無料で対応します 断定hard lintお支払い前 + GitHub確認 + 原因見立て を許可するhard lintただ の使用lint しない大丈夫です の使用lint しない長い context anchorlint しないboundary phrase maturitylint しない。reviewer / naturalizer で見る
+
+8. 追加で見るべきファイル
+今回の指定ファイルに加えて、次を見た方がよいです。
+ファイル見る理由docs/reply-quality/lens-taxonomy.yaml今回候補の正式 status / subtype / overfire risk を整理する本丸docs/reply-quality/lens-inventory-20260430.ja.mdsoft lens の現在位置と矛盾を整理するdocs/reply-quality/self-check-core-always-on.ja.mdaction closure を core check に入れるか判断するdocs/reply-quality/self-check-l1-minimal-universal.ja.md汎用 core 化の最小チェックとして使えるdocs/reply-quality/adoption-policy.ja.md今回候補を即反映 / 観察保留 / 却下に切る基準docs/reply-quality/ng-expressions.ja.mdboundary phrase maturity を NG 化しすぎないための確認ops/common/phase-contract-schema.yamlphase ごとの allowed / forbidden / next action を core 化する本丸ops/common/reply-memory-schema.yaml将来 SaaS / B2B / CS 展開時の packet 設計に重要ops/services/next-stripe-bugfix/service-pack/facts.yamlservice facts と safe default inputs の正本docs/reply-quality/guidance-scoping.ja.md候補ごとの適用域を切るためdocs/reply-quality/failure-taxonomy.yamlhard / soft / preference の分類を固定するためdocs/reply-quality/acceptance-gate.ja.mdsend / revise / escalate の境界確認ops/tests/contract-packets/bugfix-15000-v1-samples.yamlcore / adapter / service facts の packet 化テストops/tests/fixture-coverage-map.yamlどの family が飽和していて、どこをこれ以上回さないか確認
+
+最終判断
+今回の5候補は、新しいテンプレを作る話ではなく、返信OSの core invariant を固める話です。
+ただし、実装の強さは分けた方がよいです。
+今すぐ:- action_closure を core invariant として整理- context_anchor_granularity に本文中 over-reconstruction を追加- boundary_phrase_maturity を naturalizer / reviewer の soft subtype に追加- Coconala 固有文型は coconala adapter 側へ閉じる慎重に:- boundary_layer_separation を reviewer / gold で観察- 再発したら formal soft subtype に昇格やらない:- default firmness vs warmth の lens / lint 化- ただ / 大丈夫です / 相談できます等の単語禁止- Writer brief への長文追記
+一番大事なのは、自然化を強めるほど、boundary を守る仕組みを一段強くすることです。
+今の骨格は壊さなくてよいです。
+むしろ、壊すべきではありません。
+次の改善は「もっとルールを足す」ではなく、core / adapter / service facts / naturalizer の境界をきれいにして、既存 lens を階層化することです。
