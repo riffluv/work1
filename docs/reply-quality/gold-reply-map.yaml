@@ -1,5 +1,5 @@
 version: 1
-updated: "2026-05-02"
+updated: "2026-05-03"
 purpose: >
   Gold replies をテンプレートではなく、近い判断順序・温度感・境界の anchor として
   参照するための map。Writer に大量投入せず、必要な family から近い 1 本だけ見る。
@@ -291,6 +291,30 @@ families:
     do_not_use_when:
       - "closed 後の実作業・修正済みファイル返却・無料対応を約束する理由にする"
       - "一般的な確認方法だけで足りる closed 後相談"
+
+  context_anchor_granularity:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/46_context-anchor-granularity.ja.md
+    phases:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - conversation_flow_naturalness
+      - context_anchor_granularity
+      - answer_focus_alignment
+      - response_weight_mismatch
+      - buyer_burden_alignment
+    use_when:
+      - "長い buyer 文で、冒頭が相手文の全文要約や分類ラベルのように見える"
+      - "主質問への直答と context anchor のバランスを合わせたい"
+    do_not_use_when:
+      - "buyer が明示的に理解確認を求めており、短い状況整理が必要"
+      - "高リスク境界のために phase / refund / secret / closed 後の状況整理が必要"
+      - "相手文を拾わない雑な直答へ寄せる理由にする"
 
 private_or_shadow_families:
   handoff_private:

@@ -121,6 +121,24 @@ facts:
       - https://coconala-support.zendesk.com/hc/ja/articles/4402957809049-%E7%B4%8D%E5%93%81%E7%A2%BA%E8%AA%8D%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6-%E8%B3%BC%E5%85%A5%E8%80%85%E5%90%91%E3%81%91
       - https://coconala-support.zendesk.com/hc/ja/articles/4403291547417-%E3%83%88%E3%83%BC%E3%82%AF%E3%83%AB%E3%83%BC%E3%83%A0%E3%81%AE%E3%82%AF%E3%83%AD%E3%83%BC%E3%82%BA%E6%9D%A1%E4%BB%B6%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
 
+  unresolved_unfixable_flow:
+    summary: >
+      購入後に原因を特定できない、修正方針につながらない、または修正済みファイルを返せない状態だと分かった場合は、
+      原因不明のまま修正完了扱いや正式な納品へ進めない。
+      まずトークルームで、分かった範囲・不足情報・修正できない理由・修正まで進められる見込みを説明し、
+      続けて確認するか、取引をキャンセル方向にするかを購入者と話し合う。
+      キャンセルする場合は、原則として出品者からトークルーム上でキャンセルリクエストを送信し、
+      buyer が合意または一定時間内に差し戻しを行わないことでキャンセル成立となり、返金処理へ進む。
+      ただし購入前返信では、この流れを毎回詳しく前面に出さず、
+      「原因不明のまま修正完了扱いにはせず、トークルームで状況をご説明して進め方をご相談します」程度に留める。
+    confidence: official
+    outward_assertion: cautious
+    source_refs:
+      - formal_delivery_exists
+      - cancel_refund_shape
+      - https://coconala-support.zendesk.com/hc/ja/articles/218643857-%E3%83%88%E3%83%BC%E3%82%AF%E3%83%AB%E3%83%BC%E3%83%A0%E3%81%AE%E3%82%AD%E3%83%A3%E3%83%B3%E3%82%BB%E3%83%AB%E6%96%B9%E6%B3%95-%E5%87%BA%E5%93%81%E8%80%85%E5%90%91%E3%81%91
+      - https://coconala-support.zendesk.com/hc/ja/articles/218118488-%E3%83%88%E3%83%BC%E3%82%AF%E3%83%AB%E3%83%BC%E3%83%A0%E3%81%AE%E3%82%AD%E3%83%A3%E3%83%B3%E3%82%BB%E3%83%AB%E6%96%B9%E6%B3%95-%E8%B3%BC%E5%85%A5%E8%80%85%E5%90%91%E3%81%91
+
   first_reply_after_purchase_deadline:
     summary: >
       購入後、出品者から 48 時間以内に一度もメッセージが送られない場合は自動キャンセルの対象になる。
@@ -280,6 +298,26 @@ guidance:
     based_on:
       - cancel_refund_shape
       - closed_talkroom_locked
+
+  - id: unresolved_unfixable_reply_shape
+    when:
+      - prequote
+      - quote_sent
+      - purchased
+      - delivered
+    rule: >
+      原因不明・修正不可・修正済みファイルを返せない場合の説明では、
+      「原因不明のまま修正完了扱いにはしない」「一方的に正式な納品へ進めない」を軸にする。
+      prequote / quote_sent ではキャンセル・返金を毎回前面に出さず、
+      「トークルームで状況をご説明し、取引の進め方をご相談します」程度に留める。
+      purchased / delivered で実際に修正不可が見えた場合は、
+      分かった範囲・不足情報・修正できない理由・続けて確認するかキャンセル方向にするかを、
+      トークルームで購入者と話し合う導線へ寄せる。
+      「ココナラ上でご相談します」だけでは運営相談に読まれやすいため、文脈上の相手が購入者なら「トークルームで」と書く。
+    based_on:
+      - formal_delivery_exists
+      - cancel_refund_shape
+      - unresolved_unfixable_flow
 
   - id: delivered_not_closed
     when:

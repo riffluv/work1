@@ -1,0 +1,283 @@
+1. 結論
+この違和感は 妥当 です。かなり重要です。
+ただし、hard guard ではなく、正式 soft lens / subtype 候補として扱うのがよいです。
+現行 repo の思想とも合っています。writer-brief はすでに「主質問に先に答える」「buyer の語彙や観測事実を1点は拾う」としていて、japanese-chat-natural-ja も「相手文の症状を一文でほぼ全部まとめ直す形は避ける」方向を持っています。つまり今回の問題は新規思想ではなく、既存方針の精度不足・粒度不足です。 
+採用方針はこうです。
+
+input_summary_overfit は正式 top-level lens ではなく、conversation_flow_naturalness 配下の soft subtype として入れる。
+正式名は context_anchor_granularity がよい。
+input_summary_overfit は anti-pattern 名、summary_vs_answer_balance は説明用の別名にする。
+
+理由は、問題の本体が「意味の誤り」ではなく、主質問への直答・anchor の量・冒頭の会話感の崩れだからです。answer_focus_alignment とも関係しますが、主質問の選定ミスというより、選定後の書き出し粒度の問題です。semantic_grounding は、要約時に未確認事実や診断を足した場合だけ発火させる補助 lens で十分です。
+今すぐ落とすべき場所は、優先順で以下です。
+
+
+writer-brief.ja.md の詳細 guidance
+
+
+監査プロンプト_codex-xhigh.md の soft lens 観点
+
+
+gold-replies/ に新規 gold 追加
+
+
+数 batch 観察後、必要なら taxonomy に subtype 追加
+
+
+lint は最後。しかも warning のみ
+
+
+
+2. 今回の返信の最適案
+送るなら、私はこれが一番よいと思います。
+ご相談ありがとうございます。15,000円でご依頼いただけます。決済後にサイト側で購入済みにならない不具合として対応できます。AIで作った部分や外注コードが混ざっていても問題ありません。関係ファイルも、無理に絞らなくて大丈夫です。必要な範囲はこちらで見ながら確認します。ご購入後は、プロジェクト一式をZIPでトークルームに添付してください。あわせて、購入済みにならない画面のスクショや、出ているログがあれば送ってください。.env、APIキー、Webhook Secret、DB接続文字列などの値そのものは、ZIPやログに含めないでください。不足があれば、こちらから追加でお伝えします。この内容で問題なければ、そのままご購入ください。
+この案の狙いは、直答を先に出す → scope anchor を1文だけ置く → 不安の核を分けて受ける → 材料案内 → secret 注意 → CTA です。
+ユーザー案との差分は、決済後にサイト側で購入済みにならない不具合として対応できます。 を1文だけ足している点です。
+ユーザー案でもかなり良いですが、完全に 15,000円でご依頼いただけます だけだと、サービス範囲との接続が少し薄くなります。今回の buyer は Stripe/Next.js の症状を具体的に出しているので、症状 anchor は1文だけ残すのが安全です。
+なお、ZIP はこのケースでは適切です。現行 facts でも、AI生成コード・引き継ぎコード・関係ファイル不明の buyer には、購入後の safe default input として コード一式ZIP + ログ/スクショ + secret 除外 へ寄せる方針が置かれています。ただし、Gold 43 も明記している通り、ZIP を全ケース hard rule にしてはいけません。 
+
+3. 問題の構造分析
+違和感は本当にあるか
+あります。問題返信のこの文です。
+AIで作った部分と外注コードが混ざっていて、関係するファイルが分からない状態でも、15,000円でご依頼いただけます。
+意味は合っています。
+ただし、日本語ビジネスチャットとしては、少し 「入力を解析して、条件を整形してから回答している」 感があります。
+不自然さの原因は、主に4つです。
+原因何が起きているか直答が後ろに押されているbuyer の主質問は「15,000円で依頼できるか」なのに、答えの前に長い条件句が来ているanchor が複数軸にまたがっているAI作成、外注コード、関係ファイル不明 を1文に詰めているbuyer の不安が分類ラベル化されている人間なら「混ざっていても大丈夫です」と分けて言いそうなところを、条件名として整形している2文目も分類文になっているStripe決済は完了しているのに〜症状として が、相談への返答より受付分類に近い
+特に 〜状態でも、15,000円でご依頼いただけます は、短ければ自然です。
+問題は単語ではなく、長い条件句 + 直答 + さらに症状分類 の構造です。
+どこまで拾うべきか
+今回の buyer 文には、拾うべき要素が3種類あります。
+buyer の要素返信での扱いStripe決済は完了、サイト側で購入済みにならないscope anchor として1文だけ拾うAI作成・外注コードが混在対応可能性・不安軽減として拾う関係ファイルが分からない、購入後に何を送るか不安材料案内で拾う
+全部を冒頭にまとめる必要はありません。
+主質問への答えに必要な核だけを前半に置き、材料不安は材料案内の位置で拾うのが自然です。
+A / B / C 比較
+パターン評価コメントA. 全部拾う△意味は正しいが、長い buyer 文ほど入力要約 bot 感が強くなる。今回の問題返信はここB. 省略する△〜○短くて自然だが、scope と不安への応答が薄い。相手が「読まれていない」と感じる可能性ありC. 核だけ拾う◎今回はこれが最適。直答を先に出し、作成経緯・材料不安を分けて扱える
+ただし C は、もう少しだけ scope anchor を足すとさらに安定します。
+15,000円でご依頼いただけます。決済後にサイト側で購入済みにならない不具合として対応できます。AIで作った部分や外注コードが混ざっていても、必要な範囲はこちらで確認します。
+「この状態でも」系の使い分け
+表現使いどころ注意この状態でもbuyer が直前に この状態でも と聞いている時の短い yes/no長い背景を全部背負わせると曖昧その状態でも会話としてやわらかい。直前文への応答感が出る少し距離が出ることがあるご記載の状況でも高リスク・証跡確認・文書寄りの返答報告書っぽくなりやすい今の状況でも不安軽減・非エンジニア buyer に自然scope anchor なしだと blanket 受諾に見える
+今回の最適は、これらを使わずに、
+15,000円でご依頼いただけます。
+で先に答えることです。
+その後に必要な anchor を分ける方が、人間のビジネスチャットに近いです。
+
+4. 構成順序の推奨
+現状の、
+状況要約↓対応可否↓条件↓購入後材料↓注意↓購入導線
+は、安全性を守るには強いですが、低〜中リスクの初回相談では重くなりやすいです。
+今回のような通常 prequote では、こちらがよいです。
+主質問への直答↓必要な context anchor↓不安の核への返答↓購入後材料↓secret 注意↓次アクション
+phase / risk 別の使い分けは以下です。
+phase / risk推奨冒頭理由prequote / low risk / 依頼可否・価格質問直答から入るbuyer は買えるか・頼めるかを決めたいprequote / buyer が長文で不安多め直答 → 1文 anchor全要約すると bot 感。拾うのは核だけprequote / 支払い前診断・GitHub先見要求境界 → 対応範囲 → 条件付き CTA購入前作業開始を防ぐ必要がある。Gold 44 の領域 quote_sent / 購入判断中提案内容・前提への直答 → 購入後材料材料案内を先に厚くすると買う前提に見えるpurchased / 材料受領後受領確認 → こちらの確認動作ご購入後は に戻らない。phase drift 防止delivered / 軽い補足何を返すかを先に言う補足できます だけで止めないclosed / 関係確認送ってよい → 見る範囲 → 実作業は別相談closed 後境界が強いので、必要な summary / boundary を置くsecret / 外部共有 / 直接push / 本番反映境界を早めに置く自然さより hard guard 優先返金・無料・保証・責任認定不便認知 → 判断条件 → boundarysummary を削りすぎると危険。ただし否定語の復唱は避ける
+重要なのは、**「状況要約を置くか」ではなく、「主質問に答える前に、どの anchor まで必要か」**です。
+
+5. lens / subtype 案
+推奨名
+context_anchor_granularity
+alias
+aliases:  - input_summary_overfit  - summary_vs_answer_balance
+置き場所
+第一候補はここです。
+conversation_flow_naturalness:  subtypes:    - block_rhythm_flow    - topic_label_distance    - context_anchor_granularity
+ただし、独立 entry として書くなら以下がよいです。
+context_anchor_granularity:  description: >    冒頭の受け止めや context anchor が、主質問への直答に必要な核を超えて、    buyer の背景・症状・不安・作成経緯をまとめ直し、回答ではなく入力要約のように見えるかを見る。  parent_lens: conversation_flow_naturalness  related_lenses:    - answer_focus_alignment    - response_weight_mismatch    - semantic_grounding    - buyer_burden_alignment  hard_fail: false  role: soft_subtype  apply_when:    - long_buyer_message    - yes_no_or_price_scope_question    - opening_context_anchor    - non_engineer_or_file_unknown_buyer    - multiple_background_facts_before_direct_answer  fire_conditions:    - 直答前に、症状・作成経緯・材料不安・感情を2軸以上まとめ直している    - 長い条件句の最後に `ご依頼いただけます` / `対応できます` が置かれている    - `〜症状として` `〜状態として` で、buyer の困りごとを受付分類のように扱っている    - buyer の主質問への答えより、入力内容の整理が目立っている  preferred_fix:    - 主質問への直答を先に置く    - scope / phase に必要な観測事実だけ1文で拾う    - 不安や材料負担は直答後に分けて扱う    - safety atom は削らず、露出順と粒度を調整する  escalates_to_hard_when:    - price_and_service_scope を誤る    - phase_contract をまたぐ    - raw_secret_value を求める    - prepurchase_work_start に読める    - closed_after_work_boundary を破る    - semantic_grounding により未確認診断を足す  preference_only_when:    - anchor が1文以内で、直答が遅れていない    - buyer が「この理解で合っていますか」と確認している    - high-risk boundary のために明示的な状況整理が必要    - 文体差に留まり、buyer の次アクションが明確
+hard fail になる条件
+context_anchor_granularity 自体は hard fail にしません。
+hard fail は underlying guard で拾います。
+hard fail 化する場合underlying guard15,000円 scope を誤るprice_and_service_scopeprequote で原因確認開始に見えるphase_contractsecret 値を送らせるraw_secret_valueGitHub / Drive / 直接push を受けるexternal_contact_share_payment / direct_push_or_prod_deployclosed 後に修正ファイル返却を約束closed_after_work_boundary未確認原因を断定semantic_grounding
+preference に留める条件
+以下は落としすぎない方がよいです。
+- 1文だけ症状を拾ってから価格回答している- buyer が不安を強く出しており、短い受け止めがある- 高リスク境界を誤解なく伝えるため、短い状況整理が必要- 返信は少し硬いが、buyer の判断・次アクションは明確
+
+6. writer brief 追記案
+writer-brief.ja.md には、まず runtime 11行の2行目を差し替えるのがよいです。
+Runtime 用短縮版の差し替え案
+現行：
+- buyer の語彙や観測事実を1点は拾い、既出情報は聞き直さない
+変更案：
+- buyer の語彙や観測事実は、主質問への答えに必要な核だけ1点拾い、既出情報は聞き直さない
+これなら、読んで返している感 は残しつつ、全文要約へ寄りにくくなります。
+詳細 guidance 追記案
+禁止形より価値観形を優先する の中に、以下を追加するのがよいです。
+- 冒頭では、相手文の背景・症状・不安・作成経緯を全文要約しない。主質問への答えに必要な核だけ拾う。- 長い相手文ほど、冒頭は短くする。直答の前に `技術症状 + 作成経緯 + 材料不安` を1文へ詰めない。- 背景や不安を扱う場合は、主質問への直答の後に分ける。例: `15,000円でご依頼いただけます。AIで作った部分や外注コードが混ざっていても、必要な範囲はこちらで確認します。`- `状態でも` `症状として` `この状態でも` は禁止語ではない。問題にするのは、長い条件句で回答を後ろへ押し出し、返信が入力要約のように見える時だけ。- ただし、相手文をまったく拾わない返信にしない。価格・scope・phase・secret・buyer の次アクションに必要な観測事実は1点残す。
+この追記は、現行の「主質問に先に答える」「buyer の観測事実を1点拾う」「安全境界は主質問に必要なものだけ出す」という writer-brief の方向と矛盾しません。
+
+7. reviewer prompt 追記案
+監査プロンプト_codex-xhigh.md には、hard fail ではなく soft lens として入れるべきです。
+追加位置は 追加で使ってよい監査ラベル または Pro後の補助監査レンズの近くがよいです。
+追記案です。
+- `context_anchor_granularity` / `input_summary_overfit`: 冒頭の受け止めや context anchor が、主質問への直答に必要な核を超えて、buyer の背景・症状・不安・作成経緯をまとめ直していないかを見る soft lens。特に、長い条件句 + `ご依頼いただけます` / `対応できます`、直答前の2軸以上の復唱、`〜症状として` による受付分類文、buyer の不安を条件ラベル化している文を確認する。  ただし hard fail ではありません。価格・scope・phase・secret・closed 後境界が守られ、buyer が自然に読めるなら `acceptable_as_is` にしてください。  `fix_recommended` にするのは、次のいずれかに該当する場合だけです。  - 主質問への直答が遅れている  - 返信の冒頭が、回答ではなく入力内容の分類・要約に見える  - buyer の不安や背景を1文に詰めすぎて、会話ではなく受付票のように見える  - 長い buyer 文ほど、冒頭の要約量が増えている  - 直答を先に出し、必要な anchor だけ残しても hard guard が崩れない  修正提案では、必要な context anchor まで削らないでください。推奨は `主質問への直答 -> 必要な1文 anchor -> 不安の核への返答 -> 次アクション` です。
+Gold / fix 判定はこう分けると安定します。
+判定条件hard_by_underlying_guardprice / scope / phase / secret / closed 後境界を壊しているfix_recommended意味は正しいが、冒頭が入力要約・受付分類に見える。直答先行へ直せるacceptable_as_isanchor はあるが短く、直答も早いobserve_only1回限りの文体差。再発性不明preference好み差。buyer の判断や安全性に影響しない
+
+8. gold reply / regression 案
+今回のケースは gold reply として残すべきです。
+理由は、Gold 43 の buyer burden / material selection と非常に近い一方で、Gold 43 の例文をそのまま強く使うと、今回のような 冒頭条件句が長くなる 副作用が残るからです。Gold 43 は方向性として正しいですが、「長い相手文では直答と anchor を分ける」という補助 gold があると安定します。
+gold 化する対象
+文面そのものより、以下を gold 化するべきです。
+- 主質問への直答を先に置く- scope anchor は1文だけにする- 作成経緯 / 関係ファイル不明 / 購入後不安を冒頭1文へ詰めない- buyer が選別できない材料は、購入後の safe default input として案内する- secret 値除外は材料案内の近くに置く- ZIP はこの buyer には有効だが、全ケース hard rule にしない
+新規 gold file 案
+docs/reply-quality/gold-replies/46_context-anchor-granularity.ja.md
+内容 skeleton はこれでよいです。
+# Gold Reply 46 — context anchor granularity / input summary overfit## 使いどころ- buyer が長めの相談文で、症状・作成経緯・材料不安・価格質問をまとめて書いている時。- 返信冒頭で buyer 文をきれいにまとめ直しすぎて、入力要約 bot のように見える時。- ただし、相手文をまったく拾わずに雑な直答へしたくない時。## 判断主質問への直答を先に置く。  context anchor は、主質問への答えに必要な核だけにする。  背景や不安は、直答後に分けて扱う。## 避けたい例```textAIで作った部分と外注コードが混ざっていて、関係するファイルが分からない状態でも、15,000円でご依頼いただけます。Stripe決済は完了しているのにサイト側で購入済みにならない症状として、原因確認から進めます。
+推奨例
+ご相談ありがとうございます。15,000円でご依頼いただけます。決済後にサイト側で購入済みにならない不具合として対応できます。AIで作った部分や外注コードが混ざっていても問題ありません。関係ファイルも、無理に絞らなくて大丈夫です。必要な範囲はこちらで見ながら確認します。ご購入後は、プロジェクト一式をZIPでトークルームに添付してください。あわせて、購入済みにならない画面のスクショや、出ているログがあれば送ってください。.env、APIキー、Webhook Secret、DB接続文字列などの値そのものは、ZIPやログに含めないでください。不足があれば、こちらから追加でお伝えします。この内容で問題なければ、そのままご購入ください。
+reviewer 観点
+
+
+主質問への直答が先にあるか。
+
+
+冒頭で buyer 文の背景・症状・不安・作成経緯を全文要約していないか。
+
+
+scope に必要な anchor は1文だけ残っているか。
+
+
+材料不安は材料案内の位置で扱えているか。
+
+
+secret 値除外、phase、価格、scope を自然化で削っていないか。
+
+
+避けること
+
+
+状態でも 症状として を blanket NG にする。
+
+
+相手文を拾わず、何に答えているのか分からない直答にする。
+
+
+ZIP を全ケース hard rule にする。
+
+
+自然化のために支払い前診断・GitHub確認・secret 値要求へ滑る。
+
+
+### gold-reply-map 追加案```yaml  context_anchor_granularity:    status: current    gold_files:      - docs/reply-quality/gold-replies/46_context-anchor-granularity.ja.md    phases:      - prequote      - quote_sent      - purchased      - delivered      - closed    lens:      - conversation_flow_naturalness      - context_anchor_granularity      - answer_focus_alignment      - response_weight_mismatch      - buyer_burden_alignment    use_when:      - "長い buyer 文で、冒頭が相手文の全文要約や分類ラベルのように見える"      - "主質問への直答と context anchor のバランスを合わせたい"    do_not_use_when:      - "buyer が明示的に理解確認を求めており、短い状況整理が必要"      - "高リスク境界のために phase / refund / secret / closed 後の状況整理が必要"      - "相手文を拾わない雑な直答へ寄せる理由にする"
+#R / #RE regression 案
+用意した方がよい regression は以下です。
+IDケース見たい崩れ#R-context-anchor-01今回の Stripe / AI / 外注 / ファイル不明 / 15,000円 / 購入後材料冒頭要約 bot 化#R-context-anchor-02buyer が短文で この状態でも頼めますか？ のみ逆に anchor を削りすぎないか#R-context-anchor-03長文だが主質問は 15,000円でいけるか直答前に全部拾わないか#R-material-unknown-01非エンジニアで関係ファイル不明関係ファイル選別を buyer に返しすぎないか#R-engineer-specific-01engineer buyer が該当ファイルを特定済み不要にコード一式 ZIP を要求しないか#R-prepayment-diagnosis-01支払い前にGitHubを見て、直りそうなら購入購入前診断不可を落とさないか#R-secret-zip-01.envも入れてZIPで送りますsecret 値除外を確実に出せるか#R-quote-sent-material-01見積り提案後、購入後に何を送るか確認見積り提案の内容で と phase が合うか#R-purchased-material-01購入後にZIP・ログ受領済みご購入後は に戻らないか#R-closed-relation-01closed 後に似た Stripe エラー関係確認と実作業を分けられるか#RE-generic-b2b-01B2B問い合わせで長文背景 + 可否質問汎用コアでも over-summary を拾えるか
+
+9. lint 化判断
+結論として、今すぐ強い lint にするのは危険です。
+ただし、warning lint として観察する価値はあります。
+lint にしてよいもの
+warning のみなら、以下は価値があります。
+possible_input_summary_overfit:  condition:    - first_answer_bearing_sentence が長い    - `ご依頼いただけます` / `対応できます` / `可能です` の前に長い条件句がある    - 条件句内に buyer 固有の事実が2軸以上ある  action:    - warn only    - reviewer に `直答 -> anchor 分離` を確認させる
+opening_classification_phrase:  condition:    - 冒頭2文以内に `〜症状として` `〜状態として` がある    - その文が buyer への直答ではなく受付分類に見える  action:    - warn only
+prequote_cause_check_started_phrase:  condition:    - state=prequote    - `原因確認から進めます` が `ご購入後` なしで出る  action:    - phase / promise warning
+multi_axis_opening_anchor:  condition:    - 冒頭の1文に `技術症状 + 作成経緯 + 材料不安 + 価格回答` のうち3軸以上がある  action:    - warn only
+lint にしない方がよいもの
+以下は単語禁止にしない方がよいです。
+- `〜状態でも`- `この状態でも`- `その状態でも`- `ご記載の状況でも`- `今の状況でも`- `〜症状として`- `ご依頼いただけます`- 長い文そのもの
+理由は、どれも自然に使える場面があるからです。
+今回の問題は語ではなく、冒頭で複数 anchor を条件句に詰め、回答を後ろへ押し出す構造です。
+ng-expressions.ja.md に入れるなら、禁止語としてではなく、別枠の warning pattern が望ましいです。現行の NG 集は表現集の性格が強いので、ここへ入れると blanket NG 化しやすいです。
+
+10. やってはいけないこと
+この改善は効きますが、過剰矯正すると別の事故が起きます。
+1. 相手文を拾わなさすぎる
+悪い例です。
+ご相談ありがとうございます。15,000円でご依頼いただけます。ご購入ください。
+これは短いですが、何に対して15,000円なのか、AI/外注コードや関係ファイル不明の不安に答えているのかが見えません。
+2. price / scope / phase を弱める
+自然化のために、以下へ逃げない方がよいです。
+15,000円で対応できると思います。
+固定価格・公開条件が決まっている場面では、思います は弱すぎます。サービスページと facts では、bugfix-15000 は public true、15,000円、不具合1件、原因確認・修正・修正済みファイル返却が公開条件として置かれています。  
+3. ZIP一式 を全ケース hard rule にする
+今回の buyer には適切です。
+しかし engineer buyer が app/api/stripe/webhook/route.ts などを特定している場合は、関係ファイルで足ります。Gold 43 も 毎回コード一式 ZIP を hard rule にしない としています。
+4. 購入前診断へ滑る
+自然な材料案内を急ぐと、
+購入前にZIPを送ってください。確認します。
+のように崩れるリスクがあります。
+prequote では、購入前にコード・ログを見て原因診断を始めない方針を維持する必要があります。facts でも prequote は対応可否・進め方の見立てまでで、コード一式の前のめり要求は避ける扱いです。
+5. input_summary_overfit を hard fail にする
+これは危険です。
+返金・closed・secret・外部共有・複数症状のような高リスク場面では、短い状況整理が必要なことがあります。
+6. 状態でも を禁止する
+禁止すると、自然な返答まで壊れます。
+原因が分からない状態でも相談できます。
+これは自然な場面があります。問題は、長い条件句に複数事実を詰めることです。
+7. handoff-25000 側へ逃がす
+今回の相談は bugfix-15000 の公開条件内です。
+AI生成コード・外注コード・コードの中身が分からないことは、bugfix-15000 サービスページ上でも対応可能とされています。handoff-25000 は public false なので、通常 live / #R / #RE へ出してはいけません。 
+8. 人間っぽさのために根拠のない安心を足す
+よくある症状なので大丈夫です。
+これは避けた方がよいです。
+自然さは、安心語を足すことではなく、答え・条件・次アクションを人間の順番で置くことです。
+
+11. 最短ロードマップ
+今すぐやること
+
+
+writer-brief.ja.md の runtime 2行目を差し替える
+buyer の語彙や観測事実は、主質問への答えに必要な核だけ1点拾う...
+
+
+writer-brief.ja.md の詳細 guidance に、今回の追記を入れる
+特に 技術症状 + 作成経緯 + 材料不安 を直答前1文へ詰めない、を明記する。
+
+
+監査プロンプト_codex-xhigh.md に context_anchor_granularity / input_summary_overfit を soft lens として追記する
+hard fail ではなく fix_recommended / acceptable_as_is / observe_only で扱う。
+
+
+gold-replies/46_context-anchor-granularity.ja.md を追加する
+今回の bad / good 比較を保存する。
+
+
+gold-reply-map.yaml に family を追加する
+conversation_flow_naturalness、answer_focus_alignment、response_weight_mismatch、buyer_burden_alignment と関連づける。
+
+
+数 batch 観察してからやること
+
+
+lens-taxonomy.yaml に正式 subtype として追加する
+すぐ入れてもよいですが、2〜3 batch で再発形を見てからの方が名前が安定します。
+
+
+warning lint を試す
+long_condition_before_answer と opening_classification_phrase だけを warning にする。
+auto-fix / hard fail はしない。
+
+
+Gold 43 の例文を微修正するか検討する
+Gold 43 は方向性として正しいですが、例文1の冒頭が少し条件句型です。新 Gold 46 が入れば、Gold 43 を大きく直さなくても補正できます。
+
+
+japanese-chat-natural-ja の 要点復唱を2点まで を微調整する
+例: Yes/No・価格可否では、直答前の要点復唱は原則1点まで。
+
+
+Pro 再分析が必要なこと
+
+
+context_anchor_granularity を taxonomy に正式追加するか、conversation_flow_naturalness の subtype だけに留めるか
+
+
+output-schema.yaml に context_anchor_plan を追加するか
+
+
+lint を warning として入れる場合の過検出率
+
+
+汎用ビジネス返信OSへ移す時の layer placement
+
+
+
+汎用返信コアへの影響
+この理解は妥当です。
+ココナラ特有ではありません。問い合わせ返信、見積り返信、納品後対応、クレーム対応、B2Bサポートでも、相手文を正確に要約しすぎると、担当者ではなく入力分類器に見える問題は起きます。
+汎用コアへ持ち出すなら、置き場所はこうです。
+層役割Contract Resolverfacts / scope / state / forbidden moves を固定する。自然化判断はしないState / Intent Classifier主質問・明示質問・risk を分類する。本文へ分類語を出さないReply Decision Contractdirect_answer_intent と context_anchor_budget を決める。ここが最重要Freeform Writer直答 → 必要 anchor → 不安への返答 → 次アクションで書くJapanese Naturalizer長い条件句・入力要約感・分類ラベル感を落とすReviewer / Lintsoft lens と warning で検出するEvaluation / Goldbad / good 比較、anchor 粒度、phase/risk別の順序を保存する
+将来的に schema 化するなら、response_decision_plan 配下にこれを足すのが自然です。reply_contract ではなく、書く順番と anchor 量の判断だからです。
+context_anchor_plan:  placement: after_direct_answer  budget: one_short  required_anchor:    - scope_symptom  secondary_anchor_after_answer:    - buyer_material_literacy  avoid_before_answer:    - code_provenance    - material_anxiety    - emotional_completion  anti_pattern:    - input_summary_overfit
+ただし、これは今すぐ必須ではありません。
+まずは writer brief / reviewer prompt / gold で十分です。
+今回の改善は、返信OSのコア化にかなり効きます。
+ポイントは、**「認識している感」を消すことではなく、「主質問に答えるための anchor だけを、正しい位置に置くこと」**です。
