@@ -134,6 +134,25 @@ FLOW_DEICTIC_AGENCY_WARNINGS: list[tuple[re.Pattern[str], str]] = [
     ),
 ]
 
+FLOW_ANSWERABILITY_WARNINGS: list[tuple[re.Pattern[str], str]] = [
+    (
+        re.compile(r"(?:ログ|スクショ|関係ファイル|ZIP|zip|ファイル)[^。\n]{0,40}(?:届いています|受け取っています|受け取りました|確認できています)"),
+        "answerability_boundary warning: material receipt is asserted; ensure material_received evidence is available",
+    ),
+    (
+        re.compile(r"(?:今は|現在は|現時点では)[^。\n]{0,70}(?:見ています|確認しています|照合しています|進めています)"),
+        "answerability_boundary warning: current work status is asserted; ensure work_status evidence is available",
+    ),
+    (
+        re.compile(r"本日\d{1,2}:\d{2}まで"),
+        "answerability_boundary warning: specific same-day deadline is asserted; ensure deadline_authorized is available",
+    ),
+    (
+        re.compile(r"(?:反映するファイル|確認する画面|どの画面|どのファイル|どの順番)[^。\n]{0,90}(?:整理します|お伝えします|まとめます)"),
+        "answerability_boundary warning: delivered follow-up may promise a concrete answer without delivery context",
+    ),
+]
+
 FLOW_ASSERTIVE_ENDING_RE = re.compile(
     r"(?:です|ます|ません|できます|しました|しています|なります|ありません|ください)[。！？!?]?$"
 )
@@ -840,6 +859,10 @@ def collect_conversation_flow_warnings(rendered: str) -> list[str]:
             warnings.append(message)
 
     for pattern, message in FLOW_DEICTIC_AGENCY_WARNINGS:
+        if pattern.search(rendered):
+            warnings.append(message)
+
+    for pattern, message in FLOW_ANSWERABILITY_WARNINGS:
         if pattern.search(rendered):
             warnings.append(message)
 

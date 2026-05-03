@@ -74,6 +74,7 @@ optional_fields:
   - known_facts
   - user_override
   - routing_meta
+  - reply_authority
   - response_decision_plan
   - evidence_found
   - ask_count
@@ -290,6 +291,24 @@ nested_field_rules:
       - no_groundless_reassurance forbids unsupported calming claims such as "よくあるケースです" or "大丈夫です" without evidence
       - no_sycophancy forbids agreeing with buyer mistakes, softening boundaries, or mirroring praise in a way that weakens factual accuracy
       - no_emotion_completion forbids over-interpreting or completing the buyer's feelings beyond what they actually said
+  reply_authority:
+    optional_fields:
+      - can_assert_material_received
+      - can_assert_current_work_status
+      - can_set_specific_deadline
+      - has_delivery_artifact_context
+      - can_name_modified_files
+      - can_name_verification_screen
+      - can_classify_same_cause
+      - can_quote_public_price
+      - can_reference_payment_route
+      - authority_notes
+    derived_rules:
+      - reply_authority is a pre-writer gate for answerability, not a new source of service facts
+      - material receipt, current work status, specific deadlines, modified file names, and verification screen names may be asserted only when the matching authority flag is true
+      - when a flag is false, the writer should not invent concrete status; it should answer what can be answered and mark the rest as context needed or after-check
+      - can_quote_public_price and can_reference_payment_route are still bounded by service-registry public state and platform contract
+      - has_delivery_artifact_context is required before naming concrete delivered files, reflection order, or verification screens
   user_override:
     required:
       - raw_text

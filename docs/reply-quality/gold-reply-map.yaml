@@ -316,6 +316,26 @@ families:
       - "高リスク境界のために phase / refund / secret / closed 後の状況整理が必要"
       - "相手文を拾わない雑な直答へ寄せる理由にする"
 
+  answerability_boundary:
+    status: current
+    gold_files:
+      - docs/reply-quality/gold-replies/47_answerability-boundary-delivered-progress.ja.md
+    phases:
+      - purchased
+      - delivered
+      - closed
+    lens:
+      - answerability_boundary
+      - semantic_grounding
+      - commitment_strength_calibration
+      - post_completion_followup_scope_clarity
+    use_when:
+      - "buyer が受領済み・現在地・次回時刻・納品ファイル・確認画面を聞いている"
+      - "答えられる範囲と case context が必要な範囲を分けたい"
+    do_not_use_when:
+      - "根拠なしに具体名や作業状況を作る理由にする"
+      - "答えられる場面で、具体回答を避ける理由にする"
+
 private_or_shadow_families:
   handoff_private:
     status: shadow_only

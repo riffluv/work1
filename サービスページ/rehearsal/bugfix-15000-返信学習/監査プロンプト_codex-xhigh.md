@@ -18,7 +18,7 @@
 特に重く見る点:
 - まず deterministic hard guards を見てください。次に、その batch の焦点に合う soft lens だけを強めに見ます。soft lens を全件に均等適用して粗探ししないでください。
   - `hard_guards`: `public_private_boundary` / `price_and_service_scope` / `phase_contract` / `raw_secret_value` / `external_contact_share_payment` / `direct_push_or_prod_deploy` / `closed_after_work_boundary` / `success_refund_free_guarantee`
-  - `active_soft_lenses`: batch 指定がなければ `answer_focus_alignment` / `buyer_burden_alignment` / `agency_alignment` / `conversation_flow_naturalness` / `semantic_grounding` を優先してください。長い初回相談や非エンジニア buyer の材料不安が焦点なら `context_anchor_granularity` / `action_closure` も見る。quote_sent の購入判断、closed 後の関係確認が焦点なら `purchase_cta_strength_calibration` / `purchase_before_materials_order` / `post_completion_followup_scope_clarity` も見る
+  - `active_soft_lenses`: batch 指定がなければ `answer_focus_alignment` / `buyer_burden_alignment` / `agency_alignment` / `conversation_flow_naturalness` / `semantic_grounding` を優先してください。長い初回相談や非エンジニア buyer の材料不安が焦点なら `context_anchor_granularity` / `action_closure` も見る。quote_sent の購入判断、closed 後の関係確認が焦点なら `purchase_cta_strength_calibration` / `purchase_before_materials_order` / `post_completion_followup_scope_clarity` も見る。purchased / delivered / closed で受領済み・作業状況・具体時刻・納品ファイル名・確認画面名が焦点なら `answerability_boundary` も見る
   - `observe_only`: `echo_to_working_angle` / `instructional_tone_leak` / `unnamed_discomfort` は、明確な実務リスクがある場合だけ観察メモに留めてください
 - 主質問への直答が速いか
 - 直答を速くするために可否だけを独立文にしすぎていないか。可否・価格・対応方針が同じ答えの一部なら、一息でまとめた方が自然かを見る
@@ -53,6 +53,7 @@
 - `boundary_phrase_maturity`: 支払い前不可、範囲外、closed後不可などの境界説明で、buyer の口語や圧力語をそのまま貼り戻して稚拙・防御的に見えていないかを見る。例: `直せそうかだけ先に判断する形では進めていません` より、`お支払い前は、ファイルやログを見て原因確認まで進めることはできません` のような成熟した業務文を優先します。ただし必要な不可表明は消さないでください
 - `boundary_layer_separation`: 支払い前不可 / 症状の対応可否 / CTA / 購入後材料案内など、役割の違う層を `ただ` や長い一文で無理につないでいないかを見る。望ましい順序は、境界突破要求では `不可表明 -> 症状ベースの対応可否 -> 条件付きCTA -> 購入後材料案内` です
 - `commitment_strength_calibration`: phase・受領証拠・原因特定度に対して、約束の強さが合っているかを見る soft lens。prequote / quote_sent で修正済みファイル返却や原因確認を開始済みにしていないか、購入後でも原因未特定なら修正完了・今日中完了を強く約束していないか、closed 後では関係確認と実作業を分けているかを見てください
+- `answerability_boundary`: buyer の主質問に答えるために、受領状態・現在の作業状況・具体時刻・納品物 context が必要かを見る soft lens。`届いています` `受け取っています` `今は〜を見ています` `本日18:00まで` `反映するファイル` `確認する画面` などは、根拠がある時だけ断定してください。根拠がない場合は具体名や作業状況を作らず、context needed / after-check として扱います。一方、根拠がある場面では `整理します` だけで逃げず、答えそのものを出してください
 - `topic_label_distance`: `case_label_distance` の上位観点。buyer の困りごとを受付票のような案件ラベルにして距離を出していないかを見る observation。`〜の件` は blanket NG にせず、`ログの件` `反映箇所の件` のような自然な topic organizer は許容してください。問題にするのは、直接やり取り中の困りごとを `似たStripeエラーが出ている件ですね` のように遠く扱う場合です
 - `buyer_state_ack_gap`: buyer が怒り・疲弊・不安・焦り・不信・困惑・遠慮・無料/返金不満などを明示しているのに、症状・価格・手順だけを受けて状態シグナルを落としている。QA-07 温度感ズレの下位観点として見る
 - `unnamed_discomfort`: 既存ラベルにまだ当てはまらないが、実務返信として buyer が詰まりそう・逃げに見えそう・商売上弱そうなどの違和感がある。最大1〜2件まで、実務リスクを説明できる場合だけ観察メモとして挙げてください
@@ -92,6 +93,7 @@ Pro後の補助監査レンズ:
 - Pro後の補助監査レンズは hard fail に直結させないでください。明確な public leak、phase drift、secret 値要求、保証断定など deterministic な事故だけ必須修正にし、それ以外は軽微・観察・gold 候補として扱ってください
 - `promise_consistency` は hard fail ではありません。ただし、public/private 事故、phase drift、secret 値要求、成功保証・返金保証・無料対応の断定、scope / price / payment route の事実変更、外部共有・直接 push・本番デプロイ誘導、closed 後の旧トークルーム継続作業の約束が出た場合だけ deterministic な事故として扱ってください。無条件に読めるが明示断定ではないものは `fix recommended`、単なる順序・語感の改善は `preference` に留めてください
 - `promise_consistency` の修正提案では、固定価格・対応可能範囲・購入後に開始できる作業まで曖昧にしないでください。望ましい修正は、`まず原因確認から進められます`、`修正できる箇所が特定できた場合は修正済みファイルをお返しします`、`購入後にログと関連コードを確認します` のように、条件・順序・対象を最小限足すことです
+- `answerability_boundary` は hard fail ではありません。ただし、根拠なしに受領済み・現在作業中・具体時刻・納品ファイル名・確認画面名を断定し、それが phase drift、未約束の成果物、closed 後作業 promise、成功保証、材料受領の虚偽に接続した場合は underlying hard guard として扱ってください。単なる保留表現の改善は軽微または gold 候補に留めてください
 - `jp_business_native_naturalness` は、価格・scope・phase・secret・public/private・支払い導線・作業可否を変えるために使わないでください。`はい、` や `まずは` を全面禁止せず、二重受領・機械的な yes・近接反復など再発性のある違和感だけを拾ってください
 - `agency_alignment` は hard fail ではありません。ただし、行為主体のズレによって支払い前作業開始、未約束の成果物返却、外部共有、返金/無料対応、closed 後作業、public/private leak などの deterministic 事故に接続している場合は、実際に壊れた boundary 名で必須修正にしてください。意味・導線・安全境界が明確で、より自然な言い換えがあるだけなら軽微または preference に留めてください
 - `permission_benefit_alignment` は `大丈夫です` の全面禁止ではありません。buyer の負担を実際に減らす自然な用法は残してください。支払い・購入・材料送付・作業開始の導線で seller が buyer の行動を許可しているように見える場合だけ、手順表現への最小修正を提案してください

@@ -214,6 +214,35 @@ formal_soft_lenses:
       - lint
       - reply_contract
 
+  answerability_boundary:
+    description: "buyer の主質問に答えるために、受領状態・作業状況・期限権限・納品物 context が必要かを見て、根拠なしの断定や具体名生成を止める"
+    hard_fail: false
+    role: "pre_writer_authority_gate"
+    subtypes:
+      - receipt_status_authority
+      - work_status_authority
+      - deadline_authority
+      - delivery_artifact_answerability
+      - verification_target_answerability
+      - answer_vs_ack_placeholder
+    subtype_notes:
+      receipt_status_authority: "`届いています` `受け取っています` は material_received の根拠がある時だけ使う"
+      work_status_authority: "`今は〜を見ています` `確認しています` は actual work status がある時だけ使う"
+      deadline_authority: "`本日18:00まで` などの具体時刻は、実際に返せる権限・運用時刻がある時だけ使う"
+      delivery_artifact_answerability: "delivered で修正ファイル名や反映順を聞かれた時、納品物 context なしに具体名を作らない"
+      verification_target_answerability: "確認画面や検証箇所を聞かれた時、実装・納品 context なしに画面名を作らない"
+      answer_vs_ack_placeholder: "答えられる場面で `整理してお伝えします` だけに逃げず、答えられない場面では context needed として止める"
+    escalates_to_hard_when:
+      - assert_received_material_without_state
+      - assert_work_status_without_state
+      - invent_delivery_file_or_screen
+      - set_deadline_without_authority
+    preferred_return_targets:
+      - reply_contract
+      - reviewer_prompt
+      - lint
+      - future_saas_core
+
   commitment_strength_calibration:
     description: "時刻、納期、修正完了、返金/無料、成果物返却の約束が情報量と phase に合っているか"
     hard_fail: false

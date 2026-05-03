@@ -2337,3 +2337,12 @@
 - 想定効果: `勝手に進むのか` への不安には答えつつ、buyer が知りたい `追加対応にするか / 費用はどうなるか` へ近い言葉で返せる。closed 後や高リスク実作業では広い `対応範囲と費用` を残し、温度感だけを適正化する。
 - 確認: #R 最新文を `追加対応にするかどうかと費用` へ差し替え済み。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
 - 非変更: `対応方法と費用` を blanket NG にしない。closed 後の実作業境界や、対応範囲そのものを相談する必要がある場面では使ってよい。
+
+### 2026-05-03 / CHG-269
+- 分類: `reply-only`
+- レイヤ: reply authority / answerability boundary / future SaaS core
+- 変更: Pro 5-03 分析を受け、`answerability_boundary` を soft lens として追加し、`reply_authority` packet を `output-schema.yaml` に追加した。受領済み・作業状況・具体時刻・納品ファイル名・確認画面名は、case state / delivery context / deadline authority がある時だけ断定する方針を `writer-brief.ja.md`、`coconala-reply-bugfix-ja`、`japanese-chat-natural-ja` に反映した。あわせて Gold 47 を追加し、lint に高信頼 warning を追加した。
+- きっかけ: #R 実返信候補で、購入後や納品後の相談に対し、`届いています` `今は〜を見ています` `本日18:00まで` `反映するファイルを整理します` のような文が、実際の受領状態・作業状況・納品 context なしに生成される危険が Pro により整理されたため。
+- 想定効果: ココナラ実案件では、Codex が本当に持っている受領・作業・納品 context だけを使って具体回答できる。一方、将来 SaaS の service-only / case-note-only 状態では、AI が専門担当者しか知らない作業状況や納品物具体名をそれっぽく作る事故を止められる。
+- 確認予定: YAML load、`py_compile`、`git diff --check`、`./scripts/os-check.sh` を実行する。通常 live / #RE に `handoff-25000`、25,000円、主要1フロー整理、未公開導線は出さない。
+- 非変更: `届いています` `確認しています` `本日18:00まで` `整理します` を blanket NG にしない。根拠がある本番 case では使ってよい。`answerability_boundary` は hard guard ではなく、根拠なしの断定が phase / secret / closed / success promise に接続した時だけ既存 hard guard で扱う。

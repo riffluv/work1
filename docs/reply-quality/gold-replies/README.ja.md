@@ -71,6 +71,7 @@
 - `44_quote-sent-purchase-cta-material-order.ja.md`
 - `45_closed-relation-check-scope-clarity.ja.md`
 - `46_context-anchor-granularity.ja.md`
+- `47_answerability-boundary-delivered-progress.ja.md`
 
 ## Gold 26-33 family index
 
@@ -96,6 +97,7 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 | quote_sent_purchase_cta_material_order | 44 | 見積り提案後や購入前に、buyer が `直りそうなら購入` `支払い前に少し見てほしい` と迷っている時。購入前境界、対応範囲、CTA、購入後材料案内の順序を合わせる時 | `ご購入ください` の blanket NG や、支払い前作業不可を消す理由にする時 |
 | post_completion_followup_scope_clarity | 45 | closed 後に前回修正との関係確認を受ける時。ログ/スクショで何を確認するのか、実作業・成果物返却・費用相談とどう分けるかを明確にしたい時 | closed 後の実作業、無料対応、返金、旧トークルーム継続を約束する理由にする時 |
 | context_anchor_granularity | 46 | 長い buyer 文で、冒頭が全文要約や分類ラベルのように見える時。主質問への直答と、必要な context anchor の粒度を合わせたい時 | 状況をまったく拾わない雑な直答にする理由や、`状態でも` `症状として` の blanket NG にする時 |
+| answerability_boundary | 47 | purchased / delivered / closed で、受領済み・作業状況・具体時刻・納品ファイル名・確認画面名を答えてよい根拠があるかを見る時 | 根拠なしに具体名を作る理由や、答えられる場面で `整理します` だけに逃げる理由にする時 |
 
 ### 抽出して validator / renderer へ戻す候補
 
@@ -116,3 +118,4 @@ Gold はテンプレートではなく、近い判断順序を思い出すため
 - Gold 44: `purchase_cta_strength_calibration` / `purchase_before_materials_order` は hard validator 化せず、buyer がまだ購入判断中の時に、購入後材料案内が買う前提として先行していないかを見る anchor として使う。
 - Gold 45: `post_completion_followup_scope_clarity` は hard validator 化せず、closed 後の関係確認が「何を見てくれるのか」と「どこから実作業なのか」を buyer に見せる anchor として使う。closed 後作業 promise が出た場合は既存 hard guard で扱う。
 - Gold 46: `context_anchor_granularity` は hard validator 化せず、冒頭で buyer 文の背景・症状・不安・作成経緯を全文要約していないかを見る anchor として使う。直答を先に置き、scope に必要な anchor だけ残す。状況を拾わない雑な直答や、`状態でも` `症状として` の blanket NG にはしない。
+- Gold 47: `answerability_boundary` は hard validator 化せず、受領済み・作業状況・具体時刻・納品ファイル名・確認画面名の断定に根拠があるかを見る anchor として使う。根拠がない場合は具体名を作らず、根拠がある場合は `整理します` だけで逃げず答えそのものを出す。
